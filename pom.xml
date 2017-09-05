@@ -16,4 +16,52 @@
       </plugin>
     </plugins>
   </build>
+  <distributionManagement>
+  	<repository>
+  	  <id>Releases</id>
+  	  <url>http://10.0.12.155:8081/nexus/content/repositories/releases/</url>
+  	</repository>
+    <snapshotRepository>
+      <id>Snapshots</id>
+ 	  <url>http://10.0.12.155:8081/nexus/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+  
+  <dependencies>
+	<dependency>
+	    <groupId>hiapp.utils</groupId>
+	    <artifactId>hiapp-utils</artifactId>
+	    <version>0.0.1</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
+	<dependency>
+	    <groupId>javax.servlet</groupId>
+	    <artifactId>javax.servlet-api</artifactId>
+	    <version>3.1.0</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/commons-beanutils/commons-beanutils -->
+	<dependency>
+	    <groupId>commons-beanutils</groupId>
+	    <artifactId>commons-beanutils</artifactId>
+	    <version>1.9.3</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/commons-dbcp/commons-dbcp -->
+	<dependency>
+	    <groupId>commons-dbcp</groupId>
+	    <artifactId>commons-dbcp</artifactId>
+	    <version>1.4</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
+	<dependency>
+	    <groupId>org.springframework</groupId>
+	    <artifactId>spring-web</artifactId>
+	    <version>4.3.8.RELEASE</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.springframework/spring-webmvc -->
+	<dependency>
+	    <groupId>org.springframework</groupId>
+	    <artifactId>spring-webmvc</artifactId>
+	    <version>4.3.8.RELEASE</version>
+	</dependency>
+  </dependencies>
 </project>
