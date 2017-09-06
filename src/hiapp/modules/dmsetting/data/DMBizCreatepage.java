@@ -22,6 +22,7 @@ import org.xml.sax.SAXException;
 import dm.setting.dbLayer.DMBizWorkSheets;
 import dm.setting.dbLayer.WorkSheetTypeDm;
 import hiapp.utils.base.DatabaseType;
+import hiapp.modules.dmsetting.ImportMapColumn;
 import hiapp.system.worksheet.dblayer.WorkSheet;
 import hiapp.system.worksheet.dblayer.WorkSheetColumn;
 import hiapp.system.worksheet.dblayer.WorkSheetManager;

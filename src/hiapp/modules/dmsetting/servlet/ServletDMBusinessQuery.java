@@ -64,7 +64,7 @@ public class ServletDMBusinessQuery extends HttpServlet {
 		RecordsetResult recordsetResult=new RecordsetResult();
 		List<DMBusiness> listDMBusiness=new ArrayList<DMBusiness>();
 		try {
-			if (!DMBusinessManager.DMBusinessQuery(dbConn,searchKeyString,listDMBusiness)) {
+			if (!DMBusinessRepository.DMBusinessQuery(dbConn,searchKeyString,listDMBusiness)) {
 				return;
 			}
 			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);

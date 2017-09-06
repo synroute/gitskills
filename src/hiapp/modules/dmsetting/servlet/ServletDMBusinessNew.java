@@ -67,7 +67,7 @@ public class ServletDMBusinessNew extends HttpServlet {
 		
 		try {
 			StringBuffer errMessage = new StringBuffer();
-			ServiceResultCode serviceResultCode = DMBusinessManager.newDMBusiness(dbConn, id, name,description, ownerGroupId,modeId,subModeId, errMessage);
+			ServiceResultCode serviceResultCode = DMBusinessRepository.newDMBusiness(dbConn, id, name,description, ownerGroupId,modeId,subModeId, errMessage);
 			if (serviceResultCode != ServiceResultCode.SUCCESS) {
 				serviceresult.setResultCode(serviceResultCode);
 				serviceresult.setReturnMessage(errMessage.toString());

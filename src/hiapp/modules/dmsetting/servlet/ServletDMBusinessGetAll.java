@@ -63,7 +63,7 @@ public class ServletDMBusinessGetAll extends HttpServlet {
 		}
 		try {
 			List<DMBusiness> listDMBusiness = new ArrayList<DMBusiness>();
-			if (!DMBusinessManager.getAllDMBusiness(dbConn, listDMBusiness)) {
+			if (!DMBusinessRepository.getAllDMBusiness(dbConn, listDMBusiness)) {
 				return;
 			}
 			RecordsetResult recordsetResult = new RecordsetResult();

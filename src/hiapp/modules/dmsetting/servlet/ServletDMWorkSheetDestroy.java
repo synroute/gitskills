@@ -62,7 +62,7 @@ public class ServletDMWorkSheetDestroy extends HttpServlet {
 		String id= request.getParameter("id");
 		try {
 			StringBuffer errMessage = new StringBuffer();
-			ServiceResultCode serviceResultCode =DMWorkSheetManager.destroy(dbConn,Integer.parseInt(bizId),Integer.parseInt(id),errMessage); 
+			ServiceResultCode serviceResultCode =DMWorkSheetRepository.destroy(dbConn,Integer.parseInt(bizId),Integer.parseInt(id),errMessage); 
 			if (serviceResultCode != ServiceResultCode.SUCCESS) {
 				serviceresult.setResultCode(serviceResultCode);
 				String errmessage1 = errMessage.toString();

@@ -1,12 +1,18 @@
 package hiapp.modules.dmsetting.data;
 
-import hiapp.utils.base.DatabaseType;
-import hiapp.system.worksheet.dblayer.CreationInfoWorkSheet;
-import hiapp.system.worksheet.dblayer.WorkSheet;
-import hiapp.system.worksheet.dblayer.WorkSheetDataType;
-import hiapp.system.worksheet.dblayer.WorkSheetManager;
+import hiapp.utils.database.BaseRepository;
+import hiapp.utils.database.DatabaseType;
+import hiapp.modules.dmsetting.DMBusiness;
+import hiapp.modules.dmsetting.DMModeEnum;
+import hiapp.modules.dmsetting.DMSubModeEnum;
+import hiapp.modules.dmsetting.DMWorkSheet;
+import hiapp.modules.dmsetting.DMWorkSheetType;
+import hiapp.system.buinfo.data.GroupRepository;
+import hiapp.system.worksheet.bean.CreationInfoWorkSheet;
+import hiapp.system.worksheet.bean.WorkSheet;
+import hiapp.system.worksheet.bean.WorkSheetDataType;
+import hiapp.system.worksheet.data.WorkSheetRepository;
 import hiapp.utils.DbUtil;
-import hiapp.utils.UtilServlet;
 import hiapp.utils.serviceresult.ServiceResultCode;
 
 import java.sql.Connection;
@@ -16,7 +22,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DMWorkSheetManager {
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class DMWorkSheetRepository extends BaseRepository {
+	@Autowired
+	private DMWorkSheetRepository DMWorkSheetRepository;
+	@Autowired
+	private WorkSheetRepository WorkSheetRepository;
+	
 	public static ServiceResultCode newDMBizWorkSheetsSystem(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage) {
 		ServiceResultCode sResultCode=null;
 		DMModeEnum dmMode=DMModeEnum.get(dmBusiness.getModeId());
@@ -246,9 +261,10 @@ public class DMWorkSheetManager {
 		WorkSheetManager.destroyWorkSheet(dbConn, workSheetId);
 		return ServiceResultCode.SUCCESS;
 	}
-	public static ServiceResultCode destroyWorkSheetAll(Connection dbConn,int bizId, StringBuffer errMessage) throws Exception{
+	public static ServiceResultCode destroyWorkSheetAll(int bizId, StringBuffer errMessage) throws Exception{
+		
 		List<DMWorkSheet> listworksheet=new ArrayList<DMWorkSheet>();
-		DMWorkSheetManager.getWorkSheetAll(dbConn,bizId,listworksheet);
+		DMWorkSheetRepository.getWorkSheetAll(dbConn,bizId,listworksheet);
         for(int ii=0;ii<listworksheet.size();ii++){
         	WorkSheet workSheet=listworksheet.get(ii);
         	destroyWorkSheet(dbConn, workSheet.getId());

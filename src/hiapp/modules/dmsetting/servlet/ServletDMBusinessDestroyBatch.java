@@ -75,7 +75,7 @@ public class ServletDMBusinessDestroyBatch extends HttpServlet {
 		}
 		try {
 			StringBuffer errMessage = new StringBuffer();
-			ServiceResultCode serviceResultCode = DMBusinessManager.destroyDMBusinessBatch(dbConn, listDMBId,errMessage);
+			ServiceResultCode serviceResultCode = DMBusinessRepository.destroyDMBusinessBatch(dbConn, listDMBId,errMessage);
 			if (serviceResultCode != ServiceResultCode.SUCCESS) {
 				serviceresult.setResultCode(serviceResultCode);
 				serviceresult.setReturnMessage(errMessage.toString());

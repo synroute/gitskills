@@ -1,8 +1,9 @@
 package hiapp.modules.dmsetting.data;
 
-import hiapp.system.buinfo.bean.MapUserGroupRoleManager;
-import hiapp.system.buinfo.beanOld.User;
+import hiapp.modules.dmsetting.DMBusiness;
+import hiapp.system.buinfo.data.GroupRepository;
 import hiapp.utils.DbUtil;
+import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
 
@@ -12,9 +13,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 
-public class DMBusinessManager {
+@Repository
+public class DMBusinessRepository extends BaseRepository {
+	@Autowired
+	private DMBusinessRepository DMBusinessRepository;
 
 	public static boolean getAllDMBusiness(Connection dbConn,List<DMBusiness> listDMBusiness) {
 		String szSql = "";
@@ -115,7 +121,7 @@ public class DMBusinessManager {
 		dmBusiness.setName(name);
 		dmBusiness.setModeId(Integer.parseInt(modeId));
 		dmBusiness.setSubModeId(Integer.parseInt(subModeId));
-		return DMWorkSheetManager.newDMBizWorkSheetsSystem(dbConn, dmBusiness, errMessage);
+		return DMWorkSheetRepository.newDMBizWorkSheetsSystem(dbConn, dmBusiness, errMessage);
 	}
 
 	public static ServiceResultCode modifyDMBusiness(Connection dbConn,
@@ -162,10 +168,12 @@ public class DMBusinessManager {
 		return ServiceResultCode.SUCCESS;
 	}
 
-	public static ServiceResultCode destroyDMBusiness(Connection dbConn,int bizId, StringBuffer errMessage) {
+	public ServiceResultCode destroyDMBusiness(int bizId, StringBuffer errMessage) {
+		Connection dbConn = null;
 		String szSql = "";
 		PreparedStatement stmt = null;
 		try {
+			dbConn = this.getDbConnection();
 			szSql = String.format("DELETE FROM HASYS_DM_BUSINESS WHERE ID='%s'",bizId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
@@ -174,12 +182,13 @@ public class DMBusinessManager {
 			System.out.print(msgString);
 			return  ServiceResultCode.EXECUTE_SQL_FAIL;
 		} finally {
+			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseExecute(stmt);
 		}
 		String msgString = String.format("destroyDMBusiness OK 锛丼ql=[%s]",szSql);
 		System.out.print(msgString);
 		try {
-			return DMWorkSheetManager.destroyWorkSheetAll(dbConn, bizId,errMessage);
+			return DMWorkSheetRepository.destroyWorkSheetAll(bizId,errMessage);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

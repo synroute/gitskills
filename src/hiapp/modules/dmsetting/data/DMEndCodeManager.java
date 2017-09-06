@@ -9,6 +9,7 @@ import java.util.List;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import hiapp.modules.dmsetting.DMEndCode;
 import hiapp.utils.UtilServlet;
 
 public class DMEndCodeManager {

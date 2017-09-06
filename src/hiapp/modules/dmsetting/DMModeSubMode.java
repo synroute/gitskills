@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.data;
+package hiapp.modules.dmsetting;
 
 public class DMModeSubMode {
 	private int modeId;

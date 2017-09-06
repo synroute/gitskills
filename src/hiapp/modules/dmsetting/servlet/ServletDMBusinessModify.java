@@ -66,7 +66,7 @@ public class ServletDMBusinessModify extends HttpServlet {
 			szDMBId = "0";
 		try {
 			StringBuffer errMessage = new StringBuffer();
-			ServiceResultCode serviceResultCode = DMBusinessManager
+			ServiceResultCode serviceResultCode = DMBusinessRepository
 					.modifyDMBusiness(dbConn, szDMBId, szDMBName,
 							szDMBDescription, szOwnerGroupId, errMessage);
 			if (serviceResultCode != ServiceResultCode.SUCCESS) {

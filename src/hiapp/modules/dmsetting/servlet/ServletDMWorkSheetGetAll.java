@@ -67,7 +67,7 @@ public class ServletDMWorkSheetGetAll extends HttpServlet {
 			String bizId=request.getParameter("bizId");
 
 			List<DMWorkSheet> listWorkSheet= new ArrayList<DMWorkSheet>();
-			DMWorkSheetManager.getWorkSheetAll(dbConn, Integer.parseInt(bizId), listWorkSheet);
+			DMWorkSheetRepository.getWorkSheetAll(dbConn, Integer.parseInt(bizId), listWorkSheet);
 			RecordsetResult recordsetResult = new RecordsetResult();
 			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
 			recordsetResult.setPage(0);

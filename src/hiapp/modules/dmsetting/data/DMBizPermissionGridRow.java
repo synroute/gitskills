@@ -1,5 +1,7 @@
 package hiapp.modules.dmsetting.data;
 
+import hiapp.modules.dmsetting.DMBizPermissionGridCell;
+
 import java.util.ArrayList;
 import java.util.List;
 

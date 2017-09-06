@@ -89,7 +89,7 @@ public class ServletDMBizPermissionColumns extends HttpServlet {
 		
 
         List<DMBusiness> listDMBusiness=new ArrayList<DMBusiness>();
-        DMBusinessManager.getAllDMBusiness(dbConn, listDMBusiness);
+        DMBusinessRepository.getAllDMBusiness(dbConn, listDMBusiness);
         for(int ii=0;ii<listDMBusiness.size();ii++){
         	DMBusiness dmBusiness=listDMBusiness.get(ii);
         	jso=new JsonObject();

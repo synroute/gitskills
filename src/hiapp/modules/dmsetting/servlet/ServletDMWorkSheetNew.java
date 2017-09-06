@@ -66,7 +66,7 @@ public class ServletDMWorkSheetNew extends HttpServlet {
 		String description=request.getParameter("description");
 		try {
 			StringBuffer errMessage = new StringBuffer();
-			ServiceResultCode serviceResultCode =DMWorkSheetManager.newWorkSheet(dbConn,Integer.parseInt(bizId),id,nameCh,name,description,errMessage); 
+			ServiceResultCode serviceResultCode =DMWorkSheetRepository.newWorkSheet(dbConn,Integer.parseInt(bizId),id,nameCh,name,description,errMessage); 
 			if (serviceResultCode != ServiceResultCode.SUCCESS) {
 				serviceresult.setResultCode(serviceResultCode);
 				String errmessage1 = errMessage.toString();

@@ -1,5 +1,8 @@
 package hiapp.modules.dmsetting.data;
 
+import hiapp.modules.dmsetting.DMBizPermission;
+import hiapp.modules.dmsetting.DMBizPermissionGridCell;
+import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.system.buinfo.beanOld.Permission;
 import hiapp.system.buinfo.beanOld.PermissionManager;
 import hiapp.utils.DbUtil;
@@ -54,7 +57,7 @@ public class DMBizPermissionManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		DMBusinessManager.getAllDMBusiness(dbConn,listdmBusinesses);
+		DMBusinessRepository.getAllDMBusiness(dbConn,listdmBusinesses);
 		
 		for(int row=0;row<listPermissions.size();row++){
 			Permission perm=listPermissions.get(row);
@@ -116,7 +119,7 @@ public class DMBizPermissionManager {
 		}
 		
 		List<DMBusiness> listdmBusinesses=new ArrayList<DMBusiness>();
-		DMBusinessManager.getAllDMBusiness(dbConn,listdmBusinesses);
+		DMBusinessRepository.getAllDMBusiness(dbConn,listdmBusinesses);
 		for(int row=0;row<jArray.size();row++){
 			JsonObject joRow=jArray.get(row).getAsJsonObject();
 			JsonElement jePermId=joRow.get("PermId");

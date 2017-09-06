@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.data;
+package hiapp.modules.dmsetting;
 
 import hiapp.system.worksheet.dblayer.WorkSheet;
 

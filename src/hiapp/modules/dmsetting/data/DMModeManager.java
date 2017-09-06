@@ -1,4 +1,8 @@
 package hiapp.modules.dmsetting.data;
+import hiapp.modules.dmsetting.DMModeEnum;
+import hiapp.modules.dmsetting.DMModeSubMode;
+import hiapp.modules.dmsetting.DMSubModeEnum;
+
 import java.util.List;
 
 public class DMModeManager {

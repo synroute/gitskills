@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.data;
+package hiapp.modules.dmsetting;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
