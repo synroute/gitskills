@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 /**
  *类说明
  *@author Jiang Ning

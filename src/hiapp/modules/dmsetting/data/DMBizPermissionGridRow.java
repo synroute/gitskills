@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 
 import java.util.ArrayList;
 import java.util.List;

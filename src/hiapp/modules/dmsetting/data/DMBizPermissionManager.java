@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 
 import hiapp.system.buinfo.beanOld.Permission;
 import hiapp.system.buinfo.beanOld.PermissionManager;

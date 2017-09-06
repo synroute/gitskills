@@ -1,6 +1,6 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 
-public class GridColumnSourceItem {
+public class FilterColumnSourceItem {
 	private String workSheetNameCh;
 	private String wsColumnNameCh;
 	private String workSheetColumnNameCh;

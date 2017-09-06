@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -22,7 +22,6 @@ import org.xml.sax.SAXException;
 import dm.setting.dbLayer.DMBizWorkSheets;
 import dm.setting.dbLayer.WorkSheetTypeDm;
 import hiapp.utils.base.DatabaseType;
-import hiapp.modules.dmsetting.dbLayer.ImportMapColumn;
 import hiapp.system.worksheet.dblayer.WorkSheet;
 import hiapp.system.worksheet.dblayer.WorkSheetColumn;
 import hiapp.system.worksheet.dblayer.WorkSheetManager;

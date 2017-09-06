@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

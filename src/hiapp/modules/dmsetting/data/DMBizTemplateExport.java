@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -37,19 +37,17 @@ import hiapp.utils.base.DatabaseType;
 import hiapp.system.worksheet.dblayer.WorkSheet;
 import hiapp.system.worksheet.dblayer.WorkSheetColumn;
 import hiapp.system.worksheet.dblayer.WorkSheetManager;
-import hiapp.utils.UtilServlet;
 
-public class DMBizTemplateImport {
-	private int templateId;
+public class DMBizTemplateExport {
+	private int templateID;
 	private String name;
-	private String description;
-	private boolean isDefault;
-	private String sourceType;
-	public int getTemplateId() {
-		return templateId;
+	private String Description;
+	private int isDefault;
+	public int getTemplateID() {
+		return templateID;
 	}
-	public void setTemplateId(int templateId) {
-		this.templateId = templateId;
+	public void setTemplateID(int templateID) {
+		this.templateID = templateID;
 	}
 	public String getName() {
 		return name;
@@ -58,45 +56,69 @@ public class DMBizTemplateImport {
 		this.name = name;
 	}
 	public String getDescription() {
-		return description;
+		return Description;
 	}
 	public void setDescription(String description) {
-		this.description = description;
+		Description = description;
 	}
-	public boolean isDefault() {
+	public int getIsDefault() {
 		return isDefault;
 	}
-	public void setDefault(boolean isDefault) {
+	public void setIsDefault(int isDefault) {
 		this.isDefault = isDefault;
 	}
-	public String getSourceType() {
-		return sourceType;
-	}
-	public void setSourceType(String sourceType) {
-		this.sourceType = sourceType;
-	}
-	public static boolean getMapColumns(Connection dbConn,DatabaseType dataBaseType,int bizId ,int templateId,List<ImportMapColumn> listMapColumn){
-		int workSheetId=DMBizWorkSheets.getWorkSheetId(dbConn,bizId, WorkSheetTypeDm.WSTDM_CUSTOMERIMPORT.getType());
-		WorkSheet workSheet=null;
-		WorkSheetManager.getWorkSheet(dbConn, dataBaseType, workSheetId, workSheet);
-		List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
-		WorkSheet.getColumns(dbConn, workSheetId,listColumns);
-		for(int ii=0;ii<listColumns.size();ii++){
-			WorkSheetColumn workSheetColumn=listColumns.get(ii);
-			ImportMapColumn importMapColumn=new ImportMapColumn();
-			importMapColumn.setName(workSheetColumn.getName());
-			importMapColumn.setNameCh(workSheetColumn.getNameCh());
-			importMapColumn.setDescription(workSheetColumn.getDescription());
-			listMapColumn.add(importMapColumn);
+	
+	
+	public static int getxml(Connection dbConn,int bizId ,int templateId) throws SQLException
+		{
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			String szXml="";
+			String szSql =String.format("SELECT Xml from HASYS_DM_BIZTEMPLATEEXPORT where BusinessId=%d AND TemplateID=%d ",bizId,templateId);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if(rs.next()){
+				szXml=rs.getString(1);
+			}
+			if (szXml.equals("")) {
+				return 0;
+			}else {
+				return 1;
+			}
+			
 		}
-		
+	
+	
+	public static boolean getMapColumns(Connection dbConn,DatabaseType dataBaseType,int bizId ,int templateId,List<ImportMapColumn> listMapColumn) throws SQLException{
+		//int workSheetId=DMBizWorkSheets.getWorkSheetId(dbConn,bizId, WorkSheetTypeDm.WSTDM_CUSTOMERIMPORT.getType());
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		String worksql="select ID,NAME,NAMECH from HASYS_WORKSHEET where ID in (select WORKSHEETID from HASYS_DM_BIZWORKSHEET where BIZID="+bizId+")";
+		stmt = dbConn.prepareStatement(worksql);
+		rs = stmt.executeQuery();
+		while(rs.next())
+		{
+			WorkSheet workSheet=null;
+			WorkSheetManager.getWorkSheet(dbConn, dataBaseType, rs.getInt("ID"), workSheet);
+			List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
+			WorkSheet.getColumns(dbConn, rs.getInt("ID"),listColumns);
+			for(int ii=0;ii<listColumns.size();ii++){
+				WorkSheetColumn workSheetColumn=listColumns.get(ii);	
+				ImportMapColumn importMapColumn=new ImportMapColumn();
+				importMapColumn.setName(workSheetColumn.getName());
+				importMapColumn.setNameCh(workSheetColumn.getNameCh());
+				importMapColumn.setDescription(workSheetColumn.getDescription());
+				importMapColumn.setWorksheetid(rs.getString("ID"));
+				importMapColumn.setWorksheetName(rs.getString("NAME"));
+				importMapColumn.setWorksheetNameCh(rs.getString("NAMECH"));
+				listMapColumn.add(importMapColumn);
+			}
+		}
 		String szXml=null;
         Node xmlNodeFieldMaps=null;
-
+        	
 		try {
-			String szSql =String.format("SELECT Xml from HASYS_DM_BIZTEMPLATEIMPORT where BusinessId=%d AND TemplateID=%d ",bizId,templateId);
+			String szSql =String.format("SELECT Xml from HASYS_DM_BIZTEMPLATEEXPORT where BusinessId=%d AND TemplateID=%d ",bizId,templateId);
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			if(rs.next()){
@@ -134,13 +156,17 @@ public class DMBizTemplateImport {
 		for(int ii=0;ii<listMapColumn.size();ii++){
 			ImportMapColumn importMapColumn=listMapColumn.get(ii);
 			String name=importMapColumn.getName();
-			int x=xmlNodeFieldMaps.getChildNodes().getLength();
 	        for(int jj=0;jj<xmlNodeFieldMaps.getChildNodes().getLength();jj++){
 	        	Node xmlNodeFilterItem=xmlNodeFieldMaps.getChildNodes().item(jj);
-	        	String name1=xmlGetAttrValue(xmlNodeFilterItem,"Name");
+	        	String name1=xmlGetAttrValue(xmlNodeFilterItem,"WorkSheetColName");
 	        	if(name1.toUpperCase().equals(name)){
-		        	importMapColumn.setExcelRowNumber(xmlGetAttrValue(xmlNodeFilterItem,"ExcelRowNumber"));
-		        	importMapColumn.setExcelColumnName(xmlGetAttrValue(xmlNodeFilterItem,"ExcelColumnName"));
+		        	importMapColumn.setCellAddr(xmlGetAttrValue(xmlNodeFilterItem,"CellAddr"));
+		        	importMapColumn.setRowIndex(xmlGetAttrValue(xmlNodeFilterItem,"RowIndex"));
+		        	importMapColumn.setColIndex(xmlGetAttrValue(xmlNodeFilterItem,"ColIndex"));
+		        	importMapColumn.setExcelColumnName(xmlGetAttrValue(xmlNodeFilterItem,"ExcelHeader"));
+		        	importMapColumn.setxmlWorksheetid(xmlGetAttrValue(xmlNodeFilterItem,"WorkSheetId"));
+		        	importMapColumn.setxmlWorkSheetColName(xmlGetAttrValue(xmlNodeFilterItem,"WorkSheetColName"));
+		        	importMapColumn.setxmlWorksheetName(xmlGetAttrValue(xmlNodeFilterItem,"WorkSheetName"));
 		        	break;
 	        	}
 	        }
@@ -156,17 +182,20 @@ public class DMBizTemplateImport {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.newDocument();
 //          document.setXmlStandalone(true);
-            Element eRoot = document.createElement("ImportExcelTemplate");
-            Element eFieldMaps=document.createElement("FieldMaps");
+            Element eRoot = document.createElement("ExportExcelTemplate");
+            Element eFieldMaps=document.createElement("FieldMaps");				
     		for(int ii=0;ii<jaMapColumns.size();ii++){
     			JsonObject jso=jaMapColumns.get(ii).getAsJsonObject();
     			
                 Element eItem = document.createElement("Item");
-    	        m_CreateColumnJson2XmlAttr("Name",jso,eItem);
-    	        m_CreateColumnJson2XmlAttr("NameCh",jso,eItem);
-    	        m_CreateColumnJson2XmlAttr("Description",jso,eItem);
-    	        m_CreateColumnJson2XmlAttr("ExcelRowNumber",jso,eItem);
-    	        m_CreateColumnJson2XmlAttr("ExcelColumnName",jso,eItem);
+    	        m_CreateColumnJson2XmlAttr("CellAddr",jso,eItem);
+    	        m_CreateColumnJson2XmlAttr("RowIndex",jso,eItem);
+    	        m_CreateColumnJson2XmlAttr("ColIndex",jso,eItem);
+    	        m_CreateColumnJson2XmlAttr("ExcelHeader",jso,eItem);
+    	        m_CreateColumnJson2XmlAttr("WorkSheetId",jso,eItem);
+    	        m_CreateColumnJson2XmlAttr("WorkSheetColName",jso,eItem);
+    	        m_CreateColumnJson2XmlAttr("WorkSheetName",jso,eItem);
+    	        m_CreateColumnJson2XmlAttr("FunctionName",jso,eItem);
                 eFieldMaps.appendChild(eItem);
     		 }
             
@@ -196,11 +225,11 @@ public class DMBizTemplateImport {
         String name="";
         String description="";
         int isDefault=-1;
-        String sourceType="";
+        String EXCELFILEDATA="";
 		PreparedStatement stmt = null;
 		ResultSet rs= null;
 		try {
-			String szSql = "select name, description, isdefault, sourcetype from hasys_dm_biztemplateimport where BusinessId=? AND TemplateID=?";
+			String szSql = "select name, description, isdefault,EXCELFILEDATA from HASYS_DM_BIZTEMPLATEEXPORT where BusinessId=? AND TemplateID=?";
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.setInt(1, bizId);
 			stmt.setInt(2, templateId);
@@ -209,7 +238,7 @@ public class DMBizTemplateImport {
 				name=rs.getString(1);
 				description=rs.getString(2);
 				isDefault=rs.getInt(3);
-				sourceType=rs.getString(4);
+				EXCELFILEDATA=rs.getString(4);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -219,7 +248,7 @@ public class DMBizTemplateImport {
 		}
 
 		try {
-			String szSql = "delete from hasys_dm_biztemplateimport where BusinessId=? AND TemplateID=?";
+			String szSql = "delete from HASYS_DM_BIZTEMPLATEEXPORT where BusinessId=? AND TemplateID=?";
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.setInt(1, bizId);
 			stmt.setInt(2, templateId);
@@ -234,7 +263,7 @@ public class DMBizTemplateImport {
 		
 		try {
 			
-			String szSql = "INSERT INTO hasys_dm_biztemplateimport (ID,TemplateID,BusinessId,Name,Description,isdefault,sourcetype,Xml) "+
+			String szSql = "INSERT INTO HASYS_DM_BIZTEMPLATEEXPORT (ID,TemplateID,BusinessId,Name,Description,isdefault,Xml,EXCELFILEDATA) "+
 							 "VALUES(SEQ_BIZADimport.nextval,?,?,?,?,?,?,?) ";
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.setInt(1, templateId);
@@ -242,9 +271,9 @@ public class DMBizTemplateImport {
 			stmt.setString(3, name);
 			stmt.setString(4, description);
 			stmt.setInt(5, isDefault);
-			stmt.setString(6, sourceType);
 	        StringReader reader = new StringReader(szXml);  
-	        stmt.setCharacterStream(7, reader, szXml.length());  
+	        stmt.setCharacterStream(6, reader, szXml.length()); 
+	        stmt.setString(7, EXCELFILEDATA);
 	        stmt.executeUpdate();  
 			
 
@@ -274,4 +303,5 @@ public class DMBizTemplateImport {
  		return AttrValue;
  	}
     
+	
 }

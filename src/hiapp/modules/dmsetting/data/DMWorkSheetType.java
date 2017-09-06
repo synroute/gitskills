@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 
 public enum DMWorkSheetType {
 	WSTDM_CUSTOMERIMPORT(1,"�ͻ����빤����"),

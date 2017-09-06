@@ -12,8 +12,8 @@ import java.util.List;
 
 import dm.setting.dbLayer.DMBizWorkSheets;
 import hiapp.utils.base.DatabaseType;
-import hiapp.modules.dmsetting.dbLayer.DMBizTemplateImport;
-import hiapp.modules.dmsetting.dbLayer.ImportMapColumn;
+import hiapp.modules.dmsetting.data.DMBizTemplateImport;
+import hiapp.modules.dmsetting.data.ImportMapColumn;
 import hiapp.utils.ConstantResultType;
 import hiapp.utils.UtilServlet;
 

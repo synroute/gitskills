@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.dbLayer;
+package hiapp.modules.dmsetting.data;
 
 import hiapp.utils.base.DatabaseType;
 import hiapp.system.worksheet.dblayer.CreationInfoWorkSheet;
