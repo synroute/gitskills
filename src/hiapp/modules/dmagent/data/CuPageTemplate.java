@@ -14,7 +14,7 @@ public class CuPageTemplate {
 	private long bizId;//业务ID
 	private DeployPage deployPage;//配置页面
 	private DeployType deployType;//配置类型
-	private Blob Templatedata;//配置模板数据
+	private Blob deployTemplate;//配置模板数据
 	public long getId() {
 		return id;
 	}
@@ -39,11 +39,13 @@ public class CuPageTemplate {
 	public void setDeployType(DeployType deployType) {
 		this.deployType = deployType;
 	}
-	public Blob getTemplatedata() {
-		return Templatedata;
+	public Blob getDeployTemplate() {
+		return deployTemplate;
 	}
-	public void setTemplatedata(Blob templatedata) {
-		Templatedata = templatedata;
+	public void setDeployTemplate(Blob deployTemplate) {
+		this.deployTemplate = deployTemplate;
 	}
+	
+	
 	
 }
