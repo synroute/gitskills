@@ -3,7 +3,7 @@ package hiapp.modules.dmsetting;
 import java.sql.Date;
 
 /** 
- * @author yangwentian 
+ * @author yangwentian
  * @version 创建时间：2017年9月8日 下午4:19:28 
  * 类说明 预约项目信息
  */

@@ -1,23 +1,24 @@
 package hiapp.modules.dmsetting;
+
 /** 
- * @author liuhao 
- * @version ´´½¨Ê±¼ä£º2017Äê9ÔÂ8ÈÕ ÏÂÎç02:15:42 
- * ÀàËµÃ÷  ÓÃÓÚ´æ´¢Êı¾İ³ØĞÅÏ¢
+ * @author liuhao
+ * @version åˆ›å»ºæ—¶é—´ï¼š2017å¹´9æœˆ8æ—¥ ä¸‹åˆ4:19:28 
+ * ç±»è¯´æ˜  æ•°æ®æ± ä¿¡æ¯
  */
 public class DMDataPool {
-	//Êı¾İ³Ø±àºÅ
+	//æ•°æ®æ± ç¼–å·
 	private int id;
-	//Êı¾İ³ØÃû³Æ
+	//æ•°æ®æ± åç§°
 	private String dataPoolName;
-	//Êı¾İ³ØÀàĞÍ
+	//æ•°æ®æ± ç±»å‹
 	private String dataPoolType;
-	//Êı¾İ³ØÃèÊö
-	private String dataPoolDes;
-	//¸¸½Úµã
+	//æ•°æ®æ± æè¿°
+	private String dataPoolDesc;
+	//çˆ¶èŠ‚ç‚¹
 	private int pid;
-	//·ÖÇøÀàĞÍ
+	//åˆ†åŒºçƒˆæ€§
 	private int areaType;
-	//Êı¾İ³ØÉÏÏŞ
+	//æ•°æ®æ± ä¸Šé™
 	private int poolTopLimit;
 	
 	public int getId() {
@@ -38,11 +39,11 @@ public class DMDataPool {
 	public void setDataPoolType(String dataPoolType) {
 		this.dataPoolType = dataPoolType;
 	}
-	public String getDataPoolDes() {
-		return dataPoolDes;
+	public String getDataPoolDesc() {
+		return dataPoolDesc;
 	}
-	public void setDataPoolDes(String dataPoolDes) {
-		this.dataPoolDes = dataPoolDes;
+	public void setDataPoolDesc(String dataPoolDesc) {
+		this.dataPoolDesc = dataPoolDesc;
 	}
 	public int getPid() {
 		return pid;

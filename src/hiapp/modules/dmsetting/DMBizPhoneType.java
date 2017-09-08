@@ -1,19 +1,19 @@
 package hiapp.modules.dmsetting;
 /** 
- * @author liuhao 
- * @version ´´½¨Ê±¼ä£º2017Äê9ÔÂ8ÈÕ ÏÂÎç02:15:42 
- * ÀàËµÃ÷  ÓÃÓÚ´æ´¢½áÊøÂëĞÅÏ¢
+ * @author liuhao
+ * @version åˆ›å»ºæ—¶é—´ï¼š2017å¹´9æœˆ8æ—¥ ä¸‹åˆ3:39:09 
+ * ç±»è¯´æ˜  ä¸šåŠ¡å·ç ç±»å‹ä¿¡æ¯
  */
 public class DMBizPhoneType {
-		//ºÅÂëÀàĞÍÃû³Æ
+		//å·ç ç±»å‹åç§°
 		private String	name;
-		//ºÅÂëÀàĞÍÖĞÎÄÃû³Æ
+		//å·ç ç±»å‹ä¸­æ–‡åç§°
 		private String	nameCh;
-		//ÃèÊö
+		//æè¿°
 		private String	description;
-		//²¦´òË³Ğò
+		//æ‹¨æ‰“é¡ºåº
 		private int	dialOrder;
-		//¶ÔÓ¦µ¼Èë×Ö¶Î
+		//å¯¹åº”å¯¼å…¥å­—æ®µ
 		private String customerColumnMap;
 		public String getName() {
 			return name;
