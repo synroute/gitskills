@@ -1,16 +1,16 @@
 package hiapp.modules.dmsetting;
 /** 
- * @author liuhao 
- * @version ´´½¨Ê±¼ä£º2017Äê9ÔÂ8ÈÕ ÏÂÎç02:15:42 
- * ÀàËµÃ÷  ÓÃÓÚ´æ´¢ÍâºôÄ£Ê½ĞÅÏ¢
+ * @author liuhao
+ * @version åˆ›å»ºæ—¶é—´ï¼š2017å¹´9æœˆ8æ—¥ ä¸‹åˆ3:39:09 
+ * ç±»è¯´æ˜  å¤–å‘¼æ¨¡å¼ä¿¡æ¯
  */
 public enum DMBizOutboundModel {
-			MODE1(1,1,"×ÔÖ÷ĞÍ","ÊÖ¶¯·ÖÅä"),
-			MODE2(2,2,"×ÔÖ÷ĞÍ","hidialer×Ô¶¯Íâºô"),
-			MODE3(3,3,"²ßÂÔĞÍ","µ¥ºÅÂëÖØ²¦"),
-			MODE4(4,4,"²ßÂÔĞÍ","¶àºÅÂëÖØ²¦"),
-			MODE5(5,5,"²ßÂÔĞÍ","µ¥ºÅÂëÔ¤²âÍâ²¦"),
-			MODE6(6,6,"²ßÂÔĞÍ","¶àºÅÂëÔ¤²âÍâ²¦");
+			MODE1(1,1,"è‡ªä¸»å‹","æ‰‹åŠ¨åˆ†é…"),
+			MODE2(2,2,"è‡ªä¸»å‹","hidialerè‡ªåŠ¨å¤–å‘¼"),
+			MODE3(3,3,"ç­–ç•¥å‹","å•å·ç é‡æ‹¨"),
+			MODE4(4,4,"ç­–ç•¥å‹","å¤šå·ç é‡æ‹¨"),
+			MODE5(5,5,"ç­–ç•¥å‹","å•å·ç é¢„æµ‹å¤–æ‹¨"),
+			MODE6(6,6,"ç­–ç•¥å‹","å¤šå·ç é¢„æµ‹å¤–æ‹¨");
 			
 		private DMBizOutboundModel(int id,int outboundID,String outboundType,String outboundMode) {
 			this.id=id;
@@ -19,13 +19,13 @@ public enum DMBizOutboundModel {
 	    	this.outboundMode=outboundMode;
 	    	
 	    }
-			//×ÔÔöid
+			//è‡ªå¢id
 			private int	id;
-			//ÍâºôÄ£Ê½id
+			//å¤–å‘¼æ¨¡å¼id
 			private int	outboundID;
-			//ÍâºôÀàĞÍ
+			//å¤–å‘¼æ¨¡å¼ç±»å‹
 			private String	outboundType;
-			//ÍâºôÄ£Ê½
+			//å¤–å‘¼æ¨¡å¼
 			private String	outboundMode;
 			
 			public int getId() {

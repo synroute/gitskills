@@ -2,34 +2,35 @@ package hiapp.modules.dmsetting;
 
 import org.springframework.http.StreamingHttpOutputMessage;
 
+
 /** 
- * @author liuhao 
- * @version ´´½¨Ê±¼ä£º2017Äê9ÔÂ8ÈÕ ÏÂÎç02:15:42 
- * ÀàËµÃ÷  ÓÃÓÚ´æ´¢½á¹û±íĞÅÏ¢
+ * @author liuhao
+ * @version åˆ›å»ºæ—¶é—´ï¼š2017å¹´9æœˆ8æ—¥ ä¸‹åˆ4:19:28 
+ * ç±»è¯´æ˜ ç»“æœè¡¨ä¿¡æ¯
  */
 
 public class DMBizResult {
-		//×ÔÔöid
+		//è‡ªå¢id
 		private int	id;
-		//À´Ô´±àºÅ
+		//æ¥æº
 		private String sourceId;
-		//µ¼ÈëÅú´Îid
+		//å®¢æˆ·å¯¼å…¥æ‰¹æ¬¡id
 		private String	iid;
-		//¿Í»§id
+		//å®¢æˆ·id
 		private String	cid;
-		//ÊÇ·ñÎª×îºóÒ»´ÎĞŞ¸Ä
+		//æ˜¯å¦ä¸ºæœ€åä¸€æ¬¡ä¿®æ”¹
 		private String	modifyLast;
-		//ĞŞ¸Äid
+		//ä¿®æ”¹id
 		private String modifyId;
-		//ĞŞ¸ÄÈË¹¤ºÅ
+		//ä¿®æ”¹äººå·¥å·
 		private String modifyUserid;
-		//ĞŞ¸ÄÊ±¼ä
+		//ä¿®æ”¹æ—¶é—´
 		private String modifyTime;
-		//²¦´òÀàĞÍ
+		//æ‹¨æ‰“ç±»å‹
 		private String optrType;
-		//²¦´òÊ±¼ä
+		//æ‹¨æ‰“æ—¶é—´
 		private String dialTime;
-		//ºô½ĞÁ÷Ë®ºÅ
+		//å‘¼å«æµæ°´å·
 		private String customerCallId;
 		
 		

@@ -1,23 +1,24 @@
 package hiapp.modules.dmsetting;
+
 /** 
- * @author liuhao 
- * @version ´´½¨Ê±¼ä£º2017Äê9ÔÂ8ÈÕ ÏÂÎç02:15:42 
- * ÀàËµÃ÷  ÓÃÓÚ´æ´¢µ¼Èë±íĞÅÏ¢
+ * @author liuhao
+ * @version åˆ›å»ºæ—¶é—´ï¼š2017å¹´9æœˆ8æ—¥ ä¸‹åˆ4:19:28 
+ * ç±»è¯´æ˜  å®¢æˆ·ä¿¡æ¯å¯¼å…¥è¡¨ä¿¡æ¯
  */
 public class DMCustomerImport {
-	//×ÔÔöid
+	//è‡ªå¢id
 	private int	id;
-	//µ¼ÈëÅú´Îid
+	//å¯¼å…¥æ‰¹æ¬¡id
 	private String	iid;
-	//¿Í»§id
+	//å®¢æˆ·id
 	private String	cid;
-	//ÊÇ·ñÎª×îºóÒ»´ÎĞŞ¸Ä
+	//æ˜¯å¦ä¸ºæœ€åä¸€æ¬¡ä¿®æ”¹
 	private String	modifyLast;
-	//ĞŞ¸Äid
+	//ä¿®æ”¹id
 	private String modifyId;
-	//ĞŞ¸ÄÈË¹¤ºÅ
+	//ä¿®æ”¹äººå·¥å·
 	private String modifyUserid;
-	//ĞŞ¸ÄÊ±¼ä
+	//ä¿®æ”¹æ—¶é—´
 	private String modifyTime;
 	
 	
