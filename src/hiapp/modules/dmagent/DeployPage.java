@@ -1,9 +1,9 @@
 package hiapp.modules.dmagent;
 
-public enum DeployPageEnume {
+public enum DeployPage {
 	MYCUSTOMERS("我的客户"),CONTACTPLAN("联系计划"),ALLCUSTOMERS("全部客户");
 	private String msg;
-	DeployPageEnume(String msg){
+	DeployPage(String msg){
 		this.msg = msg;
 	}
 	public String getMsg(){

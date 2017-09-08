@@ -1,7 +1,7 @@
 package hiapp.modules.dmagent.data;
 
-import hiapp.modules.dmagent.DeployPageEnume;
-import hiapp.modules.dmagent.DeployTypeEnume;
+import hiapp.modules.dmagent.DeployPage;
+import hiapp.modules.dmagent.DeployType;
 
 import java.sql.Blob;
 
@@ -12,8 +12,8 @@ import java.sql.Blob;
 public class CuPageTemplate {
 	private long id;//ID
 	private long bizId;//业务ID
-	private DeployPageEnume deployPageEnume;//配置页面
-	private DeployTypeEnume deployTypeEnume;//配置类型
+	private DeployPage deployPageEnume;//配置页面
+	private DeployType deployTypeEnume;//配置类型
 	private Blob Templatedata;//配置模板
 	public long getId() {
 		return id;
@@ -27,16 +27,16 @@ public class CuPageTemplate {
 	public void setBizId(long bizId) {
 		this.bizId = bizId;
 	}
-	public DeployPageEnume getDeployPageEnume() {
+	public DeployPage getDeployPageEnume() {
 		return deployPageEnume;
 	}
-	public void setDeployPageEnume(DeployPageEnume deployPageEnume) {
+	public void setDeployPageEnume(DeployPage deployPageEnume) {
 		this.deployPageEnume = deployPageEnume;
 	}
-	public DeployTypeEnume getDeployTypeEnume() {
+	public DeployType getDeployTypeEnume() {
 		return deployTypeEnume;
 	}
-	public void setDeployTypeEnume(DeployTypeEnume deployTypeEnume) {
+	public void setDeployTypeEnume(DeployType deployTypeEnume) {
 		this.deployTypeEnume = deployTypeEnume;
 	}
 	public Blob getTemplatedata() {
