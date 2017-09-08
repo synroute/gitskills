@@ -9,9 +9,9 @@ import java.util.Date;
  */
 public class DataPoolRecord {
 	private Integer id;             //ID
-	private String dId;             //分配批次号
-	private String iId;             //导入批次号
-	private String cId;             //客户号	CID
+	private String distId;          //分配批次号
+	private String importId;        //导入批次号
+	private String custId;          //客户号
 	private Integer dataPoolIDLast; //上次所在数据池数据池
 	private Integer dataPoolIDCur;  //当前所在数据池
 	private Integer areaLast;       //上次所在数据池分区
@@ -26,22 +26,22 @@ public class DataPoolRecord {
 		this.id = id;
 	}
 	public String getdId() {
-		return dId;
+		return distId;
 	}
 	public void setdId(String dId) {
-		this.dId = dId;
+		this.distId = dId;
 	}
 	public String getiId() {
-		return iId;
+		return importId;
 	}
-	public void setiId(String iId) {
-		this.iId = iId;
+	public void setiId(String importId) {
+		this.importId = importId;
 	}
 	public String getcId() {
-		return cId;
+		return custId;
 	}
-	public void setcId(String cId) {
-		this.cId = cId;
+	public void setcId(String custId) {
+		this.custId = custId;
 	}
 	public Integer getDataPoolIDLast() {
 		return dataPoolIDLast;

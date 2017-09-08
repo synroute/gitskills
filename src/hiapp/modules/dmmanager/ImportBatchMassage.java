@@ -10,13 +10,13 @@ import java.util.Date;
 public class ImportBatchMassage {
 	
 	private Integer id;            //ID
-	private String iId;            //导入批次id
-	private Integer businessId;    //业务编号
+	private String importId;       //导入批次id
+	private Integer bizId;         //业务编号
 	private Date importTime;       //导入时间
 	private String userId;         //导入人
-	private String name;           //导入批次名称
+	private String importName;     //导入批次名称
 	private String description;    //导入批次描述
-	private String importType;     //数据来源
+	private String dataType;       //数据来源
 	
 	public Integer getId() {
 		return id;
@@ -25,16 +25,16 @@ public class ImportBatchMassage {
 		this.id = id;
 	}
 	public String getiId() {
-		return iId;
+		return importId;
 	}
-	public void setiId(String iId) {
-		this.iId = iId;
+	public void setiId(String importId) {
+		this.importId = importId;
 	}
 	public Integer getBusinessId() {
-		return businessId;
+		return bizId;
 	}
 	public void setBusinessId(Integer businessId) {
-		this.businessId = businessId;
+		this.bizId = businessId;
 	}
 	public Date getImportTime() {
 		return importTime;
@@ -49,10 +49,10 @@ public class ImportBatchMassage {
 		this.userId = userId;
 	}
 	public String getName() {
-		return name;
+		return importName;
 	}
-	public void setName(String name) {
-		this.name = name;
+	public void setName(String importName) {
+		this.importName = importName;
 	}
 	public String getDescription() {
 		return description;
@@ -61,10 +61,10 @@ public class ImportBatchMassage {
 		this.description = description;
 	}
 	public String getImportType() {
-		return importType;
+		return dataType;
 	}
 	public void setImportType(String importType) {
-		this.importType = importType;
+		this.dataType = importType;
 	}
 	
 }
