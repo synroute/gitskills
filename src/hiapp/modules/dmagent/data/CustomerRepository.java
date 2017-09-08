@@ -116,13 +116,13 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 保存查询项
+	 * 保存配置好的查询模板
 	 * 
 	 * @param queryTemplate
 	 * @return
 	 * @throws HiAppException
 	 */
-	public Map<String, Object> saveQueryItem(QueryTemplate queryTemplate)
+	public Map<String, Object> saveQueryTemplate(QueryTemplate queryTemplate)
 			throws HiAppException {
 		int bizId = queryTemplate.getBizId();
 		String templateType = queryTemplate.getTemplateType();
@@ -160,11 +160,11 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 获取查询项
+	 * 获取查询模板
 	 * 
 	 * @return
 	 */
-	public Map<String, Object> getQueryItem() {
+	public Map<String, Object> getQueryTemplate() {
 		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("result", 0);
 		return result;
