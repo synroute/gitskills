@@ -9,15 +9,15 @@ import java.util.Date;
  */
 public class DataPoolRecord {
 	private Integer id;             //ID
-	private String dId;             //分配批次号
-	private String iId;             //导入批次号
-	private String cId;             //客户号	CID
-	private Integer dataPoolIDLast; //上次所在数据池数据池
-	private Integer dataPoolIDCur;  //当前所在数据池
+	private String distId;          //分配批次号
+	private String importId;        //导入批次号
+	private String custId;          //客户号
+	private Integer dataPoolIdLast; //上次所在数据池数据池
+	private Integer dataPoolIdCur;  //当前所在数据池
 	private Integer areaLast;       //上次所在数据池分区
 	private Integer areaCur;        //当前所在数据池分区
 	private Integer isRecover;      //是否被回收
-	private String modifyUserID;    //修改人工号
+	private String modifyUserId;    //修改人工号
 	private Date modifyTime;        //修改时间
 	public Integer getId() {
 		return id;
@@ -26,34 +26,34 @@ public class DataPoolRecord {
 		this.id = id;
 	}
 	public String getdId() {
-		return dId;
+		return distId;
 	}
 	public void setdId(String dId) {
-		this.dId = dId;
+		this.distId = dId;
 	}
 	public String getiId() {
-		return iId;
+		return importId;
 	}
-	public void setiId(String iId) {
-		this.iId = iId;
+	public void setiId(String importId) {
+		this.importId = importId;
 	}
 	public String getcId() {
-		return cId;
+		return custId;
 	}
-	public void setcId(String cId) {
-		this.cId = cId;
+	public void setcId(String custId) {
+		this.custId = custId;
 	}
 	public Integer getDataPoolIDLast() {
-		return dataPoolIDLast;
+		return dataPoolIdLast;
 	}
-	public void setDataPoolIDLast(Integer dataPoolIDLast) {
-		this.dataPoolIDLast = dataPoolIDLast;
+	public void setDataPoolIDLast(Integer dataPoolIdLast) {
+		this.dataPoolIdLast = dataPoolIdLast;
 	}
 	public Integer getDataPoolIDCur() {
-		return dataPoolIDCur;
+		return dataPoolIdCur;
 	}
 	public void setDataPoolIDCur(Integer dataPoolIDCur) {
-		this.dataPoolIDCur = dataPoolIDCur;
+		this.dataPoolIdCur = dataPoolIDCur;
 	}
 	public Integer getAreaLast() {
 		return areaLast;
@@ -74,10 +74,10 @@ public class DataPoolRecord {
 		this.isRecover = isRecover;
 	}
 	public String getModifyUserID() {
-		return modifyUserID;
+		return modifyUserId;
 	}
-	public void setModifyUserID(String modifyUserID) {
-		this.modifyUserID = modifyUserID;
+	public void setModifyUserID(String modifyUserId) {
+		this.modifyUserId = modifyUserId;
 	}
 	public Date getModifyTime() {
 		return modifyTime;

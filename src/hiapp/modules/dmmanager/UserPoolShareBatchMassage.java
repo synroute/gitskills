@@ -8,7 +8,7 @@ package hiapp.modules.dmmanager;
 public class UserPoolShareBatchMassage {
 	
 	private Integer id;          //ID
-	private Integer businessId;  //业务号
+	private Integer bizId;       //业务号
 	private String shareId;      //共享批次号
 	private String dataPoolName; //数据池名称
 	private Integer dataPoolId;  //数据池编号
@@ -19,10 +19,10 @@ public class UserPoolShareBatchMassage {
 		this.id = id;
 	}
 	public Integer getBusinessId() {
-		return businessId;
+		return bizId;
 	}
-	public void setBusinessId(Integer businessId) {
-		this.businessId = businessId;
+	public void setBusinessId(Integer bizId) {
+		this.bizId = bizId;
 	}
 	public String getShareId() {
 		return shareId;
