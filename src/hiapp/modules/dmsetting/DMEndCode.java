@@ -1,16 +1,16 @@
 package hiapp.modules.dmsetting;
 /** 
  * @author liuhao 
- * @version ´´½¨Ê±¼ä£º2017Äê9ÔÂ8ÈÕ ÏÂÎç02:15:42 
- * ÀàËµÃ÷  ÓÃÓÚ´æ´¢½áÊøÂëĞÅÏ¢
+ * @version ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ä£º2017ï¿½ï¿½9ï¿½ï¿½8ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½02:15:42 
+ * ï¿½ï¿½Ëµï¿½ï¿½  ï¿½ï¿½ï¿½Ú´æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
  */
 public class DMEndCode {
-	//½áÊøÂëÀàĞÍ
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	private String	endCodeType;
-	//½áÊøÂë
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	private String	endCode;
-	//ÃèÊö
-	private String	description;
+	//ï¿½ï¿½ï¿½ï¿½
+	private String	desc;
 	public String getEndCodeType() {
 		return endCodeType;
 	}
@@ -23,10 +23,10 @@ public class DMEndCode {
 	public void setEndCode(String endCode) {
 		this.endCode = endCode;
 	}
-	public String getDescription() {
-		return description;
+	public String getDesc() {
+		return desc;
 	}
-	public void setDescription(String description) {
-		this.description = description;
+	public void setDesc(String desc) {
+		this.desc = desc;
 	}
 }

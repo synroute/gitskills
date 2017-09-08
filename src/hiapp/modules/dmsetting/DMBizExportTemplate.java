@@ -8,7 +8,7 @@ public class DMBizExportTemplate {
 	private int templateId;		//模板ID，自动生成
 	private String bizId;	//业务ID
 	private String templateName;//模板名称
-	private String description;	//描述
+	private String desc;	//描述
 	private int isDefault;		//是否是缺省模板
 	private String configJson; 	//json格式详细配置数据
 	public int getTemplateId() {
@@ -29,11 +29,11 @@ public class DMBizExportTemplate {
 	public void setTemplateName(String templateName) {
 		this.templateName = templateName;
 	}
-	public String getDescription() {
-		return description;
+	public String getDesc() {
+		return desc;
 	}
-	public void setDescription(String description) {
-		this.description = description;
+	public void setDesc(String desc) {
+		this.desc = desc;
 	}
 	public int getIsDefault() {
 		return isDefault;

@@ -7,7 +7,7 @@ package hiapp.modules.dmsetting;
 public class DMBuiness {
 	private int id;						//业务ID
 	private String name;				//业务名称
-	private String description;			//描述
+	private String desc;			//描述
 	private String ownerGroupId;		//所属组
 	private int subModeId;				//选择的业务类型ID
 	private String detailConfigJson;	//详细设置信息Json
@@ -24,11 +24,11 @@ public class DMBuiness {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public String getDescription() {
-		return description;
+	public String getDesc() {
+		return desc;
 	}
-	public void setDescription(String description) {
-		this.description = description;
+	public void setDesc(String desc) {
+		this.desc = desc;
 	}
 	public String getOwnerGroupId() {
 		return ownerGroupId;
