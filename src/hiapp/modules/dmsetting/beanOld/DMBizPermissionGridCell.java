@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting;
+package hiapp.modules.dmsetting.beanOld;
 
 public class DMBizPermissionGridCell {
 	private String field;

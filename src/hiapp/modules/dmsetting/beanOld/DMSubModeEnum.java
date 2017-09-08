@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting;
+package hiapp.modules.dmsetting.beanOld;
 public enum DMSubModeEnum {
 	SUBMODE1(0,1,1,"base",							"基本","手动分配基本"),
 

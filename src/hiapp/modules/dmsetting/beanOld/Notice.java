@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting;
+package hiapp.modules.dmsetting.beanOld;
 /**
  *类说明
  *@author Jiang Ning
