@@ -3,8 +3,9 @@ package hiapp.modules.dmagent;
 import java.sql.Blob;
 
 /**
- * 客户页面配置表HASYS_DM_CUPAGETEMPLATE
  * @author PengXiaoHong
+ * 
+ * 类说明 客户页面配置模板
  */
 public class CuPageTemplate {
 	private long id;//ID
