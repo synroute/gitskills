@@ -14,7 +14,7 @@ public class CuPageTemplate {
 	private long bizId;//业务ID
 	private DeployPage deployPage;//配置页面
 	private DeployType deployType;//配置类型
-	private Blob Templatedata;//配置模板
+	private Blob Templatedata;//配置模板数据
 	public long getId() {
 		return id;
 	}
