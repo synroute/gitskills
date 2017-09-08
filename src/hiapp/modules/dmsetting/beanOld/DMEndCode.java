@@ -1,17 +1,9 @@
-package hiapp.modules.dmsetting;
+package hiapp.modules.dmsetting.beanOld;
 
-/** 
- * @author liuhao
- * @version 创建时间：2017年9月8日 下午4:19:28 
- * 类说明 业务员结束码信息
- */
 public class DMEndCode {
-	//结束码类型
 	private String	endCodeType;
-	//结束码
 	private String	endCode;
-	//描述
-	private String	desc;
+	private String	description;
 	public String getEndCodeType() {
 		return endCodeType;
 	}
@@ -24,10 +16,10 @@ public class DMEndCode {
 	public void setEndCode(String endCode) {
 		this.endCode = endCode;
 	}
-	public String getDesc() {
-		return desc;
+	public String getDescription() {
+		return description;
 	}
-	public void setDesc(String desc) {
-		this.desc = desc;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }

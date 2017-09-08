@@ -1,11 +1,17 @@
 package hiapp.modules.dmsetting;
-
+/** 
+ * @author yangwentian 
+ * @version 创建时间：2017年9月8日 下午2:16:57 
+ * 类说明  权限业务数据池信息
+ */
 public class DMBizPermission {
-	private int bizId;
-	private int permId;
-	private int systemSetting;
-	private int dataManager;
-	private int dial;
+	private int bizId;			//业务ID
+	private String bizName;		//业务名称
+	private int permId;			//权限ID
+	private String permName;	//权限名称
+	private int dataPoolId;		//数据池ID
+	private String dataPoolName;//数据池名称
+	private String itemName;	//管理项名称
 	public int getBizId() {
 		return bizId;
 	}
@@ -18,22 +24,35 @@ public class DMBizPermission {
 	public void setPermId(int permId) {
 		this.permId = permId;
 	}
-	public int getSystemSetting() {
-		return systemSetting;
+	public int getDataPoolId() {
+		return dataPoolId;
 	}
-	public void setSystemSetting(int systemSetting) {
-		this.systemSetting = systemSetting;
+	public void setDataPoolId(int dataPoolId) {
+		this.dataPoolId = dataPoolId;
 	}
-	public int getDataManager() {
-		return dataManager;
+	public String getItemName() {
+		return itemName;
 	}
-	public void setDataManager(int dataManager) {
-		this.dataManager = dataManager;
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
 	}
-	public int getDial() {
-		return dial;
+	public String getPermName() {
+		return permName;
 	}
-	public void setDial(int dial) {
-		this.dial = dial;
+	public void setPermName(String permName) {
+		this.permName = permName;
 	}
+	public String getBizName() {
+		return bizName;
+	}
+	public void setBizName(String bizName) {
+		this.bizName = bizName;
+	}
+	public String getDataPoolName() {
+		return dataPoolName;
+	}
+	public void setDataPoolName(String dataPoolName) {
+		this.dataPoolName = dataPoolName;
+	}
+	
 }
