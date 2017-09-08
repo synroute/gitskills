@@ -12,7 +12,7 @@ public class DMBizImportTemplate {
 	private String templateName;//模板名称
 	private String desc;	//描述
 	private int isDefault;		//是否是缺省模板
-	private String sourceType;	//数据来源类型
+	private String dataSourceType;	//数据来源类型
 	private String configJson; 	//json格式详细配置数据
 	public int getTemplateId() {
 		return templateId;
@@ -44,16 +44,17 @@ public class DMBizImportTemplate {
 	public void setIsDefault(int isDefault) {
 		this.isDefault = isDefault;
 	}
-	public String getSourceType() {
-		return sourceType;
-	}
-	public void setSourceType(String sourceType) {
-		this.sourceType = sourceType;
-	}
+	
 	public String getConfigJson() {
 		return configJson;
 	}
 	public void setConfigJson(String configJson) {
 		this.configJson = configJson;
+	}
+	public String getDataSourceType() {
+		return dataSourceType;
+	}
+	public void setDataSourceType(String dataSourceType) {
+		this.dataSourceType = dataSourceType;
 	}
 }

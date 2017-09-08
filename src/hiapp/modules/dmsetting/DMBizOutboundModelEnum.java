@@ -5,12 +5,13 @@ package hiapp.modules.dmsetting;
  * 类说明  外呼模式信息
  */
 public enum DMBizOutboundModelEnum {
-			MODE1(1,1,"自主型","手动分配"),
-			MODE2(2,2,"自主型","hidialer自动外呼"),
-			MODE3(3,3,"策略型","单号码重拨"),
-			MODE4(4,4,"策略型","多号码重拨"),
-			MODE5(5,5,"策略型","单号码预测外拨"),
-			MODE6(6,6,"策略型","多号码预测外拨");
+	//文档
+	ManualDistributeShare(1,1,"自主型","手动分配"),
+	SingleDialHiDialer(2,2,"自主型","hidialer自动外呼"),
+	SingleNumberRedial(3,3,"策略型","单号码重拨"),
+	MultiNumberRedial(4,4,"策略型","多号码重拨"),
+	SingleNumberHiDialer(5,5,"策略型","单号码预测外拨"),
+	MultiNumberHiDialer(6,6,"策略型","多号码预测外拨");
 			
 		private DMBizOutboundModelEnum(int id,int outboundID,String outboundType,String outboundMode) {
 			this.id=id;

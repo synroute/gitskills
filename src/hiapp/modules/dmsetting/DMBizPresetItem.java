@@ -7,11 +7,11 @@ import java.sql.Date;
  * @version 创建时间：2017年9月8日 下午4:19:28 
  * 类说明 预约项目信息
  */
-public class DMBizPreset {
+public class DMBizPresetItem {
 	private int id;				//ID
 	private String sourceId;	//来源编号，指分配编号或共享编号
-	private String Iid;			//导入批次ID
-	private String Cid;			//客户号
+	private String importId;	//导入批次ID
+	private String customerId;	//客户号
 	private Date presetTime;	//预约时间
 	private String state;		//预约状态
 	private String comment;		//预约备注
@@ -20,7 +20,7 @@ public class DMBizPreset {
 	private int modifyUserId;	//修改用户ID
 	private Date modifyTime;	//修改时间
 	private String modifyDesc;	//修改描述
-	private String PhoneType;	//号码类型
+	private String phoneType;	//号码类型  枚举
 	public int getId() {
 		return id;
 	}
@@ -32,18 +32,6 @@ public class DMBizPreset {
 	}
 	public void setSourceId(String sourceId) {
 		this.sourceId = sourceId;
-	}
-	public String getIid() {
-		return Iid;
-	}
-	public void setIid(String iid) {
-		Iid = iid;
-	}
-	public String getCid() {
-		return Cid;
-	}
-	public void setCid(String cid) {
-		Cid = cid;
 	}
 	public Date getPresetTime() {
 		return presetTime;
@@ -93,10 +81,24 @@ public class DMBizPreset {
 	public void setModifyDesc(String modifyDesc) {
 		this.modifyDesc = modifyDesc;
 	}
+	
+	public String getImportId() {
+		return importId;
+	}
+	public void setImportId(String importId) {
+		this.importId = importId;
+	}
+	public String getCustomerId() {
+		return customerId;
+	}
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
 	public String getPhoneType() {
-		return PhoneType;
+		return phoneType;
 	}
 	public void setPhoneType(String phoneType) {
-		PhoneType = phoneType;
+		this.phoneType = phoneType;
 	}
+	
 }
