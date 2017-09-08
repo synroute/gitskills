@@ -12,8 +12,8 @@ import java.sql.Blob;
 public class CuPageTemplate {
 	private long id;//ID
 	private long bizId;//业务ID
-	private DeployPage deployPageEnume;//配置页面
-	private DeployType deployTypeEnume;//配置类型
+	private DeployPage deployPage;//配置页面
+	private DeployType deployType;//配置类型
 	private Blob Templatedata;//配置模板
 	public long getId() {
 		return id;
@@ -27,17 +27,17 @@ public class CuPageTemplate {
 	public void setBizId(long bizId) {
 		this.bizId = bizId;
 	}
-	public DeployPage getDeployPageEnume() {
-		return deployPageEnume;
+	public DeployPage getDeployPage() {
+		return deployPage;
 	}
-	public void setDeployPageEnume(DeployPage deployPageEnume) {
-		this.deployPageEnume = deployPageEnume;
+	public void setDeployPage(DeployPage deployPage) {
+		this.deployPage = deployPage;
 	}
-	public DeployType getDeployTypeEnume() {
-		return deployTypeEnume;
+	public DeployType getDeployType() {
+		return deployType;
 	}
-	public void setDeployTypeEnume(DeployType deployTypeEnume) {
-		this.deployTypeEnume = deployTypeEnume;
+	public void setDeployType(DeployType deployType) {
+		this.deployType = deployType;
 	}
 	public Blob getTemplatedata() {
 		return Templatedata;
