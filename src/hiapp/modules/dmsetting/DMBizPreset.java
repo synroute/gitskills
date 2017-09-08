@@ -19,7 +19,7 @@ public class DMBizPreset {
 	private int modifyLast;		//是否为最后一次修改，0：否。1：是
 	private int modifyUserId;	//修改用户ID
 	private Date modifyTime;	//修改时间
-	private String modifyDsp;	//修改描述
+	private String modifyDesc;	//修改描述
 	private String PhoneType;	//号码类型
 	public int getId() {
 		return id;
@@ -87,11 +87,11 @@ public class DMBizPreset {
 	public void setModifyTime(Date modifyTime) {
 		this.modifyTime = modifyTime;
 	}
-	public String getModifyDsp() {
-		return modifyDsp;
+	public String getModifyDesc() {
+		return modifyDesc;
 	}
-	public void setModifyDsp(String modifyDsp) {
-		this.modifyDsp = modifyDsp;
+	public void setModifyDesc(String modifyDesc) {
+		this.modifyDesc = modifyDesc;
 	}
 	public String getPhoneType() {
 		return PhoneType;
