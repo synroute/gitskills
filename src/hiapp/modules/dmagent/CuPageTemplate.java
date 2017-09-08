@@ -12,7 +12,7 @@ public class CuPageTemplate {
 	private long bizId;//业务ID
 	private DeployPage deployPage;//配置页面
 	private DeployType deployType;//配置类型
-	private Blob deployTemplate;//配置模板数据
+	private String deployTemplate;//配置模板数据
 	public long getId() {
 		return id;
 	}
@@ -37,12 +37,13 @@ public class CuPageTemplate {
 	public void setDeployType(DeployType deployType) {
 		this.deployType = deployType;
 	}
-	public Blob getDeployTemplate() {
+	public String getDeployTemplate() {
 		return deployTemplate;
 	}
-	public void setDeployTemplate(Blob deployTemplate) {
+	public void setDeployTemplate(String deployTemplate) {
 		this.deployTemplate = deployTemplate;
 	}
+	
 	
 	
 	
