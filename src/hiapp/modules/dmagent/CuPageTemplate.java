@@ -1,7 +1,4 @@
-package hiapp.modules.dmagent.data;
-
-import hiapp.modules.dmagent.DeployPage;
-import hiapp.modules.dmagent.DeployType;
+package hiapp.modules.dmagent;
 
 import java.sql.Blob;
 
