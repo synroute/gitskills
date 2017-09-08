@@ -4,7 +4,7 @@ package hiapp.modules.dmsetting;
  * @version 创建时间：2017年9月8日 下午2:05:42 
  * 类说明  用于存储业务信息
  */
-public class DMBuiness {
+public class DMBusiness {
 	private int id;						//业务ID
 	private String name;				//业务名称
 	private String desc;			//描述
