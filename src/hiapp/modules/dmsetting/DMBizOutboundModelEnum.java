@@ -4,7 +4,7 @@ package hiapp.modules.dmsetting;
  * @version 创建时间：2017年9月8日 下午3:39:09 
  * 类说明  外呼模式信息
  */
-public enum DMBizOutboundModel {
+public enum DMBizOutboundModelEnum {
 			MODE1(1,1,"自主型","手动分配"),
 			MODE2(2,2,"自主型","hidialer自动外呼"),
 			MODE3(3,3,"策略型","单号码重拨"),
@@ -12,7 +12,7 @@ public enum DMBizOutboundModel {
 			MODE5(5,5,"策略型","单号码预测外拨"),
 			MODE6(6,6,"策略型","多号码预测外拨");
 			
-		private DMBizOutboundModel(int id,int outboundID,String outboundType,String outboundMode) {
+		private DMBizOutboundModelEnum(int id,int outboundID,String outboundType,String outboundMode) {
 			this.id=id;
 			this.outboundID=outboundID;
 			this.outboundType=outboundType;
