@@ -4,8 +4,8 @@ package hiapp.modules.dm.bo;
  * 共享批次信息表HASYS_DM_SID, 状态值
  */
 public enum ShareBatchStateEnum {
-    ON("enable"),
-    OFF("active"),
+    ENABLE("enable"),
+    ACTIVE("active"),
     PAUSE("pause"),
     STOP("stop"),
     EXPIRED("expired");
