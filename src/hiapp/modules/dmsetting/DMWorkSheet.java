@@ -1,4 +1,4 @@
-package hiapp.modules.dmsetting.beanOld;
+package hiapp.modules.dmsetting;
 
 import hiapp.system.worksheet.bean.WorkSheet;
 

@@ -26,8 +26,8 @@ public class DMBizResult {
 		private String modifyUserid;
 		//修改时间
 		private String modifyTime;
-		//拨打类型
-		private String optrType;
+		//操作类型
+		private DMBizEnum operateType;   // 枚举
 		//拨打时间
 		private String dialTime;
 		//呼叫流水号
@@ -82,12 +82,7 @@ public class DMBizResult {
 		public void setModifyTime(String modifyTime) {
 			this.modifyTime = modifyTime;
 		}
-		public String getOptrType() {
-			return optrType;
-		}
-		public void setOptrType(String optrType) {
-			this.optrType = optrType;
-		}
+		
 		public String getDialTime() {
 			return dialTime;
 		}
@@ -100,4 +95,12 @@ public class DMBizResult {
 		public void setCustomerCallId(String customerCallId) {
 			this.customerCallId = customerCallId;
 		}
+		public DMBizEnum getOperateType() {
+			return operateType;
+		}
+		public void setOperateType(DMBizEnum operateType) {
+			this.operateType = operateType;
+		}
+		
+		
 }

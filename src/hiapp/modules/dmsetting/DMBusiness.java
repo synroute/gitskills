@@ -5,19 +5,14 @@ package hiapp.modules.dmsetting;
  * 类说明  用于存储业务信息
  */
 public class DMBusiness {
-	private int id;						//业务ID
-	private String name;				//业务名称
-	private String desc;			//描述
-	private String ownerGroupId;		//所属组
-	private int subModeId;				//选择的业务类型ID
-	private String detailConfigJson;	//详细设置信息Json
-	private String modeSubmodeIdString; //拼接的字符串
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
+	private int bizId;						//业务ID
+	private String name;				    //业务名称
+	private String desc;			        //描述
+	private String ownerGroupId;		    //所属组
+	private int outboundModeId;				//选择的外呼模式ID
+	private String configJson;	            //设置信息Json
+	
+	
 	public String getName() {
 		return name;
 	}
@@ -36,22 +31,24 @@ public class DMBusiness {
 	public void setOwnerGroupId(String ownerGroupId) {
 		this.ownerGroupId = ownerGroupId;
 	}
-	public int getSubModeId() {
-		return subModeId;
+	
+	
+	public int getBizId() {
+		return bizId;
 	}
-	public void setSubModeId(int subModeId) {
-		this.subModeId = subModeId;
+	public void setBizId(int bizId) {
+		this.bizId = bizId;
 	}
-	public String getDetailConfigJson() {
-		return detailConfigJson;
+	public int getOutboundModeId() {
+		return outboundModeId;
 	}
-	public void setDetailConfigJson(String detailConfigJson) {
-		this.detailConfigJson = detailConfigJson;
+	public void setOutboundModeId(int outboundModeId) {
+		this.outboundModeId = outboundModeId;
 	}
-	public String getModeSubmodeIdString() {
-		return modeSubmodeIdString;
+	public String getConfigJson() {
+		return configJson;
 	}
-	public void setModeSubmodeIdString(String modeSubmodeIdString) {
-		this.modeSubmodeIdString = modeSubmodeIdString;
+	public void setConfigJson(String configJson) {
+		this.configJson = configJson;
 	}
 }

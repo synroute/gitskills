@@ -26,4 +26,6 @@ public class DMBizOutboundConfig {
 	public void setOutboundConfigJson(String outboundConfigJson) {
 		this.outboundConfigJson = outboundConfigJson;
 	}
+	
+	
 }

@@ -11,7 +11,7 @@ public class DMBizPermission {
 	private String permName;	//权限名称
 	private int dataPoolId;		//数据池ID
 	private String dataPoolName;//数据池名称
-	private String itemName;	//管理项名称
+	private String manageItemName;	//管理项名称
 	public int getBizId() {
 		return bizId;
 	}
@@ -30,12 +30,7 @@ public class DMBizPermission {
 	public void setDataPoolId(int dataPoolId) {
 		this.dataPoolId = dataPoolId;
 	}
-	public String getItemName() {
-		return itemName;
-	}
-	public void setItemName(String itemName) {
-		this.itemName = itemName;
-	}
+	
 	public String getPermName() {
 		return permName;
 	}
@@ -53,6 +48,12 @@ public class DMBizPermission {
 	}
 	public void setDataPoolName(String dataPoolName) {
 		this.dataPoolName = dataPoolName;
+	}
+	public String getManageItemName() {
+		return manageItemName;
+	}
+	public void setManageItemName(String manageItemName) {
+		this.manageItemName = manageItemName;
 	}
 	
 }

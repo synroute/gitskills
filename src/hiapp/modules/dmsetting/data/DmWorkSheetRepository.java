@@ -9,22 +9,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-
-
-
-
-
-
-
-
-
-
-
-import hiapp.modules.dmsetting.beanOld.DMBusiness;
-import hiapp.modules.dmsetting.beanOld.DMModeEnum;
-import hiapp.modules.dmsetting.beanOld.DMSubModeEnum;
-import hiapp.modules.dmsetting.beanOld.DMWorkSheet;
-import hiapp.modules.dmsetting.beanOld.DMWorkSheetType;
+import hiapp.modules.dmsetting.DMBusiness;
+import hiapp.modules.dmsetting.DMWorkSheet;
+import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
 import hiapp.system.worksheet.bean.CreationInfoWorkSheet;
 import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.system.worksheet.bean.WorkSheetDataType;
@@ -49,46 +36,26 @@ public class DmWorkSheetRepository extends BaseRepository {
 		try {
 			dbConn = this.getDbConnection();
 			ServiceResultCode sResultCode=null;
-			DMModeEnum dmMode=DMModeEnum.get(dmBusiness.getModeId());
-			DMSubModeEnum dmSubMode=DMSubModeEnum.get(dmBusiness.getSubModeId());
-			if(dmMode==DMModeEnum.MODE1) {
-				if(dmSubMode==DMSubModeEnum.SUBMODE1){
-					sResultCode=m_newWorkSheetCustImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-					sResultCode=m_newWorkSheetCustTask(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-					sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-					sResultCode=m_newWorkSheetPresetTime_His(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-					sResultCode=m_newWorkSheetTaskDist(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-					sResultCode=m_newWorkSheetTaskDist_His(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-				}
+			if (dmBusiness.getOutboundModeId()==1) {
+				sResultCode=m_newWorkSheetCustImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+			} else if (dmBusiness.getOutboundModeId()==2) {
+				
+			} else if (dmBusiness.getOutboundModeId()==3) {
+				sResultCode=m_newWorkSheetCustImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetCustResult(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPool(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataM3(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataM3_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+			} else if (dmBusiness.getOutboundModeId()==4) {
+				
+			} else if (dmBusiness.getOutboundModeId()==5) {
+				
+			} else if (dmBusiness.getOutboundModeId()==6) {
+				
 			}
-			else if(dmMode==DMModeEnum.MODE2) {
-				if(dmSubMode==DMSubModeEnum.SUBMODE2){
-					
-				}
-				else if(dmSubMode==DMSubModeEnum.SUBMODE3){
-					
-				}
-				else if(dmSubMode==DMSubModeEnum.SUBMODE4){
-					
-				}
-			}
-			else if(dmMode==DMModeEnum.MODE3) {
-				if(dmSubMode==DMSubModeEnum.SUBMODE5){
-					
-				}
-				else if(dmSubMode==DMSubModeEnum.SUBMODE6){
-					
-				}
-				else if(dmSubMode==DMSubModeEnum.SUBMODE7){
-					
-				}
-				else if(dmSubMode==DMSubModeEnum.SUBMODE8){
-					
-				}
-				else if(dmSubMode==DMSubModeEnum.SUBMODE9){
-					
-				}
-			}	
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -97,12 +64,13 @@ public class DmWorkSheetRepository extends BaseRepository {
 		}
 		return ServiceResultCode.SUCCESS;
 	}
+	//导入表
 	private ServiceResultCode m_newWorkSheetCustImport(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
 		CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
 		creationInfoWorkSheet.setOwner(true);
-		String szWorkSheetName=String.format("HAUDM_B%d_CUSTIMPORT", dmBusiness.getId());
-		String szWorkSheetNameCh=String.format("外拨业务%d客户导入工作表", dmBusiness.getId());
-		String szWorkSheetDescription=String.format("业务%d客户导入工作表，客户从Excel或外部数据导入到系统中，首先存入此工作表",dmBusiness.getId());
+		String szWorkSheetName=String.format("HAU_DM_B%d_CUSTIMPORT", dmBusiness.getBizId());
+		String szWorkSheetNameCh=String.format("外拨业务%d客户导入工作表", dmBusiness.getBizId());
+		String szWorkSheetDescription=String.format("业务%d客户导入工作表，客户从Excel或外部数据导入到系统中，首先存入此工作表",dmBusiness.getBizId());
 		creationInfoWorkSheet.setName(szWorkSheetName);
 		creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
 		creationInfoWorkSheet.setDescription(szWorkSheetDescription);
@@ -110,134 +78,178 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
 		creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		return m_newWs(dbConn,dmBusiness.getId(),creationInfoWorkSheet,DMWorkSheetType.WSTDM_CUSTOMERIMPORT,errMessage);
+		creationInfoWorkSheet.addColumn("是否最后一次修改", "ModifyLast", "任务唯一标识", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("修改ID", "ModifyID", "修改唯一标识", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+		creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_CUSTOMERIMPORT,errMessage);
 	}
-	private ServiceResultCode m_newWorkSheetCustTask(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+	//结果表
+	private ServiceResultCode m_newWorkSheetCustResult(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
 		CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
 		creationInfoWorkSheet.setOwner(true);
-		String szWorkSheetName=String.format("HAUDM_B%d_CUSTTASK", dmBusiness.getId());
-		String szWorkSheetNameCh=String.format("外拨业务%d客户任务工作表", dmBusiness.getId());
-		String szWorkSheetDescription=String.format("外拨业务%d客户任务工作表，创建后，客户数据存入此工作表",dmBusiness.getId());
+		String szWorkSheetName=String.format("HAU_DM_B%d_CUSTTASK", dmBusiness.getBizId());
+		String szWorkSheetNameCh=String.format("外拨业务%d用户拨打结果表", dmBusiness.getBizId());
+		String szWorkSheetDescription=String.format("外拨业务%d结果表，创建后，拨打结果存入此工作表",dmBusiness.getBizId());
 		creationInfoWorkSheet.setName(szWorkSheetName);
 		creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
 		creationInfoWorkSheet.setDescription(szWorkSheetDescription);
 		creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+		creationInfoWorkSheet.addColumn("来源编号", "SourceID", "来源编号", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("任务ID", "TaskId", "任务唯一标识", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改ID", "ModifyID", "修改唯一标识", WorkSheetDataType.INT, -1, false, true);
 		creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
-		return m_newWs(dbConn,dmBusiness.getId(),creationInfoWorkSheet,DMWorkSheetType.WSTDM_CUSTOMERTASK,errMessage);
+		creationInfoWorkSheet.addColumn("是否最后一次修改", "ModifyLast", "任务唯一标识", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("拨打类型", "DailType", "拨打类型", WorkSheetDataType.TEXT, 10, false, true);
+		creationInfoWorkSheet.addColumn("拨打时间", "DailTime", "拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+		creationInfoWorkSheet.addColumn("呼叫流水号", "CustomerCallId", "呼叫流水号", WorkSheetDataType.INT, -1, false, true);
+		
+		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_RESULT,errMessage);
 	}
-	private ServiceResultCode m_newWorkSheetTaskDist(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
-		CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
-		creationInfoWorkSheet.setOwner(true);
-		String szWorkSheetName=String.format("HAUDM_B%d_TASKDIST", dmBusiness.getId());
-		String szWorkSheetNameCh=String.format("外拨业务%d客户分配工作表", dmBusiness.getId());
-		String szWorkSheetDescription=String.format("外拨业务%d客户分配工作表，客户分配到坐席的数据存入此工作表",dmBusiness.getId());
-		creationInfoWorkSheet.setName(szWorkSheetName);
-		creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
-		creationInfoWorkSheet.setDescription(szWorkSheetDescription);
-		creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
-		creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("任务ID", "TaskId", "任务唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("修改ID", "ModifyID", "修改唯一标识", WorkSheetDataType.INT, -1, false, true);
-		creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
-		creationInfoWorkSheet.addColumn("分配者用户ID", "distuserid", "分配者用户ID", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("分配时间", "disttime", "分配时间", WorkSheetDataType.DATETIME, -1, false, true);
-		creationInfoWorkSheet.addColumn("被分配用户ID", "userid", "被分配用户ID", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("被分配用户名", "username", "被分配用户名", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("系统状态", "sysstate", "系统状态", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("结束码类型", "endcodetype", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("结束码", "endcode", "结束码", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("用户状态类型", "userstatetype", "用户状态类型", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("用户状态类型", "userstate", "用户状态", WorkSheetDataType.TEXT, 50, false, true);
-
-		return m_newWs(dbConn,dmBusiness.getId(),creationInfoWorkSheet,DMWorkSheetType.WSTDM_CUSTDIST,errMessage);
-	}
-	private ServiceResultCode m_newWorkSheetTaskDist_His(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
-		CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
-		creationInfoWorkSheet.setOwner(true);
-		String szWorkSheetName=String.format("HAUDM_B%d_TASKDIST_His", dmBusiness.getId());
-		String szWorkSheetNameCh=String.format("外拨业务%d客户分配历史工作表", dmBusiness.getId());
-		String szWorkSheetDescription=String.format("外拨业务%d客户分配历史工作表，客户分配到坐席的数据存入此工作表",dmBusiness.getId());
-		creationInfoWorkSheet.setName(szWorkSheetName);
-		creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
-		creationInfoWorkSheet.setDescription(szWorkSheetDescription);
-		creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
-		creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("任务ID", "TaskId", "任务唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("修改ID", "ModifyID", "修改唯一标识", WorkSheetDataType.INT, -1, false, true);
-		creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
-		creationInfoWorkSheet.addColumn("分配者用户ID", "distuserid", "分配者用户ID", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("分配时间", "disttime", "分配时间", WorkSheetDataType.DATETIME, -1, false, true);
-		creationInfoWorkSheet.addColumn("被分配用户ID", "userid", "被分配用户ID", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("被分配用户名", "username", "被分配用户名", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("系统状态", "sysstate", "系统状态", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("结束码类型", "endcodetype", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("结束码", "endcode", "结束码", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("用户状态类型", "userstatetype", "用户状态类型", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("用户状态类型", "userstate", "用户状态", WorkSheetDataType.TEXT, 50, false, true);
-
-		return m_newWs(dbConn,dmBusiness.getId(),creationInfoWorkSheet,DMWorkSheetType.WSTDM_CUSTDIST_HIS,errMessage);
-	}
+	
+	//预约时间表
 	private ServiceResultCode m_newWorkSheetPresetTime(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
 		CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
 		creationInfoWorkSheet.setOwner(true);
-		String szWorkSheetName=String.format("HAUDM_B%d_PresetTime", dmBusiness.getId());
-		String szWorkSheetNameCh=String.format("外拨业务%d预约工作表", dmBusiness.getId());
-		String szWorkSheetDescription=String.format("外拨业务%d预约工作表，坐席预约的数据存入此工作表，只保留最后预约的数据",dmBusiness.getId());
+		String szWorkSheetName=String.format("HASYS_DM_B%d_PresetTime", dmBusiness.getBizId());
+		String szWorkSheetNameCh=String.format("外拨业务%d预约工作表", dmBusiness.getBizId());
+		String szWorkSheetDescription=String.format("外拨业务%d预约工作表，坐席预约的数据存入此工作表，只保留最后预约的数据",dmBusiness.getBizId());
 		creationInfoWorkSheet.setName(szWorkSheetName);
 		creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
 		creationInfoWorkSheet.setDescription(szWorkSheetDescription);
 		creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+		creationInfoWorkSheet.addColumn("来源编号", "SourceID", "来源编号", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("任务ID", "TaskId", "任务唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		
 		creationInfoWorkSheet.addColumn("预约日期时间", "presettime", "预约日期时间", WorkSheetDataType.DATETIME, -1, false, true);
-		creationInfoWorkSheet.addColumn("状态", "state", "状态", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("预约说明", "presetcomment", "预约说明", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("号码类型", "phonetype", "号码类型", WorkSheetDataType.TEXT, 50, false, true);
-		
+		creationInfoWorkSheet.addColumn("预约状态", "state", "预约状态", WorkSheetDataType.TEXT, 50, false, true);
+		creationInfoWorkSheet.addColumn("预约备注", "presetcomment", "预约备注", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改ID", "ModifyID", "修改唯一标识", WorkSheetDataType.INT, -1, false, true);
 		creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+		creationInfoWorkSheet.addColumn("修改描述", "ModifyDescription", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+		creationInfoWorkSheet.addColumn("号码类型", "phonetype", "号码类型", WorkSheetDataType.TEXT, 50, false, true);
 		
-		return m_newWs(dbConn,dmBusiness.getId(),creationInfoWorkSheet,DMWorkSheetType.WSTDM_PRESETTIME,errMessage);
+		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_PRESETTIME,errMessage);
 	}
-	private ServiceResultCode m_newWorkSheetPresetTime_His(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+	//数据池记录表
+	private ServiceResultCode m_newWorkSheetDataPool(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
 		CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
 		creationInfoWorkSheet.setOwner(true);
-		String szWorkSheetName=String.format("HAUDM_B%d_PresetTime_His", dmBusiness.getId());
-		String szWorkSheetNameCh=String.format("外拨业务%d预约历史工作表", dmBusiness.getId());
-		String szWorkSheetDescription=String.format("外拨业务%d预约历史工作表，坐席预约的数据存入此工作表",dmBusiness.getId());
+		String szWorkSheetName=String.format("HAU_DM_B%d_POOL", dmBusiness.getBizId());
+		String szWorkSheetNameCh=String.format("外拨业务%ds数据池记录表", dmBusiness.getBizId());
+		String szWorkSheetDescription=String.format("外拨业务%d数据池记录表，数据池记录数据存入此工作表",dmBusiness.getBizId());
 		creationInfoWorkSheet.setName(szWorkSheetName);
 		creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
 		creationInfoWorkSheet.setDescription(szWorkSheetDescription);
 		creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+		creationInfoWorkSheet.addColumn("分配批次ID", "DID", "分配批次号", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("任务ID", "TaskId", "任务唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		
-		creationInfoWorkSheet.addColumn("预约日期时间", "presettime", "预约日期时间", WorkSheetDataType.DATETIME, -1, false, true);
-		creationInfoWorkSheet.addColumn("状态", "state", "状态", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("预约说明", "presetcomment", "预约说明", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("号码类型", "phonetype", "号码类型", WorkSheetDataType.TEXT, 50, false, true);
-		
-		creationInfoWorkSheet.addColumn("修改ID", "ModifyID", "修改唯一标识", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("上次所在数据池ID", "DATAPOOlIDLAST", "上次所在数据池ID", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("当前所在数据池ID", "DATAPOOlIDCUR", "当前所在数据池ID", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("上次所在数据池分区", "AREALAST", "上次所在数据池分区", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("当前所在数据池分区", "AREACUR", "当前所在数据池分区", WorkSheetDataType.INT, -1, false, true);	
+		creationInfoWorkSheet.addColumn("是否被回收", "ISRECOVER", "是否被回收", WorkSheetDataType.INT, -1, false, true);	
 		creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
 		
-		return m_newWs(dbConn,dmBusiness.getId(),creationInfoWorkSheet,DMWorkSheetType.WSTDM_PRESETTIME_HIS,errMessage);
+		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_DATAPOOL,errMessage);
 	}
 	
-	private ServiceResultCode m_newWs(Connection dbConn,int bizId,CreationInfoWorkSheet creationInfoWorkSheet,DMWorkSheetType dmWsType,StringBuffer errMessage){
+	//数据池记录操作表
+		private ServiceResultCode m_newWorkSheetDataPoolORE(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+			creationInfoWorkSheet.setOwner(true);
+			String szWorkSheetName=String.format("HAU_DM_B%d_POOL_ORE", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%ds数据池记录操作表", dmBusiness.getBizId());
+			String szWorkSheetDescription=String.format("外拨业务%d数据池记录操作表，数据池记录操作数据存入此工作表",dmBusiness.getBizId());
+			creationInfoWorkSheet.setName(szWorkSheetName);
+			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+			creationInfoWorkSheet.addColumn("分配批次ID", "DID", "分配批次号", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("本次操作", "OPERATIONNAME", "本次操作", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("上次所在数据池ID", "DATAPOOlIDLAST", "上次所在数据池ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("当前所在数据池ID", "DATAPOOlIDCUR", "当前所在数据池ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("上次所在数据池分区", "AREALAST", "上次所在数据池分区", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("当前所在数据池分区", "AREACUR", "当前所在数据池分区", WorkSheetDataType.INT, -1, false, true);	
+			creationInfoWorkSheet.addColumn("是否被回收", "ISRECOVER", "是否被回收", WorkSheetDataType.INT, -1, false, true);	
+			creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+			
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_DATAPOOLORE,errMessage);
+		}
+		//单号码重拨模式共享数据状态表
+		private ServiceResultCode m_newWorkSheetDataM3(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+			creationInfoWorkSheet.setOwner(true);
+			String szWorkSheetName=String.format("HAU_DM_B%d_DATAM3", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%ds单号码重拨模式共享数据状态表", dmBusiness.getBizId());
+			String szWorkSheetDescription=String.format("外拨业务%d单号码重拨模式共享数据状态表，单号码重拨模式共享数据状态数据存入此工作表",dmBusiness.getBizId());
+			creationInfoWorkSheet.setName(szWorkSheetName);
+			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+			creationInfoWorkSheet.addColumn("业务ID", "BUSINESSID", "业务ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("共享ID", "SHAREID", "共享ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("状态", "STATE", "状态", WorkSheetDataType.TEXT, 50, false, true);	
+			creationInfoWorkSheet.addColumn("坐席使用状态", "USERUSESTATE", "坐席使用状态", WorkSheetDataType.TEXT, 20, false, true);
+			creationInfoWorkSheet.addColumn("是否内存加载", "ISMEMORYLOADIN", "是否内存加载", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改ID", "ModifyID", "修改ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改描述", "ModifyDesc", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("最近一次拨打时间", "LASTDIALTIME", "最近一次拨打时间", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当天已拨打次数", "THISDAYDIALEDCOUNT", "当天已拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当前重拨阶段数", "CURREDIALSTAGECOUNT", "当前重拨阶段数", WorkSheetDataType.INT, -1, false, true);
+			
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_DATAM3,errMessage);
+		}
+	
+		private ServiceResultCode m_newWorkSheetDataM3_his(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+			creationInfoWorkSheet.setOwner(true);
+			String szWorkSheetName=String.format("HAU_DM_B%d_DATAM3_HIS", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%ds单号码重拨模式共享数据状态历史表", dmBusiness.getBizId());
+			String szWorkSheetDescription=String.format("外拨业务%d单号码重拨模式共享数据状态历史表，单号码重拨模式共享数据状态历史数据存入此工作表",dmBusiness.getBizId());
+			creationInfoWorkSheet.setName(szWorkSheetName);
+			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+			creationInfoWorkSheet.addColumn("业务ID", "BUSINESSID", "业务ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("共享ID", "SHAREID", "共享ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("状态", "STATE", "状态", WorkSheetDataType.TEXT, 50, false, true);	
+			creationInfoWorkSheet.addColumn("坐席使用状态", "USERUSESTATE", "坐席使用状态", WorkSheetDataType.TEXT, 20, false, true);
+			creationInfoWorkSheet.addColumn("是否内存加载", "ISMEMORYLOADIN", "是否内存加载", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改ID", "ModifyID", "修改ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "ModifyUserID", "修改用户ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改日期时间", "ModifyTime", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改描述", "ModifyDesc", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("最近一次拨打时间", "LASTDIALTIME", "最近一次拨打时间", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当天已拨打次数", "THISDAYDIALEDCOUNT", "当天已拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当前重拨阶段数", "CURREDIALSTAGECOUNT", "当前重拨阶段数", WorkSheetDataType.INT, -1, false, true);
+			
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_DATAM3_HIS,errMessage);
+		}
+	
+	private ServiceResultCode m_newWs(Connection dbConn,int bizId,CreationInfoWorkSheet creationInfoWorkSheet,DMWorkSheetTypeEnum dmWsType,StringBuffer errMessage){
 		String szSql;
 		PreparedStatement stmt = null;
 		try {
