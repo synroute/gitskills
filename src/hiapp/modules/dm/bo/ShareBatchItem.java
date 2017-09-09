@@ -6,14 +6,14 @@ import java.util.Date;
  *  共享批次信息表HASYS_DM_SID
  */
 public class ShareBatchItem {
-    Long id;
-    Long bizId;
+    int id;
+    int bizId;
     String shareBatchId;
     String shareBatchName;
-    Long createUserId;
+    int  createUserId;
     Date createTime;
     String description;
-    String	state;       //	ShareBatchStateEnum
+    ShareBatchStateEnum	state;
     Date StartTime;
     Date EndTime;
 }

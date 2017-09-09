@@ -4,10 +4,10 @@ public enum SingleNumberModeShareCustomerStateEnum {
     CREATED("created"),
     APPENDED("appended"),
     USING("using"),
-    WAITREDIAL("waitredial"),
-    PRESET("preset"),
+    WAITREDIAL("waitredial"), // 等待再次拨打状态
+    PRESET("preset"),         // 预约状态
     FINISHED("finished"),
-    REVERT("revert");
+    REVERT("revert");         // 回退状态
 
     private SingleNumberModeShareCustomerStateEnum(String name) {
         m_name = name;
