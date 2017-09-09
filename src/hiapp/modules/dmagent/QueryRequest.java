@@ -1,33 +1,28 @@
 package hiapp.modules.dmagent;
 
 import java.util.List;
+import java.util.Map;
 
 public class QueryRequest {
-    private String bizId;
-    private String queryType;
-    private List<QueryCondition> queryCondition;
-    
-	public QueryRequest() {
-	}
-	
+	private String bizId;
+	private List<Map<String,String>> queryCondition;
 	public String getBizId() {
 		return bizId;
 	}
 	public void setBizId(String bizId) {
 		this.bizId = bizId;
 	}
-	public String getQueryType() {
-		return queryType;
-	}
-	public void setQueryType(String queryType) {
-		this.queryType = queryType;
-	}
-	public List<QueryCondition> getQueryCondition() {
+	public List<Map<String, String>> getQueryCondition() {
 		return queryCondition;
 	}
-	public void setQueryCondition(List<QueryCondition> queryCondition) {
+	public void setQueryCondition(List<Map<String, String>> queryCondition) {
 		this.queryCondition = queryCondition;
 	}
-
-    
+	@Override
+	public String toString() {
+		return "QueryRequest [bizId=" + bizId + ", queryCondition="
+				+ queryCondition + "]";
+	}
+	
+	
 }
