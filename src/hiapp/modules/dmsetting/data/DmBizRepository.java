@@ -1,6 +1,6 @@
 package hiapp.modules.dmsetting.data;
 
-import hiapp.modules.dmsetting.beanOld.DMBusiness;
+import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResult;
@@ -27,19 +27,16 @@ public class DmBizRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("SELECT ID,NAME,DESCRIPTION,OWNERGROUPID,MODEID,SUBMODEID FROM HASYS_DM_BUSINESS ORDER BY ID ");
+			szSql = String.format("SELECT ID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS ORDER BY ID ");
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
 				DMBusiness DMBusiness = new DMBusiness();
-				DMBusiness.setId(rs.getInt(1));
+				DMBusiness.setBizId(rs.getInt(1));
 				DMBusiness.setName(rs.getString(2));
-				DMBusiness.setDescription(rs.getString(3));
-				DMBusiness.setOwnerGroupId(rs.getInt(4));
-				DMBusiness.setModeId(rs.getInt(5));
-				DMBusiness.setSubModeId(rs.getInt(6));
-				String modeSubModeTextString=String.format("%d,%d",DMBusiness.getModeId(),DMBusiness.getSubModeId());
-				DMBusiness.setModeSubmodeIdString(modeSubModeTextString);
+				DMBusiness.setDesc(rs.getString(3));
+				DMBusiness.setOwnerGroupId(rs.getString(4));
+				DMBusiness.setOutboundModeId(rs.getInt(5));
 				listDMBusiness.add(DMBusiness);
 			}
 		} catch (Exception e) {
@@ -54,7 +51,7 @@ public class DmBizRepository extends BaseRepository{
 	
 	public ServiceResultCode newDMBusiness(
 			String id, String name, String description,
-			String ownerGroupId, String modeId, String subModeId, StringBuffer errMessage) {
+			String ownerGroupId, String modeId, StringBuffer errMessage) {
 		Connection dbConn = null;
 		String szSql = "";
 		PreparedStatement stmt = null;	
@@ -102,8 +99,8 @@ public class DmBizRepository extends BaseRepository{
 		}
 		try {/////////////////////////////////////////////////////////////////
 			dbConn = this.getDbConnection();
-			szSql = String.format("INSERT INTO HASYS_DM_BUSINESS (ID,NAME,DESCRIPTION,OWNERGROUPID,modeid,submodeid) "+ "VALUES ('%s','%s','%s','%s',%s,%s) ", 
-									id,name, description, ownerGroupId,modeId,subModeId);
+			szSql = String.format("INSERT INTO HASYS_DM_BUSINESS (ID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID) "+ "VALUES ('%s','%s','%s','%s',%s) ", 
+									id,name, description, ownerGroupId,modeId);
 			stmt = dbConn.prepareStatement(szSql);		
 			stmt.execute();				
 		} catch (Exception e) {
@@ -115,10 +112,9 @@ public class DmBizRepository extends BaseRepository{
 			DbUtil.DbCloseExecute(stmt);		
 		}
 		DMBusiness dmBusiness=new DMBusiness();
-		dmBusiness.setId(Integer.parseInt(id));
+		dmBusiness.setBizId(Integer.parseInt(id));
 		dmBusiness.setName(name);
-		dmBusiness.setModeId(Integer.parseInt(modeId));
-		dmBusiness.setSubModeId(Integer.parseInt(subModeId));
+		dmBusiness.setOutboundModeId(Integer.parseInt(modeId));
 		return dmWorkSheetRepository.newDMBizWorkSheetsSystem(dmBusiness, errMessage);
 	}
 
@@ -139,9 +135,9 @@ public class DmBizRepository extends BaseRepository{
 			if (rs.next()) {
 				count=rs.getInt(1);
 			}
-			if (count>0) {
+			if (count>0) {	
 				errMessage.append("冲突");
-				return ServiceResultCode.INVALID_PARAM;				
+				return ServiceResultCode.INVALID_PARAM;		
 			}		
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -168,16 +164,35 @@ public class DmBizRepository extends BaseRepository{
 		Connection dbConn = null;
 		String szSql = "";
 		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		//判断业务状态
+		try {
+			dbConn = this.getDbConnection();
+			szSql = String.format("SELECT STATE FROM HASYS_DM_SID WHERE BUSINESS='%s'",bizId);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				if (rs.getString(1).equals("启动")) {
+					errMessage.append("请先停止正在活动的共享批次再删除");
+					return ServiceResultCode.EXECUTE_SQL_FAIL;
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		} finally{
+			DbUtil.DbCloseConnection(dbConn);
+		}
 		try {
 			dbConn = this.getDbConnection();
 			szSql = String.format("DELETE FROM HASYS_DM_BUSINESS WHERE ID='%s'",bizId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
 		} catch (Exception e) {
+			e.printStackTrace();
 			return  ServiceResultCode.EXECUTE_SQL_FAIL;
 		} finally {
 			DbUtil.DbCloseConnection(dbConn);
-			DbUtil.DbCloseExecute(stmt);
+			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {
 			return dmWorkSheetRepository.destroyWorkSheetAll(bizId,errMessage);
@@ -188,18 +203,6 @@ public class DmBizRepository extends BaseRepository{
 		}
 	}
 
-	public ServiceResultCode destroyDMBusinessBatch(List<String> listDMBId, StringBuffer errMessage) {
-		try {
-			for (int i = 0; i < listDMBId.size(); i++) {
-				String bizId=listDMBId.get(i);
-				destroyDMBusiness(Integer.parseInt(bizId),errMessage);
-			}
-		} catch (Exception e) {
-			return  ServiceResultCode.EXECUTE_SQL_FAIL;
-		}
-		return  ServiceResultCode.SUCCESS;
-	}
-
 	public boolean DMBusinessQuery(
 			String searchKeyString, List<DMBusiness> listDMBusiness) {
 		Connection dbConn = null;
@@ -208,7 +211,7 @@ public class DmBizRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql=String.format("SELECT ID,NAME,DESCRIPTION,OWNERGROUPID,MODEID,SUBMODEID FROM HASYS_DM_BUSINESS "
+			szSql=String.format("SELECT ID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS "
 					+ "WHERE ID LIKE '%%%s%%' OR NAME LIKE '%%%s%%' "
 					+ "ORDER BY ID",
 					searchKeyString,searchKeyString);
@@ -216,12 +219,11 @@ public class DmBizRepository extends BaseRepository{
 			rs = stmt.executeQuery();
 			while (rs.next()) {
 				DMBusiness DMBusiness = new DMBusiness();
-				DMBusiness.setId(rs.getInt(1));
+				DMBusiness.setBizId(rs.getInt(1));
 				DMBusiness.setName(rs.getString(2));
-				DMBusiness.setDescription(rs.getString(3));
-				DMBusiness.setOwnerGroupId(rs.getInt(4));
-				DMBusiness.setModeId(rs.getInt(5));
-				DMBusiness.setSubModeId(rs.getInt(6));
+				DMBusiness.setDesc(rs.getString(3));
+				DMBusiness.setOwnerGroupId(rs.getString(4));
+				DMBusiness.setOutboundModeId(rs.getInt(5));
 				listDMBusiness.add(DMBusiness);
 			}
 		} 
