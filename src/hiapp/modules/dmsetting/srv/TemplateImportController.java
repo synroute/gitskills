@@ -16,6 +16,7 @@ import com.google.gson.JsonParser;
 import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.beanOld.DMEndCode;
 import hiapp.modules.dmsetting.data.DmBizTemplateImportRepository;
+import hiapp.modules.dmsetting.result.DMBizTemplateExcelColums;
 import hiapp.modules.dmsetting.result.DMBizTemplateImportTableColumns;
 import hiapp.modules.dmsetting.result.DMBizTemplateImportTableName;
 import hiapp.utils.serviceresult.RecordsetResult;
@@ -198,6 +199,27 @@ public class TemplateImportController {
 		return serviceresult.toJson();
 	}
 	
-	
+	@RequestMapping(value = "srv/dm/dmGetBizExcel.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmGetBizExcel(@RequestParam("excelPath") String excelPath) {
+		RecordsetResult recordsetResult = new RecordsetResult();
+		try{
+			List<DMBizTemplateExcelColums> listDMBizTemplateExcelColums=new ArrayList<DMBizTemplateExcelColums>();
+			listDMBizTemplateExcelColums=dmBizTemplateImport.dmGetBizExcel(excelPath);
+				recordsetResult.setPage(0);
+				recordsetResult.setTotal(listDMBizTemplateExcelColums.size());
+				recordsetResult.setPageSize(listDMBizTemplateExcelColums.size());
+				recordsetResult.setRows(listDMBizTemplateExcelColums);
+				
+				recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
+			} catch (Exception e) {
+				e.printStackTrace();
+				recordsetResult.setReturnCode(1);
+				recordsetResult.setReturnMessage("失败");
+			}
+			return recordsetResult.toJson();
+
+		
+		
+	}
 	
 }

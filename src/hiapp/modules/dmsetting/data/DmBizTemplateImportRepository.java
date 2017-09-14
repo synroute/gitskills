@@ -8,6 +8,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableLoadTimeWeaving;
 import org.springframework.stereotype.Repository;
@@ -16,6 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import hiapp.modules.dmsetting.DMBizImportTemplate;
+import hiapp.modules.dmsetting.result.DMBizTemplateExcelColums;
 import hiapp.modules.dmsetting.result.DMBizTemplateImportTableColumns;
 import hiapp.modules.dmsetting.result.DMBizTemplateImportTableName;
 import hiapp.system.dictionary.data.DictRepository;
@@ -267,8 +273,38 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		return true;
 	}	
 	
-	
-	
+	//获取单个导出导入模板配置excel数据信息
+	public List<DMBizTemplateExcelColums> dmGetBizExcel(String excelPath) throws Exception
+	{
+		InputStream inputStream = DMBizImportTemplate.class.getClassLoader().getResourceAsStream(excelPath);
+
+        if(inputStream==null){
+            throw new Exception("文件不存在");
+        }
+
+        //创建Workbook工作薄对象，表示整个excel
+        Workbook workbook = null;
+
+        if(excelPath.endsWith(".xlsx")) {
+            workbook = new XSSFWorkbook(inputStream);
+        }else if(excelPath.endsWith(".xls")){
+            workbook = new HSSFWorkbook(inputStream);
+        }else{
+            throw new Exception("不是excel文件");
+        }
+        Sheet sheet = workbook.getSheetAt(0);
+        Row row = sheet.getRow(sheet.getFirstRowNum());
+        short firstCellNum = row.getFirstCellNum();
+        short lastCellNum = row.getLastCellNum();
+        List<DMBizTemplateExcelColums> listDMBizTemplateExcelColums=new ArrayList<>();
+        for(int i=firstCellNum;i<=lastCellNum-1;i++){
+        	DMBizTemplateExcelColums dmBizTemplateExcelColums=new  DMBizTemplateExcelColums();
+        	dmBizTemplateExcelColums.setExcelColumn(row.getCell(i).toString());
+        	listDMBizTemplateExcelColums.add(dmBizTemplateExcelColums);
+        }
+        
+        return listDMBizTemplateExcelColums;
+	}
 	
 	
 	
