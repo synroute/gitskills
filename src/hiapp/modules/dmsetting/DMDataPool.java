@@ -7,7 +7,9 @@ package hiapp.modules.dmsetting;
  */
 public class DMDataPool {
 	//数据池编号
-	private int id;
+	private int poolId;
+	//业务编号
+	private int bizId;
 	//数据池名称
 	private String dataPoolName;
 	//数据池类型
@@ -21,12 +23,7 @@ public class DMDataPool {
 	//数据池上限
 	private int poolTopLimit;
 	
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
+	
 	public String getDataPoolName() {
 		return dataPoolName;
 	}
@@ -60,8 +57,20 @@ public class DMDataPool {
 	public int getPoolTopLimit() {
 		return poolTopLimit;
 	}
-	public void setModeId(int poolTopLimit) {
+	public void setPoolTopLimit(int poolTopLimit) {
 		this.poolTopLimit = poolTopLimit;
+	}
+	public int getBizId() {
+		return bizId;
+	}
+	public void setBizId(int bizId) {
+		this.bizId = bizId;
+	}
+	public int getPoolId() {
+		return poolId;
+	}
+	public void setPoolId(int poolId) {
+		this.poolId = poolId;
 	}
 	
 }
