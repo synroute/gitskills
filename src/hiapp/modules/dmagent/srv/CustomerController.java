@@ -8,6 +8,7 @@ import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
 import hiapp.system.buinfo.data.PermissionRepository;
 import hiapp.system.buinfo.data.UserRepository;
+import hiapp.utils.base.HiAppException;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+
 @RestController
 public class CustomerController {
 	@Autowired
@@ -32,20 +35,29 @@ public class CustomerController {
 
 	/**
 	 * 获取配置查询模板时需要使用的候选列
-	 * 
 	 * @param bizId
-	 * @param deployPage
+	 * @param configPage
 	 * @return
 	 * @throws SQLException
 	 */
 	@RequestMapping(value = "/srv/agent/getCandidadeColumn", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> getCandidadeColumn(String bizId,
-			String configPage) throws SQLException {
+			String configPage) {
 		Map<String, Object> result = new HashMap<String, Object>();
-		List<Map<String, Object>> candidadeColumn = customerRepository
-				.getCandidadeColumn(bizId, configPage);
+		List<Map<String, Object>> candidadeColumn = null;
+		
+		try {
+			candidadeColumn = customerRepository
+					.getCandidadeColumn(bizId, configPage);
+		} catch (HiAppException e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+		}
+		
 		result.put("data", candidadeColumn);
 		result.put("result", 0);
+		
 		return result;
 	}
 
@@ -58,7 +70,14 @@ public class CustomerController {
 	@RequestMapping(value = "/srv/agent/saveQueryTemplate", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> saveQueryTemplate(QueryTemplate queryTemplate) {
 		Map<String, Object> result = new HashMap<String, Object>();
-		result.put("result", 0);
+		
+		if(customerRepository.saveQueryTemplate(queryTemplate)){
+			result.put("result", 0);
+		}else{
+			result.put("result", 1);
+			result.put("reason", "参数错误！");
+		}
+		
 		return result;
 	}
 
@@ -67,9 +86,21 @@ public class CustomerController {
 	 * 
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/srv/agent/getQueryTemplate", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> getQueryTemplate(QueryTemplate queryTemplate) {
 		Map<String, Object> result = new HashMap<String, Object>();
+		List<Map<String, Object>> list = null;
+		
+		try {
+			list = new Gson().fromJson(customerRepository.getQueryTemplate(queryTemplate), List.class);
+		} catch (HiAppException e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+		}
+		
+		result.put("data", list);
 		result.put("result", 0);
 		return result;
 	}
@@ -80,10 +111,21 @@ public class CustomerController {
 	 * @param queryRequest
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	@RequestMapping(value = "/srv/agent/queryMyCustomers", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> queryMyCustomers(QueryRequest queryRequest) {
-		System.out.println(queryRequest);
+	public Map<String, Object> queryMyCustomers(QueryRequest queryRequest,HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
+		List<Map<String, String>> list = null;
+		
+		try {
+			List<Map<String, Object>> queryMyCustomers = customerRepository.queryMyCustomers(queryRequest, ((User)session.getAttribute("user")).getId());
+		} catch (HiAppException e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+		}
+		
+		result.put("data", list);
 		result.put("result", 0);
 		return result;
 	}
@@ -94,10 +136,21 @@ public class CustomerController {
 	 * @param queryRequest
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> queryMyPresetCustomers(QueryRequest queryRequest) {
-		System.out.println(queryRequest);
+	public Map<String, Object> queryMyPresetCustomers(QueryRequest queryRequest,HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
+		List<Map<String, String>> list = null;
+		
+		try {
+			List<Map<String, Object>> queryMyCustomers = customerRepository.queryMyPresetCustomers(queryRequest, ((User)session.getAttribute("user")).getId());
+		} catch (HiAppException e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+		}
+		
+		result.put("data", list);
 		result.put("result", 0);
 		return result;
 	}
@@ -116,7 +169,19 @@ public class CustomerController {
 		RoleInGroupSet roleInGroupSet = userRepository.getRoleInGroupSetByUserId(userId);
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
+		
 		Map<String, Object> result = new HashMap<String, Object>();
+		List<Map<String,Object>> list = null;
+		
+		try {
+			list = customerRepository.queryAllCustomers(queryRequest, permissionId);
+		} catch (HiAppException e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+		}
+		
+		result.put("data", list);
 		result.put("result", 0);
 		return result;
 	}
