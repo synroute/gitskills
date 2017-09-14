@@ -13,21 +13,33 @@ public class DataPoolRecordOperation {
 	private String distId;          //分配批次号
 	private String importId;        //导入批次号
 	private String custId;          //客户号
-	private String operationName;   //操作类型
+	private OperationNameEnum operationName;   //操作类型OperationName
 	private Integer dataPoolIDLast; //上次所在数据池数据池
 	private Integer dataPoolIDCur;  //当前所在数据池
-	private Integer areaLast;       //上次所在数据池分区
-	private Integer areaCur;        //当前所在数据池分区
-	public Integer getAreaCur() {
-		return areaCur;
-	}
-	public void setAreaCur(Integer areaCur) {
-		this.areaCur = areaCur;
-	}
-	private Integer iSRecover;      //是否被回收
+	private AreaLastEnum areaLast;       //上次所在数据池分区
+	private AreaCurEnum areaCur;   //当前所在数据池分区
+	private IsRecoverEnum iSRecover;      //是否被回收
 	private String modifyUserID;    //修改人工号
 	private Date ModifyTime;        //修改时间
-	
+	public AreaLastEnum getAreaLast() {
+		return areaLast;
+	}
+	public void setAreaLast(AreaLastEnum areaLast) {
+		this.areaLast = areaLast;
+	}
+	public AreaCurEnum getAreaCur() {
+		return areaCur;
+	}
+	public void setAreaCur(AreaCurEnum areaCur) {
+		this.areaCur = areaCur;
+	}
+
+	public OperationNameEnum getOperationName() {
+		return operationName;
+	}
+	public void setOperationName(OperationNameEnum operationName) {
+		this.operationName = operationName;
+	}
 	public Integer getId() {
 		return id;
 	}
@@ -52,12 +64,6 @@ public class DataPoolRecordOperation {
 	public void setcId(String cId) {
 		this.custId = cId;
 	}
-	public String getOperationName() {
-		return operationName;
-	}
-	public void setOperationName(String operationName) {
-		this.operationName = operationName;
-	}
 	public Integer getDataPoolIDLast() {
 		return dataPoolIDLast;
 	}
@@ -69,18 +75,6 @@ public class DataPoolRecordOperation {
 	}
 	public void setDataPoolIDCur(Integer dataPoolIDCur) {
 		this.dataPoolIDCur = dataPoolIDCur;
-	}
-	public Integer getAreaLast() {
-		return areaLast;
-	}
-	public void setAreaLast(Integer areaLast) {
-		this.areaLast = areaLast;
-	}
-	public Integer getiSRecover() {
-		return iSRecover;
-	}
-	public void setiSRecover(Integer iSRecover) {
-		this.iSRecover = iSRecover;
 	}
 	public String getModifyUserID() {
 		return modifyUserID;

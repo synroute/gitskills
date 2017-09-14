@@ -8,17 +8,29 @@ import java.util.Date;
  *  类说明：数据池记录表
  */
 public class DataPoolRecord {
-	private Integer id;             //ID
+	private Integer id; //ID
 	private String distId;          //分配批次号
 	private String importId;        //导入批次号
 	private String custId;          //客户号
 	private Integer dataPoolIdLast; //上次所在数据池数据池
 	private Integer dataPoolIdCur;  //当前所在数据池
-	private Integer areaLast;       //上次所在数据池分区
-	private Integer areaCur;        //当前所在数据池分区
+	private AreaLastEnum areaLast;  //上次所在数据池分区
+	private AreaCurEnum areaCur;    //当前所在数据池分区
 	private Integer isRecover;      //是否被回收
 	private String modifyUserId;    //修改人工号
 	private Date modifyTime;        //修改时间
+	public AreaLastEnum getAreaLast() {
+		return areaLast;
+	}
+	public void setAreaLast(AreaLastEnum areaLast) {
+		this.areaLast = areaLast;
+	}
+	public AreaCurEnum getAreaCur() {
+		return areaCur;
+	}
+	public void setAreaCur(AreaCurEnum areaCur) {
+		this.areaCur = areaCur;
+	}
 	public Integer getId() {
 		return id;
 	}
@@ -55,18 +67,6 @@ public class DataPoolRecord {
 	public void setDataPoolIDCur(Integer dataPoolIDCur) {
 		this.dataPoolIdCur = dataPoolIDCur;
 	}
-	public Integer getAreaLast() {
-		return areaLast;
-	}
-	public void setAreaLast(Integer areaLast) {
-		this.areaLast = areaLast;
-	}
-	public Integer getAreaCur() {
-		return areaCur;
-	}
-	public void setAreaCur(Integer areaCur) {
-		this.areaCur = areaCur;
-	}
 	public Integer getIsRecover() {
 		return isRecover;
 	}
@@ -85,4 +85,5 @@ public class DataPoolRecord {
 	public void setModifyTime(Date modifyTime) {
 		this.modifyTime = modifyTime;
 	}
+
 }

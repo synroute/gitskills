@@ -5,9 +5,9 @@ import javax.xml.crypto.Data;
 public class ImportDataMessage {
 
 	private Integer id;
-	private String iid;         //导入批次id
-	private Integer businessId;   //业务编号
-	private Data ImportTime;   //导入时间
+	private String iid;          //导入批次id
+	private Integer businessId;  //业务编号
+	private Data ImportTime;     //导入时间
 	private String userId;       //导入人
 	private String name;         //导入批次名称
 	private String description;  //导入批次描述
