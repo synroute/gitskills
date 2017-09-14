@@ -1,6 +1,8 @@
 package hiapp.modules.dmsetting.data;
 
+import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBusiness;
+import hiapp.modules.dmsetting.result.DMBizOutboundModel;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResult;
@@ -13,7 +15,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.stereotype.Repository;
+@Repository
 public class DmBizRepository extends BaseRepository{
 	@Autowired
 	private DmBizRepository dmBizRepository;
@@ -55,7 +58,6 @@ public class DmBizRepository extends BaseRepository{
 		Connection dbConn = null;
 		String szSql = "";
 		PreparedStatement stmt = null;	
-		ServiceResult serviceresult = new ServiceResult();
 		ResultSet rs = null;	
 		try {/////////////////////////////////////////////////////////////////
 			dbConn = this.getDbConnection();
@@ -104,8 +106,6 @@ public class DmBizRepository extends BaseRepository{
 			stmt = dbConn.prepareStatement(szSql);		
 			stmt.execute();				
 		} catch (Exception e) {
-			serviceresult.setReturnCode(0);
-			serviceresult.setReturnMessage("失败");
 			e.printStackTrace();
 		} finally {
 			DbUtil.DbCloseConnection(dbConn);
@@ -115,6 +115,7 @@ public class DmBizRepository extends BaseRepository{
 		dmBusiness.setBizId(Integer.parseInt(id));
 		dmBusiness.setName(name);
 		dmBusiness.setOutboundModeId(Integer.parseInt(modeId));
+		//判断外拨模式，创建相应worksheet
 		return dmWorkSheetRepository.newDMBizWorkSheetsSystem(dmBusiness, errMessage);
 	}
 
@@ -159,7 +160,7 @@ public class DmBizRepository extends BaseRepository{
 		}
 		return ServiceResultCode.SUCCESS;
 	}
-
+	//删除业务
 	public ServiceResultCode destroyDMBusiness(int bizId, StringBuffer errMessage) {
 		Connection dbConn = null;
 		String szSql = "";
@@ -182,6 +183,7 @@ public class DmBizRepository extends BaseRepository{
 		} finally{
 			DbUtil.DbCloseConnection(dbConn);
 		}
+		//删除业务表中信息
 		try {
 			dbConn = this.getDbConnection();
 			szSql = String.format("DELETE FROM HASYS_DM_BUSINESS WHERE ID='%s'",bizId);
@@ -194,13 +196,52 @@ public class DmBizRepository extends BaseRepository{
 			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
+		//同步删除业务相关表中数据
+		this.destroyDMBizInOtherTables(bizId);
+		//删除业务下相关工作表
 		try {
-			return dmWorkSheetRepository.destroyWorkSheetAll(bizId,errMessage);
+			dmWorkSheetRepository.destroyWorkSheetAll(bizId,errMessage);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return  ServiceResultCode.EXECUTE_SQL_FAIL;
 		}
+		return ServiceResultCode.SUCCESS;
+	}
+
+	@SuppressWarnings("resource")
+	private void destroyDMBizInOtherTables(int bizId) {
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			dbConn = this.getDbConnection();
+			szSql = String.format("DELETE FROM Hasys_DM_BIZADDSETTING WHERE BUSINESSID='%s'",bizId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();
+			szSql = String.format("DELETE FROM HASYS_DM_BIZENDCODE WHERE BUSINESSID='%s'",bizId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();
+			szSql = String.format("DELETE FROM HASYS_DM_BIZTEMPLATEEXPORT WHERE BUSINESSID='%s'",bizId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();
+			szSql = String.format("DELETE FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE BUSINESSID='%s'",bizId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();
+			szSql = String.format("DELETE FROM HASYS_DM_BIZPHONETYPE WHERE BUSINESSID='%s'",bizId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();
+			szSql = String.format("DELETE FROM HASYS_DM_DATAPOOL WHERE BUSINESSID='%s'",bizId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		return;
 	}
 
 	public boolean DMBusinessQuery(
@@ -235,5 +276,20 @@ public class DmBizRepository extends BaseRepository{
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		return true;
+	}
+
+	public boolean getAllDMBizModel(
+			List<DMBizOutboundModel> listDMBizOutboundModel) {
+		int num = DMBizOutboundModelEnum.values().length;
+		for (int i = 0; i < num; i++) {
+			DMBizOutboundModelEnum modelEnum = DMBizOutboundModelEnum.values()[i];
+			DMBizOutboundModel DMBizOutboundModel = new DMBizOutboundModel();
+			DMBizOutboundModel.setModelId(modelEnum.getOutboundID());
+			DMBizOutboundModel.setModelType(modelEnum.getOutboundType());
+			DMBizOutboundModel.setModelName(modelEnum.getOutboundMode());
+			DMBizOutboundModel.setDescription(modelEnum.getOutboundMode());
+			listDMBizOutboundModel.add(DMBizOutboundModel);
+		}
+		return false;
 	}
 }

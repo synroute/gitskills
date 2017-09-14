@@ -3,13 +3,13 @@ package hiapp.modules.dmsetting;
 import hiapp.system.worksheet.bean.WorkSheet;
 
 public class DMWorkSheet extends WorkSheet {
-	private String type;
+	private String worksheetType;
 	private String idNameCh;
-	public String getType() {
-		return type;
+	public String getWorksheetType() {
+		return worksheetType;
 	}
-	public void setType(String type) {
-		this.type = type;
+	public void setWorksheetType(String worksheetType) {
+		this.worksheetType = worksheetType;
 	}
 	public String getIdNameCh() {
 		return idNameCh;

@@ -5,6 +5,7 @@ import java.util.List;
 
 import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.modules.dmsetting.data.DmBizRepository;
+import hiapp.modules.dmsetting.result.DMBizOutboundModel;
 import hiapp.utils.serviceresult.RecordsetResult;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -21,7 +22,7 @@ public class BuinessController {
 	private DmBizRepository dmBizRepository;
 	
 	//新增业务
-	@RequestMapping(value = "/srv/buinfo/dmCreateBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dmsetting/dmCreateBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmCreateBiz(@RequestParam("id") String id,
 			@RequestParam("name") String name,
 			@RequestParam("description") String description,
@@ -36,7 +37,7 @@ public class BuinessController {
 				serviceresult.setReturnMessage(errMessage.toString());
 			} else {
 				serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-				serviceresult.setReturnMessage("失败");
+				serviceresult.setReturnMessage("成功");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -45,7 +46,7 @@ public class BuinessController {
 	}
 	
 	//获取全部业务
-	@RequestMapping(value = "/srv/buinfo/dmGetAllBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dmsetting/dmGetAllBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetAllBiz() {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try {
@@ -65,7 +66,7 @@ public class BuinessController {
 	}
 	
 	//修改业务
-	@RequestMapping(value = "/srv/buinfo/dmModifyBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dmsetting/dmModifyBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBiz(@RequestParam("bizId") String szDMBId,
 			@RequestParam("bizName") String szDMBName,
 			@RequestParam("bizDescription") String szDMBDescription,
@@ -92,7 +93,7 @@ public class BuinessController {
 	}
 	
 	//删除业务
-	@RequestMapping(value = "/srv/buinfo/dmDeleteBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dmsetting/dmDeleteBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmDeleteBiz(@RequestParam("bizId") String id) {
 		ServiceResult serviceresult = new ServiceResult();
 		try {
@@ -111,23 +112,23 @@ public class BuinessController {
 		return serviceresult.toJson();
 	}
 	
-//	//获取全部外呼模式信息
-//	@RequestMapping(value = "/srv/buinfo/dmGetOutboundModels.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-//	public String dmGetOutboundModels() {
-//		RecordsetResult recordsetResult = new RecordsetResult();
-//		try {
-//			List<DMBusiness> listDMBusiness = new ArrayList<DMBusiness>();
-//			if (!dmBizRepository.getAllDMBusiness(listDMBusiness)) {
-//				return null;
-//			}
-//			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
-//			recordsetResult.setPage(0);
-//			recordsetResult.setTotal(listDMBusiness.size());
-//			recordsetResult.setPageSize(listDMBusiness.size());
-//			recordsetResult.setRows(listDMBusiness);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		return recordsetResult.toJson();
-//	}
+	//获取全部外呼模式信息
+	@RequestMapping(value = "/srv/dmsetting/dmGetOutboundModels.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmGetOutboundModels() {
+		RecordsetResult recordsetResult = new RecordsetResult();
+		try {
+			List<DMBizOutboundModel> listDMBizOutboundModel = new ArrayList<DMBizOutboundModel>();
+			if (!dmBizRepository.getAllDMBizModel(listDMBizOutboundModel)) {
+				return null;
+			}
+			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
+			recordsetResult.setPage(0);
+			recordsetResult.setTotal(listDMBizOutboundModel.size());
+			recordsetResult.setPageSize(listDMBizOutboundModel.size());
+			recordsetResult.setRows(listDMBizOutboundModel);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return recordsetResult.toJson();
+	}
 }
