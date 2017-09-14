@@ -8,7 +8,7 @@ package hiapp.modules.dmsetting;
  */
 public class DMBizImportTemplate {
 	private int templateId;		//模板ID，自动生成
-	private String bizId;	//业务ID
+	private int bizId;	//业务ID
 	private String templateName;//模板名称
 	private String desc;	//描述
 	private int isDefault;		//是否是缺省模板
@@ -20,13 +20,7 @@ public class DMBizImportTemplate {
 	public void setTemplateId(int templateId) {
 		this.templateId = templateId;
 	}
-	public String getBizId() {
-		return bizId;
-	}
-	public void setBizId(String bizId) {
-		this.bizId = bizId;
-	}
-	public String getTemplateName() {
+		public String getTemplateName() {
 		return templateName;
 	}
 	public void setTemplateName(String templateName) {
@@ -56,5 +50,11 @@ public class DMBizImportTemplate {
 	}
 	public void setDataSourceType(String dataSourceType) {
 		this.dataSourceType = dataSourceType;
+	}
+	public int getBizId() {
+		return bizId;
+	}
+	public void setBizId(int bizId) {
+		this.bizId = bizId;
 	}
 }

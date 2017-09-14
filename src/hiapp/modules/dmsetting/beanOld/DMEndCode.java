@@ -1,6 +1,7 @@
 package hiapp.modules.dmsetting.beanOld;
 
 public class DMEndCode {
+	private int bizId;
 	private String	endCodeType;
 	private String	endCode;
 	private String	description;
@@ -21,5 +22,11 @@ public class DMEndCode {
 	}
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	public int getBizId() {
+		return bizId;
+	}
+	public void setBizId(int bizId) {
+		this.bizId = bizId;
 	}
 }
