@@ -1,14 +1,13 @@
 package hiapp.modules.dmsetting;
-
+/** 
+ * @author yangwentian 
+ * @version 创建时间：2017年9月8日 下午3:54:41 
+ * 类说明  工作表类型枚举
+ */
 public enum DMWorkSheetTypeEnum {
-	WSTDM_CUSTOMERIMPORT(1,"客户信息导入表"),
-	WSTDM_RESULT(2,"结果表"),
-	WSTDM_PRESETTIME(3,"预约表"),
-	WSTDM_USERDEFINE(4,"用户定义"),
-	WSTDM_DATAPOOL(5,"数据池记录表"),
-	WSTDM_DATAPOOLORE(6,"数据池记录操作表"),
-	WSTDM_DATAM3(7,"单号码重拨模式共享数据状态表"),
-	WSTDM_DATAM3_HIS(8,"单号码重拨模式共享数据状态历史表");
+	WSTDM_SYSTEM(1,"系统型"),
+	WSTDM_MIDDLE(2,"中间型"),
+	WSTDM_USERDEFINE(3,"用户自定义型");
 	
 	private int code;
     private String type;  
