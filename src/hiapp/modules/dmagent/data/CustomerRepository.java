@@ -227,7 +227,7 @@ public class CustomerRepository extends BaseRepository {
 		PreparedStatement stmt = null;
 
 		try {
-			String sql = "INSERT INTO HASYS_DM_CUPAGETEMPLATE (BUSINESSID,CONFIGPAGE,CONFIGTYPE,CONFIGTEMPLATE) VALUES (?,?,?,?)";
+			String sql = "INSERT INTO HASYS_DM_CUPAGETEMPLATE (ID,BUSINESSID,CONFIGPAGE,CONFIGTYPE,CONFIGTEMPLATE) VALUES (SEQ_HASYS_DM_CUPAGETEMPLATE.NEXTVAL,?,?,?,?)";
 			dbCOnn = this.getDbConnection();
 			stmt = dbCOnn.prepareStatement(sql);
 			stmt.setObject(1, bizId);
