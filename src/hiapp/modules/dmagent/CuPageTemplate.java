@@ -1,6 +1,5 @@
 package hiapp.modules.dmagent;
 
-import java.sql.Blob;
 
 /**
  * @author PengXiaoHong
@@ -10,9 +9,9 @@ import java.sql.Blob;
 public class CuPageTemplate {
 	private long id;//ID
 	private long bizId;//业务ID
-	private DeployPage deployPage;//配置页面
-	private DeployType deployType;//配置类型
-	private String deployTemplate;//配置模板数据
+	private ConfigPageEnume configPage;//配置页面
+	private ConfigTypeEnume configType;//配置类型
+	private String configTemplate;//配置模板
 	public long getId() {
 		return id;
 	}
@@ -25,26 +24,23 @@ public class CuPageTemplate {
 	public void setBizId(long bizId) {
 		this.bizId = bizId;
 	}
-	public DeployPage getDeployPage() {
-		return deployPage;
+	public ConfigPageEnume getConfigPage() {
+		return configPage;
 	}
-	public void setDeployPage(DeployPage deployPage) {
-		this.deployPage = deployPage;
+	public void setConfigPage(ConfigPageEnume configPage) {
+		this.configPage = configPage;
 	}
-	public DeployType getDeployType() {
-		return deployType;
+	public ConfigTypeEnume getConfigType() {
+		return configType;
 	}
-	public void setDeployType(DeployType deployType) {
-		this.deployType = deployType;
+	public void setConfigType(ConfigTypeEnume configType) {
+		this.configType = configType;
 	}
-	public String getDeployTemplate() {
-		return deployTemplate;
+	public String getConfigTemplate() {
+		return configTemplate;
 	}
-	public void setDeployTemplate(String deployTemplate) {
-		this.deployTemplate = deployTemplate;
+	public void setConfigTemplate(String configTemplate) {
+		this.configTemplate = configTemplate;
 	}
-	
-	
-	
 	
 }
