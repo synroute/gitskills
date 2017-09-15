@@ -17,7 +17,7 @@ import hiapp.modules.dmsetting.data.DMBizPermissionRepository;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
 @RestController
-public class PermissionController {
+public class DMPermissionController {
 	@Autowired
 	private DMBizPermissionRepository dmBizPermissionRepository;
 	

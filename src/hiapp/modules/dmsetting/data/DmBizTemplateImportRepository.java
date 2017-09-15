@@ -8,11 +8,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+//import org.apache.poi.ss.usermodel.Row;
+//import org.apache.poi.ss.usermodel.Sheet;
+//import org.apache.poi.ss.usermodel.Workbook;
+//import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableLoadTimeWeaving;
 import org.springframework.stereotype.Repository;
@@ -283,25 +283,25 @@ public class DmBizTemplateImportRepository extends BaseRepository {
         }
 
         //创建Workbook工作薄对象，表示整个excel
-        Workbook workbook = null;
-
-        if(excelPath.endsWith(".xlsx")) {
-            workbook = new XSSFWorkbook(inputStream);
-        }else if(excelPath.endsWith(".xls")){
-            workbook = new HSSFWorkbook(inputStream);
-        }else{
-            throw new Exception("不是excel文件");
-        }
-        Sheet sheet = workbook.getSheetAt(0);
-        Row row = sheet.getRow(sheet.getFirstRowNum());
-        short firstCellNum = row.getFirstCellNum();
-        short lastCellNum = row.getLastCellNum();
-        List<DMBizTemplateExcelColums> listDMBizTemplateExcelColums=new ArrayList<>();
-        for(int i=firstCellNum;i<=lastCellNum-1;i++){
-        	DMBizTemplateExcelColums dmBizTemplateExcelColums=new  DMBizTemplateExcelColums();
-        	dmBizTemplateExcelColums.setExcelColumn(row.getCell(i).toString());
-        	listDMBizTemplateExcelColums.add(dmBizTemplateExcelColums);
-        }
+//        Workbook workbook = null;
+//
+//        if(excelPath.endsWith(".xlsx")) {
+//            workbook = new XSSFWorkbook(inputStream);
+//        }else if(excelPath.endsWith(".xls")){
+//            workbook = new HSSFWorkbook(inputStream);
+//        }else{
+//            throw new Exception("不是excel文件");
+//        }
+//        Sheet sheet = workbook.getSheetAt(0);
+//        Row row = sheet.getRow(sheet.getFirstRowNum());
+//        short firstCellNum = row.getFirstCellNum();
+//        short lastCellNum = row.getLastCellNum();
+          List<DMBizTemplateExcelColums> listDMBizTemplateExcelColums=new ArrayList<>();
+//        for(int i=firstCellNum;i<=lastCellNum-1;i++){
+//        	DMBizTemplateExcelColums dmBizTemplateExcelColums=new  DMBizTemplateExcelColums();
+//        	dmBizTemplateExcelColums.setExcelColumn(row.getCell(i).toString());
+//        	listDMBizTemplateExcelColums.add(dmBizTemplateExcelColums);
+//        }
         
         return listDMBizTemplateExcelColums;
 	}
