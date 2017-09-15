@@ -7,7 +7,9 @@ import hiapp.modules.dm.singlenumbermode.dao.SingleNumberModeDAO;
 import hiapp.modules.dm.dao.DMDAO;
 
 import hiapp.modules.dmsetting.DMBizPresetItem;
+import hiapp.utils.database.DBConnectionPool;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -25,12 +27,23 @@ public class SingleNumberOutboundDataManage {
     @Autowired
     EndCodeRedialStrategy endCodeRedialStrategy;
 
+    DBConnectionPool dbConnectionPool;
+
+    @Autowired
+    @Qualifier("tenantDBConnectionPool")
+    public void setDBConnectionPool(DBConnectionPool dbConnectionPool) {
+        this.dbConnectionPool = dbConnectionPool;
+
+        initialize();
+    }
+
     Map<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> mapPresetDialCustomer;
     Map<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> mapPhaseDialCustomer;
     Map<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> mapDialCustomer;
 
     Timer     dailyTimer;
     TimerTask dailyTimerTask;
+
 
     public SingleNumberModeShareCustomerItem extractNextOutboundCustomer(String userId,
                                                                   int bizId) {
