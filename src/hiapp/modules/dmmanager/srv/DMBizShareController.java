@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 //数据共享类
 @RestController
-public class DataShareController {
+public class DMBizShareController {
     @Autowired
 	private DMBizDataShare dMBizDataImport;
     @Autowired
@@ -34,7 +34,7 @@ public class DataShareController {
 			                            @RequestParam(value="EndTime") String EndTime,
 			                            @RequestParam(value="BusinessId") String BusinessId,
 			                            @RequestParam(value="TemplateID") String templateId){
-		//将返回的开始时间和结束时间转成时间类型
+		
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String,Object>> list=null;
 		try {

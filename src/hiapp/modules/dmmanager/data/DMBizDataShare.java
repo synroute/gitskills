@@ -27,12 +27,14 @@ import java.util.Map;
 
 
 
+
 /*import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;*/
 import org.springframework.stereotype.Repository;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 //数据共享db
 @Repository
 public class DMBizDataShare extends BaseRepository {
@@ -86,6 +88,7 @@ public class DMBizDataShare extends BaseRepository {
 		ResultSet rs = null;
 		Connection dbConn = null;
 		String jsonData=null;
+		JsonArray dataArray=null;
 		String ImportTableName=null;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		try {
@@ -97,23 +100,21 @@ public class DMBizDataShare extends BaseRepository {
 				//循环获取xml里面的数据
 				jsonData=ClobToString(rs.getClob(1));	
 			}
-			               JsonObject json=new JsonObject();
-			               JsonObject object = json.get("jsonData").getAsJsonObject();
-			//JSONObject jsonObject=JSONObject.fromObject(jsonData);
-			//解析出是哪个Excel文件
-			               JsonObject objects = object.get("ImportExcelTemplate").getAsJsonObject();
-			//JSONObject excelTemplate=jsonObject.getJSONObject("ImportExcelTemplate");
-			//获取表名
-			               objects.get("ImportTableName").toString();
-			//ImportTableName=excelTemplate.getString("ImportTableName");
-			//表里面有多少字段
-			               JsonArray asJsonArray = objects.get("FieldMaps").getAsJsonArray();
-			//JSONArray dataArray=jsonObject.getJSONArray("FieldMaps");
-			//循环便利传过来的批次号，根据批次号的多少 循环多少次
+			
+			/*JsonObject jsonObject= new JsonParser().parse("jsonData").getAsJsonObject();
+			
+			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
+			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();*/
+			//解析 通过查询获取xml，并把存储的json串解成json对象
+			JsonObject jsonObject= new JsonParser().parse("jsonData").getAsJsonObject(); 
+			//从对象中获取列名数组json集合
+			dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			
 			String sql="select";
-			for (int i = 0; i < asJsonArray.size(); i++) {
+			for (int i = 0; i < dataArray.size(); i++) {
 				//sql+=dataArray.getJSONObject(i).getString("FieldName")+",";
-				sql+=asJsonArray.get(i).getAsString().concat("FieldName")+",";
+				sql+=dataArray.get(i).getAsString().concat("FieldName")+",";
 						}
 			sql.substring(sql.length()-1);
 			sql=sql+"from "+ImportTableName+" where IID IN (select a.IID from HASYS-DM-IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR='DA' AND a.BUSINESSID=" + businessId + ""+ "OR a.IMPORTTIME BETWEEN to_date(" + StartTime+ ",'yyyy/mm/dd') AND to_date(" + EndTime+ ",'yyyy/mm/dd'))";
@@ -122,10 +123,10 @@ public class DMBizDataShare extends BaseRepository {
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
 				//列名不确定 需要循环 录入到 map集合中
-				for (int i = 0; i < asJsonArray.size(); i++) {
+				for (int i = 0; i < dataArray.size(); i++) {
 					// 将循环出来的列名作为key
 					//String key=asJsonArray.getJSONObject(i).getString("FieldName");
-					String key=asJsonArray.get(i).getAsString().concat("FieldName");
+					String key=dataArray.get(i).getAsString().concat("FieldName");
 					map.put(key,rs.getObject(i+1));
 				}
 				dataList.add(map);
