@@ -42,7 +42,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		try {
 			dbConn =this.getDbConnection();
 			String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,DataPoolDes,PID,AreaType,PoolTopLimit)"+
-			" values(HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getPid(),dataPool.getPoolTopLimit());
+			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getPid(),dataPool.getPoolTopLimit());
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.executeUpdate();
 		} catch (SQLException e) {

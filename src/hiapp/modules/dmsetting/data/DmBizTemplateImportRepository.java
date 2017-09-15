@@ -110,7 +110,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 			}
 			jsonObject.add("FieldMaps", jsonArray);
 			
-			String szSql = "INSERT INTO HASYS_DM_BIZTEMPLATEIMPORT (ID,TemplateID,BusinessId,Name,Description,IsDefault,SourceType,Xml) VALUES(SEQ_BIZADimport.nextval,?,?,?,?,?,?,?) ";
+			String szSql = "INSERT INTO HASYS_DM_BIZTEMPLATEIMPORT (TemplateID,BusinessId,Name,Description,IsDefault,SourceType,Xml) VALUES(S_HASYS_DM_BIZTEMPLATEIMPORT.nextval,?,?,?,?,?,?,?) ";
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.setInt(1,dmBizImportTemplate.getTemplateId());
 			stmt.setInt(2,dmBizImportTemplate.getBizId());

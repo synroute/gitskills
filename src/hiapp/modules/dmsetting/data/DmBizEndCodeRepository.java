@@ -215,7 +215,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
 		        
 		            
-		            String insertsql = "INSERT INTO HASYS_DM_BIZADDSETTING (BusinessId,XML) values("+bizid+",'"+jsonObject.toString()+"')";
+		            String insertsql = "INSERT INTO HASYS_DM_BIZADDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZADDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
 		            stmt = conn.prepareStatement(insertsql);
 		            stmt.executeUpdate();
 		        

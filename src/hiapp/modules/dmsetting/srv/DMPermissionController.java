@@ -29,7 +29,7 @@ public class DMPermissionController {
 		return jsonObject.toString();
 	}
 	
-	@RequestMapping(value = "srv/dm/dmGetAllBizPermission.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "srv/dm/dmSubmitBizPermission.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmSubmitBizPermission(@RequestParam("MapColumns") String mapColumns) {
 		JsonArray returnData = new JsonParser().parse(mapColumns).getAsJsonArray();
 		ServiceResult serviceresult = new ServiceResult();
