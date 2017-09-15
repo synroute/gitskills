@@ -22,11 +22,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+//import org.apache.poi.ss.usermodel.Row;
+//import org.apache.poi.ss.usermodel.Sheet;
+//import org.apache.poi.ss.usermodel.Workbook;
+//import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -123,39 +123,39 @@ public class ImportDataController {
         if (!filepath.getParentFile().exists()) { 
             filepath.getParentFile().mkdirs();
         }
-        try {
-			FileInputStream fis = new FileInputStream(filepath+File.separator + fileName);
-			Workbook wookbook =null;
-			String suffix=fileName.substring(fileName.indexOf("."));//获取后缀名
-			if("xls".equals(suffix)){ 
-				wookbook = new HSSFWorkbook(fis);
-			}else if("xlsx".equals(suffix)){
-				wookbook = new XSSFWorkbook(fis);
-			}
-			Sheet sheet = wookbook.getSheetAt(0);
-			int totalRowNum = sheet.getLastRowNum(); 
-			//获取前台要展示的字段
-			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-			for (int i = 0; i < totalRowNum; i++) {
-				 //获取当前行的数据
-	            Row row = sheet.getRow(i);
-	            Map<String,Object> map=new HashMap<String, Object>();
-	            for(int j=0;j<sheetColumnList.size();j++){
-	            	//获取当前单元格的数据
-	            	String value=row.getCell(j).getStringCellValue().toString();
-	            	if(value==null||"".equals(value)){
-	            		map.put(sheetColumnList.get(j).getName(),"");
-	            	}else{
-	            		map.put(sheetColumnList.get(j).getName(), value);
-	            	}
-	            	
-	            }
-	            dataList.add(map);
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//        try {
+//			FileInputStream fis = new FileInputStream(filepath+File.separator + fileName);
+//			Workbook wookbook =null;
+//			String suffix=fileName.substring(fileName.indexOf("."));//获取后缀名
+//			if("xls".equals(suffix)){ 
+//				wookbook = new HSSFWorkbook(fis);
+//			}else if("xlsx".equals(suffix)){
+//				wookbook = new XSSFWorkbook(fis);
+//			}
+//			Sheet sheet = wookbook.getSheetAt(0);
+//			int totalRowNum = sheet.getLastRowNum(); 
+//			//获取前台要展示的字段
+//			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
+//			for (int i = 0; i < totalRowNum; i++) {
+//				 //获取当前行的数据
+//	            Row row = sheet.getRow(i);
+//	            Map<String,Object> map=new HashMap<String, Object>();
+//	            for(int j=0;j<sheetColumnList.size();j++){
+//	            	//获取当前单元格的数据
+//	            	String value=row.getCell(j).getStringCellValue().toString();
+//	            	if(value==null||"".equals(value)){
+//	            		map.put(sheetColumnList.get(j).getName(),"");
+//	            	}else{
+//	            		map.put(sheetColumnList.get(j).getName(), value);
+//	            	}
+//	            	
+//	            }
+//	            dataList.add(map);
+//			}
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
         return dataList;
 	}
 	/**
