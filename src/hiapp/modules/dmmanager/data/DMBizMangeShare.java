@@ -38,7 +38,7 @@ public class DMBizMangeShare extends BaseRepository{
 					shareBatchItems.setBizId(rs.getInt(2));
 					shareBatchItems.setShareBatchId(rs.getString(3));
 					shareBatchItems.setShareBatchName(rs.getString(4));
-					shareBatchItems.setCreateUserId(rs.getInt(5));
+					shareBatchItems.setCreateUserId(rs.getString(5));
 					shareBatchItems.setCreateTime(rs.getTime(6));
 					shareBatchItems.setDescription(rs.getString(7));
 					shareBatchItems.setState((ShareBatchStateEnum) rs.getObject(8));
@@ -69,7 +69,7 @@ public class DMBizMangeShare extends BaseRepository{
 							shareBatchItems.setBizId(rs.getInt(2));
 							shareBatchItems.setShareBatchId(rs.getString(3));
 							shareBatchItems.setShareBatchName(rs.getString(4));
-							shareBatchItems.setCreateUserId(rs.getInt(5));
+							shareBatchItems.setCreateUserId(rs.getString(5));
 							shareBatchItems.setCreateTime(rs.getTime(6));
 							shareBatchItems.setDescription(rs.getString(7));
 							shareBatchItems.setState((ShareBatchStateEnum) rs.getObject(8));

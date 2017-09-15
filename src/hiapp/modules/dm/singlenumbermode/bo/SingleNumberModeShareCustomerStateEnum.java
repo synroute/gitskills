@@ -10,8 +10,40 @@ public enum SingleNumberModeShareCustomerStateEnum {
     REVERT("revert");         // 回退状态
 
     private SingleNumberModeShareCustomerStateEnum(String name) {
-        m_name = name;
+        this.name = name;
     }
 
-    private String m_name;
+    public String getName() {
+        return name;
+    }
+
+    private String name;
+
+    static public SingleNumberModeShareCustomerStateEnum getFromString(String columnValue) {
+        if (SingleNumberModeShareCustomerStateEnum.CREATED.equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.CREATED;
+
+        if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.APPENDED;
+
+        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL;
+
+        if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.PRESET_DIAL;
+
+        if (SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL.equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL;
+
+        if (SingleNumberModeShareCustomerStateEnum.FINISHED.equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.FINISHED;
+
+        if (SingleNumberModeShareCustomerStateEnum.CREATED.equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.CREATED;
+
+        if (SingleNumberModeShareCustomerStateEnum.REVERT.equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.REVERT;
+
+        return null;
+    }
 }
