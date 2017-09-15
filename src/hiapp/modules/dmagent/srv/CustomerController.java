@@ -40,7 +40,7 @@
 //	 * @return
 //	 * @throws SQLException
 //	 */
-//	@RequestMapping(value = "/srv/agent/getCandidadeColumn", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+//	@RequestMapping(value = "/srv/agent/getCandidadeColumn.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 //	public Map<String, Object> getCandidadeColumn(String bizId,
 //			String configPage) {
 //		Map<String, Object> result = new HashMap<String, Object>();
@@ -67,7 +67,7 @@
 //	 * @param queryItem
 //	 * @return
 //	 */
-//	@RequestMapping(value = "/srv/agent/saveQueryTemplate", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+//	@RequestMapping(value = "/srv/agent/saveQueryTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 //	public Map<String, Object> saveQueryTemplate(QueryTemplate queryTemplate) {
 //		Map<String, Object> result = new HashMap<String, Object>();
 //		
@@ -87,7 +87,7 @@
 //	 * @return
 //	 */
 //	@SuppressWarnings("unchecked")
-//	@RequestMapping(value = "/srv/agent/getQueryTemplate", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+//	@RequestMapping(value = "/srv/agent/getQueryTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 //	public Map<String, Object> getQueryTemplate(QueryTemplate queryTemplate) {
 //		Map<String, Object> result = new HashMap<String, Object>();
 //		List<Map<String, Object>> list = null;
@@ -112,7 +112,7 @@
 //	 * @return
 //	 */
 //	@SuppressWarnings("unused")
-//	@RequestMapping(value = "/srv/agent/queryMyCustomers", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+//	@RequestMapping(value = "/srv/agent/queryMyCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 //	public Map<String, Object> queryMyCustomers(QueryRequest queryRequest,HttpSession session) {
 //		Map<String, Object> result = new HashMap<String, Object>();
 //		List<Map<String, String>> list = null;
@@ -137,7 +137,7 @@
 //	 * @return
 //	 */
 //	@SuppressWarnings("unused")
-//	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+//	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 //	public Map<String, Object> queryMyPresetCustomers(QueryRequest queryRequest,HttpSession session) {
 //		Map<String, Object> result = new HashMap<String, Object>();
 //		List<Map<String, String>> list = null;
@@ -161,7 +161,7 @@
 //	 * @param queryRequest
 //	 * @return
 //	 */
-//	@RequestMapping(value = "/srv/agent/queryAllCustomers", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+//	@RequestMapping(value = "/srv/agent/queryAllCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 //	public Map<String, Object> queryAllCustomers(QueryRequest queryRequest,
 //			HttpSession session) {
 //		User user = (User) session.getAttribute("user");

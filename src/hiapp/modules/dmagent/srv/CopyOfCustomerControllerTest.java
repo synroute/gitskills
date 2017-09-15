@@ -23,7 +23,7 @@ public class CopyOfCustomerControllerTest {
 	 * 测试接口
 	 * @return
 	 */
-	@RequestMapping(value = "/sayHello", produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/sayHello.srv", produces = "application/json;charset=utf-8")
 	public String sayHello(){
 		return "hello";
 	}
@@ -36,7 +36,7 @@ public class CopyOfCustomerControllerTest {
 	 * @return
 	 * @throws SQLException
 	 */
-	@RequestMapping(value = "/srv/agent/getCandidadeColumn", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/agent/getCandidadeColumn.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> getCandidadeColumn(@RequestParam("bizId")String bizId,
 			@RequestParam("configPage")String configPage) {
 		System.out.println(bizId + ":" + configPage);
@@ -65,7 +65,7 @@ public class CopyOfCustomerControllerTest {
 	 * @param queryItem
 	 * @return
 	 */
-	@RequestMapping(value = "/srv/agent/saveQueryTemplate", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/agent/saveQueryTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> saveQueryTemplate(QueryTemplate queryTemplate) {
 		System.out.println(queryTemplate);
 
@@ -79,7 +79,7 @@ public class CopyOfCustomerControllerTest {
 	 * 
 	 * @return
 	 */
-	@RequestMapping(value = "/srv/agent/getQueryTemplate", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/agent/getQueryTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> getQueryTemplate(QueryTemplate queryTemplate) {
 
 		System.out.println(queryTemplate);
@@ -106,7 +106,7 @@ public class CopyOfCustomerControllerTest {
 	 * @param queryRequest
 	 * @return
 	 */
-	@RequestMapping(value = "/srv/agent/queryMyCustomers", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/agent/queryMyCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> queryMyCustomers(QueryRequest queryRequest,
 			HttpSession session) {
 		System.out.println(queryRequest
@@ -138,7 +138,7 @@ public class CopyOfCustomerControllerTest {
 	 * @param queryRequest
 	 * @return
 	 */
-	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> queryMyPresetCustomers(
 			QueryRequest queryRequest, HttpSession session) {
 		System.out.println(queryRequest
@@ -169,7 +169,7 @@ public class CopyOfCustomerControllerTest {
 	 * @param queryRequest
 	 * @return
 	 */
-	@RequestMapping(value = "/srv/agent/queryAllCustomers", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/agent/queryAllCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> queryAllCustomers(QueryRequest queryRequest,
 			HttpSession session) {
 		System.out.println(queryRequest
