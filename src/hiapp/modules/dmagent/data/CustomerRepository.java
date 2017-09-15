@@ -171,7 +171,7 @@ public class CustomerRepository extends BaseRepository {
 	public List<Map<String, Object>> getCandidadeColumn(String bizId,
 			String configPage) throws HiAppException {
 
-		String sql = "SELECT COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH FROM HASYS_WORKSHEETCOLUMN A,HASYS_WORKSHEET B WHERE A.WORKSHEETID = B.ID AND B.NAME = ?";
+		String sql = "SELECT COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH FROM HASYS_WORKSHEETCOLUMN A,HASYS_WORKSHEET B WHERE A.ISSYSCOLUMN = 0 AND A.WORKSHEETID = B.ID AND B.NAME = ?";
 
 		// 获取用户自定义表中用户自定义的候选列
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
@@ -337,17 +337,19 @@ public class CustomerRepository extends BaseRepository {
 					List.class);
 			for (Map<String, String> map : list) {
 				String columnName = map.get("columnName");
-				sb.append("'" + columnName + "'");
+				sb.append("'"+columnName+"'");
 				sb.append(",");
 			}
 
+			sb = new StringBuffer(sb.substring(0,sb.length()-1));
+			
 			sb.append(" FROM ");
 
 			// 要查哪些表
 			sb.append(TableNameEnume.INPUTTABLENAME.getPrefix());
 			sb.append(bizId);
 			sb.append(TableNameEnume.INPUTTABLENAME.getSuffix());
-			sb.append(" AS ");
+			sb.append(" ");
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr());
 
 			sb.append(",");
@@ -355,19 +357,29 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
 			sb.append(bizId);
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
-			sb.append(" AS ");
+			sb.append(" ");
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
 
 			sb.append(" WHERE ");
 
 			// 查询条件
-			sb.append("MODIFYUSERID");
+			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"MODIFYUSERID");
 			sb.append(" = ");
-			sb.append("'" + userId + "'");
+			sb.append(userId);
+
 			sb.append(" AND ");
+
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"MODIFYUSERID");
+			sb.append(" = ");
+			sb.append(userId);
+
 
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
+			
+			if(queryCondition.size()>0){
+				sb.append(" AND ");
+			}
 
 			Map<String, String> map1 = new HashMap<String, String>();
 			Map<String, String> map2 = new HashMap<String, String>();
@@ -392,25 +404,29 @@ public class CustomerRepository extends BaseRepository {
 					sb.append("' AND ");
 				}
 			}
+			
+			if(map1.isEmpty()){
+				sb = new StringBuffer(sb.substring(0,sb.length()-5));
+			}
 
 			// 时间字段使用范围查询
 			for (Entry<String, String> entry : map1.entrySet()) {
 				String key = entry.getKey();
-				sb.append(key);
+				sb.append("("+key);
 				sb.append(" BETWEEN ");
 				sb.append("TO_DATE('" + entry.getValue() + "','"
 						+ INPUT_TIME_TEMPLATE + "')");
 				sb.append(" AND ");
 				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
+						+ INPUT_TIME_TEMPLATE + "'))");
 				sb.append(" OR ");
-				sb.append(key);
+				sb.append("("+key);
 				sb.append(" BETWEEN ");
-				sb.append("TO_DATE(" + map2.get(key) + "','"
+				sb.append("TO_DATE('" + map2.get(key) + "','"
 						+ INPUT_TIME_TEMPLATE + "')");
 				sb.append(" AND ");
 				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
+						+ INPUT_TIME_TEMPLATE + "'))");
 			}
 
 			dbConn = this.getDbConnection();
@@ -492,13 +508,14 @@ public class CustomerRepository extends BaseRepository {
 				sb.append("'" + columnName + "'");
 				sb.append(",");
 			}
+			sb = new StringBuffer(sb.substring(0,sb.length()-1));
 			sb.append(" FROM ");
 
 			// 要查哪些表
 			sb.append(TableNameEnume.PRESETTABLENAME.getPrefix());
 			sb.append(bizId);
 			sb.append(TableNameEnume.PRESETTABLENAME.getSuffix());
-			sb.append(" AS ");
+			sb.append(" ");
 			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr());
 
 			sb.append(",");
@@ -506,20 +523,29 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
 			sb.append(bizId);
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
-			sb.append(" AS ");
+			sb.append(" ");
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
 
 			sb.append(" WHERE ");
 
 			// 查询条件
 
-			sb.append("MODIFYUSERID");
+			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"MODIFYUSERID");
 			sb.append(" = ");
-			sb.append("'" + userId + "'");
+			sb.append(userId);
+
 			sb.append(" AND ");
 
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"MODIFYUSERID");
+			sb.append(" = ");
+			sb.append(userId);
+			
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
+			
+			if(queryCondition.size()>0){
+				sb.append(" AND ");
+			}
 
 			Map<String, String> map1 = new HashMap<String, String>();
 			Map<String, String> map2 = new HashMap<String, String>();
@@ -544,25 +570,29 @@ public class CustomerRepository extends BaseRepository {
 					sb.append("' AND ");
 				}
 			}
+			
+			if(map1.isEmpty()){
+				sb = new StringBuffer(sb.substring(0,sb.length()-5));
+			}
 
 			// 时间字段使用范围查询
 			for (Entry<String, String> entry : map1.entrySet()) {
 				String key = entry.getKey();
-				sb.append(key);
+				sb.append("("+key);
 				sb.append(" BETWEEN ");
 				sb.append("TO_DATE('" + entry.getValue() + "','"
 						+ INPUT_TIME_TEMPLATE + "')");
 				sb.append(" AND ");
 				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
+						+ INPUT_TIME_TEMPLATE + "'))");
 				sb.append(" OR ");
-				sb.append(key);
+				sb.append("("+key);
 				sb.append(" BETWEEN ");
-				sb.append("TO_DATE(" + map2.get(key) + "','"
+				sb.append("TO_DATE('" + map2.get(key) + "','"
 						+ INPUT_TIME_TEMPLATE + "')");
 				sb.append(" AND ");
 				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
+						+ INPUT_TIME_TEMPLATE + "'))");
 			}
 
 			dbConn = this.getDbConnection();
@@ -754,125 +784,152 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
 			String template = getQueryTemplate(queryTemplate);
-
-			sb.append("SELECT ");
-
-			// 要查哪些字段
-			@SuppressWarnings("unchecked")
-			List<Map<String, String>> list = new Gson().fromJson(template,
-					List.class);
-			for (Map<String, String> map : list) {
-				String columnName = map.get("columnName");
-				sb.append("'" + columnName + "'");
-				sb.append(",");
-			}
-			sb.append(" FROM ");
-
-			// 要查哪些表
-			sb.append(TableNameEnume.INPUTTABLENAME.getPrefix());
-			sb.append(bizId);
-			sb.append(TableNameEnume.INPUTTABLENAME.getSuffix());
-			sb.append(" AS ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr());
-
-			sb.append(",");
-
-			sb.append(TableNameEnume.PRESETTABLENAME.getPrefix());
-			sb.append(bizId);
-			sb.append(TableNameEnume.PRESETTABLENAME.getSuffix());
-			sb.append(" AS ");
-			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr());
-
-			sb.append(",");
-
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
-			sb.append(bizId);
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
-			sb.append(" AS ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
-
-			sb.append(" WHERE ");
-
-			// 查询条件
+			
 			Integer dataPoolId = getDataPoolIdByPermissionId(permissionId,
 					bizId);
-			String userIds = getUserIdsFromDataPool(dataPoolId, bizId);
+			
+			if(dataPoolId!=null){
+				String userIds = getUserIdsFromDataPool(dataPoolId, bizId);
 
-			sb.append("MODIFYUSERID");
-			sb.append(" IN ");
-			sb.append(userIds);
-			sb.append(" AND ");
+				if(!"()".equals(userIds)){
+					sb.append("SELECT ");
 
-			List<Map<String, String>> queryCondition = queryRequest
-					.getQueryCondition();
-
-			Map<String, String> map1 = new HashMap<String, String>();
-			Map<String, String> map2 = new HashMap<String, String>();
-
-			for (Map<String, String> map : queryCondition) {
-				String field = map.get("field");
-				String value = map.get("value");
-
-				// 时间字段使用范围查询
-				if ("date".equalsIgnoreCase(map.get("dataType"))) {
-					if (map1.get(field) == null) {
-						map1.put(field, value);
-					} else {
-						map2.put(field, value);
+					// 要查哪些字段
+					@SuppressWarnings("unchecked")
+					List<Map<String, String>> list = new Gson().fromJson(template,
+							List.class);
+					for (Map<String, String> map : list) {
+						String columnName = map.get("columnName");
+						sb.append("'" + columnName + "'");
+						sb.append(",");
 					}
-				} else {
+					sb = new StringBuffer(sb.substring(0,sb.length()-1));
+					sb.append(" FROM ");
 
-					// 非时间字段使用模糊查询
-					sb.append(field);
-					sb.append(" LIKE '");
-					sb.append(value);
-					sb.append("' AND ");
+					// 要查哪些表
+					sb.append(TableNameEnume.INPUTTABLENAME.getPrefix());
+					sb.append(bizId);
+					sb.append(TableNameEnume.INPUTTABLENAME.getSuffix());
+					sb.append(" ");
+					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr());
+
+					sb.append(",");
+
+					sb.append(TableNameEnume.PRESETTABLENAME.getPrefix());
+					sb.append(bizId);
+					sb.append(TableNameEnume.PRESETTABLENAME.getSuffix());
+					sb.append(" ");
+					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr());
+
+					sb.append(",");
+
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
+					sb.append(bizId);
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
+					sb.append(" ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
+
+					sb.append(" WHERE ");
+
+					// 查询条件
+					
+
+					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"MODIFYUSERID");
+					sb.append(" IN ");
+					sb.append(userIds);
+					sb.append(" AND ");
+					
+					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"MODIFYUSERID");
+					sb.append(" IN ");
+					sb.append(userIds);
+					sb.append(" AND ");
+					
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"MODIFYUSERID");
+					sb.append(" IN ");
+					sb.append(userIds);
+
+					List<Map<String, String>> queryCondition = queryRequest
+							.getQueryCondition();
+					
+					if(queryCondition.size()>0){
+						sb.append(" AND ");
+					}
+
+					Map<String, String> map1 = new HashMap<String, String>();
+					Map<String, String> map2 = new HashMap<String, String>();
+
+					for (Map<String, String> map : queryCondition) {
+						String field = map.get("field");
+						String value = map.get("value");
+
+						// 时间字段使用范围查询
+						if ("date".equalsIgnoreCase(map.get("dataType"))) {
+							if (map1.get(field) == null) {
+								map1.put(field, value);
+							} else {
+								map2.put(field, value);
+							}
+						} else {
+
+							// 非时间字段使用模糊查询
+							sb.append(field);
+							sb.append(" LIKE '");
+							sb.append(value);
+							sb.append("' AND ");
+						}
+					}
+					
+					if(map1.isEmpty()){
+						sb = new StringBuffer(sb.substring(0,sb.length()-5));
+					}
+
+					// 时间字段使用范围查询
+					for (Entry<String, String> entry : map1.entrySet()) {
+						String key = entry.getKey();
+						sb.append("("+key);
+						sb.append(" BETWEEN ");
+						sb.append("TO_DATE('" + entry.getValue() + "','"
+								+ INPUT_TIME_TEMPLATE + "')");
+						sb.append(" AND ");
+						sb.append("TO_DATE('" + map2.get(key) + "','"
+								+ INPUT_TIME_TEMPLATE + "'))");
+						sb.append(" OR ");
+						sb.append("("+key);
+						sb.append(" BETWEEN ");
+						sb.append("TO_DATE('" + map2.get(key) + "','"
+								+ INPUT_TIME_TEMPLATE + "')");
+						sb.append(" AND ");
+						sb.append("TO_DATE('" + entry.getValue() + "','"
+								+ INPUT_TIME_TEMPLATE + "'))");
+					}
+
+					dbConn = this.getDbConnection();
+					stmt = dbConn.prepareStatement(sb.toString());
+					rs = stmt.executeQuery();
+
+					result = new ArrayList<Map<String, Object>>();
+
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+							OUTPUT_TIME_TEMPLATE);
+
+					// 获取查询结果
+					while (rs.next()) {
+						Map<String, Object> m = new HashMap<String, Object>();
+						for (Map<String, String> map : list) {
+							String columnName = map.get("columnNameCH");
+							if ("date".equalsIgnoreCase(map.get("dataType"))) {
+								m.put(columnName,
+										simpleDateFormat.format(rs.getDate(columnName)));
+							} else {
+								m.put(columnName, rs.getObject(columnName));
+							}
+						}
+						result.add(m);
+					}
 				}
 			}
-
-			// 时间字段使用范围查询
-			for (Entry<String, String> entry : map1.entrySet()) {
-				String key = entry.getKey();
-				sb.append(key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" OR ");
-				sb.append(key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE(" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-			}
-
-			dbConn = this.getDbConnection();
-			stmt = dbConn.prepareStatement(sb.toString());
-			rs = stmt.executeQuery();
-
-			result = new ArrayList<Map<String, Object>>();
-
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-					OUTPUT_TIME_TEMPLATE);
-
-			// 获取查询结果
-			while (rs.next()) {
-				Map<String, Object> m = new HashMap<String, Object>();
-				for (Map<String, String> map : list) {
-					String columnName = map.get("columnNameCH");
-					if ("date".equalsIgnoreCase(map.get("dataType"))) {
-						m.put(columnName,
-								simpleDateFormat.format(rs.getDate(columnName)));
-					} else {
-						m.put(columnName, rs.getObject(columnName));
-					}
-				}
-				result.add(m);
-			}
+			
+			
 		} catch (JsonSyntaxException e) {
 			System.out.println(sb);
 			e.printStackTrace();
