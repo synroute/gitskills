@@ -31,7 +31,7 @@ public class WorkSheetController {
 	@Autowired
 	private WorkSheetRepository workSheetRepository;
 	//根据业务ID获取业务下所有工作表
-	@RequestMapping(value = "/srv/dmsetting/dmGetAllWorkSheet.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmGetAllWorkSheet.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetAllWorkSheet(@RequestParam("bizId") String bizId) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try {
@@ -50,7 +50,7 @@ public class WorkSheetController {
 		return recordsetResult.toJson();
 	}
 	//获取根据工作表ID获取业务下的工作表列信息
-	@RequestMapping(value = "/srv/dmsetting/dmGetAllBizWorkSheetColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmGetAllBizWorkSheetColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetAllBizWorkSheetColumns(@RequestParam("worksheetId") String worksheetId) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try {
@@ -70,7 +70,7 @@ public class WorkSheetController {
 	}
 
 	//修改列中文名
-	@RequestMapping(value = "/srv/dmsetting/dmModifyBizWorkSheetColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmModifyBizWorkSheetColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBizWorkSheetColumns(
 			@RequestParam("worksheetId") String worksheetId,
 			@RequestParam("columnsJson") String columnsJson) {

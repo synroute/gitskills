@@ -20,7 +20,7 @@ public class TemplateExportController {
 	@Autowired
 	private TemplateExportRepository templateExportRepository;
 	//添加导出模板
-	@RequestMapping(value = "/srv/dmsetting/dmCreateBizExportTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmCreateBizExportTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmCreateBizExportTemplate(@RequestParam("bizId") String bizId,
 			@RequestParam("templateId") String templateId,
 			@RequestParam("name") String name,
@@ -43,7 +43,7 @@ public class TemplateExportController {
 		return serviceresult.toJson();
 	}
 	//根据模板ID删除导出模板
-	@RequestMapping(value = "/srv/dmsetting/dmDeleteBizExportTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmDeleteBizExportTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmDeleteBizExportTemplate(@RequestParam("bizId") String bizId,
 			@RequestParam("templateId") String templateId) {
 		ServiceResult serviceresult = new ServiceResult();	
@@ -60,7 +60,7 @@ public class TemplateExportController {
 		return serviceresult.toJson();
 	}
 	//获取所有导出模板
-	@RequestMapping(value = "/srv/dmsetting/dmGetAllBizExportTemplates.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmGetAllBizExportTemplates.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetAllBizExportTemplates(@RequestParam("bizId") String bizId) {
 		RecordsetResult recordsetResult=new RecordsetResult();
 		List<DMBizExportTemplate> listDMBizExportTemplate=new ArrayList<DMBizExportTemplate>();
@@ -76,7 +76,7 @@ public class TemplateExportController {
 		return recordsetResult.toJson();
 	}
 	//修改导出模板信息
-	@RequestMapping(value = "/srv/dmsetting/dmModifyBizExportTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmModifyBizExportTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBizExportTemplate(@RequestParam("bizId") String bizId,
 			@RequestParam("templateId") String templateId,
 			@RequestParam("name") String name,
@@ -96,7 +96,7 @@ public class TemplateExportController {
 		return serviceresult.toJson();
 	}
 	//获取单个导出模板配置信息
-	@RequestMapping(value = "/srv/dmsetting/dmGetBizExportMapColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmGetBizExportMapColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetBizExportMapColumns(@RequestParam("bizId") String bizId,
 			@RequestParam("templateId") String templateId) {
 		String exportJson = "";	
@@ -104,7 +104,7 @@ public class TemplateExportController {
 		return exportJson;
 	}
 	//修改单个导出模板配置信息
-	@RequestMapping(value = "/srv/dmsetting/dmModifyBizExportMapColumus.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/dm/dmModifyBizExportMapColumus.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBizExportMapColumus(@RequestParam("bizId") String bizId,
 			@RequestParam("templateId") String templateId,
 			@RequestParam("mapColumns") String mapColumns) {

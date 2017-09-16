@@ -9,6 +9,7 @@ public class DMBusiness {
 	private String name;				    //业务名称
 	private String desc;			        //描述
 	private String ownerGroupId;		    //所属组
+	private String ownerGroupName;		    //所属组名
 	private int outboundModeId;				//选择的外呼模式ID
 	private String configJson;	            //设置信息Json
 	
@@ -50,5 +51,11 @@ public class DMBusiness {
 	}
 	public void setConfigJson(String configJson) {
 		this.configJson = configJson;
+	}
+	public String getOwnerGroupName() {
+		return ownerGroupName;
+	}
+	public void setOwnerGroupName(String ownerGroupName) {
+		this.ownerGroupName = ownerGroupName;
 	}
 }

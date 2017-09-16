@@ -3,6 +3,7 @@ package hiapp.modules.dmsetting.data;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.modules.dmsetting.result.DMBizOutboundModel;
+import hiapp.system.buinfo.data.GroupRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResult;
@@ -22,6 +23,8 @@ public class DmBizRepository extends BaseRepository{
 	private DmBizRepository dmBizRepository;
 	@Autowired
 	private DmWorkSheetRepository dmWorkSheetRepository;
+	@Autowired
+	private GroupRepository groupRepository;
 	
 	public boolean getAllDMBusiness(List<DMBusiness> listDMBusiness) {
 		Connection dbConn = null;
@@ -39,6 +42,8 @@ public class DmBizRepository extends BaseRepository{
 				DMBusiness.setName(rs.getString(2));
 				DMBusiness.setDesc(rs.getString(3));
 				DMBusiness.setOwnerGroupId(rs.getString(4));
+				String groupName = groupRepository.getGroupById(rs.getInt(4)).getName();
+				DMBusiness.setOwnerGroupName(groupName);
 				DMBusiness.setOutboundModeId(rs.getInt(5));
 				listDMBusiness.add(DMBusiness);
 			}
@@ -290,6 +295,6 @@ public class DmBizRepository extends BaseRepository{
 			DMBizOutboundModel.setDescription(modelEnum.getOutboundMode());
 			listDMBizOutboundModel.add(DMBizOutboundModel);
 		}
-		return false;
+		return true;
 	}
 }
