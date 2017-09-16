@@ -26,7 +26,7 @@ public class DMBizShareController {
 	private DMBizDataShare dMBizDataImport;
     @Autowired
     private IdFactory idFactory;
-    @Autowired
+//    @Autowired
     private ShareBatchItem shareBatchItem;
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
 	@RequestMapping(value="/srv/DataShareController/getNotShareDataByTime.srv", method=RequestMethod.POST, produces="application/json;charset=utf-8")

@@ -230,10 +230,12 @@ public class DMDAO extends BaseRepository {
 
             // 过期处理..共享批次
             sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
-            sqlBuilder.append(" State = ").append(ShareBatchStateEnum.EXPIRED.getName());
-            sqlBuilder.append(" WHERE (State = ").append(ShareBatchStateEnum.ENABLE.getName());
-            sqlBuilder.append(" OR State = ").append(ShareBatchStateEnum.ACTIVE.getName());
-            sqlBuilder.append(") AND EndTime < ").append("TO_DATA(").append(curDay).append(",'yyyy-MM-dd')");
+            sqlBuilder.append(" STATE = ").append(ShareBatchStateEnum.EXPIRED.getName());
+            sqlBuilder.append(" WHERE (STATE = ").append(ShareBatchStateEnum.ENABLE.getName());
+            sqlBuilder.append(" OR STATE = ").append(ShareBatchStateEnum.ACTIVE.getName());
+            sqlBuilder.append(") AND ENDTIME < ").append("TO_DATA(").append(curDay).append(",'yyyy-MM-dd')");
+
+            System.out.println(sqlBuilder.toString());
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             stmt.executeUpdate();
