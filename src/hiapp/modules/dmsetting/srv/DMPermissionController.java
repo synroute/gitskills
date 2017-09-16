@@ -26,6 +26,7 @@ public class DMPermissionController {
 	@RequestMapping(value = "srv/dm/dmGetAllBizPermission.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetAllBizPermission() {
 		JsonObject jsonObject =dmBizPermissionRepository.getAll();
+		
 		return jsonObject.toString();
 	}
 	

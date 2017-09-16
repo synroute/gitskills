@@ -216,10 +216,9 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        jsonArray_EndCode.add(jsonArray_EndCode);
 		        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
 		        
-		        Gson gs = new Gson();
+		        String jsonString="{RedialState:[],EndCodeRedialStrategy[{endCodeType:\""+EndCodeType+"\",endCode:\""+EndCode+"\",endCodedescription:\""+Description+"\",redialStateName:\"\",}]}";
 		        
-		            String json=gs.toJson(jsonObject);;
-		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
+		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonString+"')";
 		            stmt = conn.prepareStatement(insertsql);
 		            stmt.executeUpdate();
 		        
@@ -327,8 +326,8 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				DMEndCode dmEndCode=new DMEndCode();
 				dmEndCode.setBizId(rs.getInt("BUSINESSID"));
 				dmEndCode.setEndCodeType(rs.getString("CODETYPE"));
-				dmEndCode.setEndCodeType(rs.getString("CODE"));
-				dmEndCode.setEndCodeType(rs.getString("DESCRIPTION"));
+				dmEndCode.setEndCode(rs.getString("CODE"));
+				dmEndCode.setDescription(rs.getString("DESCRIPTION"));
 				listDmEndCodes.add(dmEndCode);
 			}
 			

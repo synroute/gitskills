@@ -111,14 +111,14 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		}
 		
 		//获取数据池详细信息
-		public List<DMDataPool> dmGetBizDataPool(int bizId )
+		public List<DMDataPool> dmGetBizDataPool(int poolid )
 		{
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
 			List<DMDataPool> listDmDataPool=new ArrayList<DMDataPool>();
 			try {
 				dbConn =this.getDbConnection();
-				String szSql = String.format("select ID,DataPoolName,DataPoolDes,PoolTopLimit from HASYS_DM_DATAPOOL where BusinessID=%s",bizId);
+				String szSql = String.format("select ID,DataPoolName,DataPoolDes,PoolTopLimit from HASYS_DM_DATAPOOL where ID=%s",poolid);
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				while(rs.next()){
