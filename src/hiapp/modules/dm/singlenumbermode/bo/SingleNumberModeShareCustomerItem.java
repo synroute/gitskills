@@ -118,15 +118,6 @@ public class SingleNumberModeShareCustomerItem {
         this.curRedialStageCount = curRedialStageCount;
     }
 
-
-    public Boolean getLoaded() {
-        return isLoaded;
-    }
-
-    public void setLoaded(Boolean loaded) {
-        isLoaded = loaded;
-    }
-
     public Date getShareBatchStartTime() {
         return shareBatchStartTime;
     }
@@ -135,12 +126,12 @@ public class SingleNumberModeShareCustomerItem {
         this.shareBatchStartTime = shareBatchStartTime;
     }
 
-    public int getCurDayLostCallCount() {
-        return curDayLostCallCount;
+    public int getLostCallCurDayCount() {
+        return lostCallCurDayCount;
     }
 
-    public void setCurDayLostCallCount(int curDayLostCallCount) {
-        this.curDayLostCallCount = curDayLostCallCount;
+    public void setLostCallCurDayCount(int lostCallCurDayCount) {
+        this.lostCallCurDayCount = lostCallCurDayCount;
     }
 
     public Date getLossCallFirstDay() {
@@ -199,6 +190,14 @@ public class SingleNumberModeShareCustomerItem {
         this.lostCallFirstDay = lostCallFirstDay;
     }
 
+    public Boolean getIsLoaded() {
+        return isLoaded;
+    }
+
+    public void setIsLoaded(Boolean loaded) {
+        isLoaded = loaded;
+    }
+
     int id;
     int bizId;
     String shareBatchId;
@@ -214,7 +213,7 @@ public class SingleNumberModeShareCustomerItem {
     String endCode;
     Date   lastDailTime;    //最近一次拨打时间
     Date   nextDialTime;    //下次拨打时间
-    int   curDayLostCallCount;   //当天未接通次数
+    int lostCallCurDayCount;   //当天未接通次数
     int   curRedialStageCount; //仅用于阶段拨打
     Boolean userUseState; //是否已经被坐席人员抽取
     Boolean isLoaded;   //是否已经加载到内存

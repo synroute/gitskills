@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -43,10 +44,11 @@ public class DMDAO extends BaseRepository {
             dbConn = this.getDbConnection();
 
             //
-            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BusinessID, ShareId, ShareName, CreateUserID, " +
-                    "CreateTime, Description, State, StartTime, EndTime" +
-                    " FROM HASYS_DM_SID WHERE ");
-            sqlBuilder.append(" State IN (").append(shareBatchStatelistToCommaSplitString(shareBatchStateList)).append(")");
+            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
+                                        "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
+            sqlBuilder.append(" STATE IN (").append(shareBatchStatelistToCommaSplitString(shareBatchStateList)).append(")");
+
+            System.out.println(sqlBuilder.toString());
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             ResultSet rs = stmt.executeQuery();
@@ -73,7 +75,7 @@ public class DMDAO extends BaseRepository {
             DbUtil.DbCloseConnection(dbConn);
         }
 
-        return null;
+        return true;
     }
 
     /*
@@ -155,8 +157,6 @@ public class DMDAO extends BaseRepository {
         EXPIRED("expired"); // 过期 系统设置
         */
 
-        Date curDay = new Date();
-
         Connection dbConn = null;
         PreparedStatement stmt = null;
         try {
@@ -164,11 +164,11 @@ public class DMDAO extends BaseRepository {
 
             // 激活共享批次
             StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
-            sqlBuilder.append(" State = ").append(ShareBatchStateEnum.ACTIVE.getName());
-            sqlBuilder.append(" WHERE StartTime <= ").append("TO_DATA(").append(curDay).append(",'yyyy-MM-dd')");
-            sqlBuilder.append(" AND State = ").append(ShareBatchStateEnum.ENABLE.getName());
+            sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
+            sqlBuilder.append(" WHERE STARTTIME <= ").append("TO_DATE('").append(getCurDaySqlString()).append("','yyyy/mm/dd')");
+            sqlBuilder.append(" AND STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
 
-            // 标记
+            System.out.println(sqlBuilder.toString());
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             stmt.executeUpdate();
@@ -188,26 +188,6 @@ public class DMDAO extends BaseRepository {
 
     // 获取并标记 过期的共享批次
     public  Boolean expireCurDayShareBatchByEndTime(/*OUT*//*List<String> expiredShareBatchIds*/) {
-        /*
-        int id;
-        int bizId;
-        String shareBatchId;
-        String shareBatchName;
-        int  createUserId;
-        Date createTime;
-        String description;
-        ShareBatchStateEnum	state;
-        Date StartTime;
-        Date EndTime;
-
-        ENABLE("enable"), //启用
-        ACTIVE("active"), //激活 系统设置
-        PAUSE("pause"),
-        STOP("stop"),
-        EXPIRED("expired"); // 过期 系统设置
-        */
-
-        Date curDay = new Date();
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -230,10 +210,10 @@ public class DMDAO extends BaseRepository {
 
             // 过期处理..共享批次
             sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
-            sqlBuilder.append(" STATE = ").append(ShareBatchStateEnum.EXPIRED.getName());
-            sqlBuilder.append(" WHERE (STATE = ").append(ShareBatchStateEnum.ENABLE.getName());
-            sqlBuilder.append(" OR STATE = ").append(ShareBatchStateEnum.ACTIVE.getName());
-            sqlBuilder.append(") AND ENDTIME < ").append("TO_DATA(").append(curDay).append(",'yyyy-MM-dd')");
+            sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.EXPIRED.getName()).append("'");
+            sqlBuilder.append(" WHERE (STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
+            sqlBuilder.append(" OR STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
+            sqlBuilder.append(") AND ENDTIME < ").append("TO_DATE('").append(getNextDaySqlString()).append("','yyyy/mm/dd')");
 
             System.out.println(sqlBuilder.toString());
 
@@ -398,12 +378,36 @@ public class DMDAO extends BaseRepository {
         StringBuilder sb = new StringBuilder();
         for (int indx = 0; indx < shareBatchStateList.size(); indx++ ) {
             ShareBatchStateEnum state = shareBatchStateList.get(indx);
-            sb.append(state.getName());
+            sb.append("'").append(state.getName()).append("'");
             if (indx < (shareBatchStateList.size()-1))
                 sb.append(",");
         }
 
         return sb.toString();
+    }
+
+    public String getNextDaySqlString() {
+        Calendar curDay = Calendar.getInstance();
+        curDay.setTime(new Date());
+        curDay.add(Calendar.DAY_OF_MONTH, 1);
+        curDay.set(Calendar.HOUR_OF_DAY, 0);
+        curDay.set(Calendar.MINUTE, 0);
+        curDay.set(Calendar.SECOND, 0);
+        curDay.set(Calendar.MILLISECOND, 0);
+        String strNextDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH);
+        return strNextDay;
+    }
+
+    public String getCurDaySqlString() {
+        Calendar curDay = Calendar.getInstance();
+        curDay.setTime(new Date());
+        curDay.add(Calendar.DAY_OF_MONTH, 0);
+        curDay.set(Calendar.HOUR_OF_DAY, 0);
+        curDay.set(Calendar.MINUTE, 0);
+        curDay.set(Calendar.SECOND, 0);
+        curDay.set(Calendar.MILLISECOND, 0);
+        String strCurDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH);
+        return strCurDay;
     }
 
 }
