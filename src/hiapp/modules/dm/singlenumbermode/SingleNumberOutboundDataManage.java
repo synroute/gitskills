@@ -34,7 +34,7 @@ public class SingleNumberOutboundDataManage {
     public void setDBConnectionPool(DBConnectionPool dbConnectionPool) {
         this.dbConnectionPool = dbConnectionPool;
 
-        initialize();
+//        initialize();
     }
 
     Map<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> mapPresetDialCustomer;
@@ -111,7 +111,7 @@ public class SingleNumberOutboundDataManage {
         mapPhaseDialCustomer  = new HashMap<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
         mapDialCustomer = new HashMap<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
 
-        singleNumberModeDAO.resetLoadedFlag();
+        //singleNumberModeDAO.resetLoadedFlag();
 
         List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
         loadCustomersDaily(shareBatchItems);
