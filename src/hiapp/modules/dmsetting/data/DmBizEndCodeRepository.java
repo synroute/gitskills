@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.type.StandardMethodMetadata;
 import org.springframework.stereotype.Repository;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -58,7 +59,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			stmt.executeUpdate();
 			StringBuffer errMessage=new StringBuffer();
 			//创建字典表
-			String dictionary=String.format("select CLASSID from (select CLASSID from HASYS_DIC_CLASS order CLASSID desc) by WHERE ROWNUM <=1");
+			String dictionary=String.format("select CLASSID from (select CLASSID from HASYS_DIC_CLASS order by CLASSID desc)  WHERE ROWNUM <=1");
 			stmt = conn.prepareStatement(dictionary);
 			rs = stmt.executeQuery();
 			Integer CLASSID=0;
@@ -189,7 +190,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		String xml="";
 		try{
 			conn =this.getDbConnection();
-			String sql="select xml from HASYS_DM_BIZADDSETTING where BusinessID="+bizid+"";
+			String sql="select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizid+"";
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next())
@@ -215,7 +216,9 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        jsonArray_EndCode.add(jsonArray_EndCode);
 		        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
 		        
-		            
+		        Gson gs = new Gson();
+		        
+		            String json=gs.toJson(jsonObject);;
 		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
 		            stmt = conn.prepareStatement(insertsql);
 		            stmt.executeUpdate();

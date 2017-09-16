@@ -17,7 +17,7 @@ public class DMDataPool {
 	//数据池描述
 	private String dataPoolDesc;
 	//父节点
-	private int pid;
+	private int pId;
 	//分区烈性
 	private int areaType;
 	//数据池上限
@@ -42,12 +42,7 @@ public class DMDataPool {
 	public void setDataPoolDesc(String dataPoolDesc) {
 		this.dataPoolDesc = dataPoolDesc;
 	}
-	public int getPid() {
-		return pid;
-	}
-	public void setPid(int pid) {
-		this.pid = pid;
-	}
+	
 	public int getAreaType() {
 		return areaType;
 	}
@@ -71,6 +66,12 @@ public class DMDataPool {
 	}
 	public void setPoolId(int poolId) {
 		this.poolId = poolId;
+	}
+	public int getpId() {
+		return pId;
+	}
+	public void setpId(int pId) {
+		this.pId = pId;
 	}
 	
 }

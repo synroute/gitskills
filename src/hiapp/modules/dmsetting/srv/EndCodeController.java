@@ -36,7 +36,7 @@ public class EndCodeController {
 				return recordsetResult.toJson();
 		}
 		
-		@RequestMapping(value = "srv/dm/dmAddBizEndCode.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+		@RequestMapping(value = "/srv/dm/dmAddBizEndCode.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 		public String dmAddBizEndCode(@RequestParam("bizId") int bizId,
 				@RequestParam("endCodeType") String endCodeType,@RequestParam("endCode") String endCode,
 				@RequestParam("description") String description) {

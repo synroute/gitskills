@@ -42,7 +42,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		try {
 			dbConn =this.getDbConnection();
 			String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,DataPoolDes,PID,AreaType,PoolTopLimit)"+
-			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getPid(),dataPool.getPoolTopLimit());
+			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getpId(),dataPool.getPoolTopLimit());
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.executeUpdate();
 		} catch (SQLException e) {
@@ -87,11 +87,11 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					
 					dbConn =this.getDbConnection();
 					String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,DataPoolDes,PID,AreaType)"+
-					" values(HASYS_DM_DATAPOOL.nextval,%s,'%s',2,%s,0)",dataPool.getBizId(),userId,dataPool.getPid());
+					" values(HASYS_DM_DATAPOOL.nextval,%s,'%s',2,%s,0)",dataPool.getBizId(),userId,dataPool.getpId());
 					stmt = dbConn.prepareStatement(szSql);
 					stmt.executeUpdate();
 					stmt.close();
-					String updateSql=String.format("update HASYS_DM_DATAPOOL set AreaType=2 where ID="+dataPool.getPid()+"");
+					String updateSql=String.format("update HASYS_DM_DATAPOOL set AreaType=2 where ID="+dataPool.getpId()+"");
 					stmt = dbConn.prepareStatement(updateSql);
 					stmt.executeUpdate();
 					stmt.close();
@@ -154,7 +154,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 							DMDataPool dmDataPool=new DMDataPool();
 							dmDataPool.setPoolId(rs.getInt(1));
 							dmDataPool.setDataPoolName(rs.getString(2));
-							dmDataPool.setPid(rs.getInt(3));
+							dmDataPool.setpId(rs.getInt(3));
 							listDmDataPool.add(dmDataPool);
 						}
 					} catch (SQLException e) {
