@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class BuinessController {
+	public BuinessController() {
+		// TODO Auto-generated constructor stub
+		System.out.println("......");
+	}
 	@Autowired
 	private DmBizRepository dmBizRepository;
 	

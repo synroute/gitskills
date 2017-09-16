@@ -76,7 +76,7 @@ public class DataPoolController {
 	//新增坐席数据池接口
 	@RequestMapping(value = "srv/dm/dmCreateBizUserDataPool.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmCreateBizUserDataPool(@RequestParam("bizId") int bizId,
-			@RequestParam("Pid") int Pid,@RequestParam("Userid") String Userid) {
+			@RequestParam("pId") int Pid,@RequestParam("userId") String Userid) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try{
 			DMDataPool dmDataPool=new DMDataPool();

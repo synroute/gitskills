@@ -3,9 +3,11 @@ package hiapp.modules.dmsetting.data;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -216,10 +218,18 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        jsonArray_EndCode.add(jsonArray_EndCode);
 		        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
 		        
-		        String jsonString="{RedialState:[],EndCodeRedialStrategy[{endCodeType:\""+EndCodeType+"\",endCode:\""+EndCode+"\",endCodedescription:\""+Description+"\",redialStateName:\"\",}]}";
+		        String jsonString="{RedialState:[],EndCodeRedialStrategy[{endCodeType:\""+EndCodeType+"\",endCode:\""+EndCode+"\",endCodedescription:\""+Description+"\",redialStateName:\"\"}]}";
 		        
-		        	String json= new Gson().toJson(jsonObject);
-		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+json+"')";
+		        try {
+		        	JsonObject jsonObject2=new JsonObject();
+		        	jsonObject2.addProperty("return", "1");
+		        	jsonObject2.addProperty("returns", "2");
+		        	jsonObject2.toString();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+		        	
+		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonString+"')";
 		            stmt = conn.prepareStatement(insertsql);
 		            stmt.executeUpdate();
 		        
