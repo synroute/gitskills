@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -312,15 +313,15 @@ public class CustomerRepository extends BaseRepository {
 	 * @return
 	 * @throws HiAppException
 	 */
-	public List<Map<String, Object>> queryMyCustomers(
+	public List<List<Map<String, Object>>> queryMyCustomers(
 			QueryRequest queryRequest, String userId) throws HiAppException {
 
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		List<List<Map<String, Object>>> result = new ArrayList<List<Map<String, Object>>>();
 
 		StringBuffer sb = new StringBuffer();
-		List<Map<String, Object>> result = null;
 		try {
 			String bizId = queryRequest.getBizId();
 
@@ -435,24 +436,33 @@ public class CustomerRepository extends BaseRepository {
 			stmt = dbConn.prepareStatement(sb.toString());
 			rs = stmt.executeQuery();
 
-			result = new ArrayList<Map<String, Object>>();
-
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
 					OUTPUT_TIME_TEMPLATE);
 
+			ListIterator<Map<String, String>> listIterator = list
+					.listIterator();
+
 			// 获取查询结果
 			while (rs.next()) {
-				Map<String, Object> m = new HashMap<String, Object>();
-				for (Map<String, String> map : list) {
-					String columnName = map.get("columnNameCH");
-					if ("date".equalsIgnoreCase(map.get("dataType"))) {
-						m.put(columnName,
-								simpleDateFormat.format(rs.getDate(columnName)));
-					} else {
-						m.put(columnName, rs.getObject(columnName));
-					}
+				List<Map<String, Object>> record = new ArrayList<Map<String, Object>>();
+				Map<String, Object> map = new HashMap<String, Object>();
+				Map<String, String> next = listIterator.next();
+				String columnName = next.get("columnName");
+				String rowNumber = next.get("rowNumber");
+				String colNumber = next.get("colNumber");
+				String fontColor = next.get("fontColor");
+				String type = next.get("dataType");
+				if (type != null && type.toLowerCase().contains("date")) {
+					map.put("value",
+							simpleDateFormat.format(rs.getDate(columnName)));
+				} else {
+					map.put("value", rs.getObject(columnName));
 				}
-				result.add(m);
+				map.put("rowNumber", rowNumber);
+				map.put("colNumber", colNumber);
+				map.put("fontColor", fontColor);
+				record.add(map);
+				result.add(record);
 			}
 		} catch (JsonSyntaxException e) {
 			System.out.println(sb);
@@ -482,7 +492,7 @@ public class CustomerRepository extends BaseRepository {
 	 * @throws HiAppException
 	 * @throws SQLException
 	 */
-	public List<Map<String, Object>> queryMyPresetCustomers(
+	public List<List<Map<String, Object>>> queryMyPresetCustomers(
 			QueryRequest queryRequest, String userId) throws HiAppException {
 
 		Connection dbConn = null;
@@ -490,7 +500,7 @@ public class CustomerRepository extends BaseRepository {
 		ResultSet rs = null;
 
 		StringBuffer sb = new StringBuffer();
-		List<Map<String, Object>> result = null;
+		List<List<Map<String, Object>>> result = new ArrayList<List<Map<String, Object>>>();
 		try {
 
 			String bizId = queryRequest.getBizId();
@@ -606,24 +616,33 @@ public class CustomerRepository extends BaseRepository {
 			stmt = dbConn.prepareStatement(sb.toString());
 			rs = stmt.executeQuery();
 
-			result = new ArrayList<Map<String, Object>>();
-
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
 					OUTPUT_TIME_TEMPLATE);
 
+			ListIterator<Map<String, String>> listIterator = list
+					.listIterator();
+
 			// 获取查询结果
 			while (rs.next()) {
-				Map<String, Object> m = new HashMap<String, Object>();
-				for (Map<String, String> map : list) {
-					String columnName = map.get("columnNameCH");
-					if ("date".equalsIgnoreCase(map.get("dataType"))) {
-						m.put(columnName,
-								simpleDateFormat.format(rs.getDate(columnName)));
-					} else {
-						m.put(columnName, rs.getObject(columnName));
-					}
+				List<Map<String, Object>> record = new ArrayList<Map<String, Object>>();
+				Map<String, Object> map = new HashMap<String, Object>();
+				Map<String, String> next = listIterator.next();
+				String columnName = next.get("columnName");
+				String rowNumber = next.get("rowNumber");
+				String colNumber = next.get("colNumber");
+				String fontColor = next.get("fontColor");
+				String type = next.get("dataType");
+				if (type != null && type.toLowerCase().contains("date")) {
+					map.put("value",
+							simpleDateFormat.format(rs.getDate(columnName)));
+				} else {
+					map.put("value", rs.getObject(columnName));
 				}
-				result.add(m);
+				map.put("rowNumber", rowNumber);
+				map.put("colNumber", colNumber);
+				map.put("fontColor", fontColor);
+				record.add(map);
+				result.add(record);
 			}
 		} catch (JsonSyntaxException e) {
 			System.out.println(sb);
@@ -762,14 +781,14 @@ public class CustomerRepository extends BaseRepository {
 	 * @throws HiAppException
 	 * @throws SQLException
 	 */
-	public List<Map<String, Object>> queryAllCustomers(
+	public List<List<Map<String, Object>>> queryAllCustomers(
 			QueryRequest queryRequest, int permissionId) throws HiAppException {
 		StringBuffer sb = new StringBuffer();
 
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		List<Map<String, Object>> result = null;
+		List<List<Map<String, Object>>> result = new ArrayList<List<Map<String, Object>>>();
 
 		try {
 			String bizId = queryRequest.getBizId();
@@ -904,24 +923,33 @@ public class CustomerRepository extends BaseRepository {
 					stmt = dbConn.prepareStatement(sb.toString());
 					rs = stmt.executeQuery();
 
-					result = new ArrayList<Map<String, Object>>();
+					ListIterator<Map<String, String>> listIterator = list
+							.listIterator();
 
 					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
 							OUTPUT_TIME_TEMPLATE);
 
 					// 获取查询结果
 					while (rs.next()) {
-						Map<String, Object> m = new HashMap<String, Object>();
-						for (Map<String, String> map : list) {
-							String columnName = map.get("columnNameCH");
-							if ("date".equalsIgnoreCase(map.get("dataType"))) {
-								m.put(columnName, simpleDateFormat.format(rs
-										.getDate(columnName)));
-							} else {
-								m.put(columnName, rs.getObject(columnName));
-							}
+						List<Map<String, Object>> record = new ArrayList<Map<String, Object>>();
+						Map<String, Object> map = new HashMap<String, Object>();
+						Map<String, String> next = listIterator.next();
+						String columnName = next.get("columnName");
+						String rowNumber = next.get("rowNumber");
+						String colNumber = next.get("colNumber");
+						String fontColor = next.get("fontColor");
+						String type = next.get("dataType");
+						if (type != null && type.toLowerCase().contains("date")) {
+							map.put("value", simpleDateFormat.format(rs
+									.getDate(columnName)));
+						} else {
+							map.put("value", rs.getObject(columnName));
 						}
-						result.add(m);
+						map.put("rowNumber", rowNumber);
+						map.put("colNumber", colNumber);
+						map.put("fontColor", fontColor);
+						record.add(map);
+						result.add(record);
 					}
 				}
 			}
