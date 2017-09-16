@@ -4,10 +4,29 @@ public class Business {
 	private Integer id;
 	private String name;
 	private String description;
-	private Integer ownergroup;
-	private String detailSettingXml;
-	private Integer modeId;
-	private Integer submodeId;
+	private String ownergroupId;
+	private Integer outboundmddeId;
+	private String configJson;
+
+	public String getOwnergroupId() {
+		return ownergroupId;
+	}
+	public void setOwnergroupId(String ownergroupId) {
+		this.ownergroupId = ownergroupId;
+	}
+	public Integer getOutboundmddeId() {
+		return outboundmddeId;
+	}
+	public void setOutboundmddeId(Integer outboundmddeId) {
+		this.outboundmddeId = outboundmddeId;
+	}
+	public String getConfigJson() {
+		return configJson;
+	}
+	public void setConfigJson(String configJson) {
+		this.configJson = configJson;
+	}
+
 	public Integer getId() {
 		return id;
 	}
@@ -25,29 +44,5 @@ public class Business {
 	}
 	public void setDescription(String description) {
 		this.description = description;
-	}
-	public Integer getOwnergroup() {
-		return ownergroup;
-	}
-	public void setOwnergroup(Integer ownergroup) {
-		this.ownergroup = ownergroup;
-	}
-	public String getDetailSettingXml() {
-		return detailSettingXml;
-	}
-	public void setDetailSettingXml(String detailSettingXml) {
-		this.detailSettingXml = detailSettingXml;
-	}
-	public Integer getModeId() {
-		return modeId;
-	}
-	public void setModeId(Integer modeId) {
-		this.modeId = modeId;
-	}
-	public Integer getSubmodeId() {
-		return submodeId;
-	}
-	public void setSubmodeId(Integer submodeId) {
-		this.submodeId = submodeId;
 	}
 }

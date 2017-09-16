@@ -2,8 +2,8 @@ package hiapp.modules.dmmanager.bean;
 
 public class WorkSheetColumn {
 	public  Integer     id;
-	public	String 		nameCh;
-	public	String 		name;
+	public	String 		title;
+	public	String 		field;
 	public	String 		description;
 	public	String 		dataType;
 	public	Integer		length;
@@ -13,6 +13,21 @@ public class WorkSheetColumn {
 	public	Integer	isSysColumn;
 	public	String 		workSheetColumnCh;
 	public	String 		tableFieldName;
+	public String getTitle() {
+		return title;
+	}
+
+	public String getField() {
+		return field;
+	}
+
+	public void setField(String field) {
+		this.field = field;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
 	public String workSheetId;
 	public String getWorkSheetId() {
 		return workSheetId;
@@ -26,18 +41,7 @@ public class WorkSheetColumn {
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	public String getNameCh() {
-		return nameCh;
-	}
-	public void setNameCh(String nameCh) {
-		this.nameCh = nameCh;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
+	
 	public String getDescription() {
 		return description;
 	}

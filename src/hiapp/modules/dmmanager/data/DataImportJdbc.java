@@ -36,8 +36,9 @@ public class DataImportJdbc extends BaseRepository{
 	 * 获取所有业务
 	 * @param userId
 	 * @return
+	 * @throws IOException 
 	 */
-	public List<Business> getBusinessData(String userId){
+	public List<Business> getBusinessData(String userId) throws IOException{
 		List<Business> businessList=new ArrayList<Business>();
 		List<Integer> ornizeIdList=new ArrayList<Integer>();
 		Connection conn=null;
@@ -46,7 +47,7 @@ public class DataImportJdbc extends BaseRepository{
 		
 		try {
 			conn= this.getDbConnection();
-			String getOrgnizeSql="select b.id,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.DETAILSETTINGXML,b.MODEID,b.SUBMODEID from BU_MAP_USERORGROLE a,HASYS_DM_Business b  where a.GROUPID=b.OWNERGROUPID and a.USERID=?";
+			String getOrgnizeSql="select b.id,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from BU_MAP_USERORGROLE a,HASYS_DM_Business b  where a.GROUPID=b.OWNERGROUPID and a.USERID=?";
 			pst=conn.prepareStatement(getOrgnizeSql);
 			pst.setString(1,userId);
 			rs = pst.executeQuery();
@@ -55,10 +56,9 @@ public class DataImportJdbc extends BaseRepository{
 				bus.setId(rs.getInt(1));
 				bus.setName(rs.getString(2));
 				bus.setDescription(rs.getString(3));
-				bus.setOwnergroup(rs.getInt(4));
-				bus.setDetailSettingXml(rs.getString(5));
-				bus.setModeId(rs.getInt(6));
-				bus.setSubmodeId(rs.getInt(7));
+				bus.setOwnergroupId(rs.getString(4));
+				bus.setOutboundmddeId(rs.getInt(5));
+				bus.setConfigJson(rs.getString(6));
 				businessList.add(bus);
 			}
 		} catch (SQLException e) {
@@ -149,7 +149,7 @@ public class DataImportJdbc extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			conn= this.getDbConnection();
-			String sql="SELECT id,name,namech,description,isowner  FROM HASYS_WORKSHEET where id=?";
+			String sql="SELECT id,name,namech,description,isowner FROM HASYS_WORKSHEET where id=?";
 			pst=conn.prepareStatement(sql);
 			pst.setString(1, workSheetId);
 			rs = pst.executeQuery();
@@ -188,8 +188,8 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				WorkSheetColumn sheetColumn=new WorkSheetColumn();
 				sheetColumn.setId(rs.getInt(1));
-				sheetColumn.setName(rs.getString(2));
-				sheetColumn.setNameCh(rs.getString(3));
+				sheetColumn.setField(rs.getString(2));
+				sheetColumn.setTitle(rs.getString(3));
 				sheetColumn.setDescription(rs.getString(4));
 				sheetColumn.setDataType(rs.getString(5));
 				sheetColumn.setLength(rs.getInt(6));
@@ -431,12 +431,4 @@ public class DataImportJdbc extends BaseRepository{
         return reString;  
     }  
     
-public static void main(String[] args) {
-	JsonObject json= new JsonParser().parse("111").getAsJsonObject();
-	JsonArray  arr=new JsonParser().parse("123").getAsJsonArray();
-	json.get("").getAsJsonObject();
-	for (int i = 0; i < arr.size(); i++) {
-		arr.get(i).getAsJsonObject().get("11").getAsString();
-	}
-}
 }
