@@ -42,7 +42,7 @@ public class DataOutputJdbc extends BaseRepository{
 		List<DMBizExportTemplate> templateList=new ArrayList<DMBizExportTemplate>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select TEMPLATEID,BUSINESSID,NAME,DESCRIPTION,ISDEFAULT,XML from HASYS_DM_BIZTEMPLATEEXPORT where BUSINESSID=?";
+			String sql="select TEMPLATEID,BUSINESSID,NAME,DESCRIPTION,ISDEFAULT,configJson from HASYS_DM_BIZTEMPLATEEXPORT where BUSINESSID=?";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1, bizId);
 			rs=pst.executeQuery();
@@ -53,7 +53,7 @@ public class DataOutputJdbc extends BaseRepository{
 				exportTempplate.setTemplateName(rs.getString(3));
 				exportTempplate.setDesc(rs.getString(4));
 				exportTempplate.setIsDefault(rs.getInt(5));
-				exportTempplate.setConfigJson(ClobToString(rs.getClob(6)));
+				exportTempplate.setConfigJson(rs.getString(6));
 				templateList.add(exportTempplate);
 			}
 		} catch (SQLException e) {

@@ -47,7 +47,7 @@ public class DataImportJdbc extends BaseRepository{
 		
 		try {
 			conn= this.getDbConnection();
-			String getOrgnizeSql="select b.id,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from BU_MAP_USERORGROLE a,HASYS_DM_Business b  where a.GROUPID=b.OWNERGROUPID and a.USERID=?";
+			String getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from BU_MAP_USERORGROLE a,HASYS_DM_Business b  where a.GROUPID=b.OWNERGROUPID and a.USERID=?";
 			pst=conn.prepareStatement(getOrgnizeSql);
 			pst.setString(1,userId);
 			rs = pst.executeQuery();
