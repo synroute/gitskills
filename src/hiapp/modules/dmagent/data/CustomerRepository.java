@@ -185,7 +185,8 @@ public class CustomerRepository extends BaseRepository {
 			if (ConfigPageEnume.MYCUSTOMERS.getName().equals(configPage)) {
 				// 获取导入表中用户自定义的候选列
 				list.addAll(getInputTableColumn(sql, bizId));
-				// list.addAll(TableNameEnume.INPUTTABLENAME.getCandidadeColumn());
+				// 获取导入表中固定的候选列
+				list.addAll(TableNameEnume.INPUTTABLENAME.getCandidadeColumn());
 			}
 			// 联系计划
 			else if (ConfigPageEnume.CONTACTPLAN.getName().equals(configPage)) {
@@ -319,7 +320,7 @@ public class CustomerRepository extends BaseRepository {
 		ResultSet rs = null;
 
 		StringBuffer sb = new StringBuffer();
-		List<Map<String, Object>> result = null;
+		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
 		try {
 			String bizId = queryRequest.getBizId();
 
@@ -387,9 +388,9 @@ public class CustomerRepository extends BaseRepository {
 			for (Map<String, String> map : queryCondition) {
 				String field = map.get("field");
 				String value = map.get("value");
-
+				String type = map.get("dataType");
 				// 时间字段使用范围查询
-				if ("date".equalsIgnoreCase(map.get("dataType"))) {
+				if (type!=null && type.toLowerCase().contains("date")) {
 					if (map1.get(field) == null) {
 						map1.put(field, value);
 					} else {
@@ -399,9 +400,9 @@ public class CustomerRepository extends BaseRepository {
 
 					// 非时间字段使用模糊查询
 					sb.append(field);
-					sb.append(" LIKE '");
+					sb.append(" LIKE '%");
 					sb.append(value);
-					sb.append("' AND ");
+					sb.append("%' AND ");
 				}
 			}
 			
@@ -432,7 +433,7 @@ public class CustomerRepository extends BaseRepository {
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
 			rs = stmt.executeQuery();
-			result = new ArrayList<Map<String, Object>>();
+			
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
 					OUTPUT_TIME_TEMPLATE);
 
@@ -486,7 +487,7 @@ public class CustomerRepository extends BaseRepository {
 		ResultSet rs = null;
 
 		StringBuffer sb = new StringBuffer();
-		List<Map<String, Object>> result = null;
+		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
 		try {
 
 			String bizId = queryRequest.getBizId();
@@ -553,9 +554,10 @@ public class CustomerRepository extends BaseRepository {
 			for (Map<String, String> map : queryCondition) {
 				String field = map.get("field");
 				String value = map.get("value");
+				String type = map.get("dataType");
 
 				// 时间字段使用范围查询
-				if ("date".equalsIgnoreCase(map.get("dataType"))) {
+				if (type!=null && type.toLowerCase().contains("date")) {
 					if (map1.get(field) == null) {
 						map1.put(field, value);
 					} else {
@@ -565,9 +567,9 @@ public class CustomerRepository extends BaseRepository {
 
 					// 非时间字段使用模糊查询
 					sb.append(field);
-					sb.append(" LIKE '");
+					sb.append(" LIKE '%");
 					sb.append(value);
-					sb.append("' AND ");
+					sb.append("%' AND ");
 				}
 			}
 			
@@ -598,7 +600,7 @@ public class CustomerRepository extends BaseRepository {
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
 			rs = stmt.executeQuery();
-			result = new ArrayList<Map<String, Object>>();
+			
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
 					OUTPUT_TIME_TEMPLATE);
 
@@ -699,7 +701,7 @@ public class CustomerRepository extends BaseRepository {
 	
 	
 
-	// 获取当前数据池和所有子数据池下的坐席id拼接成的字符串
+	// 获取当前数据池和所有子数据池下的数据池名称
 	public void getAllChildrenDataPoolNames(int dataPoolId, List<Map<String, Object>> dataPools,List<String> dataPoolNames) {
 		
 		for(Map<String,Object> dataPool:dataPools){
@@ -708,9 +710,8 @@ public class CustomerRepository extends BaseRepository {
 			String dataPoolName = (String)dataPool.get("dataPoolName");
 			if(id == dataPoolId){
 				dataPoolNames.add(dataPoolName);
-			}
-			if(pId == dataPoolId){
-				getAllChildrenDataPoolNames(pId,dataPools,dataPoolNames);
+			}else if(pId == dataPoolId){
+				getAllChildrenDataPoolNames(id,dataPools,dataPoolNames);
 			}
 		}
 		
@@ -727,19 +728,6 @@ public class CustomerRepository extends BaseRepository {
 		
 		getAllChildrenDataPoolNames(dataPoolId,dataPools,dataPoolNames);
 		
-		for(Map<String,Object> dataPool:dataPools){
-			int id = (int)dataPool.get("dataPoolId");
-			int pId = (int)dataPool.get("pId");
-			String dataPoolName = (String)dataPool.get("dataPoolName");
-			if(id == dataPoolId){
-				dataPoolNames.add(dataPoolName);
-			}
-			if(pId == dataPoolId){
-				getAllChildrenDataPoolNames(pId,dataPools,dataPoolNames);
-			}
-		}
-		
-
 		StringBuffer sb = new StringBuffer();
 		sb.append("(");
 		int size = dataPoolNames.size();
@@ -750,10 +738,11 @@ public class CustomerRepository extends BaseRepository {
 			while (matcher.find()) {
 				String group = matcher.group(1);
 				sb.append(group);
-				if (i != size - 1) {
-					sb.append(",");
-				}
+				sb.append(",");
 			}
+		}
+		if(sb.toString().endsWith(",")){
+			sb = new StringBuffer(sb.substring(0, sb.length()-1));
 		}
 		sb.append(")");
 		return sb.toString();
@@ -774,7 +763,7 @@ public class CustomerRepository extends BaseRepository {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		List<Map<String, Object>> result = null;
+		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
 
 		try {
 			String bizId = queryRequest.getBizId();
@@ -861,9 +850,9 @@ public class CustomerRepository extends BaseRepository {
 					for (Map<String, String> map : queryCondition) {
 						String field = map.get("field");
 						String value = map.get("value");
-
+						String type = map.get("dataType");
 						// 时间字段使用范围查询
-						if ("date".equalsIgnoreCase(map.get("dataType"))) {
+						if (type!=null && type.toLowerCase().contains("date")) {
 							if (map1.get(field) == null) {
 								map1.put(field, value);
 							} else {
@@ -873,9 +862,9 @@ public class CustomerRepository extends BaseRepository {
 
 							// 非时间字段使用模糊查询
 							sb.append(field);
-							sb.append(" LIKE '");
+							sb.append(" LIKE '%");
 							sb.append(value);
-							sb.append("' AND ");
+							sb.append("%' AND ");
 						}
 					}
 					
@@ -907,7 +896,6 @@ public class CustomerRepository extends BaseRepository {
 					stmt = dbConn.prepareStatement(sb.toString());
 					rs = stmt.executeQuery();
 
-					result = new ArrayList<Map<String, Object>>();
 
 					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
 							OUTPUT_TIME_TEMPLATE);
