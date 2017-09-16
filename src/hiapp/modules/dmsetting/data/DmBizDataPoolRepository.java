@@ -118,7 +118,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			List<DMDataPool> listDmDataPool=new ArrayList<DMDataPool>();
 			try {
 				dbConn =this.getDbConnection();
-				String szSql = String.format("select ID,DataPoolName,DataPoolDes,PoolTopLimit from HASYS_DM_DATAPOOL where ID=%s",poolid);
+				String szSql = String.format("select ID,DataPoolName,DataPoolDes,PoolTopLimit,DataPoolType from HASYS_DM_DATAPOOL where ID=%s",poolid);
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				while(rs.next()){
@@ -127,6 +127,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					dmDataPool.setDataPoolName(rs.getString(2));
 					dmDataPool.setDataPoolDesc(rs.getString(3));
 					dmDataPool.setPoolTopLimit(rs.getInt(4));
+					dmDataPool.setDataPoolType(rs.getString(5));
 					listDmDataPool.add(dmDataPool);
 				}
 			} catch (SQLException e) {
@@ -174,7 +175,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					String groupId="";
 					try {
 						dbConn =this.getDbConnection();
-						String szSql = String.format("select OwnerOrgId from HASYS_DM_Business where BusinessID=%s",bizId);
+						String szSql = String.format("select OwnerGROUPId from HASYS_DM_Business where BusinessID=%s",bizId);
 						stmt = dbConn.prepareStatement(szSql);
 						rs = stmt.executeQuery();
 						while(rs.next()){

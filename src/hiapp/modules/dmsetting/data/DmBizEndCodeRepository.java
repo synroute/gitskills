@@ -218,7 +218,8 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        
 		        String jsonString="{RedialState:[],EndCodeRedialStrategy[{endCodeType:\""+EndCodeType+"\",endCode:\""+EndCode+"\",endCodedescription:\""+Description+"\",redialStateName:\"\",}]}";
 		        
-		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonString+"')";
+		        	String json= new Gson().toJson(jsonObject);
+		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+json+"')";
 		            stmt = conn.prepareStatement(insertsql);
 		            stmt.executeUpdate();
 		        

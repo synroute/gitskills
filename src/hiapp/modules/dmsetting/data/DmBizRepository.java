@@ -33,7 +33,7 @@ public class DmBizRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("SELECT ID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS ORDER BY ID ");
+			szSql = String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS ORDER BY BUSINESSID ");
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -67,7 +67,7 @@ public class DmBizRepository extends BaseRepository{
 		try {/////////////////////////////////////////////////////////////////
 			dbConn = this.getDbConnection();
 			int count=0;
-			szSql = " select COUNT(*) from HASYS_DM_BUSINESS where ID='";
+			szSql = " select COUNT(*) from HASYS_DM_BUSINESS where BUSINESSID='";
 			szSql+=id;
 			szSql+="'";
 			stmt = dbConn.prepareStatement(szSql);
@@ -106,7 +106,7 @@ public class DmBizRepository extends BaseRepository{
 		}
 		try {/////////////////////////////////////////////////////////////////
 			dbConn = this.getDbConnection();
-			szSql = String.format("INSERT INTO HASYS_DM_BUSINESS (ID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID) "+ "VALUES ('%s','%s','%s','%s',%s) ", 
+			szSql = String.format("INSERT INTO HASYS_DM_BUSINESS (BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID) "+ "VALUES ('%s','%s','%s','%s',%s) ", 
 									id,name, description, ownerGroupId,modeId);
 			stmt = dbConn.prepareStatement(szSql);		
 			stmt.execute();				
@@ -135,7 +135,7 @@ public class DmBizRepository extends BaseRepository{
 		try {////////////////////////////////////////////////////////////////
 			dbConn = this.getDbConnection();
 			int count=0;
-			szSql = String.format(" select COUNT(*) from HASYS_DM_BUSINESS where NAME='%s'AND ID!='%s' ",szDMBName, szDMBId);
+			szSql = String.format(" select COUNT(*) from HASYS_DM_BUSINESS where NAME='%s' AND BUSINESSID!='%s' ",szDMBName, szDMBId);
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			if (rs.next()) {
@@ -152,7 +152,7 @@ public class DmBizRepository extends BaseRepository{
 		}
 		try {//
 			dbConn = this.getDbConnection();
-			szSql = String.format("UPDATE HASYS_DM_BUSINESS	SET  NAME = '%s',DESCRIPTION = '%s',OWNERGROUPID = '%s' WHERE ID='%s'",
+			szSql = String.format("UPDATE HASYS_DM_BUSINESS	SET  NAME = '%s',DESCRIPTION = '%s',OWNERGROUPID = '%s' WHERE BUSSINESSID='%s'",
 					szDMBName, szDMBDescription, szOwnerGroupId,szDMBId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
@@ -174,7 +174,7 @@ public class DmBizRepository extends BaseRepository{
 		//判断业务状态
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("SELECT STATE FROM HASYS_DM_SID WHERE BUSINESS='%s'",bizId);
+			szSql = String.format("SELECT STATE FROM HASYS_DM_SID WHERE BUSINESSID='%s'",bizId);
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			if (rs.next()) {
@@ -191,7 +191,7 @@ public class DmBizRepository extends BaseRepository{
 		//删除业务表中信息
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("DELETE FROM HASYS_DM_BUSINESS WHERE ID='%s'",bizId);
+			szSql = String.format("DELETE FROM HASYS_DM_BUSINESS WHERE BUSINESSID='%s'",bizId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -222,7 +222,7 @@ public class DmBizRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("DELETE FROM Hasys_DM_BIZADDSETTING WHERE BUSINESSID='%s'",bizId);
+			szSql = String.format("DELETE FROM Hasys_DM_ BIZOutboundSetting WHERE BUSINESSID='%s'",bizId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
 			szSql = String.format("DELETE FROM HASYS_DM_BIZENDCODE WHERE BUSINESSID='%s'",bizId);
@@ -257,9 +257,9 @@ public class DmBizRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql=String.format("SELECT ID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS "
+			szSql=String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS "
 					+ "WHERE ID LIKE '%%%s%%' OR NAME LIKE '%%%s%%' "
-					+ "ORDER BY ID",
+					+ "ORDER BY BUSINESSID",
 					searchKeyString,searchKeyString);
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
