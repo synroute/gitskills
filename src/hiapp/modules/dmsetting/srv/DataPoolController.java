@@ -52,7 +52,7 @@ public class DataPoolController {
 		try{
 			DMDataPool dmDataPool=new DMDataPool();
 			dmDataPool.setBizId(bizId);
-			dmDataPool.setPid(Pid);
+			dmDataPool.setpId(Pid);
 			dmDataPool.setDataPoolName(DataPoolName);
 			dmDataPool.setDataPoolDesc(DataPoolDes);
 			dmDataPool.setPoolTopLimit(PoolTopLimit);
@@ -81,7 +81,7 @@ public class DataPoolController {
 		try{
 			DMDataPool dmDataPool=new DMDataPool();
 			dmDataPool.setBizId(bizId);
-			dmDataPool.setPid(Pid);
+			dmDataPool.setpId(Pid);
 			JsonArray returnData = new JsonParser().parse(Userid).getAsJsonArray();
 				if(dmBizDataPool.dmCreateBizUserDataPool(dmDataPool,returnData))
 				{

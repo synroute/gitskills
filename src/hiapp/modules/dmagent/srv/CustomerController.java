@@ -10,6 +10,7 @@ import hiapp.system.buinfo.data.PermissionRepository;
 import hiapp.system.buinfo.data.UserRepository;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +83,18 @@ public class CustomerController {
 
 		return result;
 	}
+	
+	/**
+	 * 保存配置好的查询模板
+	 * 
+	 * @param queryItem
+	 * @return
+	 */
+	@RequestMapping(value = "/srv/agent/saveListTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> saveListTemplate(QueryTemplate queryTemplate) {
+		return saveQueryTemplate(queryTemplate);
+	}
+
 
 	/**
 	 * 获取查询模板
@@ -92,7 +105,7 @@ public class CustomerController {
 	@RequestMapping(value = "/srv/agent/getQueryTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> getQueryTemplate(QueryTemplate queryTemplate) {
 		Map<String, Object> result = new HashMap<String, Object>();
-		List<Map<String, Object>> list = null;
+		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
 
 		try {
 			list = new Gson().fromJson(
@@ -109,6 +122,16 @@ public class CustomerController {
 		result.put("result", 0);
 		return result;
 	}
+	
+	/**
+	 * 获取列表模板
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/srv/agent/getListTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> getListTemplate(QueryTemplate queryTemplate) {
+		return getQueryTemplate(queryTemplate);
+	}
 
 	/**
 	 * 支持坐席根据不同业务和管理员自定义配置的查询条件查询所有客户数据.
@@ -116,15 +139,14 @@ public class CustomerController {
 	 * @param queryRequest
 	 * @return
 	 */
-	@SuppressWarnings("unused")
 	@RequestMapping(value = "/srv/agent/queryMyCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> queryMyCustomers(QueryRequest queryRequest,
 			HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
-		List<Map<String, String>> list = null;
+		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
 
 		try {
-			List<Map<String, Object>> queryMyCustomers = customerRepository
+			list = customerRepository
 					.queryMyCustomers(queryRequest,
 							((User) session.getAttribute("user")).getId());
 		} catch (Exception e) {
@@ -145,15 +167,14 @@ public class CustomerController {
 	 * @param queryRequest
 	 * @return
 	 */
-	@SuppressWarnings("unused")
 	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> queryMyPresetCustomers(
 			QueryRequest queryRequest, HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
-		List<Map<String, String>> list = null;
+		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
 
 		try {
-			List<Map<String, Object>> queryMyCustomers = customerRepository
+			list = customerRepository
 					.queryMyPresetCustomers(queryRequest,
 							((User) session.getAttribute("user")).getId());
 		} catch (Exception e) {
@@ -177,8 +198,8 @@ public class CustomerController {
 	@RequestMapping(value = "/srv/agent/queryAllCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> queryAllCustomers(QueryRequest queryRequest,
 			HttpSession session) {
-		List<Map<String, Object>> list = null;
 		Map<String, Object> result = new HashMap<String, Object>();
+		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
 		try {
 			User user = (User) session.getAttribute("user");
 			String userId = user.getId();
