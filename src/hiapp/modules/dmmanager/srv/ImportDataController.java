@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +32,10 @@ import javax.servlet.http.HttpSession;
 
 
 
+
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -127,52 +131,54 @@ public class ImportDataController {
 	 * @throws IOException
 	 */
 	@RequestMapping(value="/srv/ImportDataController/ImportExcelCustomerData.srv")
-	public List<Map<String,Object>> ImportExceCustomerData(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile uploadExcel) throws IOException{
+	public void ImportExceCustomerData(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file) throws IOException{
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
-		//获取文件路径
-		String path=request.getServletContext().getRealPath("/uploadExcel/");
-		String fileName=uploadExcel.getOriginalFilename();
-		File filepath = new File(path,fileName);
-		 //如果文件不存在，则新建文件
-        if (!filepath.getParentFile().exists()) { 
-            filepath.getParentFile().mkdirs();
-        }
+        String fileName=file.getOriginalFilename();
        try {
-			FileInputStream fis = new FileInputStream(filepath+File.separator + fileName);
+			InputStream in=file.getInputStream();
 			Workbook wookbook =null;
 			String suffix=fileName.substring(fileName.indexOf("."));//获取后缀名
-			if("xls".equals(suffix)){ 
-				wookbook = new HSSFWorkbook(fis);
-			}else if("xlsx".equals(suffix)){
-				wookbook = new XSSFWorkbook(fis);
+			if(".xls".equals(suffix)){ 
+				wookbook = new HSSFWorkbook(in);
+			}else if(".xlsx".equals(suffix)){
+				wookbook = new XSSFWorkbook(in);
 			}
 			Sheet sheet = wookbook.getSheetAt(0);
 			int totalRowNum = sheet.getLastRowNum(); 
 			//获取前台要展示的字段
 			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-			for (int i = 0; i < totalRowNum; i++) {
+			for (int i = 0; i <= totalRowNum; i++) {
 				 //获取当前行的数据
 	            Row row = sheet.getRow(i);
 	            Map<String,Object> map=new HashMap<String, Object>();
-            for(int j=0;j<sheetColumnList.size();j++){
-	            	//获取当前单元格的数据
-            	String value=row.getCell(j).getStringCellValue().toString();
-            	if(value==null||"".equals(value)){
-            		map.put(sheetColumnList.get(j).getField(),"");
-            	}else{
-	            	map.put(sheetColumnList.get(j).getField(), value);
-	            }
-         	
-	            }
-	            dataList.add(map);
-			}
+	            for(int j=0;j<sheetColumnList.size();j++){
+		            	//获取当前单元格的数据
+	            	String value=null;
+	            	if(row.getCell(j)!=null){
+	                    row.getCell(j).setCellType(Cell.CELL_TYPE_STRING);
+	                	value=row.getCell(j).getRichStringCellValue().toString();
+	
+	               }
+	            	if(value==null||"".equals(value)){
+	            		map.put(sheetColumnList.get(j).getField(),"");
+	            	}else{
+		            	map.put(sheetColumnList.get(j).getField(), value);
+		            }
+	         	
+		            }
+		            dataList.add(map);
+				}
+				
+			String jsonObject=new Gson().toJson(dataList);
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        return dataList;
 	}
 	/**
 	 * 获取数据源的数据
@@ -184,7 +190,7 @@ public class ImportDataController {
 	public void ImportDBCustomerData(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
-		String workSheetId=request.getParameter("workSheetId");
+		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
 		List<Map<String,Object>> allDataList=new ArrayList<Map<String,Object>>();
 		//获取要展示的列
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
@@ -215,9 +221,9 @@ public class ImportDataController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
-		String workSheetId=request.getParameter("workSheetId");
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
 		String operationName=request.getParameter("operationName");
 		WorkSheet workSheet=dataImportJdbc.getWorkSheet(workSheetId);
 		String tableName=workSheet.getName();
