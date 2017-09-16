@@ -34,6 +34,7 @@ public class CustomerController {
 
 	/**
 	 * 获取配置查询模板时需要使用的候选列
+	 * 
 	 * @param bizId
 	 * @param configPage
 	 * @return
@@ -44,17 +45,17 @@ public class CustomerController {
 			String configPage) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> candidadeColumn = null;
-		
+
 		try {
-			candidadeColumn = customerRepository
-					.getCandidadeColumn(bizId, configPage);
+			candidadeColumn = customerRepository.getCandidadeColumn(bizId,
+					configPage);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
 			result.put("reason", e.getMessage());
 			return result;
 		}
-		
+
 		result.put("data", candidadeColumn);
 		result.put("result", 0);
 
@@ -70,15 +71,15 @@ public class CustomerController {
 	@RequestMapping(value = "/srv/agent/saveQueryTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> saveQueryTemplate(QueryTemplate queryTemplate) {
 		Map<String, Object> result = new HashMap<String, Object>();
-		
-		if(customerRepository.saveQueryTemplate(queryTemplate)){
+
+		if (customerRepository.saveQueryTemplate(queryTemplate)) {
 			result.put("result", 0);
-		}else{
+		} else {
 			result.put("result", 1);
 			result.put("reason", "参数错误！");
 			return result;
 		}
-		
+
 		return result;
 	}
 
@@ -92,16 +93,18 @@ public class CustomerController {
 	public Map<String, Object> getQueryTemplate(QueryTemplate queryTemplate) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> list = null;
-		
+
 		try {
-			list = new Gson().fromJson(customerRepository.getQueryTemplate(queryTemplate), List.class);
+			list = new Gson().fromJson(
+					customerRepository.getQueryTemplate(queryTemplate),
+					List.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
 			result.put("reason", e.getMessage());
 			return result;
 		}
-		
+
 		result.put("data", list);
 		result.put("result", 0);
 		return result;
@@ -115,19 +118,22 @@ public class CustomerController {
 	 */
 	@SuppressWarnings("unused")
 	@RequestMapping(value = "/srv/agent/queryMyCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> queryMyCustomers(QueryRequest queryRequest,HttpSession session) {
+	public Map<String, Object> queryMyCustomers(QueryRequest queryRequest,
+			HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, String>> list = null;
-		
+
 		try {
-			List<Map<String, Object>> queryMyCustomers = customerRepository.queryMyCustomers(queryRequest, ((User)session.getAttribute("user")).getId());
+			List<Map<String, Object>> queryMyCustomers = customerRepository
+					.queryMyCustomers(queryRequest,
+							((User) session.getAttribute("user")).getId());
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
 			result.put("reason", e.getMessage());
 			return result;
 		}
-		
+
 		result.put("data", list);
 		result.put("result", 0);
 		return result;
@@ -141,19 +147,22 @@ public class CustomerController {
 	 */
 	@SuppressWarnings("unused")
 	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> queryMyPresetCustomers(QueryRequest queryRequest,HttpSession session) {
+	public Map<String, Object> queryMyPresetCustomers(
+			QueryRequest queryRequest, HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, String>> list = null;
-		
+
 		try {
-			List<Map<String, Object>> queryMyCustomers = customerRepository.queryMyPresetCustomers(queryRequest, ((User)session.getAttribute("user")).getId());
+			List<Map<String, Object>> queryMyCustomers = customerRepository
+					.queryMyPresetCustomers(queryRequest,
+							((User) session.getAttribute("user")).getId());
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
 			result.put("reason", e.getMessage());
 			return result;
 		}
-		
+
 		result.put("data", list);
 		result.put("result", 0);
 		return result;
@@ -168,23 +177,26 @@ public class CustomerController {
 	@RequestMapping(value = "/srv/agent/queryAllCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> queryAllCustomers(QueryRequest queryRequest,
 			HttpSession session) {
-		User user = (User) session.getAttribute("user");
-		String userId = user.getId();
-		RoleInGroupSet roleInGroupSet = userRepository.getRoleInGroupSetByUserId(userId);
-		Permission permission = permissionRepository.getPermission(roleInGroupSet);
-		int permissionId = permission.getId();
-		
+		List<Map<String, Object>> list = null;
 		Map<String, Object> result = new HashMap<String, Object>();
-		List<Map<String,Object>> list = null;
-		
 		try {
-			list = customerRepository.queryAllCustomers(queryRequest, permissionId);
+			User user = (User) session.getAttribute("user");
+			String userId = user.getId();
+			RoleInGroupSet roleInGroupSet = userRepository
+					.getRoleInGroupSetByUserId(userId);
+			Permission permission = permissionRepository
+					.getPermission(roleInGroupSet);
+			int permissionId = permission.getId();
+			
+			list = customerRepository.queryAllCustomers(queryRequest,
+					permissionId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
 			result.put("reason", e.getMessage());
+			return result;
 		}
-		
+
 		result.put("data", list);
 		result.put("result", 0);
 		return result;
