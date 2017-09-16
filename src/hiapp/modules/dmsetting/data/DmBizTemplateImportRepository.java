@@ -8,11 +8,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-//import org.apache.poi.ss.usermodel.Row;
-//import org.apache.poi.ss.usermodel.Sheet;
-//import org.apache.poi.ss.usermodel.Workbook;
-//import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableLoadTimeWeaving;
 import org.springframework.stereotype.Repository;
@@ -29,6 +29,7 @@ import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.system.worksheet.bean.WorkSheetColumn;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
+import hiapp.utils.serviceresult.ServiceResultCode;
 @Repository
 public class DmBizTemplateImportRepository extends BaseRepository {
 	Connection dbConn = null;
@@ -69,12 +70,43 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		return listDmBizImportTemplate;
 	}
 	//新增客户信息导入模板接口
-	public   boolean dmCreateCustomerImportTemplate(DMBizImportTemplate dmBizImportTemplate){
+	public   boolean dmCreateCustomerImportTemplate(DMBizImportTemplate dmBizImportTemplate,StringBuffer errMessage){
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
 			dbConn =this.getDbConnection();
-						
+			try {
+				
+				int count = 0;
+				String szSql = String.format("select COUNT(*) from HASYS_DM_BIZTEMPLATEIMPORT where BUSINESSID='%s' and TemplateID='%s'",dmBizImportTemplate.getBizId(),dmBizImportTemplate.getTemplateId());
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				if (rs.next()) {
+					count = rs.getInt(1);
+				}
+				if (count > 0) {
+					errMessage.append("模板ID冲突！");
+					return false;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				
+				int count = 0;
+				 String szSql = String.format("select COUNT(*) from HASYS_DM_BIZTEMPLATEIMPORT where BUSINESSID='%s' and NAME='%s'",dmBizImportTemplate.getBizId(),dmBizImportTemplate.getTemplateName());
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				if (rs.next()) {
+					count = rs.getInt(1);
+				}
+				if (count > 0) {
+					errMessage.append("模板名称冲突！");
+					return false;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			JsonObject jsonObject =new JsonObject();
 			JsonObject jsonObject_row=new JsonObject();
 			jsonObject_row.addProperty("ExcelDefaultExt", ".xlsx");
@@ -110,7 +142,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 			}
 			jsonObject.add("FieldMaps", jsonArray);
 			
-			String szSql = "INSERT INTO HASYS_DM_BIZTEMPLATEIMPORT (TemplateID,BusinessId,Name,Description,IsDefault,SourceType,Xml) VALUES(S_HASYS_DM_BIZTEMPLATEIMPORT.nextval,?,?,?,?,?,?,?) ";
+			String szSql = "INSERT INTO HASYS_DM_BIZTEMPLATEIMPORT (ID,TemplateID,BusinessId,Name,Description,IsDefault,SourceType,Xml) VALUES(S_HASYS_DM_BIZTEMPLATEIMPORT.nextval,?,?,?,?,?,?,?) ";
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.setInt(1,dmBizImportTemplate.getTemplateId());
 			stmt.setInt(2,dmBizImportTemplate.getBizId());
@@ -137,7 +169,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		ResultSet rs = null;
 		try {
 			dbConn =this.getDbConnection();
-			String szSql = "UPDATE HASYS_DM_BIZTEMPLATEIMPORT SET Name = ? ,Description = ? ,IsDefault = ? ,SourceType =? ,Xml = '' WHERE TemplateID=? AND BusinessId=? ";
+			String szSql = "UPDATE HASYS_DM_BIZTEMPLATEIMPORT SET Name = ? ,Description = ? ,IsDefault = ? ,SourceType =?  WHERE TemplateID=? AND BusinessId=? ";
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.setString(1,dmBizImportTemplate.getTemplateName());
 			stmt.setString(2,dmBizImportTemplate.getDesc());
@@ -237,7 +269,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		String json="";
 		try {
 			dbConn =this.getDbConnection();
-			String szSql = String.format("select xml from HASYS_DM_BIZTEMPLATEEXPORT where BusinessID="+dmBizImportTemplate.getBizId()+" and TemplateID="+dmBizImportTemplate.getTemplateId()+"");
+			String szSql = String.format("select xml from HASYS_DM_BIZTEMPLATEIMPORT where BusinessID="+dmBizImportTemplate.getBizId()+" and TemplateID="+dmBizImportTemplate.getTemplateId()+"");
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -283,25 +315,25 @@ public class DmBizTemplateImportRepository extends BaseRepository {
         }
 
         //创建Workbook工作薄对象，表示整个excel
-//        Workbook workbook = null;
-//
-//        if(excelPath.endsWith(".xlsx")) {
-//            workbook = new XSSFWorkbook(inputStream);
-//        }else if(excelPath.endsWith(".xls")){
-//            workbook = new HSSFWorkbook(inputStream);
-//        }else{
-//            throw new Exception("不是excel文件");
-//        }
-//        Sheet sheet = workbook.getSheetAt(0);
-//        Row row = sheet.getRow(sheet.getFirstRowNum());
-//        short firstCellNum = row.getFirstCellNum();
-//        short lastCellNum = row.getLastCellNum();
+        Workbook workbook = null;
+
+        if(excelPath.endsWith(".xlsx")) {
+            workbook = new XSSFWorkbook(inputStream);
+        }else if(excelPath.endsWith(".xls")){
+            workbook = new HSSFWorkbook(inputStream);
+        }else{
+            throw new Exception("不是excel文件");
+        }
+        Sheet sheet = workbook.getSheetAt(0);
+        Row row = sheet.getRow(sheet.getFirstRowNum());
+        short firstCellNum = row.getFirstCellNum();
+        short lastCellNum = row.getLastCellNum();
           List<DMBizTemplateExcelColums> listDMBizTemplateExcelColums=new ArrayList<>();
-//        for(int i=firstCellNum;i<=lastCellNum-1;i++){
-//        	DMBizTemplateExcelColums dmBizTemplateExcelColums=new  DMBizTemplateExcelColums();
-//        	dmBizTemplateExcelColums.setExcelColumn(row.getCell(i).toString());
-//        	listDMBizTemplateExcelColums.add(dmBizTemplateExcelColums);
-//        }
+        for(int i=firstCellNum;i<=lastCellNum-1;i++){
+        	DMBizTemplateExcelColums dmBizTemplateExcelColums=new  DMBizTemplateExcelColums();
+        	dmBizTemplateExcelColums.setExcelColumn(row.getCell(i).toString());
+        	listDMBizTemplateExcelColums.add(dmBizTemplateExcelColums);
+        }
         
         return listDMBizTemplateExcelColums;
 	}

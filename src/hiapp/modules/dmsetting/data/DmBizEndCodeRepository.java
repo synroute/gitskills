@@ -74,7 +74,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			dict.setName(dmEndCode.getEndCode());
 			
 			dictManager.newDictionay(dict);
-			add( dmEndCode.getBizId(), dmEndCode.getEndCodeType(), dmEndCode.getEndCode());
+			add( dmEndCode.getBizId(), dmEndCode.getEndCodeType(), dmEndCode.getEndCode(),dmEndCode.getDescription());
 		} catch (SQLException e) {
 			e.printStackTrace();
 			err.append("失败！");
@@ -181,7 +181,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	
 	@SuppressWarnings("resource")
 	//添加addsettingjson字符串
-	public void add(int bizid,String EndCodeType,String EndCode) throws SQLException, IOException
+	public void add(int bizid,String EndCodeType,String EndCode,String Description) throws SQLException, IOException
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -208,14 +208,15 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        
 		        JsonArray jsonArray_EndCode= new JsonArray();
 		        JsonObject jsonObject_EndCode=new JsonObject();
-		        jsonObject_EndCode.addProperty("EndCodeType", EndCodeType);
-		        jsonObject_EndCode.addProperty("EndCode", EndCode);
-		        jsonObject_EndCode.addProperty("RedialStateName", "");
+		        jsonObject_EndCode.addProperty("endCodeType", EndCodeType);
+		        jsonObject_EndCode.addProperty("endCode", EndCode);
+		        jsonObject_EndCode.addProperty("endCodedescription", Description);
+		        jsonObject_EndCode.addProperty("redialStateName", "");
 		        jsonArray_EndCode.add(jsonArray_EndCode);
 		        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
 		        
 		            
-		            String insertsql = "INSERT INTO HASYS_DM_BIZADDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZADDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
+		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
 		            stmt = conn.prepareStatement(insertsql);
 		            stmt.executeUpdate();
 		        
@@ -232,7 +233,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        jsonObject_EndCode.addProperty("RedialStateName", "");
 		        jsonArray.add(jsonObject_EndCode);
 				
-		            String updatesql = "update HASYS_DM_BIZADDSETTING set XML='"+jsonObject.toString()+"' where BusinessId="+bizid+"";
+		            String updatesql = "update HASYS_DM_BIZOUTBOUNDSETTING set XML='"+jsonObject.toString()+"' where BusinessId="+bizid+"";
 		            stmt = conn.prepareStatement(updatesql);
 		            stmt.executeUpdate();
 				

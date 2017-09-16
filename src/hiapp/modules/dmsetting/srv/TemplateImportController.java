@@ -65,7 +65,8 @@ public class TemplateImportController {
 		dmBizImportTemplate.setDesc(description);
 		dmBizImportTemplate.setIsDefault(isDefault);
 		dmBizImportTemplate.setDataSourceType(sourceType);
-		if(dmBizTemplateImport.dmCreateCustomerImportTemplate(dmBizImportTemplate))
+		StringBuffer errMessage=new StringBuffer();
+		if(dmBizTemplateImport.dmCreateCustomerImportTemplate(dmBizImportTemplate,errMessage))
 		{
 			serviceresult.setReturnCode(0);
 			serviceresult.setReturnMessage("成功");

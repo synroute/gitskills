@@ -39,11 +39,11 @@ public class ShareBatchItem {
         this.shareBatchName = shareBatchName;
     }
 
-    public int getCreateUserId() {
+    public String getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(String createUserId) {
         this.createUserId = createUserId;
     }
 
@@ -91,7 +91,7 @@ public class ShareBatchItem {
     int bizId;
     String shareBatchId;
     String shareBatchName;
-    int  createUserId;
+    String  createUserId;
     Date createTime;
     String description;
     ShareBatchStateEnum	state;

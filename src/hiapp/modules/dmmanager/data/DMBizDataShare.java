@@ -92,7 +92,7 @@ public class DMBizDataShare extends BaseRepository {
 		String ImportTableName=null;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		try {
-			dbConn = this.getDbConnection();
+			dbConn = this.getDbConnection();//select to_char(sysdate,'yy-mm-dd hh24:mi:ss')
 			getXmlSql=String.format("SELECT XML FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE TEMPLATEID='%s' AND BUSINESSID='%s'",templateId,businessId);
 			stmt=dbConn.prepareStatement(getXmlSql);
 			rs = stmt.executeQuery();
@@ -110,14 +110,13 @@ public class DMBizDataShare extends BaseRepository {
 			JsonObject jsonObject= new JsonParser().parse("jsonData").getAsJsonObject(); 
 			//从对象中获取列名数组json集合
 			dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
-			
 			String sql="select";
 			for (int i = 0; i < dataArray.size(); i++) {
 				//sql+=dataArray.getJSONObject(i).getString("FieldName")+",";
 				sql+=dataArray.get(i).getAsString().concat("FieldName")+",";
 						}
 			sql.substring(sql.length()-1);
-			sql=sql+"from "+ImportTableName+" where IID IN (select a.IID from HASYS-DM-IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR='DA' AND a.BUSINESSID=" + businessId + ""+ "OR a.IMPORTTIME BETWEEN to_date(" + StartTime+ ",'yyyy/mm/dd') AND to_date(" + EndTime+ ",'yyyy/mm/dd'))";
+			sql=sql+"from "+ImportTableName+" where IID IN (select a.IID from HASYS_DM_IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR='DA' AND a.BUSINESSID=" + businessId + ""+ "OR a.IMPORTTIME BETWEEN to_date(" + StartTime+ ",'yy-mm-dd hh24:mi:ss') AND to_date(" + EndTime+ ",'yy-mm-dd hh24:mi:ss'))";
 			stmt=dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next()){

@@ -44,7 +44,7 @@ public class ImportDataController {
 	 * @param request
 	 * @param response
 	 */
-	@RequestMapping(value="/srv/ImportDataController/ GetAllBusiness.srv")
+	@RequestMapping(value="/srv/ImportDataController/GetAllBusiness.srv")
 	public void  getAllBusiness(HttpServletRequest request, HttpServletResponse response){
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
@@ -176,10 +176,10 @@ public class ImportDataController {
 		for (int i = 0; i < dataList.size(); i++) {
 			Map<String,Object> map=new HashMap<String, Object>();
 			for (int j = 0; j < sheetColumnList.size(); j++) {
-				if(dataList.get(i).keySet().contains(sheetColumnList.get(j).getName())){
-					map.put(sheetColumnList.get(j).getName(),dataList.get(i).get(sheetColumnList.get(j).getName()));
+				if(dataList.get(i).keySet().contains(sheetColumnList.get(j).getField())){
+					map.put(sheetColumnList.get(j).getField(),dataList.get(i).get(sheetColumnList.get(j).getField()));
 				}else{
-					map.put(sheetColumnList.get(j).getName(),"");
+					map.put(sheetColumnList.get(j).getField(),"");
 				}
 			}
 			allDataList.add(map);

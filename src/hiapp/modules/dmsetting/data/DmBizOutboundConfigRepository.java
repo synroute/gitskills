@@ -25,7 +25,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 		String xml="";
 		try {
 			conn =this.getDbConnection();
-			String szSql = String.format("select xml from HASYS_DM_BIZADDSETTING where BusinessID="+bizId+"");
+			String szSql = String.format("select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next())
@@ -69,7 +69,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			
 			
 			
-			String xmlszSql = String.format("select xml from HASYS_DM_BIZADDSETTING where BusinessID="+bizId+"");
+			String xmlszSql = String.format("select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(xmlszSql);
 			rs = stmt.executeQuery();
 			while(rs.next())
@@ -84,7 +84,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			jsonArray.add(redialState);
 			jsonObject.add("RedialState", jsonArray);
 			
-			String szSql = String.format("update HASYS_DM_BIZADDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
+			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			
@@ -129,7 +129,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			
 			
 			
-			String szSql = String.format("update HASYS_DM_BIZADDSETTING set xml='"+MapColumns+"' where BusinessID="+bizId+"");
+			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+MapColumns+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			

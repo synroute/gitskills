@@ -38,14 +38,6 @@ public class SingleNumberModeShareCustomerItem {
         this.importBatchId = importBatchId;
     }
 
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
     public SingleNumberModeShareCustomerStateEnum getState() {
         return state;
     }
@@ -60,14 +52,6 @@ public class SingleNumberModeShareCustomerItem {
 
     public void setModifyId(int modifyId) {
         this.modifyId = modifyId;
-    }
-
-    public int getModifyUserId() {
-        return modifyUserId;
-    }
-
-    public void setModifyUserId(int modifyUserId) {
-        this.modifyUserId = modifyUserId;
     }
 
     public Date getModifyTime() {
@@ -126,14 +110,6 @@ public class SingleNumberModeShareCustomerItem {
         this.nextDialTime = nextDialTime;
     }
 
-    public int getThisDayDialCount() {
-        return thisDayDialCount;
-    }
-
-    public void setThisDayDialCount(int thisDayDialCount) {
-        this.thisDayDialCount = thisDayDialCount;
-    }
-
     public int getCurRedialStageCount() {
         return curRedialStageCount;
     }
@@ -142,13 +118,6 @@ public class SingleNumberModeShareCustomerItem {
         this.curRedialStageCount = curRedialStageCount;
     }
 
-    public Boolean getAgentOccupied() {
-        return isAgentOccupied;
-    }
-
-    public void setAgentOccupied(Boolean agentOccupied) {
-        isAgentOccupied = agentOccupied;
-    }
 
     public Boolean getLoaded() {
         return isLoaded;
@@ -158,22 +127,86 @@ public class SingleNumberModeShareCustomerItem {
         isLoaded = loaded;
     }
 
-    public Date getShareBatchBeginTime() {
-        return shareBatchBeginTime;
+    public Date getShareBatchStartTime() {
+        return shareBatchStartTime;
     }
 
-    public void setShareBatchBeginTime(Date shareBatchBeginTime) {
-        this.shareBatchBeginTime = shareBatchBeginTime;
+    public void setShareBatchStartTime(Date shareBatchStartTime) {
+        this.shareBatchStartTime = shareBatchStartTime;
+    }
+
+    public int getCurDayLostCallCount() {
+        return curDayLostCallCount;
+    }
+
+    public void setCurDayLostCallCount(int curDayLostCallCount) {
+        this.curDayLostCallCount = curDayLostCallCount;
+    }
+
+    public Date getLossCallFirstDay() {
+        return lostCallFirstDay;
+    }
+
+    public void setLossCallFirstDay(Date lossCallFirstDay) {
+        this.lostCallFirstDay = lossCallFirstDay;
+    }
+
+    public int getLostCallTotalCount() {
+        return lostCallTotalCount;
+    }
+
+    public void setLostCallTotalCount(int lostCallTotalCount) {
+        this.lostCallTotalCount = lostCallTotalCount;
+    }
+
+    public Date getLostCallCurDay() {
+        return lostCallCurDay;
+    }
+
+    public void setLostCallCurDay(Date lostCallCurDay) {
+        this.lostCallCurDay = lostCallCurDay;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getModifyUserId() {
+        return modifyUserId;
+    }
+
+    public void setModifyUserId(String modifyUserId) {
+        this.modifyUserId = modifyUserId;
+    }
+
+    public Boolean getUserUseState() {
+        return userUseState;
+    }
+
+    public void setUserUseState(Boolean userUseState) {
+        this.userUseState = userUseState;
+    }
+
+    public Date getLostCallFirstDay() {
+        return lostCallFirstDay;
+    }
+
+    public void setLostCallFirstDay(Date lostCallFirstDay) {
+        this.lostCallFirstDay = lostCallFirstDay;
     }
 
     int id;
     int bizId;
     String shareBatchId;
     String importBatchId;
-    int customerId;
+    String customerId;
     SingleNumberModeShareCustomerStateEnum state;
     int  modifyId;
-    int  modifyUserId;
+    String  modifyUserId;
     Date  modifyTime;
     String modifyDesc;
     String customerCallId; //客户呼叫流水号
@@ -181,11 +214,14 @@ public class SingleNumberModeShareCustomerItem {
     String endCode;
     Date   lastDailTime;    //最近一次拨打时间
     Date   nextDialTime;    //下次拨打时间
-    int   thisDayDialCount;   //当天拨打次数
+    int   curDayLostCallCount;   //当天未接通次数
     int   curRedialStageCount; //仅用于阶段拨打
-    Boolean isAgentOccupied; //是否已经被坐席人员抽取
+    Boolean userUseState; //是否已经被坐席人员抽取
     Boolean isLoaded;   //是否已经加载到内存
+    Date  lostCallFirstDay; //第一次未接通日期
+    Date  lostCallCurDay; //当前未接通日期
+    int   lostCallTotalCount; //未接通总次数
 
     // 非本表字段
-    Date shareBatchBeginTime;
+    Date shareBatchStartTime;
 }
