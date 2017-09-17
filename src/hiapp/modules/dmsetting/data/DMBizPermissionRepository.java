@@ -124,12 +124,12 @@ public class DMBizPermissionRepository extends BaseRepository {
 				DbUtil.DbCloseQuery(rs, stmt);
 			}
 			JsonObject jsonObject_bizFixedcolumn=new JsonObject();
-			jsonObject_bizFixedcolumn.addProperty("filed",dmBusiness.getBizId()+"系统配置");
+			jsonObject_bizFixedcolumn.addProperty("field",dmBusiness.getBizId()+"系统配置");
 			jsonObject_bizFixedcolumn.addProperty("title","系统配置");
 			jsonObject_bizFixedcolumn.addProperty("width","80");
 			jsonArray_dataPool.add(jsonObject_bizFixedcolumn);
 			JsonObject jsonObject_bizFixedcolumns=new JsonObject();
-			jsonObject_bizFixedcolumns.addProperty("filed",dmBusiness.getBizId()+"数据管理");
+			jsonObject_bizFixedcolumns.addProperty("field",dmBusiness.getBizId()+"数据管理");
 			jsonObject_bizFixedcolumns.addProperty("title","数据管理");
 			jsonObject_bizFixedcolumns.addProperty("width","80");
 			jsonArray_dataPool.add(jsonObject_bizFixedcolumns);
@@ -137,7 +137,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 				for(int pcol=0;pcol<listDataPools.size();pcol++){
 					JsonObject jsonObject_dataPool=new JsonObject();
 					DMDataPool dmDataPool=listDataPools.get(pcol);
-					jsonObject_dataPool.addProperty("filed", dmDataPool.getPoolId());
+					jsonObject_dataPool.addProperty("field", ""+dmDataPool.getPoolId()+"");
 					jsonObject_dataPool.addProperty("title", dmDataPool.getDataPoolName());
 					jsonObject_dataPool.addProperty("width","80");
 					jsonArray_dataPool.add(jsonObject_dataPool);
