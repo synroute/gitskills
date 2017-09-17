@@ -27,7 +27,7 @@ public class BuinessController {
 	
 	//新增业务
 	@RequestMapping(value = "/srv/dm/dmCreateBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmCreateBiz(@RequestParam("id") String id,
+	public String dmCreateBiz(@RequestParam("bizId") String id,
 			@RequestParam("name") String name,
 			@RequestParam("description") String description,
 			@RequestParam("ownerGroupId") String ownerGroupId,
@@ -72,9 +72,9 @@ public class BuinessController {
 	//修改业务
 	@RequestMapping(value = "/srv/dm/dmModifyBiz.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBiz(@RequestParam("bizId") String szDMBId,
-			@RequestParam("bizName") String szDMBName,
-			@RequestParam("bizDescription") String szDMBDescription,
-			@RequestParam("OwnerGroupId") String szOwnerGroupId) {
+			@RequestParam("name") String szDMBName,
+			@RequestParam("description") String szDMBDescription,
+			@RequestParam("ownerGroupId") String szOwnerGroupId) {
 		ServiceResult serviceresult = new ServiceResult();
 		if (szDMBId == "")
 			szDMBId = "0";
