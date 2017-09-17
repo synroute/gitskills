@@ -104,7 +104,7 @@ public class DataPoolController {
 	@RequestMapping(value = "srv/dm/dmModifyBizDataPool.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBizDataPool(@RequestParam("poolId") int Id,
 			@RequestParam("dataPoolName") String DataPoolName,
-			@RequestParam("dataPoolDes") String DataPoolDes,@RequestParam("poolTopLimit") int PoolTopLimit) {
+			@RequestParam("dataPoolDesc") String DataPoolDes,@RequestParam("poolTopLimit") int PoolTopLimit) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try{
 			DMDataPool dmDataPool=new DMDataPool();

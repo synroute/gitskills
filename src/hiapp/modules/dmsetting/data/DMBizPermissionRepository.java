@@ -86,10 +86,12 @@ public class DMBizPermissionRepository extends BaseRepository {
 		JsonObject jsonObject_fixedColumn=new JsonObject();
 		jsonObject_fixedColumn.addProperty("field", "permissionId");
 		jsonObject_fixedColumn.addProperty("title", "权限id");
+		jsonObject_fixedColumn.addProperty("width","80");
 		jsonArray_fixedColumn.add(jsonObject_fixedColumn);
 		JsonObject jsonObject_fixedColumns=new JsonObject();
 		jsonObject_fixedColumns.addProperty("field", "permissionName");
 		jsonObject_fixedColumns.addProperty("title", "权限名称");
+		jsonObject_fixedColumns.addProperty("width","150");
 		jsonArray_fixedColumn.add(jsonObject_fixedColumns);
 		jsonObject.add("fixedColumns", jsonArray_fixedColumn);
 		
@@ -100,6 +102,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		JsonArray jsonArray_biz=new JsonArray();
 		JsonArray jsonArray_dataPool=new JsonArray();
 		for(int col=0;col<listdmBusinesses.size();col++){
+			int count=0;
 			JsonObject jsonObject_biz=new JsonObject();
 			DMBusiness dmBusiness=listdmBusinesses.get(col);
 			//查询该业务下有多少数据池
@@ -109,6 +112,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				while(rs.next()){
+					count=rs.getInt(1);
 					jsonObject_biz.addProperty("title", dmBusiness.getName());
 					jsonObject_biz.addProperty("colspan", rs.getInt(1)+2);
 					jsonArray_biz.add(jsonObject_biz);
@@ -122,19 +126,24 @@ public class DMBizPermissionRepository extends BaseRepository {
 			JsonObject jsonObject_bizFixedcolumn=new JsonObject();
 			jsonObject_bizFixedcolumn.addProperty("filed",dmBusiness.getBizId()+"系统配置");
 			jsonObject_bizFixedcolumn.addProperty("title","系统配置");
+			jsonObject_bizFixedcolumn.addProperty("width","80");
 			jsonArray_dataPool.add(jsonObject_bizFixedcolumn);
 			JsonObject jsonObject_bizFixedcolumns=new JsonObject();
 			jsonObject_bizFixedcolumns.addProperty("filed",dmBusiness.getBizId()+"数据管理");
 			jsonObject_bizFixedcolumns.addProperty("title","数据管理");
+			jsonObject_bizFixedcolumns.addProperty("width","80");
 			jsonArray_dataPool.add(jsonObject_bizFixedcolumns);
-			
-			for(int pcol=0;col<listDataPools.size();col++){
-				JsonObject jsonObject_dataPool=new JsonObject();
-				DMDataPool dmDataPool=listDataPools.get(pcol);
-				jsonObject_dataPool.addProperty("filed", dmDataPool.getPoolId());
-				jsonObject_dataPool.addProperty("title", dmDataPool.getDataPoolName());
-				jsonArray_dataPool.add(jsonObject_dataPool);
+			if (count!=0) {
+				for(int pcol=0;pcol<listDataPools.size();pcol++){
+					JsonObject jsonObject_dataPool=new JsonObject();
+					DMDataPool dmDataPool=listDataPools.get(pcol);
+					jsonObject_dataPool.addProperty("filed", dmDataPool.getPoolId());
+					jsonObject_dataPool.addProperty("title", dmDataPool.getDataPoolName());
+					jsonObject_dataPool.addProperty("width","80");
+					jsonArray_dataPool.add(jsonObject_dataPool);
+				}
 			}
+			
 			
 			
 			
