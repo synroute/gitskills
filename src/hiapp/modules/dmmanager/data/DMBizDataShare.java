@@ -67,8 +67,7 @@ public class DMBizDataShare extends BaseRepository {
 			String sql="select ";
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < dataArray.size(); i++) {
-				sb.append(dataArray.get(i).getAsJsonObject().get("FieldName")+",".toString());
-				//sql+=dataArray.get(i).getAsJsonObject().get("FieldName").toString()+",";
+				sb.append(dataArray.get(i).getAsJsonObject().get("FieldName").getAsString()+",");
 			}
 			sb.deleteCharAt(sb.length()-1);
 			sql+=sb;
@@ -81,8 +80,7 @@ public class DMBizDataShare extends BaseRepository {
 				//列名不确定 需要循环 录入到 map集合中
 				for (int i = 0; i < dataArray.size(); i++) {
 					// 将循环出来的列名作为key
-					//String key=asJsonArray.getJSONObject(i).getString("FieldName");
-					String key=dataArray.get(i).getAsJsonObject().get("FieldName").toString();
+					String key=dataArray.get(i).getAsJsonObject().get("FieldName").getAsString();
 					map.put(key,rs.getObject(i+1));
 				}
 				dataList.add(map);
@@ -94,7 +92,6 @@ public class DMBizDataShare extends BaseRepository {
 			DbUtil.DbCloseConnection(dbConn);
 		}
 		return dataList;
-		
 	}
 			/*//解析导入模板设置表
 			*/
@@ -125,7 +122,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INTSERT INTO HASYS_DM_B1C_DATAM3 VALUES(HASYS_DM_B1C_DATAM3_ID.NEXTVAL,'%s','%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
+			insertsql =String.format("INSERT INTO HASYS_DM_B1C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -141,7 +138,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INTSERT INTO HASYS_DM_B1C_DATAM3_HIS VALUES(SEQ_HASYS_DM_B1C_DATAM3.NEXTVAL,'%s','%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
+			insertsql =String.format("INSERT INTO HASYS_DM_B1C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -150,18 +147,21 @@ public class DMBizDataShare extends BaseRepository {
 	}
 
 	// 查询当前的业务的数据池
-	public String confirmShareDataTwo(String businessId) {
+	public int confirmShareDataTwo(String businessId) {
 		String sql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		ResultSet rs = null;
-		String s = null;
+		int s =0;
+		int a=Integer.parseInt(businessId);
 		try {
 			dbConn = this.getDbConnection();
-			sql =String.format("SELECT DATAPOOLNAME FROM HAU_DM_DATAPOOL WHERE BUSINESSID='%s'", businessId) ;
+			sql ="SELECT DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE BUSINESSID="+a+" AND DATAPOOLTYPE=2";
 			stmt = dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
-			s = rs.getString(1);
+			while(rs.next()){
+			s = rs.getInt(1);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -170,13 +170,13 @@ public class DMBizDataShare extends BaseRepository {
 
 	// 更改数据池记录表数据
 	public void confirmShareDataThree(String iId,
-			String dataPool, User user) {
+			int dataPool, User user) {
 		String updatesql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn=null;
         try {
         	dbConn=this.getDbConnection();
-        	updatesql=String.format("UPDATE HAU_DM_B1C_POOL SET ID='%s',IID='%s',CID='%s',DATAPOOLIDLASt='%s',DATAPOOLIDCUR='%s',AREALAST='%s',AREACUR='$s'",iId,iId,user,dataPool,dataPool,AreaLastEnum.DA,AreaCurEnum.SA);
+        	updatesql=String.format("UPDATE HAU_DM_B1C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s'",user.getId(),dataPool,dataPool,1,2,iId);
         	stmt = dbConn.prepareStatement(updatesql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -185,13 +185,13 @@ public class DMBizDataShare extends BaseRepository {
 	}
 	//向数据池操作记录表添加数据
 	public void confirmShareDataFree(String iId,
-			User user, String dataPool) {
+			User user, int dataPool) {
 		String insertsql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		try {
 			dbConn=this.getDbConnection();
-			insertsql=String.format("INTSERT INTO HAU_DM_B1C_POOL_ORE values(SEQ_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',to_date(sysdate,'yyyy/mm/dd hh24:mi'))",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,AreaLastEnum.DA,AreaCurEnum.SA,IsRecoverEnum.NO,user.getId());
+			insertsql=String.format("INSERT INTO HAU_DM_B1C_POOL_ORE values(S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',to_date(sysdate,'yyyy/mm/dd hh24:mi'))",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,1,2,0,user.getId());
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -200,13 +200,13 @@ public class DMBizDataShare extends BaseRepository {
 	}
 	//向共享批次信息表添加数据
 	public ServiceResultCode confirmShareDataFive(String businessId,
-			String batherId, String shareName, String description) {
+			String batherId, String shareName, String description,User user) {
 		String insertsql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		try {
 			dbConn=this.getDbConnection();
-			insertsql = String.format("INTSERT INTO HASYS_DM_SID VALUES(SEQ_HASYS_DM_SID.NEXTVAL,'%s','%s','%s','%s','%s','%s')",businessId,batherId,shareName,0,null,description);
+			insertsql = String.format("INSERT INTO HASYS_DM_SID (ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION) VALUES(S_HASYS_DM_SID.NEXTVAL,%s,'%s','%s','%s',to_date(sysdate,'yyyy/mm/dd hh24:mi'),'%s')",businessId,batherId,shareName,user.getId(),description);
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
