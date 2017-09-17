@@ -80,10 +80,8 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 			jsonObject.remove("RedialState");
 			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
-			JsonObject redialState= jsonArray_Map.get(0).getAsJsonObject();
-			JsonArray jsonArray=new JsonArray();
-			jsonArray.add(redialState);
-			jsonObject.add("RedialState", jsonArray);
+			
+			jsonObject.add("RedialState", jsonArray_Map);
 			
 			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
