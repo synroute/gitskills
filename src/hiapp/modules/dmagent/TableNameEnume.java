@@ -100,10 +100,18 @@ public enum TableNameEnume {
 			map3.put("COLUMNDESCRIPTION", "呼叫流水号");
 			map3.put("dataType", "int");
 			map3.put("LENGTH", -1);
+			
+			Map<String, Object> map4 = new HashMap<String, Object>();
+			map4.put("COLUMNNAME", getAbbr() + "." + "SOUECEID");
+			map4.put("COLUMNNAMECH", "来源编号");
+			map4.put("COLUMNDESCRIPTION", "来源编号");
+			map4.put("dataType", "varchar");
+			map4.put("LENGTH", 50);
 
 			list.add(map);
 			list.add(map2);
 			list.add(map3);
+			list.add(map4);
 			return list;
 		}
 

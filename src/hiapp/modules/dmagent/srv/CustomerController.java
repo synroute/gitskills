@@ -3,11 +3,8 @@ package hiapp.modules.dmagent.srv;
 import hiapp.modules.dmagent.QueryRequest;
 import hiapp.modules.dmagent.QueryTemplate;
 import hiapp.modules.dmagent.data.CustomerRepository;
-import hiapp.system.buinfo.Permission;
-import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
-import hiapp.system.buinfo.data.PermissionRepository;
-import hiapp.system.buinfo.data.UserRepository;
+import hiapp.utils.base.HiAppException;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -28,10 +25,6 @@ import com.google.gson.Gson;
 public class CustomerController {
 	@Autowired
 	private CustomerRepository customerRepository;
-	@Autowired
-	private UserRepository userRepository;
-	@Autowired
-	private PermissionRepository permissionRepository;
 
 	/**
 	 * 获取配置查询模板时需要使用的候选列
@@ -137,58 +130,61 @@ public class CustomerController {
 	 * 
 	 * @return
 	 */
+	@SuppressWarnings("rawtypes")
 	public String dataToListPattern(Map[][] data) {
-		return "<table width=100% height=100% cellpadding=0 cellspacing=0>\n"
-				+ "\t<tr height=18px>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+		return "<table width=100% height=100% cellpadding=0 cellspacing=0>"
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[0][0].get("fontColor")
 				+ "'>"
 				+ data[0][0].get("value")
-				+ "</th>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[0][1].get("fontColor")
 				+ "'>"
 				+ data[0][1].get("value")
-				+ "</th>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[0][2].get("fontColor")
 				+ "'>"
 				+ data[0][2].get("value")
-				+ "</th>\n"
-				+ "\t</tr>\n"
-				+ "\t<tr height=18px>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+				+ "</th>"
+				+ "</tr>"
+
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[1][0].get("fontColor")
 				+ "'>"
 				+ data[1][0].get("value")
-				+ "</th>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[1][1].get("fontColor")
 				+ "'>"
 				+ data[1][1].get("value")
-				+ "</th>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[1][2].get("fontColor")
 				+ "'>"
 				+ data[1][2].get("value")
-				+ "</th>\n"
-				+ "\t</tr>\n"
-				+ "\t<tr height=18px>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+				+ "</th>"
+				+ "</tr>"
+
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[2][0].get("fontColor")
 				+ "'>"
 				+ data[2][0].get("value")
-				+ "</th>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[2][1].get("fontColor")
 				+ "'>"
 				+ data[2][1].get("value")
-				+ "</th>\n"
-				+ "\t\t<th width=118px align=left style='font-size:8px;color: "
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
 				+ data[2][2].get("fontColor")
 				+ "'>"
 				+ data[2][2].get("value")
-				+ "</th>\n" + "\t</tr>\n" + "</table>";
+				+ "</th>" + "</tr>" + "</table>";
 	}
 
 	/**
@@ -204,13 +200,15 @@ public class CustomerController {
 			// 设置默认值
 			for (int i = 0; i < maps.length; i++) {
 				for (int j = 0; j < maps[i].length; j++) {
+					maps[i][j] = new HashMap<String, Object>();
 					maps[i][j].put("value", "");
-					maps[i][j].put("fontColor", "");
+					maps[i][j].put("fontColor", "black");
 				}
 			}
 			// 匹配模板
 			for (Map<String, Object> map : list) {
-				maps[(int) map.get("rowNumber")][(int) map.get("colNumber")] = map;
+				maps[Integer.parseInt((String) map.get("rowNumber")) - 1][Integer
+						.parseInt((String) map.get("colNumber")) - 1] = map;
 			}
 			result.add(dataToListPattern(maps));
 		}
@@ -228,10 +226,38 @@ public class CustomerController {
 			HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();
+		List<List<Map<String, Object>>> list1 = new ArrayList<List<Map<String, Object>>>();
+		String userId = ((User) session.getAttribute("user")).getId();
+
+		int pageSize = queryRequest.getPageSize();
+		int pageNum = queryRequest.getPageNum();
+		if (queryRequest.hasQueryNext()) {
+			pageNum = 1;
+			try {
+				list = customerRepository.queryMyNextCustomer(queryRequest,
+						userId);
+			} catch (HiAppException e) {
+				e.printStackTrace();
+				result.put("result", 1);
+				result.put("reason", e.getMessage());
+				return result;
+			}
+		}
+
+		int count = 0;
+		try {
+			count = customerRepository.queryMyCustomersCount(queryRequest,
+					userId);
+		} catch (HiAppException e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+			return result;
+		}
 
 		try {
-			list = customerRepository.queryMyCustomers(queryRequest,
-					((User) session.getAttribute("user")).getId());
+			list1 = customerRepository.queryMyCustomers(queryRequest, userId);
+			list.addAll(list1);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
@@ -241,6 +267,12 @@ public class CustomerController {
 
 		result.put("data", listToHtml(list));
 		result.put("result", 0);
+		result.put("pageSize", pageSize);
+		result.put("pageNum", pageNum);
+		result.put("recordCount", count);
+		int pageCount = count / pageSize;
+		result.put("pageCount", (count % pageSize == 0) ? pageCount
+				: pageCount + 1);
 		return result;
 	}
 
@@ -255,11 +287,24 @@ public class CustomerController {
 			QueryRequest queryRequest, HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();
-
+		String userId = ((User) session.getAttribute("user")).getId();
+		int pageSize = queryRequest.getPageSize();
+		int pageNum = queryRequest.getPageNum();
 		try {
 			list = customerRepository.queryMyPresetCustomers(queryRequest,
-					((User) session.getAttribute("user")).getId());
+					userId);
 		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+			return result;
+		}
+
+		int count = 0;
+		try {
+			count = customerRepository.queryMyPresetCustomersCount(
+					queryRequest, userId);
+		} catch (HiAppException e) {
 			e.printStackTrace();
 			result.put("result", 1);
 			result.put("reason", e.getMessage());
@@ -268,6 +313,12 @@ public class CustomerController {
 
 		result.put("data", listToHtml(list));
 		result.put("result", 0);
+		result.put("pageSize", pageSize);
+		result.put("pageNum", pageNum);
+		result.put("recordCount", count);
+		int pageCount = count / pageSize;
+		result.put("pageCount", (count % pageSize == 0) ? pageCount
+				: pageCount + 1);
 		return result;
 	}
 
@@ -282,17 +333,25 @@ public class CustomerController {
 			HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();
-		try {
-			User user = (User) session.getAttribute("user");
-			String userId = user.getId();
-			RoleInGroupSet roleInGroupSet = userRepository
-					.getRoleInGroupSetByUserId(userId);
-			Permission permission = permissionRepository
-					.getPermission(roleInGroupSet);
-			int permissionId = permission.getId();
+		String userId = ((User) session.getAttribute("user")).getId();
+		
+		int pageSize = queryRequest.getPageSize();
+		int pageNum = queryRequest.getPageNum();
 
+		int count = 0;
+		try {
+			count = customerRepository.queryAllCustomersCount(queryRequest,
+					userId);
+		} catch (HiAppException e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+			return result;
+		}
+		
+		try {
 			list = customerRepository.queryAllCustomers(queryRequest,
-					permissionId);
+					userId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
@@ -300,8 +359,15 @@ public class CustomerController {
 			return result;
 		}
 
+
 		result.put("data", listToHtml(list));
 		result.put("result", 0);
+		result.put("pageSize", pageSize);
+		result.put("pageNum", pageNum);
+		result.put("recordCount", count);
+		int pageCount = count / pageSize;
+		result.put("pageCount", (count % pageSize == 0) ? pageCount
+				: pageCount + 1);
 		return result;
 	}
 
