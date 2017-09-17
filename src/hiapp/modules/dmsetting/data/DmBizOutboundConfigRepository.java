@@ -126,9 +126,20 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			}
 			
 			
+			String xmlszSql = String.format("select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizId+"");
+			stmt = conn.prepareStatement(xmlszSql);
+			rs = stmt.executeQuery();
+			while(rs.next())
+			{
+				xml=rs.getString("xml");
+			}
+
+			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
+			jsonObject.remove("EndCodeRedialStrategy");
+			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
 			
-			
-			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+MapColumns+"' where BusinessID="+bizId+"");
+			jsonObject.add("EndCodeRedialStrategy", jsonArray_Map);
+			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			
