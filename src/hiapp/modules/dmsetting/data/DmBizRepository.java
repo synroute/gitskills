@@ -154,7 +154,7 @@ public class DmBizRepository extends BaseRepository{
 		}
 		try {//
 			dbConn = this.getDbConnection();
-			szSql = String.format("UPDATE HASYS_DM_BUSINESS	SET  NAME = '%s',DESCRIPTION = '%s',OWNERGROUPID = '%s' WHERE BUSSINESSID='%s'",
+			szSql = String.format("UPDATE HASYS_DM_BUSINESS	SET  NAME = '%s',DESCRIPTION = '%s',OWNERGROUPID = '%s' WHERE BUSINESSID='%s'",
 					szDMBName, szDMBDescription, szOwnerGroupId,szDMBId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
