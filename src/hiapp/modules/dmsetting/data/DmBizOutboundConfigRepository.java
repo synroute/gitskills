@@ -41,12 +41,18 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			
 			
 			JsonArray jsonArray_Endcode=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
-			JsonObject jsonObject_Endcode=jsonArray_Endcode.get(0).getAsJsonObject();
+			JsonObject jsonObject_Endcode=new JsonObject();
+			
+			
 			JsonArray jsonArray=new JsonArray();
-			jsonArray.add(jsonObject_Endcode);
+			
+			if (jsonArray_Endcode.size()>1) {
+				jsonObject_Endcode=jsonArray_Endcode.get(0).getAsJsonObject();
+				jsonArray.add(jsonObject_Endcode);
+			}
 			newJsonObject.add("dataShow", jsonArray);
 			JsonArray jsonArray_dataInfo=new JsonArray();
-			for(int i=1;i<jsonArray_Endcode.size();i++)
+			for(int i=0;i<jsonArray_Endcode.size();i++)
 			{
 				jsonArray_dataInfo.add(jsonArray_Endcode.get(i).getAsJsonObject());
 			}

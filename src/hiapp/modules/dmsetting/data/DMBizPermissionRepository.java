@@ -39,7 +39,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 	public JsonObject getAll(){
 		
 		
-		List<DMBizPermission> listBizPermissions=new ArrayList<DMBizPermission>();
+		List<DMBizPermission> listBizPermissionsiz=new ArrayList<DMBizPermission>();
 		List<DMBusiness> listdmBusinesses=new ArrayList<DMBusiness>();
 		List<Permission> listPermissions=new ArrayList<Permission>();
 		List<DMDataPool> listDataPools=new ArrayList<DMDataPool>();
@@ -48,10 +48,9 @@ public class DMBizPermissionRepository extends BaseRepository {
 		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		//查询所有权限信息
 		try {
 			dbConn =this.getDbConnection();
-			String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL order by businessid desc";
+			String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL  order by businessid desc";
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -60,7 +59,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 				dmBizPermission.setBizId(rs.getInt(2));
 				dmBizPermission.setPermId(rs.getInt(3));
 				dmBizPermission.setManageItemName(rs.getString(4));
-				listBizPermissions.add(dmBizPermission);
+				listBizPermissionsiz.add(dmBizPermission);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -102,9 +101,33 @@ public class DMBizPermissionRepository extends BaseRepository {
 		JsonArray jsonArray_biz=new JsonArray();
 		JsonArray jsonArray_dataPool=new JsonArray();
 		for(int col=0;col<listdmBusinesses.size();col++){
+			
+			List<DMBizPermission> listBizPermissions=new ArrayList<DMBizPermission>();
+			
 			int count=0;
 			JsonObject jsonObject_biz=new JsonObject();
 			DMBusiness dmBusiness=listdmBusinesses.get(col);
+			//查询所有权限信息
+			try {
+				dbConn =this.getDbConnection();
+				String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL  where Businessid="+dmBusiness.getBizId()+"";
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				while(rs.next()){
+					DMBizPermission dmBizPermission=new DMBizPermission();
+					dmBizPermission.setDataPoolId(rs.getInt(1));
+					dmBizPermission.setBizId(rs.getInt(2));
+					dmBizPermission.setPermId(rs.getInt(3));
+					dmBizPermission.setManageItemName(rs.getString(4));
+					listBizPermissions.add(dmBizPermission);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+				
+			} 
+			finally {
+				DbUtil.DbCloseQuery(rs, stmt);
+			}
 			//查询该业务下有多少数据池
 			try {
 				dbConn =this.getDbConnection();
@@ -163,9 +186,9 @@ public class DMBizPermissionRepository extends BaseRepository {
 			jsonObject_perm.addProperty("permissionId", perm.getId());
 			jsonObject_perm.addProperty("permissionName", perm.getName());
 			
-			for(int col=0;col<listBizPermissions.size();col++)
+			for(int col=0;col<listBizPermissionsiz.size();col++)
 			{
-				DMBizPermission dmBizPermission=listBizPermissions.get(col);
+				DMBizPermission dmBizPermission=listBizPermissionsiz.get(col);
 				if(perm.getId()==dmBizPermission.getPermId())
 				{
 					if(dmBizPermission.getManageItemName()!=null)
