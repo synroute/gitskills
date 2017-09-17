@@ -45,7 +45,7 @@ public class DmBizRepository extends BaseRepository{
 				String groupName = groupRepository.getGroupById(rs.getInt(4)).getName();
 				DMBusiness.setOwnerGroupName(groupName);
 				DMBusiness.setModeId(rs.getInt(5));
-				DMBizOutboundModelEnum modelEnum = DMBizOutboundModelEnum.values()[DMBusiness.getModeId()];
+				DMBizOutboundModelEnum modelEnum = DMBizOutboundModelEnum.values()[DMBusiness.getModeId()-1];
 				DMBusiness.setModeInfo(modelEnum.getOutboundID()+";"+modelEnum.getOutboundType()+";"+modelEnum.getOutboundMode());
 				listDMBusiness.add(DMBusiness);
 			}
