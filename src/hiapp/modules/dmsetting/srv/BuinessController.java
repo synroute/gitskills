@@ -105,9 +105,11 @@ public class BuinessController {
 			ServiceResultCode serviceResultCode = dmBizRepository.destroyDMBusiness(Integer.parseInt(id),errMessage);
 			if (serviceResultCode != ServiceResultCode.SUCCESS) {
 				serviceresult.setResultCode(serviceResultCode);
+				serviceresult.setReturnCode(1);
 				serviceresult.setReturnMessage(errMessage.toString());
 			} else {
 				serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+				serviceresult.setReturnCode(0);
 				serviceresult.setReturnMessage("删除业务成功！");
 			}
 		} catch (Exception e) {
