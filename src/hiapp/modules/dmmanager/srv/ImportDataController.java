@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +24,7 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 
 
 
@@ -133,6 +135,7 @@ public class ImportDataController {
 	@RequestMapping(value="/srv/ImportDataController/ImportExcelCustomerData.srv")
 	public void ImportExceCustomerData(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file) throws IOException{
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
         String fileName=file.getOriginalFilename();
@@ -146,25 +149,40 @@ public class ImportDataController {
 				wookbook = new XSSFWorkbook(in);
 			}
 			Sheet sheet = wookbook.getSheetAt(0);
-			int totalRowNum = sheet.getLastRowNum(); 
+			int totalRowNum = sheet.getLastRowNum(); //总行数
+			int coloumNum=sheet.getRow(0).getPhysicalNumberOfCells();//总列数
 			//获取前台要展示的字段
 			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-			for (int i = 0; i <= totalRowNum; i++) {
+			Map<String,Object> excelMap=dataImportJdbc.getExcelData(temPlateId, bizId);
+			Map<String,String> map1=(Map<String, String>) excelMap.get("exMap");
+			Map<String,Integer> intMap=new HashMap<String, Integer>();
+			List<String>  exList=(List<String>) excelMap.get("exList");
+			List<String>  newList=new ArrayList<String>(new HashSet(exList));
+			for (int i = 0; i < newList.size(); i++) {
+				for (int j = 0; j <=coloumNum; j++) {
+					String cellVlue=null;
+	            	if(sheet.getRow(0).getCell(j)!=null){
+	            		sheet.getRow(0).getCell(j).setCellType(Cell.CELL_TYPE_STRING);
+	            		cellVlue=sheet.getRow(0).getCell(j).getRichStringCellValue().toString();
+	               }
+					if(newList.get(i).equals(cellVlue)){
+						intMap.put(newList.get(i),j);
+					}
+				}
+			}
+			for (int i = 1; i < totalRowNum; i++) {
 				 //获取当前行的数据
 	            Row row = sheet.getRow(i);
 	            Map<String,Object> map=new HashMap<String, Object>();
 	            for(int j=0;j<sheetColumnList.size();j++){
-		            	//获取当前单元格的数据
-	            	String value=null;
-	            	if(row.getCell(j)!=null){
-	                    row.getCell(j).setCellType(Cell.CELL_TYPE_STRING);
-	                	value=row.getCell(j).getRichStringCellValue().toString();
-	
-	               }
-	            	if(value==null||"".equals(value)){
-	            		map.put(sheetColumnList.get(j).getField(),"");
+	            	if(map1.keySet().contains(sheetColumnList.get(j).getField())){
+	            		String value=null;
+	            		if(row.getCell(intMap.get(map1.get(sheetColumnList.get(j).getField())))!=null){
+		            		 value=row.getCell(intMap.get(map1.get(sheetColumnList.get(j).getField()))).getStringCellValue().toString();
+	            		}
+	            		map.put(sheetColumnList.get(j).getField(),value);
 	            	}else{
-		            	map.put(sheetColumnList.get(j).getField(), value);
+		            	map.put(sheetColumnList.get(j).getField(),"");
 		            }
 	         	
 		            }

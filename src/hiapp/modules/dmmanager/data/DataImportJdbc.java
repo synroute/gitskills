@@ -15,10 +15,12 @@ import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -209,6 +211,43 @@ public class DataImportJdbc extends BaseRepository{
 		}
 		 return columnList;
 	}
+	
+	
+	public Map<String,Object> getExcelData(Integer temPlateId,Integer bizId) throws IOException{
+		Map<String,String> map1=new HashMap<String, String>();
+		Map<String,Object> map=new HashMap<String, Object>();
+		List<String> excelList=new ArrayList<String>();		
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String jsonData=null;
+		try {
+			conn= this.getDbConnection();
+			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
+			pst=conn.prepareStatement(getXmlSql);
+			pst.setInt(1, temPlateId);
+			pst.setInt(2,bizId);
+			rs = pst.executeQuery();
+			while(rs.next()){
+				jsonData=ClobToString(rs.getClob(1));	
+			}
+			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
+			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			for (int i = 0; i < dataArray.size(); i++) {
+				String key=dataArray.get(i).getAsJsonObject().get("DbFieldName").getAsString();
+				String value=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
+				map1.put(key,value );
+				excelList.add(value);
+			}
+			
+			map.put("exMap", map1);
+			map.put("exList",excelList);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return map;
+	}
 	/**
 	 * 获取要导入的数据
 	 * @param temPlateId
@@ -223,6 +262,7 @@ public class DataImportJdbc extends BaseRepository{
 		String jsonData=null;
 		String getDbDataSql="select ";
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
+		List<String> sourceColumns=new ArrayList<String>();
 		try {
 			conn= this.getDbConnection();
 			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
@@ -233,22 +273,37 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				jsonData=ClobToString(rs.getClob(1));	
 			}
-			JsonObject jsonObject= new JsonParser().parse("jsonData").getAsJsonObject();
+			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
 			for (int i = 0; i < dataArray.size(); i++) {
-				getDbDataSql+=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString()+",";
+				String key=dataArray.get(i).getAsJsonObject().get("FieldName").getAsString();
+				String value=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
+				sourceColumns.add(value);
 			}
-			getDbDataSql=getDbDataSql.substring(getDbDataSql.length()-1)+" from "+sourceTableName;
+			List<String> newList=new ArrayList<String>(new HashSet(sourceColumns));
+			for (int i = 0; i < newList.size(); i++) {
+				getDbDataSql+=newList.get(i)+",";
+			}
+			getDbDataSql=getDbDataSql.substring(0, getDbDataSql.length()-1)+" from "+sourceTableName;
 			pst=conn.prepareStatement(getDbDataSql);
 			rs = pst.executeQuery();
+			ResultSetMetaData md = rs.getMetaData();//获得结果集结构信息,元数据 
+			
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int i = 0; i < dataArray.size(); i++) {
+					String sourceName=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
 					String key=dataArray.get(i).getAsJsonObject().get("FieldName").getAsString();
-					map.put(key,rs.getObject(i+1));
+					for (int j= 0; j < newList.size(); j++) {
+						if(sourceName.equals(newList.get(j))){
+							map.put(key,rs.getObject(j+1));
+						}
+						
+					}
 				}
+			
 				
 				dataList.add(map);
 			}
