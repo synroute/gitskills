@@ -2,6 +2,7 @@ package hiapp.modules.dmmanager.data;
 
 
 
+import hiapp.modules.dmmanager.bean.OutputFirstRow;
 import hiapp.modules.dmsetting.DMBizExportTemplate;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
@@ -71,33 +72,35 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	public Map<String,List<String>>  getOutDataColumns(Integer templateId) throws IOException{
-		List<String> excelHeaderList=new ArrayList<String>();
-		List<String> columnList=new ArrayList<String>();
-		Map<String,List<String>> dataMap=new HashMap<String, List<String>>(); 
+	public List<OutputFirstRow>  getOutDataColumns(Integer templateId) throws IOException{
+		List<OutputFirstRow> columnList=new ArrayList<OutputFirstRow>();
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		try {
 			conn=this.getDbConnection();
-			String sql="select xml from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=?";
+			String sql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=?";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1, templateId);
 			rs=pst.executeQuery();
 			String columns=null;
 			while(rs.next()){
-				columns=ClobToString(rs.getClob(1));
+				if(rs.getClob(1)!=null&&!"".equals(rs.getClob(1))){
+					columns=ClobToString(rs.getClob(1));	
+				}
+				
 			}
 			JsonObject jsonObject= new JsonParser().parse(columns).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
+				OutputFirstRow output=new OutputFirstRow();
 				String excelHeader=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
 				String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
-				excelHeaderList.add(column);
-				columnList.add(column);
+				output.setField(column);
+				output.setTitle(excelHeader);
+				output.setExcelHeader(excelHeader);
+				columnList.add(output);
 			}
-			dataMap.put("excelHeader", excelHeaderList);
-			dataMap.put("column", columnList);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -106,7 +109,7 @@ public class DataOutputJdbc extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		
-		return dataMap;
+		return columnList;
 	}
 	
 	/**
@@ -126,10 +129,10 @@ public class DataOutputJdbc extends BaseRepository{
 		List<Map<String,Object>> outDataList=new ArrayList<Map<String,Object>>();
 		try {
 			conn=this.getDbConnection();
-			String getOutputXmlSql="select xml from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=?";
+			String getOutputXmlSql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=?";
 			pst=conn.prepareStatement(getOutputXmlSql);
 			pst.setInt(1,templateId );
-		
+			rs=pst.executeQuery();
 			String workSheets=null;
 			while(rs.next()){
 				workSheets=ClobToString(rs.getClob(1));
@@ -141,33 +144,31 @@ public class DataOutputJdbc extends BaseRepository{
 				workSheetNameList.add(workSheetName);
 			}
 			//对workSheetNameList去重
-			HashSet set=new HashSet();
-			workSheetNameList.clear();
-			workSheetNameList.addAll(set);
+			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
 			//查询数据Sql
 			String getOutDataSql="select ";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName1=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
-				for (int j = 0; j <workSheetNameList.size(); j++) {
-					if(workSheetNameList.get(j).equals(workSheetName1)){
+				for (int j = 0; j <newList.size(); j++) {
+					if(newList.get(j).equals(workSheetName1)){
 						String asName="a"+j+".";//别名
 						getOutDataSql+=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString()+",";
 						break;
 					}
 				}
 			}
-			getOutDataSql=getOutDataSql.substring(getOutDataSql.length()-1)+" from ";
-			for(int k=0;k<workSheetNameList.size();k++){
+			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" from ";
+			for(int k=0;k<newList.size();k++){
 				String asName="a"+k;//别名
-				getOutDataSql+=workSheetNameList.get(k)+" "+asName+",";
+				getOutDataSql+=newList.get(k)+" "+asName+",";
 			}
 			
-			getOutDataSql=getOutDataSql.substring(getOutDataSql.length()-1)+" where ";
-			for (int h = 1; h < workSheetNameList.size(); h++) {
+			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" where ";
+			for (int h = 1; h < newList.size(); h++) {
 				String asName="a"+h+".";
 				getOutDataSql+="a0.IID="+asName+"IID and ";
 			}
-			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd') and IMPORTTIME<to_date(?,'yyyy-mm-dd'))";
+			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'mm-dd-yyyy') and IMPORTTIME<to_date(?,'mm-dd-yyyy'))";
 			pst=conn.prepareStatement(getOutDataSql);
 			pst.setString(1,startTime);
 			pst.setString(2, endTime);

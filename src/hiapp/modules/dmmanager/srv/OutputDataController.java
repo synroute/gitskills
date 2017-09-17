@@ -4,16 +4,20 @@ package hiapp.modules.dmmanager.srv;
 
 import hiapp.modules.dmmanager.bean.ExcelUtils;
 import hiapp.modules.dmmanager.bean.ImportQueryCondition;
+import hiapp.modules.dmmanager.bean.OutputFirstRow;
 import hiapp.modules.dmmanager.data.DataOutputJdbc;
 import hiapp.modules.dmsetting.DMBizExportTemplate;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+
 
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,8 +55,8 @@ public class OutputDataController{
 	@RequestMapping(value="/srv/ImportDataController/getOutDataColumns.srv")
 	public void getOutDataColumns(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
-		Map<String,List<String>> outDataColumnsMap = dataOutputJdbc.getOutDataColumns(templateId);
-		String jsonObject=new Gson().toJson(outDataColumnsMap);
+		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(templateId);
+		String jsonObject=new Gson().toJson(columnList);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
 	}
@@ -63,7 +67,7 @@ public class OutputDataController{
 	 * @return
 	 * @throws IOException
 	 */
-	@RequestMapping(value="/srv/DataShareController/getOutputDataByBatch.srv")
+	@RequestMapping(value="/srv/DataShareController/getOutputDataByTime.srv")
 	public void getOutputDataByTime(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
@@ -84,9 +88,13 @@ public class OutputDataController{
 	public void getOutputExcelCustomerData(HttpServletRequest request, HttpServletResponse response,ImportQueryCondition queryCondition) throws IOException{
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
 		List<Map<String,Object>> dataList=queryCondition.getImportData();
-		Map<String,List<String>> outDataColumnsMap = dataOutputJdbc.getOutDataColumns(templateId);
-		List<String> excelHeader =outDataColumnsMap.get("excelHeader");
-		List<String> sheetCulomn=outDataColumnsMap.get("column");
+		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(templateId);
+		List<String> excelHeader =new ArrayList<String>();
+		List<String> sheetCulomn =new ArrayList<String>();
+		for (int i = 0; i < columnList.size(); i++) {
+			excelHeader.add(columnList.get(i).getExcelHeader());
+			sheetCulomn.add(columnList.get(i).getField());
+		}
 		ExcelUtils excelUtils=new ExcelUtils();
 		excelUtils.exportExcel(excelHeader, dataList, sheetCulomn, request, response);
 	}
