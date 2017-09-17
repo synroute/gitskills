@@ -97,13 +97,11 @@ public class ExcelUtils {
        
           
 		try {
-			 String fileName = "Excel-" + String.valueOf(System.currentTimeMillis()).substring(4, 13) + ".xlsx";
+			 String fileName = "Excel-" + String.valueOf(System.currentTimeMillis()).substring(4, 13) + ".xls";
 	         String headStr = "attachment; filename=\"" + fileName + "\"";
 	         //FileOutputStream out = new FileOutputStream("E://学生表.xls");
 	         OutputStream out = response.getOutputStream();
 	        response.setContentType("application/force-download");// 设置强制下载不打开
-
-	         response.reset();
 	         response.setContentType("APPLICATION/OCTET-STREAM");
 	         response.setHeader("Content-Disposition", headStr);
 			 workbook.write(out);

@@ -85,9 +85,10 @@ public class OutputDataController{
 	 * @throws IOException
 	 */
 	@RequestMapping(value="/srv/DataShareController/GetOutputExcelData.srv")
-	public void getOutputExcelCustomerData(HttpServletRequest request, HttpServletResponse response,ImportQueryCondition queryCondition) throws IOException{
+	public void getOutputExcelCustomerData(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
-		List<Map<String,Object>> dataList=queryCondition.getImportData();
+		String importData=request.getParameter("importData");
+		List<Map<String,Object>> dataList=new Gson().fromJson(importData, List.class);
 		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(templateId);
 		List<String> excelHeader =new ArrayList<String>();
 		List<String> sheetCulomn =new ArrayList<String>();
