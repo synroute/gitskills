@@ -168,8 +168,15 @@ public class DMBizPermissionRepository extends BaseRepository {
 				DMBizPermission dmBizPermission=listBizPermissions.get(col);
 				if(perm.getId()==dmBizPermission.getPermId())
 				{
-					jsonObject_perm.addProperty(dmBizPermission.getBizId()+";"+dmBizPermission.getDataPoolId(), 1);
+					if(dmBizPermission.getManageItemName()!=null)
+					{
+						jsonObject_perm.addProperty(""+dmBizPermission.getBizId()+dmBizPermission.getManageItemName()+"", 1);
+					}
+					jsonObject_perm.addProperty(""+dmBizPermission.getDataPoolId()+"", 1);
 				}	
+				
+				
+				
 			}
 			
 			jsonArray_perm.add(jsonObject_perm);
@@ -243,34 +250,35 @@ public class DMBizPermissionRepository extends BaseRepository {
 				{
 					DMDataPool dmDataPool=listDataPools.get(pcol);
 					
-					String poolId=jArray.get(row).getAsJsonObject().get(String.valueOf(dmDataPool.getPoolId())).getAsString();
-					if(!poolId.equals(""))
+					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmDataPool.getPoolId())))
 					{
-						try {
-							dbConn =this.getDbConnection();
-							String szSql = "select BusinessID from HASYS_DM_DATAPOOL where id="+dmDataPool.getPoolId()+"" ;
-							stmt = dbConn.prepareStatement(szSql);
-							rs = stmt.executeQuery();
-							while(rs.next()){
-								String insertSql = "insert into HASYS_DM_PER_MAP_POOL(DataPoolID,BusinessID,PermissionID) values("+dmDataPool.getPoolId()+","+rs.getInt(1)+","+permid+",)" ;
-								stmt = dbConn.prepareStatement(insertSql);
+						
+							try {
+								dbConn =this.getDbConnection();
+								String szSql = "select BusinessID from HASYS_DM_DATAPOOL where id="+dmDataPool.getPoolId()+"" ;
+								stmt = dbConn.prepareStatement(szSql);
 								rs = stmt.executeQuery();
+								while(rs.next()){
+									String insertSql = "insert into HASYS_DM_PER_MAP_POOL(DataPoolID,BusinessID,PermissionID) values("+dmDataPool.getPoolId()+","+rs.getInt(1)+","+permid+")" ;
+									stmt = dbConn.prepareStatement(insertSql);
+									stmt.execute();
+								}
+							} catch (SQLException e) {
+								e.printStackTrace();
+								
+							} 
+							finally {
+								DbUtil.DbCloseQuery(rs, stmt);
 							}
-						} catch (SQLException e) {
-							e.printStackTrace();
 							
-						} 
-						finally {
-							DbUtil.DbCloseQuery(rs, stmt);
-						}
 						
 					}
 				}
 			
 				for(int biz=0;biz<listdmBusinesses.size();biz++){
 					DMBusiness dmBusiness=listdmBusinesses.get(biz);
-					String bizGuanli=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"数据管理")).getAsString();
-					if(!bizGuanli.equals(""))
+					//String bizGuanli=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"数据管理")).getAsString();
+					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmBusiness.getBizId()+"数据管理")))
 					{
 						try {
 								String insertSql = "insert into HASYS_DM_PER_MAP_POOL(BusinessID,PermissionID,ItemName) values("+dmBusiness.getBizId()+","+permid+",'数据管理')" ;
@@ -285,8 +293,8 @@ public class DMBizPermissionRepository extends BaseRepository {
 						}
 						
 					}
-					String bizConfig=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"系统配置")).getAsString();
-					if(!bizConfig.equals(""))
+					//String bizConfig=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"系统配置")).getAsString();
+					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmBusiness.getBizId()+"系统配置")))
 					{
 						try {
 								String insertSql = "insert into HASYS_DM_PER_MAP_POOL(BusinessID,PermissionID,ItemName) values("+dmBusiness.getBizId()+","+permid+",'系统配置')" ;
