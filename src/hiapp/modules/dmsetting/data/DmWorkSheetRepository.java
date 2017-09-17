@@ -42,12 +42,12 @@ public class DmWorkSheetRepository extends BaseRepository {
 		try {
 			dbConn = this.getDbConnection();
 			ServiceResultCode sResultCode=null;
-			if (dmBusiness.getOutboundModeId()==1) {
+			if (dmBusiness.getModeId()==1) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-			} else if (dmBusiness.getOutboundModeId()==2) {
+			} else if (dmBusiness.getModeId()==2) {
 				
-			} else if (dmBusiness.getOutboundModeId()==3) {
+			} else if (dmBusiness.getModeId()==3) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetResult(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -55,11 +55,11 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM3(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM3_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-			} else if (dmBusiness.getOutboundModeId()==4) {
+			} else if (dmBusiness.getModeId()==4) {
 				
-			} else if (dmBusiness.getOutboundModeId()==5) {
+			} else if (dmBusiness.getModeId()==5) {
 				
-			} else if (dmBusiness.getOutboundModeId()==6) {
+			} else if (dmBusiness.getModeId()==6) {
 				
 			}
 		} catch (Exception e) {
