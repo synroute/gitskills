@@ -23,6 +23,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String xml="";
+		JsonObject jsonObject=new JsonObject();
 		try {
 			conn =this.getDbConnection();
 			String szSql = String.format("select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizId+"");
@@ -32,7 +33,27 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			{
 				xml=rs.getString("xml");
 			}
-			  
+			
+			JsonObject newJsonObject=new JsonObject();
+			
+			jsonObject=new JsonParser().parse(xml).getAsJsonObject();
+			
+			
+			
+			JsonArray jsonArray_Endcode=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
+			JsonObject jsonObject_Endcode=jsonArray_Endcode.get(0).getAsJsonObject();
+			JsonArray jsonArray=new JsonArray();
+			jsonArray.add(jsonObject_Endcode);
+			newJsonObject.add("dataShow", jsonArray);
+			JsonArray jsonArray_dataInfo=new JsonArray();
+			for(int i=1;i<jsonArray_Endcode.size();i++)
+			{
+				jsonArray_dataInfo.add(jsonArray_Endcode.get(i).getAsJsonObject());
+			}
+			newJsonObject.add("dataInfo", jsonArray_dataInfo);
+			jsonObject.remove("EndCodeRedialStrategy");
+			jsonObject.add("EndCodeRedialStrategy", newJsonObject);
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "";
@@ -41,7 +62,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			DbUtil.DbCloseConnection(conn);
 			DbUtil.DbCloseExecute(stmt);
 		}
-		return xml;
+		return jsonObject.toString();
 	}
 	//修改外呼策略接口
 	public boolean dmModifyBizRedailState(int bizId,String MapColumns)
