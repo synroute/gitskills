@@ -46,8 +46,8 @@ public class DataPoolController {
 	//新增普通数据池接口
 	@RequestMapping(value = "srv/dm/dmCreateBizDataPool.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmCreateBizDataPool(@RequestParam("bizId") int bizId,
-			@RequestParam("Pid") int Pid,@RequestParam("DataPoolName") String DataPoolName,
-			@RequestParam("DataPoolDes") String DataPoolDes,@RequestParam("PoolTopLimit") int PoolTopLimit) {
+			@RequestParam("pId") int Pid,@RequestParam("dataPoolName") String DataPoolName,
+			@RequestParam("dataPoolDesc") String DataPoolDes,@RequestParam("poolTopLimit") int PoolTopLimit) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try{
 			DMDataPool dmDataPool=new DMDataPool();
@@ -58,7 +58,7 @@ public class DataPoolController {
 			dmDataPool.setPoolTopLimit(PoolTopLimit);
 				if(dmBizDataPool.dmCreateBizDataPool(dmDataPool))
 				{
-					recordsetResult.setReturnCode(0);
+					recordsetResult.setReturnCode(dmDataPool.getPoolId());
 					recordsetResult.setReturnMessage("成功");
 				}else
 				{
@@ -82,8 +82,8 @@ public class DataPoolController {
 			DMDataPool dmDataPool=new DMDataPool();
 			dmDataPool.setBizId(bizId);
 			dmDataPool.setpId(Pid);
-			JsonArray returnData = new JsonParser().parse(Userid).getAsJsonArray();
-				if(dmBizDataPool.dmCreateBizUserDataPool(dmDataPool,returnData))
+			
+				if(dmBizDataPool.dmCreateBizUserDataPool(dmDataPool,Userid))
 				{
 					recordsetResult.setReturnCode(0);
 					recordsetResult.setReturnMessage("成功");
@@ -102,9 +102,9 @@ public class DataPoolController {
 	}
 	//修改数据池接口
 	@RequestMapping(value = "srv/dm/dmModifyBizDataPool.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmModifyBizDataPool(@RequestParam("Id") int Id,
-			@RequestParam("DataPoolName") String DataPoolName,
-			@RequestParam("DataPoolDes") String DataPoolDes,@RequestParam("PoolTopLimit") int PoolTopLimit) {
+	public String dmModifyBizDataPool(@RequestParam("poolId") int Id,
+			@RequestParam("dataPoolName") String DataPoolName,
+			@RequestParam("dataPoolDes") String DataPoolDes,@RequestParam("poolTopLimit") int PoolTopLimit) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try{
 			DMDataPool dmDataPool=new DMDataPool();

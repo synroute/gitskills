@@ -111,6 +111,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 				while(rs.next()){
 					jsonObject_biz.addProperty("title", dmBusiness.getName());
 					jsonObject_biz.addProperty("colspan", rs.getInt(1)+2);
+					jsonArray_biz.add(jsonObject_biz);
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -123,9 +124,9 @@ public class DMBizPermissionRepository extends BaseRepository {
 			jsonObject_bizFixedcolumn.addProperty("title","系统配置");
 			jsonArray_dataPool.add(jsonObject_bizFixedcolumn);
 			JsonObject jsonObject_bizFixedcolumns=new JsonObject();
-			jsonObject_bizFixedcolumn.addProperty("filed",dmBusiness.getBizId()+"数据管理");
-			jsonObject_bizFixedcolumn.addProperty("title","数据管理");
-			jsonArray_dataPool.add(jsonObject_bizFixedcolumn);
+			jsonObject_bizFixedcolumns.addProperty("filed",dmBusiness.getBizId()+"数据管理");
+			jsonObject_bizFixedcolumns.addProperty("title","数据管理");
+			jsonArray_dataPool.add(jsonObject_bizFixedcolumns);
 			
 			for(int pcol=0;col<listDataPools.size();col++){
 				JsonObject jsonObject_dataPool=new JsonObject();
@@ -136,7 +137,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 			}
 			
 			
-			jsonArray_biz.add(jsonObject_biz);
+			
 		}
 		jsonObject.add("bizColumns", jsonArray_biz);
 		
@@ -162,7 +163,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 				}	
 			}
 			
-			jsonArray_perm.add(jsonObject);
+			jsonArray_perm.add(jsonObject_perm);
 			
 		}
 		

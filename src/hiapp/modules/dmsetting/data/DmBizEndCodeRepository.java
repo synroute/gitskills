@@ -202,27 +202,19 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        
 		        jsonObject.add("RedialState", jsonArray_RedialState);
 		        
+		        
 		        JsonArray jsonArray_EndCode= new JsonArray();
 		        JsonObject jsonObject_EndCode=new JsonObject();
 		        jsonObject_EndCode.addProperty("endCodeType", EndCodeType);
 		        jsonObject_EndCode.addProperty("endCode", EndCode);
 		        jsonObject_EndCode.addProperty("endCodedescription", Description);
 		        jsonObject_EndCode.addProperty("redialStateName", "");
-		        jsonArray_EndCode.add(jsonArray_EndCode);
+		        jsonArray_EndCode.add(jsonObject_EndCode);
 		        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
 		        
-		        String jsonString="{RedialState:[],EndCodeRedialStrategy[{endCodeType:\""+EndCodeType+"\",endCode:\""+EndCode+"\",endCodedescription:\""+Description+"\",redialStateName:\"\"}]}";
 		        
-		        try {
-		        	JsonObject jsonObject2=new JsonObject();
-		        	jsonObject2.addProperty("return", "1");
-		        	jsonObject2.addProperty("returns", "2");
-		        	jsonObject2.toString();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
 		        	
-		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonString+"')";
+		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
 		            stmt = conn.prepareStatement(insertsql);
 		            stmt.executeUpdate();
 		        
