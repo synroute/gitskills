@@ -1,6 +1,5 @@
 package hiapp.modules.dmsetting.srv;
 
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -8,10 +7,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import hiapp.modules.dmsetting.beanOld.DMEndCode;
 import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
 import hiapp.utils.serviceresult.RecordsetResult;
-import hiapp.utils.serviceresult.ServiceResultCode;
 @RestController
 public class ADDSettingController {
 	@Autowired

@@ -1,29 +1,22 @@
 package hiapp.modules.dmsetting.data;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.http.HttpSessionBindingEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.type.StandardMethodMetadata;
 import org.springframework.stereotype.Repository;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import hiapp.modules.dmsetting.beanOld.DMEndCode;
+import hiapp.modules.dmsetting.DMEndCode;
 import hiapp.system.dictionary.Dict;
 import hiapp.system.dictionary.data.DictRepository;
 import hiapp.utils.DbUtil;
@@ -56,7 +49,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			}
 			
 			//插入结束码表信息
-			String szSql = String.format("INSERT INTO HASYS_DM_BIZENDCODE (BusinessId,CodeType,Code,Description) values("+dmEndCode.getBizId()+",'"+dmEndCode.getEndCodeType()+"','"+dmEndCode.getEndCode()+"','"+dmEndCode.getDescription()+"')");
+			String szSql = String.format("INSERT INTO HASYS_DM_BIZENDCODE (BusinessId,CodeType,Code,Description) values("+dmEndCode.getBizId()+",'"+dmEndCode.getEndCodeType()+"','"+dmEndCode.getEndCode()+"','"+dmEndCode.getDesc()+"')");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			StringBuffer errMessage=new StringBuffer();
@@ -77,7 +70,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			dict.setName(dmEndCode.getEndCode());
 			
 			dictManager.newDictionay(dict);
-			add( dmEndCode.getBizId(), dmEndCode.getEndCodeType(), dmEndCode.getEndCode(),dmEndCode.getDescription());
+			add( dmEndCode.getBizId(), dmEndCode.getEndCodeType(), dmEndCode.getEndCode(),dmEndCode.getDesc());
 		} catch (SQLException e) {
 			e.printStackTrace();
 			err.append("失败！");
@@ -118,7 +111,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				return false;
 			}
 			//修改结束码信息
-			String szSql = String.format("update HASYS_DM_BIZENDCODE set CodeType='"+dmEndCode.getEndCodeType()+"',Code='"+dmEndCode.getEndCode()+"',Description='"+dmEndCode.getDescription()+"' where BusinessId="+dmEndCode.getBizId()+" and CodeType='"+codetype_old+"' and Code='"+code_old+"'");
+			String szSql = String.format("update HASYS_DM_BIZENDCODE set CodeType='"+dmEndCode.getEndCodeType()+"',Code='"+dmEndCode.getEndCode()+"',Description='"+dmEndCode.getDesc()+"' where BusinessId="+dmEndCode.getBizId()+" and CodeType='"+codetype_old+"' and Code='"+code_old+"'");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			stmt.close();
@@ -338,7 +331,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				dmEndCode.setBizId(rs.getInt("BUSINESSID"));
 				dmEndCode.setEndCodeType(rs.getString("CODETYPE"));
 				dmEndCode.setEndCode(rs.getString("CODE"));
-				dmEndCode.setDescription(rs.getString("DESCRIPTION"));
+				dmEndCode.setDesc(rs.getString("DESCRIPTION"));
 				listDmEndCodes.add(dmEndCode);
 			}
 			

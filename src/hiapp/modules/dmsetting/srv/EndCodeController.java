@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import hiapp.modules.dmsetting.beanOld.DMEndCode;
+import hiapp.modules.dmsetting.DMEndCode;
 import hiapp.modules.dmsetting.data.DmBizEndCodeRepository;
 import hiapp.utils.serviceresult.RecordsetResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -46,7 +46,7 @@ public class EndCodeController {
 				dmEndCode.setBizId(bizId);
 				dmEndCode.setEndCodeType(endCodeType);
 				dmEndCode.setEndCode(endCode);
-				dmEndCode.setDescription(description);
+				dmEndCode.setDesc(description);
 				StringBuffer err=new StringBuffer();
 					if(dmBizEndCode.dmAddBizEndCode(dmEndCode,err))
 					{
@@ -77,7 +77,7 @@ public class EndCodeController {
 				dmEndCode.setBizId(bizId);
 				dmEndCode.setEndCodeType(endCodeType);
 				dmEndCode.setEndCode(endCode);
-				dmEndCode.setDescription(description);
+				dmEndCode.setDesc(description);
 				StringBuffer err=new StringBuffer();
 					if(dmBizEndCode.dmModifyBizEndCode(dmEndCode,endCodeType_old,endCode_old,err))
 					{

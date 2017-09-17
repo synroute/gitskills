@@ -6,6 +6,8 @@ package hiapp.modules.dmsetting;
  * 类说明 业务员结束码信息
  */
 public class DMEndCode {
+	//业务ID
+	private int bizId;
 	//结束码类型
 	private String	endCodeType;
 	//结束码
@@ -29,5 +31,11 @@ public class DMEndCode {
 	}
 	public void setDesc(String desc) {
 		this.desc = desc;
+	}
+	public int getBizId() {
+		return bizId;
+	}
+	public void setBizId(int bizId) {
+		this.bizId = bizId;
 	}
 }
