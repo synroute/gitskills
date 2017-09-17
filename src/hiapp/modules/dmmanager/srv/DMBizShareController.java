@@ -32,8 +32,8 @@ public class DMBizShareController {
 	@RequestMapping(value="/srv/DataShareController/getNotShareDataByTime.srv", method=RequestMethod.POST, produces="application/json;charset=utf-8")
 	public Map<String, Object> getNotShareDataByTime(@RequestParam(value="StartTime") String StartTime,
 			                            @RequestParam(value="EndTime") String EndTime,
-			                            @RequestParam(value="BusinessId") String BusinessId,
-			                            @RequestParam(value="TemplateID") String templateId){
+			                            @RequestParam(value="BusinessID") String BusinessId,
+			                            @RequestParam(value="templateId") String templateId){
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String,Object>> list=null;
