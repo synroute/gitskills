@@ -79,7 +79,8 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 
 			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 			jsonObject.remove("RedialState");
-			JsonObject redialState= new JsonParser().parse(MapColumns).getAsJsonObject();
+			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
+			JsonObject redialState= jsonArray_Map.get(0).getAsJsonObject();
 			JsonArray jsonArray=new JsonArray();
 			jsonArray.add(redialState);
 			jsonObject.add("RedialState", jsonArray);
