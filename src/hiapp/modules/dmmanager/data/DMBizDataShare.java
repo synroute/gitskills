@@ -28,6 +28,7 @@ import java.util.Map;
 
 
 
+
 /*import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;*/
 import org.springframework.stereotype.Repository;
@@ -39,48 +40,8 @@ import com.google.gson.JsonParser;
 @Repository
 public class DMBizDataShare extends BaseRepository {
 
-	/*// //根据时间筛选导入批次号查询出没有被共享的客户批次数据
-	public List<ImportBatchMassage> getNotShareDataByTime(String startTime,
-			String endTime, String businessId,
-			List<ImportBatchMassage> listDictClassAll) {
-		String szSql = "";
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		Connection dbConn = null;
-		try {
-			dbConn = this.getDbConnection();
-			 查询所有 （导入批次信息表 A） 里面的数据   
-			          来自           导入批次信息表 A，数据池记录表 B  
-			          条件    A.导入批次id=B.导入批次id AND B.当前所在数据池分区=DA AND A.业务id= 业务id  OR A.导入时间   BEWEEN (开始时间,结束时间 )
-			       
-			szSql = "select a.* from HASYS-DM-IID a,HAU_DM_B1C_POOL b "
-					+ "where a.IID=b.IID AND b.AREACUR='DA'"
-					+ "AND a.BUSINESSID=" + businessId + ""
-					+ "OR a.IMPORTTIME BETWEEN to_date(" + startTime
-					+ ",'yyyy/mm/dd') AND to_date(" + endTime
-					+ ",'yyyy/mm/dd')";
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
-			while (rs.next()) {
-				ImportBatchMassage importDataMessage = new ImportBatchMassage();
-				importDataMessage.setId(rs.getInt(1));
-				importDataMessage.setiId(rs.getString(2));
-				importDataMessage.setBusinessId(rs.getInt(3));
-				importDataMessage.setImportTime(rs.getDate(4));
-				importDataMessage.setUserId(rs.getString(5));
-				importDataMessage.setName(rs.getString(6));
-				importDataMessage.setDescription(rs.getString(7));
-				importDataMessage.setImportType(rs.getString(8));
-				listDictClassAll.add(importDataMessage);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			DbUtil.DbCloseQuery(rs, stmt);
-		}
-		return listDictClassAll;
-	}*/
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
+	@SuppressWarnings("resource")
 	public List<Map<String, Object>> getNotShareDataByTimes(
 			String StartTime,String EndTime,String businessId, String templateId) {
 		String getXmlSql = "";
@@ -89,7 +50,6 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		String jsonData=null;
 		JsonArray dataArray=null;
-		String ImportTableName=null;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		try {
 			dbConn = this.getDbConnection();//select to_char(sysdate,'yy-mm-dd hh24:mi:ss')
@@ -100,23 +60,20 @@ public class DMBizDataShare extends BaseRepository {
 				//循环获取xml里面的数据
 				jsonData=ClobToString(rs.getClob(1));	
 			}
-			
-			/*JsonObject jsonObject= new JsonParser().parse("jsonData").getAsJsonObject();
-			
-			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
-			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
-			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();*/
 			//解析 通过查询获取xml，并把存储的json串解成json对象
-			JsonObject jsonObject= new JsonParser().parse("jsonData").getAsJsonObject(); 
+			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject(); 
 			//从对象中获取列名数组json集合
 			dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
-			String sql="select";
+			String sql="select ";
+			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < dataArray.size(); i++) {
-				//sql+=dataArray.getJSONObject(i).getString("FieldName")+",";
-				sql+=dataArray.get(i).getAsString().concat("FieldName")+",";
-						}
-			sql.substring(sql.length()-1);
-			sql=sql+"from "+ImportTableName+" where IID IN (select a.IID from HASYS_DM_IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR='DA' AND a.BUSINESSID=" + businessId + ""+ "OR a.IMPORTTIME BETWEEN to_date(" + StartTime+ ",'yy-mm-dd hh24:mi:ss') AND to_date(" + EndTime+ ",'yy-mm-dd hh24:mi:ss'))";
+				sb.append(dataArray.get(i).getAsJsonObject().get("FieldName")+",".toString());
+				//sql+=dataArray.get(i).getAsJsonObject().get("FieldName").toString()+",";
+			}
+			sb.deleteCharAt(sb.length()-1);
+			sql+=sb;
+			
+			sql=sql+" from HAU_DM_B"+businessId+"C_IMPORT where IID IN (select a.IID from HASYS_DM_IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR='0' AND a.BUSINESSID=" + businessId + " OR a.IMPORTTIME BETWEEN to_date('"+StartTime+"','MM/dd/yyyy') AND to_date('"+ EndTime+"','MM/dd/yyyy'))";
 			stmt=dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -125,29 +82,11 @@ public class DMBizDataShare extends BaseRepository {
 				for (int i = 0; i < dataArray.size(); i++) {
 					// 将循环出来的列名作为key
 					//String key=asJsonArray.getJSONObject(i).getString("FieldName");
-					String key=dataArray.get(i).getAsString().concat("FieldName");
+					String key=dataArray.get(i).getAsJsonObject().get("FieldName").toString();
 					map.put(key,rs.getObject(i+1));
 				}
 				dataList.add(map);
 			}
-			/*for (ImportBatchMassage importBatchMassage : importDataMessage) {
-				//查询批次号对应表的数据 
-				String Sql=String.format("SELECT * FROM '%s' WHERE IID='%s'",ImportTableName,importBatchMassage.getiId());
-				stmt=dbConn.prepareStatement(Sql);
-				rs = stmt.executeQuery();
-				//查询出来的表数据 
-				while(rs.next()){
-					Map<String,Object> map=new HashMap<String, Object>();
-					//列名不确定 需要循环 录入到 map集合中
-					for (int i = 0; i < dataArray.size(); i++) {
-						// 将循环出来的列名作为key
-						String key=dataArray.getJSONObject(i).getString("FieldName");
-						map.put(key,rs.getObject(i+1));
-					}
-					dataList.add(map);
-					
-				}	
-				}*/	
 		} catch (Exception e) {
 			e.printStackTrace();
 		}finally{
