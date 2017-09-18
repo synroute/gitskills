@@ -16,6 +16,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableLoadTimeWeaving;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -325,25 +326,19 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	}	
 	
 	//获取单个导出导入模板配置excel数据信息
-	public List<DMBizTemplateExcelColums> dmGetBizExcel(String excelPath) throws Exception
+	public List<DMBizTemplateExcelColums> dmGetBizExcel(MultipartFile file) throws Exception
 	{
-		InputStream inputStream = DMBizImportTemplate.class.getClassLoader().getResourceAsStream(excelPath);
-
-        if(inputStream==null){
-            throw new Exception("文件不存在");
-        }
-
-        //创建Workbook工作薄对象，表示整个excel
-        Workbook workbook = null;
-
-        if(excelPath.endsWith(".xlsx")) {
-            workbook = new XSSFWorkbook(inputStream);
-        }else if(excelPath.endsWith(".xls")){
-            workbook = new HSSFWorkbook(inputStream);
-        }else{
-            throw new Exception("不是excel文件");
-        }
-        Sheet sheet = workbook.getSheetAt(0);
+		
+		String fileName=file.getOriginalFilename();
+		InputStream in=file.getInputStream();
+		Workbook wookbook =null;
+		String suffix=fileName.substring(fileName.indexOf("."));//获取后缀名
+		if(".xls".equals(suffix)){ 
+			wookbook = new HSSFWorkbook(in);
+		}else if(".xlsx".equals(suffix)){
+			wookbook = new XSSFWorkbook(in);
+		}
+        Sheet sheet = wookbook.getSheetAt(0);
         Row row = sheet.getRow(sheet.getFirstRowNum());
         short firstCellNum = row.getFirstCellNum();
         short lastCellNum = row.getLastCellNum();

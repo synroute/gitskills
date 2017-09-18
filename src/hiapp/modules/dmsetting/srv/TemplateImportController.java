@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.data.DmBizTemplateImportRepository;
@@ -196,11 +197,11 @@ public class TemplateImportController {
 	}
 	
 	@RequestMapping(value = "srv/dm/dmGetBizExcel.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmGetBizExcel(@RequestParam("excelPath") String excelPath) {
+	public String dmGetBizExcel(@RequestParam("file") MultipartFile file) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try{
 			List<DMBizTemplateExcelColums> listDMBizTemplateExcelColums=new ArrayList<DMBizTemplateExcelColums>();
-			listDMBizTemplateExcelColums=dmBizTemplateImport.dmGetBizExcel(excelPath);
+			listDMBizTemplateExcelColums=dmBizTemplateImport.dmGetBizExcel(file);
 				recordsetResult.setPage(0);
 				recordsetResult.setTotal(listDMBizTemplateExcelColums.size());
 				recordsetResult.setPageSize(listDMBizTemplateExcelColums.size());
