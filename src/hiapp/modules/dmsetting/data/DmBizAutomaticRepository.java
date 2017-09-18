@@ -21,7 +21,7 @@ import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 @Repository
 public class DmBizAutomaticRepository extends BaseRepository {
-	Connection dbConn = null;
+	
 	@Autowired
 	 private WorkSheet workSheet;
 	@Autowired
@@ -29,12 +29,14 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	//获取客户导入表列
 	public List<DMBizAutomaticColumns> dmGetBizCustomerColumns(int bizId)
 	{
+		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
 		List<DMBizAutomaticColumns> listDmBizAutomaticColums=new ArrayList<DMBizAutomaticColumns>();
 		try {
 			//根据表名查询中文名称接worksheetid
+			dbConn =this.getDbConnection();
 			String szSelectSql="select ID,NameCh from HASYS_WORKSHEET where NAME='HAU_DM_B"+bizId+"C_IMPORT'";
 			stmt = dbConn.prepareStatement(szSelectSql);
 			rs = stmt.executeQuery();
@@ -44,7 +46,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				workSheetId=rs.getString(1);
 				worksheetName=rs.getString(2);
 			}
-			stmt.close();
+			
 			//根据worksheetid获取该工作表下所有列信息
 			workSheet.getColumns(dbConn, workSheetId, listColumns);
 			//将列值绑定到列表中
@@ -80,7 +82,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			dbConn = this.getDbConnection();
 			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
 			//根据表名获取worksheetid
-			String szWorkSheetName=String.format("HAU_DM_B%d_CUSTTASK", bizId);
+			String szWorkSheetName="HAU_DM_B"+bizId+"C_RESULT";
 			String workSheetId = this.getWorksheetIdByName(szWorkSheetName);
 			//根据worksheetid获取该表下所有列信息
 			workSheet.getColumns(dbConn, workSheetId, listColumns);
@@ -132,11 +134,13 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	//根据cid，iid获取客户信息
 	public JsonObject dmGetBizCustomer(int bizId,String Cid,String IID,String columns)
 	{
+		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
 		JsonObject jsonObject=new JsonObject();
 		try {
+			dbConn =this.getDbConnection();
 			//查询客户信息
 			String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"' and IID='"+IID+"'";
 			stmt = dbConn.prepareStatement(szSelectSql);
@@ -161,12 +165,14 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	//根据cid查询前台所需信息
 	public JsonObject dmGetBizCustomerHis(int bizId,String Cid,String columns)
 	{
+		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
 		JsonObject jsonObject=new JsonObject();
 		JsonArray jsonArray=new JsonArray();
 		try {
+			dbConn =this.getDbConnection();
 			String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT,HASYS_DM_B"+bizId+"C_PresetTime,HAU_DM_B"+bizId+"C_RESULT "
 					+ " where HAU_DM_B"+bizId+"C_IMPORT.Cid=HAU_DM_B"+bizId+"C_RESULT.CID and HAU_DM_B"+bizId+"C_IMPORT.Cid=HASYS_DM_B"+bizId+"C_PresetTime.CID Cid='"+Cid+"'";
 			stmt = dbConn.prepareStatement(szSelectSql);
@@ -200,7 +206,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			dbConn = this.getDbConnection();
 			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
 			//拼接工作表名称
-			String szWorkSheetName=String.format("HASYS_DM_B%d_PRESETTIME", bizId);
+			String szWorkSheetName="HASYS_DM_B"+bizId+"C_PRESETTIME";
 			//根据预约表名获取工作表id
 			String workSheetId = this.getWorksheetIdByName(szWorkSheetName);
 			//根据工作表id获取该工作表下面所有的列信息
@@ -232,10 +238,10 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		return true;
 	}
 	//获取该业务下所有工作表列
-	public boolean getAllBizColumns(
-			List<DMBizAutomaticColumns> listDMBizAutomaticColumns, String bizId) {
+	public List<DMBizAutomaticColumns> getAllBizColumns(String bizId) {
 		//获取导入表列信息
-		listDMBizAutomaticColumns = this.dmGetBizCustomerColumns(Integer.parseInt(bizId));
+		
+		List<DMBizAutomaticColumns> listDMBizAutomaticColumns = this.dmGetBizCustomerColumns(Integer.parseInt(bizId));
 		List<DMBizAutomaticColumns> listResultColumns = new ArrayList<DMBizAutomaticColumns>();
 		//获取结果表列信息
 		this.getResultColumns(listResultColumns,bizId);
@@ -250,7 +256,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		//获取预约表列信息
 		this.getPresetColumns(listPresetColumns,bizId);
 		listDMBizAutomaticColumns.addAll(listPresetColumns);
-		return true;
+		return listDMBizAutomaticColumns;
 	}
 	
 	

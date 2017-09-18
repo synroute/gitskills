@@ -112,13 +112,14 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 			if(dmBizImportTemplate.getDataSourceType().equals("Excel"))
 			{
 				jsonObject_row.addProperty("ExcelDefaultExt", ".xlsx");
-				jsonObject_row.addProperty("ExcelColEnd", ".xlsx");
-				jsonObject_row.addProperty("ExcelRowStart", ".xlsx");
-				jsonObject_row.addProperty("ExcelColStart", ".xlsx");
-				jsonObject_row.addProperty("ExcelCsvFastInsertTable", ".xlsx");
-				jsonObject_row.addProperty("RepetitionExcludeType", ".xlsx");
-				jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumn", ".xlsx");
-				jsonObject_row.addProperty("RepetitionExcludeDayCount", ".xlsx");
+				jsonObject_row.addProperty("ExcelColEnd", "26");
+				jsonObject_row.addProperty("ExcelRowStart", "2");
+				jsonObject_row.addProperty("ExcelColStart", "0");
+				jsonObject_row.addProperty("ExcelCsvFastInsertTable", "1");
+				jsonObject_row.addProperty("RepetitionExcludeType", "根据导入时间排重");
+				jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumn", "id");
+				jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumnCh", "编号");
+				jsonObject_row.addProperty("RepetitionExcludeDayCount", "2");
 				jsonObject.add("ImportExcelTemplate", jsonObject_row);
 				
 			}else{

@@ -101,10 +101,8 @@ public class AutomaticController {
 	public String dmGetAllBizColumns(@RequestParam("bizId") String bizId) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try {
-			List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
-			if (!dmBizAutomatic.getAllBizColumns(listDMBizAutomaticColumns,bizId)) {
-				return null;
-			}
+			List<DMBizAutomaticColumns> listDMBizAutomaticColumns = dmBizAutomatic.getAllBizColumns(bizId);
+			
 			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
 			recordsetResult.setPage(0);
 			recordsetResult.setTotal(listDMBizAutomaticColumns.size());
