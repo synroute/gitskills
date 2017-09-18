@@ -39,7 +39,7 @@ public class EndCodeController {
 		@RequestMapping(value = "/srv/dm/dmAddBizEndCode.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 		public String dmAddBizEndCode(@RequestParam("bizId") int bizId,
 				@RequestParam("endCodeType") String endCodeType,@RequestParam("endCode") String endCode,
-				@RequestParam("description") String description) {
+				@RequestParam("desc") String description) {
 			RecordsetResult recordsetResult = new RecordsetResult();
 			try{
 				DMEndCode dmEndCode =new DMEndCode();
