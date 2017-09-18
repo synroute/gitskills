@@ -37,6 +37,11 @@ public enum TableNameEnume {
 			map4.put("COLUMNDESCRIPTION", "修改日期时间");
 			map4.put("dataType", "datetime");
 			map4.put("LENGTH", -1);
+			
+			list.add(map);
+			list.add(map2);
+			list.add(map3);
+			list.add(map4);
 			return list;
 		}
 
