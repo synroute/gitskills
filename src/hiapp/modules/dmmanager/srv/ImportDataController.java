@@ -36,6 +36,7 @@ import javax.servlet.http.HttpSession;
 
 
 
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -178,6 +179,7 @@ public class ImportDataController {
 	            	if(map1.keySet().contains(sheetColumnList.get(j).getField())){
 	            		String value=null;
 	            		if(row.getCell(intMap.get(map1.get(sheetColumnList.get(j).getField())))!=null){
+	            			row.getCell(intMap.get(map1.get(sheetColumnList.get(j).getField()))).setCellType(Cell.CELL_TYPE_STRING);
 		            		 value=row.getCell(intMap.get(map1.get(sheetColumnList.get(j).getField()))).getStringCellValue().toString();
 	            		}
 	            		map.put(sheetColumnList.get(j).getField(),value);
@@ -235,10 +237,12 @@ public class ImportDataController {
 	 * @param response
 	 * @throws IOException 
 	 */
-	public String saveCustomerDataToDB(HttpServletRequest request, HttpServletResponse response,ImportQueryCondition queryCondition) throws IOException{
+	@RequestMapping(value="/srv/ImportDataController/saveCustomerDataToDB.srv")
+	public void saveCustomerDataToDB(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
+		String importData=request.getParameter("importData");
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
@@ -246,15 +250,17 @@ public class ImportDataController {
 		WorkSheet workSheet=dataImportJdbc.getWorkSheet(workSheetId);
 		String tableName=workSheet.getName();
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-		List<Map<String,Object>> isnertData=queryCondition.getImportData();
+		List<Map<String,Object>> isnertData=new Gson().fromJson(importData, List.class);
 		Boolean result = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, sheetColumnList, isnertData, tableName, userId,operationName);
 		String isSuccess=null;
 		if(result){
-			isSuccess= "success";
+			isSuccess= "导入成功";
 		}else{
-			isSuccess=  "fail";
+			isSuccess=  "导入失败";
 		}
-		return isSuccess;
+		String jsonObject=new Gson().toJson(isSuccess);
+		PrintWriter printWriter = response.getWriter();
+		printWriter.print(jsonObject);
 		 
 	};
 	

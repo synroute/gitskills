@@ -156,7 +156,7 @@ public class DataImportJdbc extends BaseRepository{
 			pst.setString(1, workSheetId);
 			rs = pst.executeQuery();
 			while(rs.next()){
-				workSheet.setId(rs.getInt(1));
+				workSheet.setId(rs.getString(1));
 				workSheet.setName(rs.getString(2));
 				workSheet.setNameCh(rs.getString(3));
 				workSheet.setDescription(rs.getString(4));
@@ -326,13 +326,13 @@ public class DataImportJdbc extends BaseRepository{
 	 * @param userId
 	 * @throws IOException
 	 */
+	@SuppressWarnings({ "resource", "unused" })
 	public Boolean insertImportData(Integer tempId,Integer bizId,String workSheetId,List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> isnertData,String tableName,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String jsonData=null;
 		Statement statement=null;
-		Integer uId=Integer.valueOf(userId);
 		List<String> stringList=new ArrayList<String>();
 		try {
 			conn= this.getDbConnection();
@@ -344,88 +344,8 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				jsonData=ClobToString(rs.getClob(1));	
 			}
-			//解析JSON RepetitionExcludeType
-			JsonObject jsonObject= new JsonParser().parse("jsonData").getAsJsonObject();
-			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
-			String repetitionExcludeType=excelTemplate.get("RepetitionExcludeType").getAsString();
-			String RepetitionColumn=excelTemplate.get("RepetitionExcludeWorkSheetColumn").getAsString();
-		    Integer RepetitionCount=Integer.valueOf(excelTemplate.get("RepetitionExcludeDayCount").getAsString());
-			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			String importBatchId=idfactory.newId("DM_IID");//饶茹批次号
 			String disBatchId=idfactory.newId("DM_DID");//分配号
-			String customerBatchId=idfactory.newId("DM_CID");//客户号
-			//获取排重字段类型
-			String getTypeSql="select dataType from HASYS_WORKSHEETCOLUMN	where COLUMNNAME=? and  workSheetId=?";
-			pst=conn.prepareStatement(getTypeSql);
-			pst.setString(1, RepetitionColumn);
-			pst.setString(2, workSheetId);
-			String type=null;
-			while(rs.next()){
-				type=rs.getString(1);
-			}
-			String distinctSql=null;
-			String resultTableName="HAU_DM_B"+bizId+"C_Result";
-			//查询数据
-			if("按导入时间排重".equals(repetitionExcludeType)){
-				if(type.startsWith("datetime")){
-					 distinctSql="select to_char("+RepetitionColumn+",'yyyy-mm-dd') from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
-				}else{
-					 distinctSql="select"+RepetitionColumn+" from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
-				}
-			}else{
-				if(type.startsWith("datetime")){
-					 distinctSql="select to_char(a."+RepetitionColumn+",'yyyy-mm-dd') from "+tableName+" a,"+resultTableName+" b where b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
-				}else{
-					 distinctSql="select a."+RepetitionColumn+" from "+tableName+" a,"+resultTableName+" b where b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
-				}
-			}
-			
-			pst=conn.prepareStatement(distinctSql);
-			rs=pst.executeQuery();
-			while(rs.next()){
-				if(type.startsWith("Varchar")||type.startsWith("datetime")){
-					stringList.add(rs.getString(1));
-				}else if(type.startsWith("int")){
-					stringList.add(String.valueOf(rs.getInt(1)));
-				}
-			}
-			//向导入表插数据
-			statement=conn.createStatement();
-			Boolean ifRepeat=true;
-			for (int i = 0; i < isnertData.size(); i++) {
-				String data=(String) isnertData.get(i).get(RepetitionColumn);
-				for(int h=0;h<stringList.size();h++){
-					if(data.equals(stringList.get(h))){
-						ifRepeat=false;
-						break;
-					}
-				}
-				if(ifRepeat){
-					String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-					for (int k = 0; k < dataArray.size(); k++) {
-						insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("FieldName").getAsString()+",";
-					}
-					insertImportDataSql=insertImportDataSql.substring(insertImportDataSql.length()-1)+") values(HAU_DM_B101C_IMPORT.nextval,"+importBatchId+","+customerBatchId+",1,0,"+uId+",sysdate,";
-					for (int j = 0; j < dataArray.size(); j++) {
-						insertImportDataSql+=isnertData.get(i).get(dataArray.get(j).getAsJsonObject().get("FieldName").getAsString())+",";
-					}
-					insertImportDataSql=insertImportDataSql.substring(insertImportDataSql.length()-1)+")";
-					statement.addBatch(insertImportDataSql);
-				}
-				
-			}
-			statement.executeBatch();
-			
-			//导入批次表里面插数据
-			String insertImportBatchSql="isnert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
-			pst=conn.prepareStatement(insertImportBatchSql);
-			pst.setString(1, importBatchId);
-			pst.setInt(2, bizId);
-			pst.setString(3, userId);
-			pst.setString(4, "导入批次");
-			pst.setString(5, "导入批次");
-			pst.setString(6, "excel");
-			pst.executeUpdate();
 			String getDataSourceSql="select id from HASYS_DM_DATAPOOL where DataPoolName ='数据源池'";
 			pst=conn.prepareStatement(getDataSourceSql);
 			rs=pst.executeQuery();
@@ -433,33 +353,22 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				dataPoolNumber=rs.getInt(1);
 			}
-			//数据池记录表里面插数据
-			String isnertDataPoolSql="isnert into HAU_DM_B1C_POOL(ID,DID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-									+" values(SEQ_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
-			pst.setString(1,disBatchId);
-			pst.setString(2, importBatchId);
-			pst.setString(3,customerBatchId);
-			pst.setInt(4, dataPoolNumber);
-			pst.setInt(5, dataPoolNumber);
-			pst.setInt(6, 0);
-			pst.setInt(7, 0);
-			pst.setInt(8, 0);
-			pst.setString(9, userId);
+			if("Excel导入".equals(operationName)){
+				insertExcelData(jsonData,workSheetId,tableName,isnertData,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
+			}else{
+				insertDbData(jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
+			}
+			//导入批次表里面插数据
+			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
+			pst=conn.prepareStatement(insertImportBatchSql);
+			pst.setString(1, importBatchId);
+			pst.setInt(2, bizId);
+			pst.setString(3, userId);
+			pst.setString(4, "导入批次");
+			pst.setString(5, "导入批次");
+			pst.setString(6, operationName);
 			pst.executeUpdate();
-			//数据池操作记录表里面插数据
-			String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,DID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
-										+" values(SEQ_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
-			pst.setString(1,disBatchId);
-			pst.setString(2, importBatchId);
-			pst.setString(3,customerBatchId);
-			pst.setString(4,operationName);
-			pst.setInt(5, dataPoolNumber);
-			pst.setInt(6, dataPoolNumber);
-			pst.setInt(7, 0);
-			pst.setInt(8, 0);
-			pst.setInt(9, 0);
-			pst.setString(10, userId);
-			pst.executeUpdate();
+			
 			return true;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -486,4 +395,268 @@ public class DataImportJdbc extends BaseRepository{
         return reString;  
     }  
     
+    /**
+     * 导入Excel数据
+     * @param jsonData
+     * @param workSheetId
+     * @param tableName
+     * @param isnertData
+     * @param bizId
+     * @param uId
+     */
+    public void insertExcelData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,Integer bizId,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+    	Connection conn=null;
+		PreparedStatement pst = null;
+		PreparedStatement pst1 = null;
+		ResultSet rs = null;
+		Statement statement=null;
+		List<String> stringList=new ArrayList<String>();
+		List<String> dataTypeList=new ArrayList<String>();
+		List<String> columList=new ArrayList<String>();
+		try {
+			conn=this.getDbConnection();
+	    	//解析JSON RepetitionExcludeType
+			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
+			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
+			String repetitionExcludeType=excelTemplate.get("RepetitionExcludeType").getAsString();
+			String RepetitionColumn=excelTemplate.get("RepetitionExcludeWorkSheetColumn").getAsString();
+		    Integer RepetitionCount=Integer.valueOf(excelTemplate.get("RepetitionExcludeDayCount").getAsString());
+			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			//获取导入表字段所属类型
+			getDataType(dataTypeList,columList,dataArray,workSheetId,1);
+			//获取排重字段类型
+			String getTypeSql="select dataType from HASYS_WORKSHEETCOLUMN	where COLUMNNAME=? and  workSheetId=?";
+			pst=conn.prepareStatement(getTypeSql);
+			pst.setString(1, RepetitionColumn);
+			pst.setString(2, workSheetId);
+			rs=pst.executeQuery();
+			String type=null;
+			while(rs.next()){
+				type=rs.getString(1);
+			}
+			String distinctSql=null;
+			String resultTableName="HAU_DM_B"+bizId+"C_Result";
+			//查询数据
+			if("按导入时间排重".equals(repetitionExcludeType)){
+				if(type.startsWith("datetime")){
+					 distinctSql="select to_char("+RepetitionColumn+",'yyyy-mm-dd') from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
+				}else{
+					 distinctSql="select "+RepetitionColumn+" from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
+				}
+			}else{
+				if(type.startsWith("datetime")){
+					 distinctSql="select to_char(a."+RepetitionColumn+",'yyyy-mm-dd') from "+tableName+" a,"+resultTableName+" b where b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
+				}else{
+					 distinctSql="select a."+RepetitionColumn+" from "+tableName+" a,"+resultTableName+" b where b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
+				}
+			}
+			
+			pst=conn.prepareStatement(distinctSql);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				if(type.toLowerCase().startsWith("varchar")||type.toLowerCase().startsWith("datetime")){
+					stringList.add(rs.getString(1));
+				}else if(type.toLowerCase().startsWith("int")){
+					stringList.add(String.valueOf(rs.getInt(1)));
+				}
+			}
+			//向导入表插数据
+			statement=conn.createStatement();
+			Boolean ifRepeat=true;
+			for (int i = 0; i < isnertData.size(); i++) {
+				String data=(String) isnertData.get(i).get(RepetitionColumn);
+				for(int h=0;h<stringList.size();h++){
+					if(data.equals(stringList.get(h))){
+						ifRepeat=false;
+						break;
+					}
+				}
+				if(ifRepeat){
+					String customerBatchId=idfactory.newId("DM_CID");//客户号
+					String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
+					//数据池记录表里面插数据
+					String isnertDataPoolSql="insert into HAU_DM_B1C_POOL(ID,DID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+											+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
+					pst=conn.prepareStatement(isnertDataPoolSql);
+					pst.setString(1,disBatchId);
+					pst.setString(2, importBatchId);
+					pst.setString(3,customerBatchId);
+					pst.setInt(4, dataPoolNumber);
+					pst.setInt(5, dataPoolNumber);
+					pst.setInt(6, 0);
+					pst.setInt(7, 0);
+					pst.setInt(8, 0);
+					pst.setString(9, userId);
+					//数据池操作记录表里面插数据
+					String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,DID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
+												+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
+					pst1=conn.prepareStatement(dataPoolOperationSql);
+					pst1.setString(1,disBatchId);
+					pst1.setString(2, importBatchId);
+					pst1.setString(3,customerBatchId);
+					pst1.setString(4,operationName);
+					pst1.setInt(5, dataPoolNumber);
+					pst1.setInt(6, dataPoolNumber);
+					pst1.setInt(7, 0);
+					pst1.setInt(8, 0);
+					pst1.setInt(9, 0);
+					pst1.setString(10, userId);
+					
+					for (int k = 0; k < dataArray.size(); k++) {
+						insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("DbFieldName").getAsString()+",";
+					}
+					insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
+					for (int j = 0; j < dataArray.size(); j++) {
+						String cName=dataArray.get(j).getAsJsonObject().get("DbFieldName").getAsString();
+						for (int k = 0; k < columList.size(); k++) {
+							String cType =dataTypeList.get(k);
+							if(cName.equals(columList.get(k))){
+								if(cType.toLowerCase().startsWith("varchar")){
+									insertImportDataSql+="'"+isnertData.get(i).get(cName)+"',";
+								}else if(cType.toLowerCase().startsWith("int")){
+									insertImportDataSql+=isnertData.get(i).get(cName)+",";
+								}else if(cType.toLowerCase().startsWith("datetime")){
+									insertImportDataSql+="to_date('"+isnertData.get(i).get(cName)+"','yyyy-mm-dd'),";
+								}
+							}
+						}
+					
+					}
+					insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+")";
+					statement.addBatch(insertImportDataSql);
+					pst.executeUpdate();
+					pst1.executeUpdate();
+				}
+				
+				
+			}
+			statement.executeBatch();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    }
+    /**
+     * 将数据库来源数据插入到导入表中
+     */
+    public void insertDbData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+    	Connection conn=null;
+		Statement statement=null;
+		PreparedStatement pst = null;
+		PreparedStatement pst1 = null;
+		ResultSet rs = null;
+		List<String> dataTypeList=new ArrayList<String>();
+		List<String> columList=new ArrayList<String>();
+
+		try {
+			conn=this.getDbConnection();
+			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
+			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			//获取导入表字段所属类型
+			getDataType(dataTypeList,columList,dataArray,workSheetId,2);
+			//向导入表插数据
+			statement=conn.createStatement();
+			for (int i = 0; i < isnertData.size(); i++) {
+				String customerBatchId=idfactory.newId("DM_CID");//客户号
+				String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
+				//数据池记录表里面插数据
+				String isnertDataPoolSql="insert into HAU_DM_B1C_POOL(ID,DID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+										+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
+				pst=conn.prepareStatement(isnertDataPoolSql);
+				pst.setString(1,disBatchId);
+				pst.setString(2, importBatchId);
+				pst.setString(3,customerBatchId);
+				pst.setInt(4, dataPoolNumber);
+				pst.setInt(5, dataPoolNumber);
+				pst.setInt(6, 0);
+				pst.setInt(7, 0);
+				pst.setInt(8, 0);
+				pst.setString(9, userId);
+				//数据池操作记录表里面插数据
+				String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,DID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
+											+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
+				pst1=conn.prepareStatement(dataPoolOperationSql);
+				pst1.setString(1,disBatchId);
+				pst1.setString(2, importBatchId);
+				pst1.setString(3,customerBatchId);
+				pst1.setString(4,operationName);
+				pst1.setInt(5, dataPoolNumber);
+				pst1.setInt(6, dataPoolNumber);
+				pst1.setInt(7, 0);
+				pst1.setInt(8, 0);
+				pst1.setInt(9, 0);
+				pst1.setString(10, userId);
+				for (int k = 0; k < dataArray.size(); k++) {
+					insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("FieldName").getAsString()+",";
+				}
+				insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
+				for (int j = 0; j < dataArray.size(); j++) {
+					String cName=dataArray.get(j).getAsJsonObject().get("FieldName").getAsString();
+					for (int k = 0; k < columList.size(); k++) {
+						String type =dataTypeList.get(k);
+						if(cName.equals(columList.get(k))){
+							if(type.toLowerCase().startsWith("varchar")){
+								insertImportDataSql+="'"+isnertData.get(i).get(cName)+"',";
+							}else if(type.toLowerCase().startsWith("int")){
+								insertImportDataSql+=isnertData.get(i).get(cName)+",";
+							}else if(type.toLowerCase().startsWith("datetime")){
+								insertImportDataSql+="to_date('"+isnertData.get(i).get(cName)+"','yyyy-mm-dd'),";
+							}
+						}
+					}
+				
+				}
+				insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+")";
+				statement.addBatch(insertImportDataSql);
+				pst.executeUpdate();
+				pst1.executeUpdate();
+			}
+			statement.executeBatch();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
+    /**
+     * 获取字段类型
+     * @param dataTypeList
+     * @param columList
+     * @param dataArray
+     * @param workSheetId
+     * @param action
+     */
+    public void getDataType(List<String> dataTypeList,List<String> columList,JsonArray dataArray,String workSheetId,Integer action){
+    	Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String actionName=null;
+		try {
+			conn=this.getDbConnection();
+			//获取导入表字段所属类型和
+			String getDataTypeSql="select datatype,columnname from hasys_worksheetcolumn  where workSheetId=? and columnname in(";
+			if(action==1){
+				actionName="DbFieldName";
+			}else{
+				actionName="FieldName";
+			}
+			for (int i = 0; i < dataArray.size(); i++) {
+				String name=dataArray.get(i).getAsJsonObject().get(actionName).getAsString();
+				getDataTypeSql+="'"+name+"',";
+			}
+			getDataTypeSql=getDataTypeSql.substring(0,getDataTypeSql.length()-1)+")";
+			pst=conn.prepareStatement(getDataTypeSql);
+			pst.setString(1, workSheetId);;
+			rs=pst.executeQuery();
+			while(rs.next()){
+					dataTypeList.add(rs.getString(1));
+					columList.add(rs.getString(2));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    }
 }

@@ -1,7 +1,7 @@
 package hiapp.modules.dmmanager.bean;
 
 public class WorkSheet {
-	private Integer id;
+	private String id;
 	private String name;
 	private String nameCh;
 	private String description;
@@ -12,10 +12,11 @@ public class WorkSheet {
 	public void setIsOwner(Integer isOwner) {
 		this.isOwner = isOwner;
 	}
-	public Integer getId() {
+	
+	public String getId() {
 		return id;
 	}
-	public void setId(Integer id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 	public String getNameCh() {
