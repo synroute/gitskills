@@ -4,13 +4,17 @@ import hiapp.modules.dmagent.QueryRequest;
 import hiapp.modules.dmagent.QueryTemplate;
 import hiapp.modules.dmagent.data.CustomerRepository;
 import hiapp.system.buinfo.User;
+import hiapp.system.dictionary.DictItem;
+import hiapp.system.dictionary.data.DictRepository;
 import hiapp.utils.base.HiAppException;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
@@ -25,6 +29,100 @@ import com.google.gson.Gson;
 public class CustomerController {
 	@Autowired
 	private CustomerRepository customerRepository;
+	@Autowired
+	private DictRepository dictRepository;
+
+	//更具字典id和字典级别id获取字典文本
+	@RequestMapping(value = "/srv/agent/getItemsByDictIdAndLevel.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public List<String> getItemsByDictIdAndLevel(int dicId, int level) {
+		//拿数据
+		List<DictItem> listDictItem = new ArrayList<DictItem>();
+		dictRepository.getDicItemsByDicId(String.valueOf(dicId), listDictItem);
+		ArrayList<String> arrayList = new ArrayList<String>();
+		//参数不合理
+		if(level <0 || level > 4){
+			return arrayList;
+		}
+		//level为1
+		Set<Integer> set = new HashSet<Integer>();
+		
+		for(DictItem dictItem:listDictItem){
+			if(dictItem.getItemParent()==-1){
+				arrayList.add(dictItem.getItemText());
+				set.add(dictItem.getItemId());
+			}
+		}
+		if(1==level){
+			return arrayList;
+		}
+		//level为其他
+		int count = 2;
+		while(count<=level){
+			arrayList = new ArrayList<String>();
+			Set<Integer> newSet = new HashSet<Integer>();
+			for(DictItem dictItem:listDictItem){
+				for(int pId:set){
+					if(dictItem.getItemParent()==pId){
+						arrayList.add(dictItem.getItemText());
+						newSet.add(dictItem.getItemId());
+					}
+				}
+			}
+			set = newSet;
+			if(count == level){
+				return arrayList;
+			}
+			count ++;
+		}
+		return new ArrayList<String>();
+	}
+
+	/**
+	 * 获取查询HTML模板
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String getQueryTemplateForHTML(
+			QueryTemplate queryTemplate) {
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		
+		try {
+			list = new Gson().fromJson(
+					customerRepository.getQueryTemplate(queryTemplate),
+					List.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "";
+		}
+		
+		StringBuffer sb = new StringBuffer();
+		sb.append("<form id='gjSearch' class='gjSearch' class='easyui-form'>");
+		for(Map<String, Object> map:list){
+			sb.append("<div style='margin:20px;float:left;width:200px'>");
+			String columnName = (String)map.get("columnName");
+			String columnNameCH = (String)map.get("columnNameCH");
+			String controlType = (String)map.get("controlType");
+			if("文本框".equals(controlType)){
+				sb.append("<input class='easyui-textbox' id='tb0' name='param' columnName='"+columnName+"' style='width:250px' data-options='label:'"+columnNameCH+":''>");
+			}else if("日期时间框".equals(controlType)){
+				sb.append("<input class='easyui-datetimebox' id='dt0' name='param' columnName='"+columnName+"' label='"+columnNameCH+"' labelPosition='left' style='width:250px'>");
+			}else if("下拉框".equals(controlType)){
+				sb.append("<select class='easyui-combobox' id='cb0' name='param' columnName='"+columnName+"' style='width:250px' data-options='label:'"+columnNameCH+":''>");
+				String dictId = (String)map.get("dictId");
+				String dictLevel = (String)map.get("dictLevel");
+				List<String> itemsText = getItemsByDictIdAndLevel(Integer.parseInt(dictId),Integer.parseInt(dictLevel));
+				for(String string:itemsText){
+					sb.append("<option>"+string+"</option>");
+				}
+				sb.append("</select>");
+			}
+			sb.append("</div>");
+		}
+		sb.append("</form>");
+		return sb.toString();
+	}
 
 	/**
 	 * 获取配置查询模板时需要使用的候选列
@@ -334,7 +432,7 @@ public class CustomerController {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();
 		String userId = ((User) session.getAttribute("user")).getId();
-		
+
 		int pageSize = queryRequest.getPageSize();
 		int pageNum = queryRequest.getPageNum();
 
@@ -348,17 +446,15 @@ public class CustomerController {
 			result.put("reason", e.getMessage());
 			return result;
 		}
-		
+
 		try {
-			list = customerRepository.queryAllCustomers(queryRequest,
-					userId);
+			list = customerRepository.queryAllCustomers(queryRequest, userId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
 			result.put("reason", e.getMessage());
 			return result;
 		}
-
 
 		result.put("data", listToHtml(list));
 		result.put("result", 0);
