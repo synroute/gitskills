@@ -32,47 +32,53 @@ public class CustomerController {
 	@Autowired
 	private DictRepository dictRepository;
 
-	//更具字典id和字典级别id获取字典文本
+	//获取UserId
+	@RequestMapping(value = "/srv/agent/getUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String getUserId(HttpSession session) {
+		return ((User) session.getAttribute("user")).getId();
+	}
+
+	// 更具字典id和字典级别id获取字典文本
 	@RequestMapping(value = "/srv/agent/getItemsByDictIdAndLevel.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public List<String> getItemsByDictIdAndLevel(int dicId, int level) {
-		//拿数据
+		// 拿数据
 		List<DictItem> listDictItem = new ArrayList<DictItem>();
 		dictRepository.getDicItemsByDicId(String.valueOf(dicId), listDictItem);
 		ArrayList<String> arrayList = new ArrayList<String>();
-		//参数不合理
-		if(level <0 || level > 4){
+		// 参数不合理
+		if (level < 0 || level > 4) {
 			return arrayList;
 		}
-		//level为1
+		// level为1
 		Set<Integer> set = new HashSet<Integer>();
-		
-		for(DictItem dictItem:listDictItem){
-			if(dictItem.getItemParent()==-1){
+
+		for (DictItem dictItem : listDictItem) {
+			if (dictItem.getItemParent() == -1) {
 				arrayList.add(dictItem.getItemText());
 				set.add(dictItem.getItemId());
 			}
 		}
-		if(1==level){
+		if (1 == level) {
 			return arrayList;
 		}
-		//level为其他
+		// level为其他
 		int count = 2;
-		while(count<=level){
+		while (count <= level) {
 			arrayList = new ArrayList<String>();
 			Set<Integer> newSet = new HashSet<Integer>();
-			for(DictItem dictItem:listDictItem){
-				for(int pId:set){
-					if(dictItem.getItemParent()==pId){
+			for (DictItem dictItem : listDictItem) {
+				for (int pId : set) {
+					if (dictItem.getItemParent() == pId) {
 						arrayList.add(dictItem.getItemText());
 						newSet.add(dictItem.getItemId());
 					}
 				}
 			}
 			set = newSet;
-			if(count == level){
+			if (count == level) {
 				return arrayList;
 			}
-			count ++;
+			count++;
 		}
 		return new ArrayList<String>();
 	}
@@ -84,10 +90,9 @@ public class CustomerController {
 	 */
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String getQueryTemplateForHTML(
-			QueryTemplate queryTemplate) {
+	public String getQueryTemplateForHTML(QueryTemplate queryTemplate) {
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		
+
 		try {
 			list = new Gson().fromJson(
 					customerRepository.getQueryTemplate(queryTemplate),
@@ -96,25 +101,43 @@ public class CustomerController {
 			e.printStackTrace();
 			return "";
 		}
-		
+
 		StringBuffer sb = new StringBuffer();
 		sb.append("<form id='gjSearch' class='gjSearch' class='easyui-form'>");
-		for(Map<String, Object> map:list){
+		for (Map<String, Object> map : list) {
 			sb.append("<div style='margin:20px;float:left;width:200px'>");
-			String columnName = (String)map.get("columnName");
-			String columnNameCH = (String)map.get("columnNameCH");
-			String controlType = (String)map.get("controlType");
-			if("文本框".equals(controlType)){
-				sb.append("<input class='easyui-textbox' id='tb0' name='param' columnName='"+columnName+"' style='width:250px' data-options='label:'"+columnNameCH+":''>");
-			}else if("日期时间框".equals(controlType)){
-				sb.append("<input class='easyui-datetimebox' id='dt0' name='param' columnName='"+columnName+"' label='"+columnNameCH+"' labelPosition='left' style='width:250px'>");
-			}else if("下拉框".equals(controlType)){
-				sb.append("<select class='easyui-combobox' id='cb0' name='param' columnName='"+columnName+"' style='width:250px' data-options='label:'"+columnNameCH+":''>");
-				String dictId = (String)map.get("dictId");
-				String dictLevel = (String)map.get("dictLevel");
-				List<String> itemsText = getItemsByDictIdAndLevel(Integer.parseInt(dictId),Integer.parseInt(dictLevel));
-				for(String string:itemsText){
-					sb.append("<option>"+string+"</option>");
+			String columnName = (String) map.get("columnName");
+			String columnNameCH = (String) map.get("columnNameCH");
+			String controlType = (String) map.get("controlType");
+			String dataType = (String) map.get("dataType");
+			if ("文本框".equals(controlType)) {
+				sb.append("<input class='easyui-textbox' name='param' columnName='"
+						+ columnName
+						+ "' dataType='"
+						+ dataType
+						+ "' style='width:250px' data-options='label:'"
+						+ columnNameCH + ":''>");
+			} else if ("日期时间框".equals(controlType)) {
+				sb.append("<input class='easyui-datetimebox' name='param' columnName='"
+						+ columnName
+						+ "' dataType='"
+						+ dataType
+						+ "' label='"
+						+ columnNameCH
+						+ "' labelPosition='left' style='width:250px'>");
+			} else if ("下拉框".equals(controlType)) {
+				sb.append("<select class='easyui-combobox' name='param' columnName='"
+						+ columnName
+						+ "' dataType='"
+						+ dataType
+						+ "' style='width:250px' data-options='label:'"
+						+ columnNameCH + ":''>");
+				String dictId = (String) map.get("dictId");
+				String dictLevel = (String) map.get("dictLevel");
+				List<String> itemsText = getItemsByDictIdAndLevel(
+						Integer.parseInt(dictId), Integer.parseInt(dictLevel));
+				for (String string : itemsText) {
+					sb.append("<option>" + string + "</option>");
 				}
 				sb.append("</select>");
 			}
