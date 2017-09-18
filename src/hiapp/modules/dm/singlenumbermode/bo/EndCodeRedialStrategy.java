@@ -2,6 +2,7 @@ package hiapp.modules.dm.singlenumbermode.bo;
 
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /*
@@ -28,11 +29,40 @@ import java.util.Map;
 @Component
 public class EndCodeRedialStrategy {
 
-    Map<String, RedialState> m_mapEndCodeVsRedialState;  // key <=> EndCodeType + EndCode
-    int StageLimit;
-    RedialState stageExceedNextState;
+    public void setEndCodeToRedialStateName(String resultCodeType, String resultCode, String redialStateName) {
+        EndCodeToRedialStateNameMap.put(resultCodeType + "#" + resultCode, redialStateName);
+    }
+
+    public void setRedialStateItem(String name, RedialState redialState) {
+        RedialStateMap.put(name, redialState);
+    }
+
+    public int getStageLimit() {
+        return StageLimit;
+    }
+
+    public void setStageLimit(int stageLimit) {
+        StageLimit = stageLimit;
+    }
+
+    public String getStageExceedNextStateName() {
+        return StageExceedNextStateName;
+    }
+
+    public void setStageExceedNextStateName(String stageExceedNextStateName) {
+        this.StageExceedNextStateName = stageExceedNextStateName;
+    }
 
     public RedialState getNextRedialState(String resultCodeType, String resultCode) {
-        return m_mapEndCodeVsRedialState.get(resultCodeType + resultCode);
+        String redialStateName = EndCodeToRedialStateNameMap.get(resultCodeType + resultCode);
+        return RedialStateMap.get(redialStateName);
     }
+
+    Map<String, RedialState> RedialStateMap = new HashMap<String, RedialState>();
+
+    Map<String, String> EndCodeToRedialStateNameMap = new HashMap<String, String>();  // key <=> EndCodeType + EndCode
+
+    int StageLimit;
+    String StageExceedNextStateName;
+
 }

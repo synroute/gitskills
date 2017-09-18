@@ -58,13 +58,14 @@ public class RedialState {
         this.loopRedialPerdayCountLimit = loopRedialPerdayCountLimit;
     }
 
-    public RedialState getLoopRedialCountExceedNextState() {
-        return loopRedialCountExceedNextState;
+    public String getLoopRedialCountExceedNextStateName() {
+        return loopRedialCountExceedNextStateName;
     }
 
-    public void setLoopRedialCountExceedNextState(RedialState loopRedialCountExceedNextState) {
-        this.loopRedialCountExceedNextState = loopRedialCountExceedNextState;
+    public void setLoopRedialCountExceedNextStateName(String loopRedialCountExceedNextStateName) {
+        this.loopRedialCountExceedNextStateName = loopRedialCountExceedNextStateName;
     }
+
 
     String  name; //="结案"
     String  description; //="名称:结案;不再拨打"
@@ -73,5 +74,5 @@ public class RedialState {
     int loopRedialFirstDialDayDialCountLimit; //=""
     int loopRedialDialCount; //=""
     int loopRedialPerdayCountLimit; //=""
-    RedialState loopRedialCountExceedNextState; //=""
+    String loopRedialCountExceedNextStateName; //=""
 }

@@ -5,6 +5,7 @@ import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEn
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
+import hiapp.utils.serviceresult.ServiceResultCode;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -502,6 +503,22 @@ public class SingleNumberModeDAO extends BaseRepository {
         return true;
     }
 
+    public ServiceResultCode updateShareBatchState(List<String> shareBatchIds, String state) {
+        String sql = "";
+        PreparedStatement stmt = null;
+        Connection dbConn = null;
+        try {
+            dbConn=this.getDbConnection();
+            sql=String.format("UPDATA HASYS_DM_SID SET STATE ='%s' WHERE SHAREID IN ('%s')",
+                                        state, stringListToCommaSplitString(shareBatchIds));
+            stmt = dbConn.prepareStatement(sql);
+            stmt.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ServiceResultCode.SUCCESS;
+    }
+
 
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -539,4 +556,14 @@ public class SingleNumberModeDAO extends BaseRepository {
         return sb.toString();
     }
 
+    private String stringListToCommaSplitString(List<String> stringList) {
+        StringBuilder sb = new StringBuilder();
+        for (int indx = 0; indx < stringList.size(); indx++) {
+            sb.append(stringList.get(indx));
+            if (indx < (stringList.size() - 1))
+                sb.append(",");
+        }
+
+        return sb.toString();
+    }
 }

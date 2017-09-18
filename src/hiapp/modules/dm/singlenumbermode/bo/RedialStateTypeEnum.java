@@ -15,9 +15,13 @@ public enum RedialStateTypeEnum {
     REDIAL_STATE_LOSTCALL("redial_state_lostcall");
 
     private RedialStateTypeEnum(String name) {
-        m_name = name;
+        this.name = name;
     }
 
-    private String m_name;
+    public String getName() {
+        return name;
+    }
+
+    private String name;
 
 }

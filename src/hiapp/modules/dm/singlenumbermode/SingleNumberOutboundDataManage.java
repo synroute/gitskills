@@ -1,5 +1,6 @@
 package hiapp.modules.dm.singlenumbermode;
 
+import com.google.gson.Gson;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.singlenumbermode.bo.*;
@@ -7,10 +8,15 @@ import hiapp.modules.dm.singlenumbermode.dao.SingleNumberModeDAO;
 import hiapp.modules.dm.dao.DMDAO;
 
 import hiapp.modules.dmsetting.DMBizPresetItem;
+import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
 import hiapp.utils.database.DBConnectionPool;
+import hiapp.utils.serviceresult.RecordsetResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -25,9 +31,7 @@ public class SingleNumberOutboundDataManage {
     DMDAO dmDAO;
 
     @Autowired
-    EndCodeRedialStrategy endCodeRedialStrategy;
-
-    DBConnectionPool dbConnectionPool;
+    private DmBizOutboundConfigRepository dmBizOutboundConfig;
 
     @Autowired
     @Qualifier("tenantDBConnectionPool")
@@ -37,9 +41,14 @@ public class SingleNumberOutboundDataManage {
         //initialize();
     }
 
+    DBConnectionPool dbConnectionPool;
+    Map<Integer, EndCodeRedialStrategy> mapBizIdVsEndCodeRedialStrategy;
+
     Map<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> mapPresetDialCustomer;
     Map<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> mapPhaseDialCustomer;
     Map<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> mapDialCustomer;
+
+    Map<Integer, Map<String,SingleNumberModeShareCustomerItem>>  mapBizIdVsCustomer;
 
     Timer     dailyTimer;
     TimerTask dailyTimerTask;
@@ -83,12 +92,15 @@ public class SingleNumberOutboundDataManage {
     public String submitOutboundResult(int bizId, String importBatchId, String shareBatchId, String customerId,
                                        String resultCodeType, String resultCode, Date presetTime /*, customerInfo*/) {
 
-        String data;  // 客户原信息变更、拨打信息、结果信息
+        // 客户原信息变更、拨打信息、结果信息
 
-        SingleNumberModeShareCustomerStateEnum originalShareState = SingleNumberModeShareCustomerStateEnum.CREATED;
+        Map<String,SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
+        SingleNumberModeShareCustomerItem customerItem = map.get(importBatchId+customerId);
+
+        String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
 
         // 经过 Outbound 策略处理器
-        procEndcode(bizId, shareBatchId, customerId, originalShareState, resultCodeType, resultCode);
+        procEndcode(bizId, shareBatchId, customerId, customerItem.getState(), resultCodeType, resultCode);
 
         // 更新导入表
         reviseCustomerInfo();
@@ -103,7 +115,7 @@ public class SingleNumberOutboundDataManage {
     public String startShareBatch(int bizId, List<String> shareBatchIds) {
 
         // TODO 设置共享批次状态
-
+        singleNumberModeDAO.updateShareBatchState(shareBatchIds, ShareBatchStateEnum.ACTIVE.getName());
 
         List<ShareBatchItem> shareBatchItems = shareBatchIncrementalProc();
 
@@ -122,11 +134,37 @@ public class SingleNumberOutboundDataManage {
 
     public void initialize() {
 
+        EndCodeRedialStrategy endCodeRedialStrategy = new EndCodeRedialStrategy();
+        endCodeRedialStrategy.setStageLimit(8);
+
+        endCodeRedialStrategy.setStageExceedNextStateName("stageExceedNextStateName");
+
+        RedialState redialState = new RedialState();
+        redialState.setDescription("description");
+        redialState.setLoopRedialCountExceedNextStateName("loopRedialCountExceedNextStateName");
+        redialState.setLoopRedialDialCount(9);
+        redialState.setLoopRedialFirstDialDayDialCountLimit(2);
+        redialState.setLoopRedialPerdayCountLimit(3);
+        redialState.setName("statename");
+        redialState.setRedialStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
+        redialState.setStageRedialDelayDays(20);
+        endCodeRedialStrategy.setEndCodeToRedialStateName("EndCodeType", "EndCode", "stateName");
+        endCodeRedialStrategy.setEndCodeToRedialStateName("EndCodeType2", "EndCode2", "stateName2");
+
+        endCodeRedialStrategy.setRedialStateItem("stateName", redialState);
+        endCodeRedialStrategy.setRedialStateItem("stateName2", redialState);
+
+        String jsonObject=new Gson().toJson(endCodeRedialStrategy);
+        System.out.println(jsonObject);
+
+
         setDailyRoutine();
 
         mapPresetDialCustomer = new HashMap<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
         mapPhaseDialCustomer  = new HashMap<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
         mapDialCustomer = new HashMap<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
+
+        mapBizIdVsCustomer = new HashMap<Integer, Map<String,SingleNumberModeShareCustomerItem>>();
 
         //singleNumberModeDAO.resetLoadedFlag();
 
@@ -200,6 +238,8 @@ public class SingleNumberOutboundDataManage {
             }
 
             dialPriorityQueue.put(customerItem);
+
+            insertBizIdVsCustomerMap(bizId, customerItem);
         }
 
         // 是否不需要 loaded 标记
@@ -214,8 +254,8 @@ public class SingleNumberOutboundDataManage {
         /*Boolean result = */ singleNumberModeDAO.getShareDataItemsByStateAndNextDialTime(shareBatchItems, shareCustomerStateList, shareDataItems3);
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems2) {
+            int bizId = customerItem.getBizId();
             if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(customerItem.getState())) {
-                int bizId = customerItem.getBizId();
                 PriorityBlockingQueue<SingleNumberModeShareCustomerItem> presetDialPriorityQueue = mapPresetDialCustomer.get(bizId);
                 if (null == presetDialPriorityQueue) {
                     presetDialPriorityQueue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
@@ -224,7 +264,6 @@ public class SingleNumberOutboundDataManage {
                 presetDialPriorityQueue.put(customerItem);
             }
             else if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(customerItem.getState())) {
-                int bizId = customerItem.getBizId();
                 PriorityBlockingQueue<SingleNumberModeShareCustomerItem> phaseDialPriorityQueue = mapPhaseDialCustomer.get(bizId);
                 if (null == phaseDialPriorityQueue) {
                     phaseDialPriorityQueue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
@@ -232,6 +271,8 @@ public class SingleNumberOutboundDataManage {
                 }
                 phaseDialPriorityQueue.put(customerItem);
             }
+
+            insertBizIdVsCustomerMap(bizId, customerItem);
         }
 
         // 是否不需要 loaded 标记
@@ -345,6 +386,16 @@ public class SingleNumberOutboundDataManage {
         dailyTimer.scheduleAtFixedRate(dailyTimerTask, calendar.getTime(), 1000 * 60 * 60 * 24);
     }
 
+    private void insertBizIdVsCustomerMap(int bizId, SingleNumberModeShareCustomerItem customerItem) {
+        Map<String,SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
+        if (null == map) {
+            map = new HashMap<String,SingleNumberModeShareCustomerItem>();
+            mapBizIdVsCustomer.put(bizId, map);
+        }
+
+        map.put(customerItem.getImportBatchId()+customerItem.getCustomerId(), customerItem);
+    }
+
     private void reviseCustomerInfo() {
         // TODO
     }
@@ -352,7 +403,7 @@ public class SingleNumberOutboundDataManage {
     private void procEndcode(int bizId, String shareBatchId, String customerId,
                              SingleNumberModeShareCustomerStateEnum originalShareState,
                              String resultCodeType, String resultCode) {
-        RedialState redialState = endCodeRedialStrategy.getNextRedialState(resultCodeType, resultCode);
+        RedialState redialState = null; //endCodeRedialStrategy.getNextRedialState(resultCodeType, resultCode);
 
         SingleNumberModeShareCustomerItem item = new SingleNumberModeShareCustomerItem();
         item.setBizId(bizId);
@@ -411,6 +462,54 @@ public class SingleNumberOutboundDataManage {
         }
 
     }
+
+/*
+<AddSetting>
+	<RedialState>
+		<Item Name="结案" Description="名称:结案;不再拨打;" StateType="结束" StageRedialDelayDays="" LoopRedialFirstDialDayDialCountLimit="" LoopRedialDialCount="" LoopRedialPerdayCountLimit="" LoopRedialCountExceedNextState=""/>
+		<Item Name="预约" Description="名称:预约;预约;" StateType="预约" StageRedialDelayDays="" LoopRedialFirstDialDayDialCountLimit="" LoopRedialDialCount="" LoopRedialPerdayCountLimit="" LoopRedialCountExceedNextState=""/>
+	</RedialState>
+	<EndCodeRedialStrategy StageLimit="1" StageExceedNextState="结案">
+		<Item EndCodeType="已联系上结案" EndCode="已联系上结案" RedialStateName="结案"/>
+		<Item EndCodeType="已联系上未结案" EndCode="已联系上未结案" RedialStateName="预约"/>
+		<Item EndCodeType="无效号码结案" EndCode="无效号码结案" RedialStateName="结案"/>
+		<Item EndCodeType="无效号码未结案" EndCode="无效号码未结案" RedialStateName="预约"/>
+		<Item EndCodeType="未联系上结案" EndCode="未联系上结案" RedialStateName="结案"/>
+		<Item EndCodeType="未联系上未结案" EndCode="未联系上未结案" RedialStateName="预约"/>
+		<Item EndCodeType="其他结案" EndCode="其他结案" RedialStateName="结案"/>
+		<Item EndCodeType="其他未结案" EndCode="其他未结案" RedialStateName="预约"/>
+		<Item EndCodeType="" EndCode="" RedialStateName=""/>
+	</EndCodeRedialStrategy>
+</AddSetting>
+            */
+
+    private void analyzeRedialStrategy(String strategy) {
+        Map<Integer, EndCodeRedialStrategy> mapBizIdVsEndCodeRedialStrategy;
+
+        /*Map<String, RedialState> m_mapEndCodeVsRedialState;  // key <=> EndCodeType + EndCode
+        int StageLimit;
+        RedialState stageExceedNextState;*/
+
+       /* EndCodeRedialStrategy endCodeRedialStrategy = new EndCodeRedialStrategy();
+        endCodeRedialStrategy.setStageLimit(8);
+
+        endCodeRedialStrategy.setStageExceedNextStateName("stageExceedNextStateName");
+
+        RedialState redialState = new RedialState();
+        redialState.setDescription("description");
+        redialState.setLoopRedialCountExceedNextStateName("loopRedialCountExceedNextStateName");
+        redialState.setLoopRedialDialCount(9);
+        redialState.setLoopRedialFirstDialDayDialCountLimit(2);
+        redialState.setLoopRedialPerdayCountLimit(3);
+        redialState.setName("statename");
+        redialState.setRedialStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
+        redialState.setStageRedialDelayDays(20);
+        endCodeRedialStrategy.setEndCodeStrategyItem("EndCodeType", "EndCode", redialState);
+
+        String jsonObject=new Gson().toJson(endCodeRedialStrategy);
+        System.out.println(jsonObject);*/
+    }
+
 
 }
 
