@@ -42,7 +42,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		List<DMBizPermission> listBizPermissionsiz=new ArrayList<DMBizPermission>();
 		List<DMBusiness> listdmBusinesses=new ArrayList<DMBusiness>();
 		List<Permission> listPermissions=new ArrayList<Permission>();
-		List<DMDataPool> listDataPools=new ArrayList<DMDataPool>();
+		
 		
 		JsonObject jsonObject=new  JsonObject();
 		
@@ -69,7 +69,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		
-		listDataPools=getAllDataPool();
+		
 		
 		try {
 			permissionRepository.permissionGetAll(listPermissions);
@@ -101,7 +101,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		JsonArray jsonArray_biz=new JsonArray();
 		JsonArray jsonArray_dataPool=new JsonArray();
 		for(int col=0;col<listdmBusinesses.size();col++){
-			
+			List<DMDataPool> listDataPools=new ArrayList<DMDataPool>();
 			List<DMBizPermission> listBizPermissions=new ArrayList<DMBizPermission>();
 			
 			int count=0;
@@ -120,6 +120,26 @@ public class DMBizPermissionRepository extends BaseRepository {
 					dmBizPermission.setPermId(rs.getInt(3));
 					dmBizPermission.setManageItemName(rs.getString(4));
 					listBizPermissions.add(dmBizPermission);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+				
+			} 
+			finally {
+				DbUtil.DbCloseQuery(rs, stmt);
+			}
+			//查询数据池信息
+			try {
+				dbConn =this.getDbConnection();
+				String szSql = "select ID,BusinessID,DataPoolName from HASYS_DM_DATAPOOL where Businessid="+dmBusiness.getBizId()+"" ;
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				while(rs.next()){
+					DMDataPool dmDataPool=new DMDataPool();
+					dmDataPool.setPoolId(rs.getInt(1));
+					dmDataPool.setBizId(rs.getInt(2));
+					dmDataPool.setDataPoolName(rs.getString(3));
+					listDataPools.add(dmDataPool);
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();

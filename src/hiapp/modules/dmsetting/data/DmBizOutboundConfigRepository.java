@@ -33,7 +33,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			{
 				xml=rs.getString("xml");
 			}
-			
+			/*
 			JsonObject newJsonObject=new JsonObject();
 			
 			jsonObject=new JsonParser().parse(xml).getAsJsonObject();
@@ -58,7 +58,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			}
 			newJsonObject.add("dataInfo", jsonArray_dataInfo);
 			jsonObject.remove("EndCodeRedialStrategy");
-			jsonObject.add("EndCodeRedialStrategy", newJsonObject);
+			jsonObject.add("EndCodeRedialStrategy", newJsonObject);*/
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -68,7 +68,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			DbUtil.DbCloseConnection(conn);
 			DbUtil.DbCloseExecute(stmt);
 		}
-		return jsonObject.toString();
+		return xml;
 	}
 	//修改外呼策略接口
 	public boolean dmModifyBizRedailState(int bizId,String MapColumns)
