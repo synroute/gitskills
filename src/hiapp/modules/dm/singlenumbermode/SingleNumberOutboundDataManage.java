@@ -18,11 +18,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 @Service
 public class SingleNumberOutboundDataManage {
 
-    public SingleNumberOutboundDataManage() {
-        System.out.println("====");
-    }
-
-
     @Autowired
     SingleNumberModeDAO singleNumberModeDAO;
 
@@ -33,8 +28,6 @@ public class SingleNumberOutboundDataManage {
     EndCodeRedialStrategy endCodeRedialStrategy;
 
     DBConnectionPool dbConnectionPool;
-
-    Boolean isInitilized = false;
 
     @Autowired
     @Qualifier("tenantDBConnectionPool")
@@ -87,14 +80,11 @@ public class SingleNumberOutboundDataManage {
         return shareDataItem;
     }
 
-    public String submitOutboundResult(String requestBody) {
-        String resultCodeType = "";
-        String resultCode = "";
+    public String submitOutboundResult(int bizId, String importBatchId, String shareBatchId, String customerId,
+                                       String resultCodeType, String resultCode, Date presetTime /*, customerInfo*/) {
+
         String data;  // 客户原信息变更、拨打信息、结果信息
 
-        int bizId = 0;
-        String shareBatchId = "";
-        String customerId = "";
         SingleNumberModeShareCustomerStateEnum originalShareState = SingleNumberModeShareCustomerStateEnum.CREATED;
 
         // 经过 Outbound 策略处理器
@@ -110,7 +100,10 @@ public class SingleNumberOutboundDataManage {
      * 重新初始化处理不适合，举例说明：系统运行中，进行启用共享批次操作，会导致获取外呼客户的功能暂停一段时间。
      * 不需要传入 共享批次信息，通过 启用状态 和 创建日期 获取
      */
-    public String startShareBatch(/*List<String> shareBatchIDs*/) {
+    public String startShareBatch(int bizId, List<String> shareBatchIds) {
+
+        // TODO 设置共享批次状态
+
 
         List<ShareBatchItem> shareBatchItems = shareBatchIncrementalProc();
 
@@ -118,21 +111,16 @@ public class SingleNumberOutboundDataManage {
         return "";
     }
 
-    public String stopShareBatch(String shareBatchID) {
+    public String stopShareBatch(int bizId, List<String> shareBatchIds) {
         return "";
     }
 
-    public String appendCustomersToShareBatch(String shareBatchID) {
+    public String appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
         return "";
     }
 
 
     public void initialize() {
-
-        if (isInitilized)
-            return;
-
-        isInitilized = true;
 
         setDailyRoutine();
 
@@ -145,8 +133,8 @@ public class SingleNumberOutboundDataManage {
         List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
         loadCustomersDaily(shareBatchItems);
 
-        SingleNumberModeShareCustomerItem item2 = extractNextOutboundCustomer("800", 800);
-        System.out.println("===");
+//        SingleNumberModeShareCustomerItem item2 = extractNextOutboundCustomer("800", 800);
+//        System.out.println("===");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,7 +240,7 @@ public class SingleNumberOutboundDataManage {
 
     private void loadCustomersIncremental(List<ShareBatchItem> shareBatchItems) {
 
-        // TODO 可以改成批从DB取数据
+        // TODO 成批从DB取数据
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.CREATED);
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.APPENDED);
@@ -275,7 +263,7 @@ public class SingleNumberOutboundDataManage {
         // singleNumberModeDAO.setLoadedFlagShareDataItemsByState(shareBatchItem.getShareBatchId(), shareCustomerStateList);
 
 
-        // TODO 可以改成批从DB取数据, 根据nextDialTime
+        // TODO 成批从DB取数据, 根据nextDialTime
         shareCustomerStateList.clear();
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
