@@ -23,6 +23,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String xml="";
+		JsonObject jsonObject=new JsonObject();
 		try {
 			conn =this.getDbConnection();
 			String szSql = String.format("select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizId+"");
@@ -32,7 +33,33 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			{
 				xml=rs.getString("xml");
 			}
-			  
+			/*
+			JsonObject newJsonObject=new JsonObject();
+			
+			jsonObject=new JsonParser().parse(xml).getAsJsonObject();
+			
+			
+			
+			JsonArray jsonArray_Endcode=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
+			JsonObject jsonObject_Endcode=new JsonObject();
+			
+			
+			JsonArray jsonArray=new JsonArray();
+			
+			if (jsonArray_Endcode.size()>1) {
+				jsonObject_Endcode=jsonArray_Endcode.get(0).getAsJsonObject();
+				jsonArray.add(jsonObject_Endcode);
+			}
+			newJsonObject.add("dataShow", jsonArray);
+			JsonArray jsonArray_dataInfo=new JsonArray();
+			for(int i=0;i<jsonArray_Endcode.size();i++)
+			{
+				jsonArray_dataInfo.add(jsonArray_Endcode.get(i).getAsJsonObject());
+			}
+			newJsonObject.add("dataInfo", jsonArray_dataInfo);
+			jsonObject.remove("EndCodeRedialStrategy");
+			jsonObject.add("EndCodeRedialStrategy", newJsonObject);*/
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "";
@@ -79,10 +106,9 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 
 			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 			jsonObject.remove("RedialState");
-			JsonObject redialState= new JsonParser().parse(MapColumns).getAsJsonObject();
-			JsonArray jsonArray=new JsonArray();
-			jsonArray.add(redialState);
-			jsonObject.add("RedialState", jsonArray);
+			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
+			
+			jsonObject.add("RedialState", jsonArray_Map);
 			
 			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
@@ -127,9 +153,20 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			}
 			
 			
+			String xmlszSql = String.format("select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizId+"");
+			stmt = conn.prepareStatement(xmlszSql);
+			rs = stmt.executeQuery();
+			while(rs.next())
+			{
+				xml=rs.getString("xml");
+			}
+
+			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
+			jsonObject.remove("EndCodeRedialStrategy");
+			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
 			
-			
-			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+MapColumns+"' where BusinessID="+bizId+"");
+			jsonObject.add("EndCodeRedialStrategy", jsonArray_Map);
+			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			

@@ -39,19 +39,18 @@ public class DMBizPermissionRepository extends BaseRepository {
 	public JsonObject getAll(){
 		
 		
-		List<DMBizPermission> listBizPermissions=new ArrayList<DMBizPermission>();
+		List<DMBizPermission> listBizPermissionsiz=new ArrayList<DMBizPermission>();
 		List<DMBusiness> listdmBusinesses=new ArrayList<DMBusiness>();
 		List<Permission> listPermissions=new ArrayList<Permission>();
-		List<DMDataPool> listDataPools=new ArrayList<DMDataPool>();
+		
 		
 		JsonObject jsonObject=new  JsonObject();
 		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		//查询所有权限信息
 		try {
 			dbConn =this.getDbConnection();
-			String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL order by businessid desc";
+			String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL  order by businessid desc";
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -60,7 +59,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 				dmBizPermission.setBizId(rs.getInt(2));
 				dmBizPermission.setPermId(rs.getInt(3));
 				dmBizPermission.setManageItemName(rs.getString(4));
-				listBizPermissions.add(dmBizPermission);
+				listBizPermissionsiz.add(dmBizPermission);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -70,7 +69,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		
-		listDataPools=getAllDataPool();
+		
 		
 		try {
 			permissionRepository.permissionGetAll(listPermissions);
@@ -86,10 +85,12 @@ public class DMBizPermissionRepository extends BaseRepository {
 		JsonObject jsonObject_fixedColumn=new JsonObject();
 		jsonObject_fixedColumn.addProperty("field", "permissionId");
 		jsonObject_fixedColumn.addProperty("title", "权限id");
+		jsonObject_fixedColumn.addProperty("width","80");
 		jsonArray_fixedColumn.add(jsonObject_fixedColumn);
 		JsonObject jsonObject_fixedColumns=new JsonObject();
 		jsonObject_fixedColumns.addProperty("field", "permissionName");
 		jsonObject_fixedColumns.addProperty("title", "权限名称");
+		jsonObject_fixedColumns.addProperty("width","150");
 		jsonArray_fixedColumn.add(jsonObject_fixedColumns);
 		jsonObject.add("fixedColumns", jsonArray_fixedColumn);
 		
@@ -100,8 +101,53 @@ public class DMBizPermissionRepository extends BaseRepository {
 		JsonArray jsonArray_biz=new JsonArray();
 		JsonArray jsonArray_dataPool=new JsonArray();
 		for(int col=0;col<listdmBusinesses.size();col++){
+			List<DMDataPool> listDataPools=new ArrayList<DMDataPool>();
+			List<DMBizPermission> listBizPermissions=new ArrayList<DMBizPermission>();
+			
+			int count=0;
 			JsonObject jsonObject_biz=new JsonObject();
 			DMBusiness dmBusiness=listdmBusinesses.get(col);
+			//查询所有权限信息
+			try {
+				dbConn =this.getDbConnection();
+				String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL  where Businessid="+dmBusiness.getBizId()+"";
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				while(rs.next()){
+					DMBizPermission dmBizPermission=new DMBizPermission();
+					dmBizPermission.setDataPoolId(rs.getInt(1));
+					dmBizPermission.setBizId(rs.getInt(2));
+					dmBizPermission.setPermId(rs.getInt(3));
+					dmBizPermission.setManageItemName(rs.getString(4));
+					listBizPermissions.add(dmBizPermission);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+				
+			} 
+			finally {
+				DbUtil.DbCloseQuery(rs, stmt);
+			}
+			//查询数据池信息
+			try {
+				dbConn =this.getDbConnection();
+				String szSql = "select ID,BusinessID,DataPoolName from HASYS_DM_DATAPOOL where Businessid="+dmBusiness.getBizId()+"" ;
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				while(rs.next()){
+					DMDataPool dmDataPool=new DMDataPool();
+					dmDataPool.setPoolId(rs.getInt(1));
+					dmDataPool.setBizId(rs.getInt(2));
+					dmDataPool.setDataPoolName(rs.getString(3));
+					listDataPools.add(dmDataPool);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+				
+			} 
+			finally {
+				DbUtil.DbCloseQuery(rs, stmt);
+			}
 			//查询该业务下有多少数据池
 			try {
 				dbConn =this.getDbConnection();
@@ -109,8 +155,10 @@ public class DMBizPermissionRepository extends BaseRepository {
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				while(rs.next()){
+					count=rs.getInt(1);
 					jsonObject_biz.addProperty("title", dmBusiness.getName());
 					jsonObject_biz.addProperty("colspan", rs.getInt(1)+2);
+					jsonArray_biz.add(jsonObject_biz);
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -119,24 +167,29 @@ public class DMBizPermissionRepository extends BaseRepository {
 				DbUtil.DbCloseQuery(rs, stmt);
 			}
 			JsonObject jsonObject_bizFixedcolumn=new JsonObject();
-			jsonObject_bizFixedcolumn.addProperty("filed",dmBusiness.getBizId()+"系统配置");
+			jsonObject_bizFixedcolumn.addProperty("field",dmBusiness.getBizId()+"系统配置");
 			jsonObject_bizFixedcolumn.addProperty("title","系统配置");
+			jsonObject_bizFixedcolumn.addProperty("width","80");
 			jsonArray_dataPool.add(jsonObject_bizFixedcolumn);
 			JsonObject jsonObject_bizFixedcolumns=new JsonObject();
-			jsonObject_bizFixedcolumn.addProperty("filed",dmBusiness.getBizId()+"数据管理");
-			jsonObject_bizFixedcolumn.addProperty("title","数据管理");
-			jsonArray_dataPool.add(jsonObject_bizFixedcolumn);
-			
-			for(int pcol=0;col<listDataPools.size();col++){
-				JsonObject jsonObject_dataPool=new JsonObject();
-				DMDataPool dmDataPool=listDataPools.get(pcol);
-				jsonObject_dataPool.addProperty("filed", dmDataPool.getPoolId());
-				jsonObject_dataPool.addProperty("title", dmDataPool.getDataPoolName());
-				jsonArray_dataPool.add(jsonObject_dataPool);
+			jsonObject_bizFixedcolumns.addProperty("field",dmBusiness.getBizId()+"数据管理");
+			jsonObject_bizFixedcolumns.addProperty("title","数据管理");
+			jsonObject_bizFixedcolumns.addProperty("width","80");
+			jsonArray_dataPool.add(jsonObject_bizFixedcolumns);
+			if (count!=0) {
+				for(int pcol=0;pcol<listDataPools.size();pcol++){
+					JsonObject jsonObject_dataPool=new JsonObject();
+					DMDataPool dmDataPool=listDataPools.get(pcol);
+					jsonObject_dataPool.addProperty("field", ""+dmDataPool.getPoolId()+"");
+					jsonObject_dataPool.addProperty("title", dmDataPool.getDataPoolName());
+					jsonObject_dataPool.addProperty("width","80");
+					jsonArray_dataPool.add(jsonObject_dataPool);
+				}
 			}
 			
 			
-			jsonArray_biz.add(jsonObject_biz);
+			
+			
 		}
 		jsonObject.add("bizColumns", jsonArray_biz);
 		
@@ -153,16 +206,23 @@ public class DMBizPermissionRepository extends BaseRepository {
 			jsonObject_perm.addProperty("permissionId", perm.getId());
 			jsonObject_perm.addProperty("permissionName", perm.getName());
 			
-			for(int col=0;col<listBizPermissions.size();col++)
+			for(int col=0;col<listBizPermissionsiz.size();col++)
 			{
-				DMBizPermission dmBizPermission=listBizPermissions.get(col);
+				DMBizPermission dmBizPermission=listBizPermissionsiz.get(col);
 				if(perm.getId()==dmBizPermission.getPermId())
 				{
-					jsonObject_perm.addProperty(dmBizPermission.getBizId()+";"+dmBizPermission.getDataPoolId(), 1);
+					if(dmBizPermission.getManageItemName()!=null)
+					{
+						jsonObject_perm.addProperty(""+dmBizPermission.getBizId()+dmBizPermission.getManageItemName()+"", 1);
+					}
+					jsonObject_perm.addProperty(""+dmBizPermission.getDataPoolId()+"", 1);
 				}	
+				
+				
+				
 			}
 			
-			jsonArray_perm.add(jsonObject);
+			jsonArray_perm.add(jsonObject_perm);
 			
 		}
 		
@@ -233,34 +293,35 @@ public class DMBizPermissionRepository extends BaseRepository {
 				{
 					DMDataPool dmDataPool=listDataPools.get(pcol);
 					
-					String poolId=jArray.get(row).getAsJsonObject().get(String.valueOf(dmDataPool.getPoolId())).getAsString();
-					if(!poolId.equals(""))
+					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmDataPool.getPoolId())))
 					{
-						try {
-							dbConn =this.getDbConnection();
-							String szSql = "select BusinessID from HASYS_DM_DATAPOOL where id="+dmDataPool.getPoolId()+"" ;
-							stmt = dbConn.prepareStatement(szSql);
-							rs = stmt.executeQuery();
-							while(rs.next()){
-								String insertSql = "insert into HASYS_DM_PER_MAP_POOL(DataPoolID,BusinessID,PermissionID) values("+dmDataPool.getPoolId()+","+rs.getInt(1)+","+permid+",)" ;
-								stmt = dbConn.prepareStatement(insertSql);
+						
+							try {
+								dbConn =this.getDbConnection();
+								String szSql = "select BusinessID from HASYS_DM_DATAPOOL where id="+dmDataPool.getPoolId()+"" ;
+								stmt = dbConn.prepareStatement(szSql);
 								rs = stmt.executeQuery();
+								while(rs.next()){
+									String insertSql = "insert into HASYS_DM_PER_MAP_POOL(DataPoolID,BusinessID,PermissionID) values("+dmDataPool.getPoolId()+","+rs.getInt(1)+","+permid+")" ;
+									stmt = dbConn.prepareStatement(insertSql);
+									stmt.execute();
+								}
+							} catch (SQLException e) {
+								e.printStackTrace();
+								
+							} 
+							finally {
+								DbUtil.DbCloseQuery(rs, stmt);
 							}
-						} catch (SQLException e) {
-							e.printStackTrace();
 							
-						} 
-						finally {
-							DbUtil.DbCloseQuery(rs, stmt);
-						}
 						
 					}
 				}
 			
 				for(int biz=0;biz<listdmBusinesses.size();biz++){
 					DMBusiness dmBusiness=listdmBusinesses.get(biz);
-					String bizGuanli=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"数据管理")).getAsString();
-					if(!bizGuanli.equals(""))
+					//String bizGuanli=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"数据管理")).getAsString();
+					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmBusiness.getBizId()+"数据管理")))
 					{
 						try {
 								String insertSql = "insert into HASYS_DM_PER_MAP_POOL(BusinessID,PermissionID,ItemName) values("+dmBusiness.getBizId()+","+permid+",'数据管理')" ;
@@ -275,8 +336,8 @@ public class DMBizPermissionRepository extends BaseRepository {
 						}
 						
 					}
-					String bizConfig=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"系统配置")).getAsString();
-					if(!bizConfig.equals(""))
+					//String bizConfig=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"系统配置")).getAsString();
+					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmBusiness.getBizId()+"系统配置")))
 					{
 						try {
 								String insertSql = "insert into HASYS_DM_PER_MAP_POOL(BusinessID,PermissionID,ItemName) values("+dmBusiness.getBizId()+","+permid+",'系统配置')" ;

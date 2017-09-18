@@ -1,8 +1,5 @@
 package hiapp.modules.dmsetting.srv;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -15,9 +12,8 @@ import com.google.gson.JsonParser;
 
 import hiapp.modules.dmsetting.data.DMBizPermissionRepository;
 import hiapp.utils.serviceresult.ServiceResult;
-import hiapp.utils.serviceresult.ServiceResultCode;
 @RestController
-public class DMPermissionController {
+public class DMPermController {
 	@Autowired
 	private DMBizPermissionRepository dmBizPermissionRepository;
 	

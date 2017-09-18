@@ -18,6 +18,11 @@ import java.util.concurrent.PriorityBlockingQueue;
 @Service
 public class SingleNumberOutboundDataManage {
 
+    public SingleNumberOutboundDataManage() {
+        System.out.println("====");
+    }
+
+
     @Autowired
     SingleNumberModeDAO singleNumberModeDAO;
 
@@ -29,12 +34,14 @@ public class SingleNumberOutboundDataManage {
 
     DBConnectionPool dbConnectionPool;
 
+    Boolean isInitilized = false;
+
     @Autowired
     @Qualifier("tenantDBConnectionPool")
     public void setDBConnectionPool(DBConnectionPool dbConnectionPool) {
         this.dbConnectionPool = dbConnectionPool;
 
-//        initialize();
+        //initialize();
     }
 
     Map<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> mapPresetDialCustomer;
@@ -53,13 +60,29 @@ public class SingleNumberOutboundDataManage {
 
         SingleNumberModeShareCustomerItem shareDataItem = null;
 
-        shareDataItem = mapPresetDialCustomer.get(bizId).poll();
-        if (null == shareDataItem)
-            shareDataItem = mapPhaseDialCustomer.get(bizId).poll();
-        if (null == shareDataItem)
-            shareDataItem = mapDialCustomer.get(bizId).poll();
+        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = null;
 
-        singleNumberModeDAO.setAgentOccupied(bizId, shareDataItem.getShareBatchId(), shareDataItem.getCustomerId());
+        customerQueue = mapPresetDialCustomer.get(bizId);
+        if (null != customerQueue) {
+            shareDataItem = customerQueue.poll();
+        }
+
+        if (null == shareDataItem) {
+            customerQueue = mapPhaseDialCustomer.get(bizId);
+            if (null != customerQueue) {
+                shareDataItem = customerQueue.poll();
+            }
+        }
+
+        if (null == shareDataItem) {
+            customerQueue = mapDialCustomer.get(bizId);
+            if (null != customerQueue) {
+                shareDataItem = customerQueue.poll();
+            }
+        }
+
+        if (null != shareDataItem)
+            singleNumberModeDAO.setAgentOccupied(bizId, shareDataItem.getShareBatchId(), shareDataItem.getCustomerId());
 
         return shareDataItem;
     }
@@ -105,6 +128,12 @@ public class SingleNumberOutboundDataManage {
 
 
     public void initialize() {
+
+        if (isInitilized)
+            return;
+
+        isInitilized = true;
+
         setDailyRoutine();
 
         mapPresetDialCustomer = new HashMap<Integer, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
@@ -115,6 +144,9 @@ public class SingleNumberOutboundDataManage {
 
         List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
         loadCustomersDaily(shareBatchItems);
+
+        SingleNumberModeShareCustomerItem item2 = extractNextOutboundCustomer("800", 800);
+        System.out.println("===");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,12 +188,14 @@ public class SingleNumberOutboundDataManage {
         singleNumberModeDAO.clearPreviousDayLostCallCount();
 
         // TODO 如果保留<当日未接通重拨次数>，需要判断是否移出候选池（per endcode）
-        singleNumberModeDAO.getXXX(null,null,null);
+        List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList3 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
+        shareCustomerStateList3.add(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL);
+        List<SingleNumberModeShareCustomerItem> shareDataItems2 = new ArrayList<SingleNumberModeShareCustomerItem>();
+        singleNumberModeDAO.getXXX(shareBatchItems,shareCustomerStateList3,shareDataItems2);
 
         // TODO 根据未接通拨打日期, 决定是否移回候选池  <每次重新加载已不需要本操作>
 
-
-        // TODO 可以改成批从DB取数据
+        // TODO 成批从DB取数据
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.CREATED);
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.APPENDED);
@@ -188,8 +222,8 @@ public class SingleNumberOutboundDataManage {
         shareCustomerStateList.clear();
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
-        List<SingleNumberModeShareCustomerItem> shareDataItems2 = new ArrayList<SingleNumberModeShareCustomerItem>();
-        /*Boolean result = */ singleNumberModeDAO.getShareDataItemsByStateAndNextDialTime(shareBatchItems, shareCustomerStateList, shareDataItems2);
+        List<SingleNumberModeShareCustomerItem> shareDataItems3 = new ArrayList<SingleNumberModeShareCustomerItem>();
+        /*Boolean result = */ singleNumberModeDAO.getShareDataItemsByStateAndNextDialTime(shareBatchItems, shareCustomerStateList, shareDataItems3);
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems2) {
             if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(customerItem.getState())) {
@@ -313,9 +347,12 @@ public class SingleNumberOutboundDataManage {
         };
 
         Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
         calendar.set(Calendar.HOUR_OF_DAY, 2); // 控制时
         calendar.set(Calendar.MINUTE, 0);      // 控制分
         calendar.set(Calendar.SECOND, 0);      // 控制秒
+
 
         dailyTimer.scheduleAtFixedRate(dailyTimerTask, calendar.getTime(), 1000 * 60 * 60 * 24);
     }
@@ -329,21 +366,28 @@ public class SingleNumberOutboundDataManage {
                              String resultCodeType, String resultCode) {
         RedialState redialState = endCodeRedialStrategy.getNextRedialState(resultCodeType, resultCode);
 
+        SingleNumberModeShareCustomerItem item = new SingleNumberModeShareCustomerItem();
+        item.setBizId(bizId);
+        item.setShareBatchId(shareBatchId);
+        item.setCustomerId(customerId);
+        item.setEndCodeType(resultCodeType);
+        item.setEndCode(resultCode);
+
         RedialStateTypeEnum redialStateType = redialState.getRedialStateType();
         if (RedialStateTypeEnum.REDIAL_STATE_FINISHED.equals(redialStateType)) {
             // 更新共享状态表
-            singleNumberModeDAO.updateCustomerShareStateToFinish();
+            singleNumberModeDAO.updateCustomerShareStateToFinish(item);
 
-            singleNumberModeDAO.insertCustomerShareStateHistory();
+            singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
             // 更新结果表
             dmDAO.insertDMResult();
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_PRESET.equals(redialStateType)) {
             // 更新共享状态表   nextDialTime
-            singleNumberModeDAO.updateCustomerShareStateToPreset();
+            singleNumberModeDAO.updateCustomerShareStateToPreset(item);
 
-            singleNumberModeDAO.insertCustomerShareStateHistory();
+            singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
             // 更新结果表
             dmDAO.insertDMResult();
@@ -354,9 +398,9 @@ public class SingleNumberOutboundDataManage {
         } else if (RedialStateTypeEnum.REDIAL_STATE_PHASE.equals(redialStateType)) {
             // 更新共享状态表  nextDialTime  curRedialStageCount
             // 到达最后阶段，直接跳转状态
-            singleNumberModeDAO.updateCustomerShareStateToStage();
+            singleNumberModeDAO.updateCustomerShareStateToStage(item);
 
-            singleNumberModeDAO.insertCustomerShareStateHistory();
+            singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
             // 更新结果表
             dmDAO.insertDMResult();
@@ -365,9 +409,9 @@ public class SingleNumberOutboundDataManage {
             // 更新共享状态表  lostcallFirstDay  curDayLostCallCount  lostcallTotalCount
             // 总未接通数到达限定值，直接跳转状态
             // 每天未接通数到达限定值，移出候选池。每天处理时重新移回候选池。
-            singleNumberModeDAO.updateCustomerShareStateToLostCall();
+            singleNumberModeDAO.updateCustomerShareStateToLostCall(item);
 
-            singleNumberModeDAO.insertCustomerShareStateHistory();
+            singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
             // 更新结果表
             dmDAO.insertDMResult();

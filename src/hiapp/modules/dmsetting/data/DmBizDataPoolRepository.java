@@ -45,6 +45,13 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getpId(),dataPool.getPoolTopLimit());
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.executeUpdate();
+			
+			String select =String.format("select ID from (select ID from HASYS_DM_DATAPOOL order by ID desc)  WHERE ROWNUM <=1 ");
+			stmt = dbConn.prepareStatement(select);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				dataPool.setPoolId(rs.getInt(1));
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -76,28 +83,29 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 	}
 	
 	//创建坐席数据池
-		public boolean dmCreateBizUserDataPool(DMDataPool dataPool,JsonArray jArray )
+		public boolean dmCreateBizUserDataPool(DMDataPool dataPool,String userId )
 		{
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
 			try {
 				
-				for(int row=0;row<jArray.size();row++){
-					String userId = jArray.get(row).getAsJsonObject().get("userId").getAsString();
+				String[] userids=userId.split(",");
+				for(int row=0;row<userids.length;row++){
+					
 					
 					dbConn =this.getDbConnection();
-					String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,DataPoolDes,PID,AreaType)"+
-					" values(HASYS_DM_DATAPOOL.nextval,%s,'%s',2,%s,0)",dataPool.getBizId(),userId,dataPool.getpId());
+					String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,PID,AreaType)"+
+					" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,%s,0)",dataPool.getBizId(),userids[row],dataPool.getpId());
 					stmt = dbConn.prepareStatement(szSql);
 					stmt.executeUpdate();
 					stmt.close();
-					String updateSql=String.format("update HASYS_DM_DATAPOOL set AreaType=2 where ID="+dataPool.getpId()+"");
-					stmt = dbConn.prepareStatement(updateSql);
-					stmt.executeUpdate();
-					stmt.close();
+					
 				}
 				
-				
+				String updateSql=String.format("update HASYS_DM_DATAPOOL set AreaType=2 where ID="+dataPool.getpId()+"");
+				stmt = dbConn.prepareStatement(updateSql);
+				stmt.executeUpdate();
+				stmt.close();
 				
 			} catch (SQLException e) {
 				e.printStackTrace();

@@ -73,22 +73,44 @@ public class WorkSheetController {
 	@RequestMapping(value = "/srv/dm/dmModifyBizWorkSheetColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBizWorkSheetColumns(
 			@RequestParam("worksheetId") String worksheetId,
-			@RequestParam("columnsJson") String columnsJson) {
+			@RequestParam("fixedColumn") String fixedColumn,
+			@RequestParam("columnName") String columnName,
+			@RequestParam("columnNameCh") String columnNameCh,
+			@RequestParam("columnType") String columnType,
+			@RequestParam("columnLength") String columnLength,
+			@RequestParam("columnDes") String columnDes) {
 		ServiceResult serviceresult = new ServiceResult();
-		JsonParser jsonParser = new JsonParser();
-		JsonArray jsonArray = jsonParser.parse(columnsJson).getAsJsonArray();
-		for (int i = 0; i < jsonArray.size(); i++) {
-			JsonObject jsonObject = (JsonObject) jsonArray.get(i);
-			String columnName = jsonObject.get("columnName").getAsString();
-			String columnNameCh = jsonObject.get("columnNameCh").getAsString();
-			if (!dmWorkSheetRepository.modifyColumnNameCh(worksheetId,columnName,columnNameCh)) {
-				serviceresult.setReturnMessage("失败");	
-			} else {
-				serviceresult.setReturnMessage("修改成功");
-				serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-			}
+		StringBuffer errMessage = new StringBuffer();
+		ServiceResultCode serviceResultCode = dmWorkSheetRepository.modifyColumnNameCh(worksheetId,columnName,columnNameCh,columnDes,errMessage);
+		if (serviceResultCode != ServiceResultCode.SUCCESS) {
+			serviceresult.setResultCode(serviceResultCode);
+			serviceresult.setReturnMessage(errMessage.toString());
+		} else {
+			serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+			serviceresult.setReturnMessage("成功");
 		}
 		return serviceresult.toJson();
 	}
 	
+	@RequestMapping(value = "/srv/dm/dmNewBizWorkSheetColumn.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmNewBizWorkSheetColumn(
+			@RequestParam("worksheetId") String worksheetId,
+			@RequestParam("fixedColumn") String fixedColumn,
+			@RequestParam("columnName") String columnName,
+			@RequestParam("columnNameCh") String columnNameCh,
+			@RequestParam("columnType") String columnType,
+			@RequestParam("columnLength") String columnLength,
+			@RequestParam("columnDes") String columnDes) {
+		ServiceResult serviceresult = new ServiceResult();
+		StringBuffer errMessage = new StringBuffer();
+		ServiceResultCode serviceResultCode = dmWorkSheetRepository.newColumn(worksheetId,fixedColumn,columnName,columnNameCh,columnType,columnLength,columnDes,errMessage);
+		if (serviceResultCode != ServiceResultCode.SUCCESS) {
+			serviceresult.setResultCode(serviceResultCode);
+			serviceresult.setReturnMessage(errMessage.toString());
+		} else {
+			serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+			serviceresult.setReturnMessage("成功");
+		}
+		return serviceresult.toJson();
+	}
 }

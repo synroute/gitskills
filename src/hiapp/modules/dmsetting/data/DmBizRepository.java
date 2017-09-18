@@ -44,7 +44,9 @@ public class DmBizRepository extends BaseRepository{
 				DMBusiness.setOwnerGroupId(rs.getString(4));
 				String groupName = groupRepository.getGroupById(rs.getInt(4)).getName();
 				DMBusiness.setOwnerGroupName(groupName);
-				DMBusiness.setOutboundModeId(rs.getInt(5));
+				DMBusiness.setModeId(rs.getInt(5));
+				DMBizOutboundModelEnum modelEnum = DMBizOutboundModelEnum.values()[DMBusiness.getModeId()-1];
+				DMBusiness.setModeInfo(modelEnum.getOutboundID()+";"+modelEnum.getOutboundType()+";"+modelEnum.getOutboundMode());
 				listDMBusiness.add(DMBusiness);
 			}
 		} catch (Exception e) {
@@ -119,7 +121,7 @@ public class DmBizRepository extends BaseRepository{
 		DMBusiness dmBusiness=new DMBusiness();
 		dmBusiness.setBizId(Integer.parseInt(id));
 		dmBusiness.setName(name);
-		dmBusiness.setOutboundModeId(Integer.parseInt(modeId));
+		dmBusiness.setModeId(Integer.parseInt(modeId));
 		//判断外拨模式，创建相应worksheet
 		return dmWorkSheetRepository.newDMBizWorkSheetsSystem(dmBusiness, errMessage);
 	}
@@ -152,7 +154,7 @@ public class DmBizRepository extends BaseRepository{
 		}
 		try {//
 			dbConn = this.getDbConnection();
-			szSql = String.format("UPDATE HASYS_DM_BUSINESS	SET  NAME = '%s',DESCRIPTION = '%s',OWNERGROUPID = '%s' WHERE BUSSINESSID='%s'",
+			szSql = String.format("UPDATE HASYS_DM_BUSINESS	SET  NAME = '%s',DESCRIPTION = '%s',OWNERGROUPID = '%s' WHERE BUSINESSID='%s'",
 					szDMBName, szDMBDescription, szOwnerGroupId,szDMBId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
@@ -269,7 +271,7 @@ public class DmBizRepository extends BaseRepository{
 				DMBusiness.setName(rs.getString(2));
 				DMBusiness.setDesc(rs.getString(3));
 				DMBusiness.setOwnerGroupId(rs.getString(4));
-				DMBusiness.setOutboundModeId(rs.getInt(5));
+				DMBusiness.setModeId(rs.getInt(5));
 				listDMBusiness.add(DMBusiness);
 			}
 		} 

@@ -42,12 +42,12 @@ public class DmWorkSheetRepository extends BaseRepository {
 		try {
 			dbConn = this.getDbConnection();
 			ServiceResultCode sResultCode=null;
-			if (dmBusiness.getOutboundModeId()==1) {
+			if (dmBusiness.getModeId()==1) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-			} else if (dmBusiness.getOutboundModeId()==2) {
+			} else if (dmBusiness.getModeId()==2) {
 				
-			} else if (dmBusiness.getOutboundModeId()==3) {
+			} else if (dmBusiness.getModeId()==3) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetResult(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -55,11 +55,11 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM3(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM3_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-			} else if (dmBusiness.getOutboundModeId()==4) {
+			} else if (dmBusiness.getModeId()==4) {
 				
-			} else if (dmBusiness.getOutboundModeId()==5) {
+			} else if (dmBusiness.getModeId()==5) {
 				
-			} else if (dmBusiness.getOutboundModeId()==6) {
+			} else if (dmBusiness.getModeId()==6) {
 				
 			}
 		} catch (Exception e) {
@@ -449,16 +449,33 @@ public class DmWorkSheetRepository extends BaseRepository {
 		return true;
 	}
 	//修改工作表列中文名称
-	public boolean modifyColumnNameCh(String worksheetId, String columnName,
-			String columnNameCh) {
+	public ServiceResultCode modifyColumnNameCh(String worksheetId, String columnName,
+			String columnNameCh,String columnDes, StringBuffer errMessage) {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String szSql =null;
-		try {
+		try {/////////////////////////////////////////////////////////////////
 			dbConn = this.getDbConnection();
-			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s' where worksheetid='%s' and columnname='%s' ",
-					columnNameCh,worksheetId,columnName);
+			int count=0;
+			szSql =String.format("select COUNT(*) from hasys_worksheetcolumn where worksheetid='%s' and columnnamech='%s' and columnName!='%s'",worksheetId,columnNameCh,columnName);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				count=rs.getInt(1);
+			}
+			if (count>0) {
+				errMessage.append("列中文名冲突！");
+				return ServiceResultCode.INVALID_PARAM;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally{	
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		try {
+			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s' where worksheetid='%s' and columnname='%s' ",
+					columnNameCh,columnDes,worksheetId,columnName);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -468,6 +485,79 @@ public class DmWorkSheetRepository extends BaseRepository {
 			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
-		return true;
+		return ServiceResultCode.SUCCESS;
+	}
+	public ServiceResultCode newColumn(String worksheetId, String fixedColumn,
+			String columnName, String columnNameCh, String columnType,
+			String columnLength, String columnDes, StringBuffer errMessage) {
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String szSql =null;
+		try {/////////////////////////////////////////////////////////////////
+			dbConn = this.getDbConnection();
+			int count=0;
+			szSql =String.format("select COUNT(*) from hasys_worksheetcolumn where worksheetid='%s' and columnname='%s'",worksheetId,columnName);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				count=rs.getInt(1);
+			}
+			if (count>0) {
+				errMessage.append("列名冲突！");
+				return ServiceResultCode.INVALID_PARAM;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally{	
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		try {/////////////////////////////////////////////////////////////////
+			int count=0;
+			szSql =String.format("select COUNT(*) from hasys_worksheetcolumn where worksheetid='%s' and columnnamech='%s'",worksheetId,columnNameCh);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				count=rs.getInt(1);
+			}
+			if (count>0) {
+				errMessage.append("列中文名冲突！");
+				return ServiceResultCode.INVALID_PARAM;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally{	
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		try {
+			int isSysColumn = 0;
+			if (fixedColumn.equals("是")) {
+				isSysColumn = 1;
+			}
+			String datatype = "";
+			String type = "";
+			if (columnType.equals("文本")) {
+				datatype = "varchar";
+				type ="VARCHAR2";
+			}else if (columnType.equals("数值")) {
+				datatype = "int";
+				type ="NUMBER";
+			}else if (columnType.equals("日期时间")) {
+				datatype = "datetime";
+				type ="DATE";
+			}
+			szSql = String.format("INSERT INTO hasys_worksheetcolumn(ID,WORKSHEETID,COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH,ISSYSCOLUMN,DATATYPECH) VALUES (HASYS_WORKSHEETCOLUMN_ID.nextval,'%s','%s','%s','%s','%s','%s','%s','%s')",
+					worksheetId,columnName,columnNameCh,columnDes,datatype,columnLength,isSysColumn,columnType);
+			stmt = dbConn.prepareStatement(szSql);		
+			stmt.execute();
+			workSheetRepository.newWorkSheetColumn(worksheetId,columnName,type,columnLength);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			DbUtil.DbCloseExecute(stmt);
+			DbUtil.DbCloseConnection(dbConn);
+		}
+		// TODO Auto-generated method stub
+		return ServiceResultCode.SUCCESS;
 	}
 }
