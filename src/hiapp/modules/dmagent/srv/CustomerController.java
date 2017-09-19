@@ -85,12 +85,13 @@ public class CustomerController {
 
 	/**
 	 * 获取查询HTML模板
-	 * 
+	 * @param queryTemplate
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "text/html;charset=utf-8")
-	public String getQueryTemplateForHTML(QueryTemplate queryTemplate) {
+	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> getQueryTemplateForHTML(QueryTemplate queryTemplate) {
+		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
 		try {
@@ -99,7 +100,9 @@ public class CustomerController {
 					List.class);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "";
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+			return result;
 		}
 
 		StringBuffer sb = new StringBuffer();
@@ -144,7 +147,9 @@ public class CustomerController {
 			sb.append("</div>");
 		}
 		sb.append("</form>");
-		return sb.toString();
+		result.put("data", sb.toString());
+		result.put("result", 0);
+		return result;
 	}
 
 	/**
