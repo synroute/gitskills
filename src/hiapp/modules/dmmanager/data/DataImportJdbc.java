@@ -327,12 +327,13 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource", "unused" })
-	public Boolean insertImportData(Integer tempId,Integer bizId,String workSheetId,List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> isnertData,String tableName,String userId,String operationName) throws IOException{
+	public Map<String,Object> insertImportData(Integer tempId,Integer bizId,String workSheetId,List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> isnertData,String tableName,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String jsonData=null;
 		Statement statement=null;
+		Map<String,Object> resultMap=null;
 		List<String> stringList=new ArrayList<String>();
 		try {
 			conn= this.getDbConnection();
@@ -354,9 +355,9 @@ public class DataImportJdbc extends BaseRepository{
 				dataPoolNumber=rs.getInt(1);
 			}
 			if("Excel导入".equals(operationName)){
-				insertExcelData(jsonData,workSheetId,tableName,isnertData,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
+				resultMap=insertExcelData(jsonData,workSheetId,tableName,isnertData,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
 			}else{
-				insertDbData(jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
+				resultMap=insertDbData(jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
 			}
 			//导入批次表里面插数据
 			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
@@ -368,16 +369,16 @@ public class DataImportJdbc extends BaseRepository{
 			pst.setString(5, "导入批次");
 			pst.setString(6, operationName);
 			pst.executeUpdate();
-			
-			return true;
+			resultMap.put("result", true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return false;
+			resultMap.put("result", false);
 		}finally{
 			DbUtil.DbCloseQuery(rs,pst);
 			DbUtil.DbCloseConnection(conn);
 		}
+		return resultMap;
 	}
 	
     // CLOB转换成String
@@ -404,7 +405,7 @@ public class DataImportJdbc extends BaseRepository{
      * @param bizId
      * @param uId
      */
-    public void insertExcelData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,Integer bizId,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+    public Map<String,Object> insertExcelData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,Integer bizId,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
     	Connection conn=null;
 		PreparedStatement pst = null;
 		PreparedStatement pst1 = null;
@@ -413,6 +414,8 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> stringList=new ArrayList<String>();
 		List<String> dataTypeList=new ArrayList<String>();
 		List<String> columList=new ArrayList<String>();
+		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
+		List<String> repeatColumns=new ArrayList<String>();//重复字段的集合
 		try {
 			conn=this.getDbConnection();
 	    	//解析JSON RepetitionExcludeType
@@ -420,7 +423,10 @@ public class DataImportJdbc extends BaseRepository{
 			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
 			String repetitionExcludeType=excelTemplate.get("RepetitionExcludeType").getAsString();
 			String RepetitionColumn=excelTemplate.get("RepetitionExcludeWorkSheetColumn").getAsString();
+			String RepetitionColumnCh=excelTemplate.get("RepetitionExcludeWorkSheetColumnCh").getAsString();
 		    Integer RepetitionCount=Integer.valueOf(excelTemplate.get("RepetitionExcludeDayCount").getAsString());
+		    //排重字段
+		    resultMap.put("column",RepetitionColumnCh);
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			//获取导入表字段所属类型
 			getDataType(dataTypeList,columList,dataArray,workSheetId,1);
@@ -462,11 +468,12 @@ public class DataImportJdbc extends BaseRepository{
 			}
 			//向导入表插数据
 			statement=conn.createStatement();
-			Boolean ifRepeat=true;
 			for (int i = 0; i < isnertData.size(); i++) {
 				String data=(String) isnertData.get(i).get(RepetitionColumn);
+				Boolean ifRepeat=true;
 				for(int h=0;h<stringList.size();h++){
 					if(data.equals(stringList.get(h))){
+						repeatColumns.add(data);
 						ifRepeat=false;
 						break;
 					}
@@ -530,17 +537,18 @@ public class DataImportJdbc extends BaseRepository{
 				
 				
 			}
+			resultMap.put("repeatColumn", repeatColumns);
 			statement.executeBatch();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	
+    	return resultMap;
     }
     /**
      * 将数据库来源数据插入到导入表中
      */
-    public void insertDbData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+    public Map<String,Object> insertDbData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
     	Connection conn=null;
 		Statement statement=null;
 		PreparedStatement pst = null;
@@ -548,7 +556,7 @@ public class DataImportJdbc extends BaseRepository{
 		ResultSet rs = null;
 		List<String> dataTypeList=new ArrayList<String>();
 		List<String> columList=new ArrayList<String>();
-
+		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
 		try {
 			conn=this.getDbConnection();
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
@@ -613,10 +621,15 @@ public class DataImportJdbc extends BaseRepository{
 				pst1.executeUpdate();
 			}
 			statement.executeBatch();
+			resultMap.put("result", true);
+			resultMap.put("repeatColumn",null);
+			resultMap.put("column",null);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			resultMap.put("result", false);
 		}
+		return resultMap;
     }
     
     /**

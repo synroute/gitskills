@@ -251,14 +251,8 @@ public class ImportDataController {
 		String tableName=workSheet.getName();
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
 		List<Map<String,Object>> isnertData=new Gson().fromJson(importData, List.class);
-		Boolean result = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, sheetColumnList, isnertData, tableName, userId,operationName);
-		String isSuccess=null;
-		if(result){
-			isSuccess= "导入成功";
-		}else{
-			isSuccess=  "导入失败";
-		}
-		String jsonObject=new Gson().toJson(isSuccess);
+		Map<String,Object> resultMap = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, sheetColumnList, isnertData, tableName, userId,operationName);
+		String jsonObject=new Gson().toJson(resultMap);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
 		 
