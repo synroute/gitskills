@@ -120,7 +120,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			stmt = conn.prepareStatement(updatecode);
 			stmt.executeUpdate();
 			stmt.close();
-			String updateDictionary=String.format("update HASYS_DM_BIZENDCODE set CLASSNAME='"+dmEndCode.getBizId()+dmEndCode.getEndCodeType()+"' where CLASSNAME='"+dmEndCode.getBizId()+dmEndCode.getEndCodeType()+"'");
+			String updateDictionary=String.format("update HASYS_DIC_CLASS set CLASSNAME='"+dmEndCode.getBizId()+dmEndCode.getEndCodeType()+"' where CLASSNAME='"+dmEndCode.getBizId()+dmEndCode.getEndCodeType()+"'");
 			stmt = conn.prepareStatement(updateDictionary);
 			stmt.executeUpdate();
 			modift(dmEndCode.getBizId(), dmEndCode.getEndCodeType(), dmEndCode.getEndCode(),codetype_old,code_old);
