@@ -209,7 +209,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        JsonObject jsonObject_EndCode=new JsonObject();
 		        jsonObject_EndCode.addProperty("endCodeType", EndCodeType);
 		        jsonObject_EndCode.addProperty("endCode", EndCode);
-		        jsonObject_EndCode.addProperty("endCodedescription", Description);
+		        jsonObject_EndCode.addProperty("endCodeDescription", Description);
 		        jsonObject_EndCode.addProperty("redialStateName", "");
 		        jsonArray_EndCode.add(jsonObject_EndCode);
 		        jsonobject_info.add("dataInfo", jsonArray_EndCode);
