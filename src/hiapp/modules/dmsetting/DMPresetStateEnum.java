@@ -4,10 +4,10 @@ package hiapp.modules.dmsetting;
  * @version 创建时间：2017年9月19日 下午8:31:35 
  * 类说明 预约状态枚举
  */
-public enum PresetStateEnum {
+public enum DMPresetStateEnum {
 	InUse(1,"使用中"),
 	FinishPreset(2,"预约完成");
-	private PresetStateEnum(int id,String stateName) {
+	private DMPresetStateEnum(int id,String stateName) {
 		this.setId(id);
 		this.setStateName(stateName);	
     }
