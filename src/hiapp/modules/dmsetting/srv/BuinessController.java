@@ -58,6 +58,7 @@ public class BuinessController {
 			recordsetResult.setPage(0);
 			recordsetResult.setTotal(listDMBusiness.size());
 			recordsetResult.setPageSize(listDMBusiness.size());
+		
 			recordsetResult.setRows(listDMBusiness);
 		} catch (Exception e) {
 			e.printStackTrace();

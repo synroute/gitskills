@@ -21,12 +21,15 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -274,7 +277,8 @@ public class DataImportJdbc extends BaseRepository{
 				jsonData=ClobToString(rs.getClob(1));	
 			}
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
-			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
+			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
+			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
 			for (int i = 0; i < dataArray.size(); i++) {
@@ -420,7 +424,8 @@ public class DataImportJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 	    	//解析JSON RepetitionExcludeType
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
-			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
+			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
+			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
 			String repetitionExcludeType=excelTemplate.get("RepetitionExcludeType").getAsString();
 			String RepetitionColumn=excelTemplate.get("RepetitionExcludeWorkSheetColumn").getAsString();
 			String RepetitionColumnCh=excelTemplate.get("RepetitionExcludeWorkSheetColumnCh").getAsString();
@@ -538,6 +543,7 @@ public class DataImportJdbc extends BaseRepository{
 				
 			}
 			resultMap.put("repeatColumn", repeatColumns);
+			resultMap.put("flag", 1);
 			statement.executeBatch();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -621,13 +627,10 @@ public class DataImportJdbc extends BaseRepository{
 				pst1.executeUpdate();
 			}
 			statement.executeBatch();
-			resultMap.put("result", true);
-			resultMap.put("repeatColumn",null);
-			resultMap.put("column",null);
+			resultMap.put("flag", 2);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			resultMap.put("result", false);
 		}
 		return resultMap;
     }
@@ -672,4 +675,64 @@ public class DataImportJdbc extends BaseRepository{
 		}
     	
     }
+   
+    /**
+     * 插一条数据到导入表
+     * @param bizId
+     * @param importBatchId
+     * @param customerId
+     * @param userId
+     * @param customerInfo
+     */
+  public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo){
+	  Connection conn=null;
+	  PreparedStatement pst = null;
+	  String tableName="HAU_DM_B"+bizId+"C_IMPORT";
+	  Map<String,Object> columnMap=new Gson().fromJson(customerInfo, Map.class);
+	 
+	  try {
+		conn=this.getDbConnection();
+		String columnSql="insert into "+tableName+"(id,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,";
+		String valueSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerId+"',1,1,'"+userId+"',sysdate,";
+		Iterator<Entry<String, Object>> it = columnMap.entrySet().iterator();
+		 for(Map.Entry<String, Object> entry : columnMap.entrySet()) {
+			   System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+			   columnSql+=entry.getKey()+",";
+			   valueSql+="'"+entry.getValue()+"',";
+			 }
+		 columnSql=columnSql.substring(0,columnSql.length()-1)+")"+valueSql.substring(0,valueSql.length()-1)+")";
+		 pst=conn.prepareStatement(columnSql);
+		 pst.executeUpdate();
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	  
+  }
+   
+  public void insertDataToResultTable(Integer bizId,String sourceID,String importBatchId,String customerId,String userId,String customerInfo){
+	  Connection conn=null;
+	  PreparedStatement pst = null;
+	  String tableName="HAU_DM_B"+bizId+"C_Result";
+	  Map<String,Object> columnMap=new Gson().fromJson(customerInfo, Map.class);
+	  try {
+		conn=this.getDbConnection();
+		String columnSql="insert into "+tableName+"(id,sourceId,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,DialType";
+		String valueSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+sourceID+"','"+importBatchId+"','"+customerId+"',1,1,'"+userId+"',sysdate,'拨打提交',";
+		Iterator<Entry<String, Object>> it = columnMap.entrySet().iterator();
+		 for(Map.Entry<String, Object> entry : columnMap.entrySet()) {
+			   System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+			   columnSql+=entry.getKey()+",";
+			   valueSql+="'"+entry.getValue()+"',";
+			 }
+		 columnSql=columnSql.substring(0,columnSql.length()-1)+")"+valueSql.substring(0,valueSql.length()-1)+")";
+		 pst=conn.prepareStatement(columnSql);
+		 pst.executeUpdate();
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	  
+  }
+    
 }

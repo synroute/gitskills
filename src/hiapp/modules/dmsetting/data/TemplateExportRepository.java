@@ -170,8 +170,9 @@ public class TemplateExportRepository extends BaseRepository{
 		ResultSet rs = null;
 		String exportJson = "";
 		try {
-			dbConn = this.getDbConnection();
+			dbConn = this.getDbConnection();	
 			String szSql = String.format("SELECT CONFIGJSON FROM HASYS_DM_BIZTEMPLATEEXPORT WHERE BusinessId='%s' AND TEMPLATEID = '%s' ",bizId,templateId) ;
+//			String szSql = String.format("SELECT codetype FROM HASYS_DM_BIZENDCODE") ;
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){

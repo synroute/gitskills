@@ -374,56 +374,59 @@ public class CustomerRepository extends BaseRepository {
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
 
-			if (queryCondition.size() > 0) {
-				sb.append(" AND ");
-			}
-
-			Map<String, String> map1 = new HashMap<String, String>();
-			Map<String, String> map2 = new HashMap<String, String>();
-
-			for (Map<String, String> map : queryCondition) {
-				String field = map.get("field");
-				String value = map.get("value");
-				String type = map.get("dataType");
-				// 时间字段使用范围查询
-				if (type != null && type.toLowerCase().contains("date")) {
-					if (map1.get(field) == null) {
-						map1.put(field, value);
-					} else {
-						map2.put(field, value);
-					}
-				} else {
-
-					// 非时间字段使用模糊查询
-					sb.append(field);
-					sb.append(" LIKE '%");
-					sb.append(value);
-					sb.append("%' AND ");
+			if (queryCondition != null) {
+				if (queryCondition.size() > 0) {
+					sb.append(" AND ");
 				}
-			}
 
-			if (map1.isEmpty()) {
-				sb = new StringBuffer(sb.substring(0, sb.length() - 5));
-			}
+				Map<String, String> map1 = new HashMap<String, String>();
+				Map<String, String> map2 = new HashMap<String, String>();
 
-			// 时间字段使用范围查询
-			for (Entry<String, String> entry : map1.entrySet()) {
-				String key = entry.getKey();
-				sb.append("(" + key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "'))");
-				sb.append(" OR ");
-				sb.append("(" + key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "'))");
+				for (Map<String, String> map : queryCondition) {
+					String field = map.get("field");
+					String value = map.get("value");
+					String type = map.get("dataType");
+					// 时间字段使用范围查询
+					if (type != null && type.toLowerCase().contains("date")) {
+						if (map1.get(field) == null) {
+							map1.put(field, value);
+						} else {
+							map2.put(field, value);
+						}
+					} else {
+
+						// 非时间字段使用模糊查询
+						sb.append(field);
+						sb.append(" LIKE '%");
+						sb.append(value);
+						sb.append("%' AND ");
+					}
+				}
+
+				if (map1.isEmpty()) {
+					sb = new StringBuffer(sb.substring(0, sb.length() - 5));
+				}
+
+				// 时间字段使用范围查询
+				for (Entry<String, String> entry : map1.entrySet()) {
+					String key = entry.getKey();
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
+					sb.append(" OR ");
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
+				}
+
 			}
 
 			dbConn = this.getDbConnection();
@@ -670,56 +673,58 @@ public class CustomerRepository extends BaseRepository {
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
 
-			if (queryCondition.size() > 0) {
-				sb.append(" AND ");
-			}
-
-			Map<String, String> map1 = new HashMap<String, String>();
-			Map<String, String> map2 = new HashMap<String, String>();
-
-			for (Map<String, String> map : queryCondition) {
-				String field = map.get("field");
-				String value = map.get("value");
-				String type = map.get("dataType");
-				// 时间字段使用范围查询
-				if (type != null && type.toLowerCase().contains("date")) {
-					if (map1.get(field) == null) {
-						map1.put(field, value);
-					} else {
-						map2.put(field, value);
-					}
-				} else {
-
-					// 非时间字段使用模糊查询
-					sb.append(field);
-					sb.append(" LIKE '%");
-					sb.append(value);
-					sb.append("%' AND ");
+			if (queryCondition != null) {
+				if (queryCondition.size() > 0) {
+					sb.append(" AND ");
 				}
-			}
 
-			if (map1.isEmpty()) {
-				sb = new StringBuffer(sb.substring(0, sb.length() - 5));
-			}
+				Map<String, String> map1 = new HashMap<String, String>();
+				Map<String, String> map2 = new HashMap<String, String>();
 
-			// 时间字段使用范围查询
-			for (Entry<String, String> entry : map1.entrySet()) {
-				String key = entry.getKey();
-				sb.append("(" + key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "'))");
-				sb.append(" OR ");
-				sb.append("(" + key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "'))");
+				for (Map<String, String> map : queryCondition) {
+					String field = map.get("field");
+					String value = map.get("value");
+					String type = map.get("dataType");
+					// 时间字段使用范围查询
+					if (type != null && type.toLowerCase().contains("date")) {
+						if (map1.get(field) == null) {
+							map1.put(field, value);
+						} else {
+							map2.put(field, value);
+						}
+					} else {
+
+						// 非时间字段使用模糊查询
+						sb.append(field);
+						sb.append(" LIKE '%");
+						sb.append(value);
+						sb.append("%' AND ");
+					}
+				}
+
+				if (map1.isEmpty()) {
+					sb = new StringBuffer(sb.substring(0, sb.length() - 5));
+				}
+
+				// 时间字段使用范围查询
+				for (Entry<String, String> entry : map1.entrySet()) {
+					String key = entry.getKey();
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
+					sb.append(" OR ");
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
+				}
 			}
 
 			sb.append(" ORDER BY ");
@@ -861,57 +866,60 @@ public class CustomerRepository extends BaseRepository {
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
 
-			if (queryCondition.size() > 0) {
-				sb.append(" AND ");
-			}
+			if (queryCondition != null) {
+				if (queryCondition.size() > 0) {
+					sb.append(" AND ");
+				}
 
-			Map<String, String> map1 = new HashMap<String, String>();
-			Map<String, String> map2 = new HashMap<String, String>();
+				Map<String, String> map1 = new HashMap<String, String>();
+				Map<String, String> map2 = new HashMap<String, String>();
 
-			for (Map<String, String> map : queryCondition) {
-				String field = map.get("field");
-				String value = map.get("value");
-				String type = map.get("dataType");
+				for (Map<String, String> map : queryCondition) {
+					String field = map.get("field");
+					String value = map.get("value");
+					String type = map.get("dataType");
+
+					// 时间字段使用范围查询
+					if (type != null && type.toLowerCase().contains("date")) {
+						if (map1.get(field) == null) {
+							map1.put(field, value);
+						} else {
+							map2.put(field, value);
+						}
+					} else {
+
+						// 非时间字段使用模糊查询
+						sb.append(field);
+						sb.append(" LIKE '%");
+						sb.append(value);
+						sb.append("%' AND ");
+					}
+				}
+
+				if (map1.isEmpty()) {
+					sb = new StringBuffer(sb.substring(0, sb.length() - 5));
+				}
 
 				// 时间字段使用范围查询
-				if (type != null && type.toLowerCase().contains("date")) {
-					if (map1.get(field) == null) {
-						map1.put(field, value);
-					} else {
-						map2.put(field, value);
-					}
-				} else {
-
-					// 非时间字段使用模糊查询
-					sb.append(field);
-					sb.append(" LIKE '%");
-					sb.append(value);
-					sb.append("%' AND ");
+				for (Entry<String, String> entry : map1.entrySet()) {
+					String key = entry.getKey();
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
+					sb.append(" OR ");
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
 				}
-			}
 
-			if (map1.isEmpty()) {
-				sb = new StringBuffer(sb.substring(0, sb.length() - 5));
-			}
-
-			// 时间字段使用范围查询
-			for (Entry<String, String> entry : map1.entrySet()) {
-				String key = entry.getKey();
-				sb.append("(" + key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "'))");
-				sb.append(" OR ");
-				sb.append("(" + key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "'))");
 			}
 
 			dbConn = this.getDbConnection();
@@ -1031,57 +1039,60 @@ public class CustomerRepository extends BaseRepository {
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
 
-			if (queryCondition.size() > 0) {
-				sb.append(" AND ");
-			}
+			if (queryCondition != null) {
+				if (queryCondition.size() > 0) {
+					sb.append(" AND ");
+				}
 
-			Map<String, String> map1 = new HashMap<String, String>();
-			Map<String, String> map2 = new HashMap<String, String>();
+				Map<String, String> map1 = new HashMap<String, String>();
+				Map<String, String> map2 = new HashMap<String, String>();
 
-			for (Map<String, String> map : queryCondition) {
-				String field = map.get("field");
-				String value = map.get("value");
-				String type = map.get("dataType");
+				for (Map<String, String> map : queryCondition) {
+					String field = map.get("field");
+					String value = map.get("value");
+					String type = map.get("dataType");
+
+					// 时间字段使用范围查询
+					if (type != null && type.toLowerCase().contains("date")) {
+						if (map1.get(field) == null) {
+							map1.put(field, value);
+						} else {
+							map2.put(field, value);
+						}
+					} else {
+
+						// 非时间字段使用模糊查询
+						sb.append(field);
+						sb.append(" LIKE '%");
+						sb.append(value);
+						sb.append("%' AND ");
+					}
+				}
+
+				if (map1.isEmpty()) {
+					sb = new StringBuffer(sb.substring(0, sb.length() - 5));
+				}
 
 				// 时间字段使用范围查询
-				if (type != null && type.toLowerCase().contains("date")) {
-					if (map1.get(field) == null) {
-						map1.put(field, value);
-					} else {
-						map2.put(field, value);
-					}
-				} else {
-
-					// 非时间字段使用模糊查询
-					sb.append(field);
-					sb.append(" LIKE '%");
-					sb.append(value);
-					sb.append("%' AND ");
+				for (Entry<String, String> entry : map1.entrySet()) {
+					String key = entry.getKey();
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
+					sb.append(" OR ");
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
 				}
-			}
 
-			if (map1.isEmpty()) {
-				sb = new StringBuffer(sb.substring(0, sb.length() - 5));
-			}
-
-			// 时间字段使用范围查询
-			for (Entry<String, String> entry : map1.entrySet()) {
-				String key = entry.getKey();
-				sb.append("(" + key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "'))");
-				sb.append(" OR ");
-				sb.append("(" + key);
-				sb.append(" BETWEEN ");
-				sb.append("TO_DATE('" + map2.get(key) + "','"
-						+ INPUT_TIME_TEMPLATE + "')");
-				sb.append(" AND ");
-				sb.append("TO_DATE('" + entry.getValue() + "','"
-						+ INPUT_TIME_TEMPLATE + "'))");
 			}
 
 			sb.append(" ORDER BY ");
@@ -1231,8 +1242,8 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	// 获取当前数据池和所有子数据池下的坐席id拼接成的字符串
-	public String getUserIdsFromDataPool(int dataPoolId, String bizId,String userId)
-			throws HiAppException {
+	public String getUserIdsFromDataPool(int dataPoolId, String bizId,
+			String userId) throws HiAppException {
 
 		List<Map<String, Object>> dataPools = getDataPoolByBizId(bizId);
 
@@ -1266,8 +1277,8 @@ public class CustomerRepository extends BaseRepository {
 	 * @throws HiAppException
 	 * @throws SQLException
 	 */
-	public int queryAllCustomersCount(QueryRequest queryRequest,
-			String userId) throws HiAppException {
+	public int queryAllCustomersCount(QueryRequest queryRequest, String userId)
+			throws HiAppException {
 		StringBuffer sb = new StringBuffer();
 
 		Connection dbConn = null;
@@ -1277,7 +1288,7 @@ public class CustomerRepository extends BaseRepository {
 
 		try {
 			String bizId = queryRequest.getBizId();
-			
+
 			RoleInGroupSet roleInGroupSet = userRepository
 					.getRoleInGroupSetByUserId(userId);
 			Permission permission = permissionRepository
@@ -1288,7 +1299,8 @@ public class CustomerRepository extends BaseRepository {
 					bizId);
 
 			if (dataPoolId != null) {
-				String userIds = getUserIdsFromDataPool(dataPoolId, bizId,userId);
+				String userIds = getUserIdsFromDataPool(dataPoolId, bizId,
+						userId);
 
 				if (!"()".equals(userIds)) {
 					sb.append("SELECT COUNT(*) ");
@@ -1360,57 +1372,62 @@ public class CustomerRepository extends BaseRepository {
 					List<Map<String, String>> queryCondition = queryRequest
 							.getQueryCondition();
 
-					if (queryCondition.size() > 0) {
-						sb.append(" AND ");
-					}
+					if (queryCondition != null) {
+						if (queryCondition.size() > 0) {
+							sb.append(" AND ");
+						}
 
-					Map<String, String> map1 = new HashMap<String, String>();
-					Map<String, String> map2 = new HashMap<String, String>();
+						Map<String, String> map1 = new HashMap<String, String>();
+						Map<String, String> map2 = new HashMap<String, String>();
 
-					for (Map<String, String> map : queryCondition) {
-						String field = map.get("field");
-						String value = map.get("value");
-						String type = map.get("dataType");
-						// 时间字段使用范围查询
-						if (type != null && type.toLowerCase().contains("date")) {
-							if (map1.get(field) == null) {
-								map1.put(field, value);
+						for (Map<String, String> map : queryCondition) {
+							String field = map.get("field");
+							String value = map.get("value");
+							String type = map.get("dataType");
+							// 时间字段使用范围查询
+							if (type != null
+									&& type.toLowerCase().contains("date")) {
+								if (map1.get(field) == null) {
+									map1.put(field, value);
+								} else {
+									map2.put(field, value);
+								}
 							} else {
-								map2.put(field, value);
-							}
-						} else {
 
-							// 非时间字段使用模糊查询
-							sb.append(field);
-							sb.append(" LIKE '%");
-							sb.append(value);
-							sb.append("%' AND ");
+								// 非时间字段使用模糊查询
+								sb.append(field);
+								sb.append(" LIKE '%");
+								sb.append(value);
+								sb.append("%' AND ");
+							}
+						}
+
+						if (map1.isEmpty()) {
+							sb = new StringBuffer(sb.substring(0,
+									sb.length() - 5));
+						}
+
+						// 时间字段使用范围查询
+						for (Entry<String, String> entry : map1.entrySet()) {
+							String key = entry.getKey();
+							sb.append("(" + key);
+							sb.append(" BETWEEN ");
+							sb.append("TO_DATE('" + entry.getValue() + "','"
+									+ INPUT_TIME_TEMPLATE + "')");
+							sb.append(" AND ");
+							sb.append("TO_DATE('" + map2.get(key) + "','"
+									+ INPUT_TIME_TEMPLATE + "'))");
+							sb.append(" OR ");
+							sb.append("(" + key);
+							sb.append(" BETWEEN ");
+							sb.append("TO_DATE('" + map2.get(key) + "','"
+									+ INPUT_TIME_TEMPLATE + "')");
+							sb.append(" AND ");
+							sb.append("TO_DATE('" + entry.getValue() + "','"
+									+ INPUT_TIME_TEMPLATE + "'))");
 						}
 					}
 
-					if (map1.isEmpty()) {
-						sb = new StringBuffer(sb.substring(0, sb.length() - 5));
-					}
-
-					// 时间字段使用范围查询
-					for (Entry<String, String> entry : map1.entrySet()) {
-						String key = entry.getKey();
-						sb.append("(" + key);
-						sb.append(" BETWEEN ");
-						sb.append("TO_DATE('" + entry.getValue() + "','"
-								+ INPUT_TIME_TEMPLATE + "')");
-						sb.append(" AND ");
-						sb.append("TO_DATE('" + map2.get(key) + "','"
-								+ INPUT_TIME_TEMPLATE + "'))");
-						sb.append(" OR ");
-						sb.append("(" + key);
-						sb.append(" BETWEEN ");
-						sb.append("TO_DATE('" + map2.get(key) + "','"
-								+ INPUT_TIME_TEMPLATE + "')");
-						sb.append(" AND ");
-						sb.append("TO_DATE('" + entry.getValue() + "','"
-								+ INPUT_TIME_TEMPLATE + "'))");
-					}
 					dbConn = this.getDbConnection();
 					stmt = dbConn.prepareStatement(sb.toString());
 					rs = stmt.executeQuery();
@@ -1452,14 +1469,13 @@ public class CustomerRepository extends BaseRepository {
 	 * @throws SQLException
 	 */
 	public List<List<Map<String, Object>>> queryAllCustomers(
-			QueryRequest queryRequest,String userId) throws HiAppException {
+			QueryRequest queryRequest, String userId) throws HiAppException {
 		StringBuffer sb = new StringBuffer();
 
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		List<List<Map<String, Object>>> result = new ArrayList<List<Map<String, Object>>>();
-		
 
 		try {
 			String bizId = queryRequest.getBizId();
@@ -1469,7 +1485,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setConfigPage(ConfigPageEnume.ALLCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
 			String template = getQueryTemplate(queryTemplate);
-			
+
 			RoleInGroupSet roleInGroupSet = userRepository
 					.getRoleInGroupSetByUserId(userId);
 			Permission permission = permissionRepository
@@ -1480,7 +1496,8 @@ public class CustomerRepository extends BaseRepository {
 					bizId);
 
 			if (dataPoolId != null) {
-				String userIds = getUserIdsFromDataPool(dataPoolId, bizId,userId);
+				String userIds = getUserIdsFromDataPool(dataPoolId, bizId,
+						userId);
 
 				if (!"()".equals(userIds)) {
 					sb.append("SELECT * FROM (SELECT ");
@@ -1568,57 +1585,62 @@ public class CustomerRepository extends BaseRepository {
 					List<Map<String, String>> queryCondition = queryRequest
 							.getQueryCondition();
 
-					if (queryCondition.size() > 0) {
-						sb.append(" AND ");
-					}
+					if (queryCondition != null) {
+						if (queryCondition.size() > 0) {
+							sb.append(" AND ");
+						}
 
-					Map<String, String> map1 = new HashMap<String, String>();
-					Map<String, String> map2 = new HashMap<String, String>();
+						Map<String, String> map1 = new HashMap<String, String>();
+						Map<String, String> map2 = new HashMap<String, String>();
 
-					for (Map<String, String> map : queryCondition) {
-						String field = map.get("field");
-						String value = map.get("value");
-						String type = map.get("dataType");
-						// 时间字段使用范围查询
-						if (type != null && type.toLowerCase().contains("date")) {
-							if (map1.get(field) == null) {
-								map1.put(field, value);
+						for (Map<String, String> map : queryCondition) {
+							String field = map.get("field");
+							String value = map.get("value");
+							String type = map.get("dataType");
+							// 时间字段使用范围查询
+							if (type != null
+									&& type.toLowerCase().contains("date")) {
+								if (map1.get(field) == null) {
+									map1.put(field, value);
+								} else {
+									map2.put(field, value);
+								}
 							} else {
-								map2.put(field, value);
-							}
-						} else {
 
-							// 非时间字段使用模糊查询
-							sb.append(field);
-							sb.append(" LIKE '%");
-							sb.append(value);
-							sb.append("%' AND ");
+								// 非时间字段使用模糊查询
+								sb.append(field);
+								sb.append(" LIKE '%");
+								sb.append(value);
+								sb.append("%' AND ");
+							}
+						}
+
+						if (map1.isEmpty()) {
+							sb = new StringBuffer(sb.substring(0,
+									sb.length() - 5));
+						}
+
+						// 时间字段使用范围查询
+						for (Entry<String, String> entry : map1.entrySet()) {
+							String key = entry.getKey();
+							sb.append("(" + key);
+							sb.append(" BETWEEN ");
+							sb.append("TO_DATE('" + entry.getValue() + "','"
+									+ INPUT_TIME_TEMPLATE + "')");
+							sb.append(" AND ");
+							sb.append("TO_DATE('" + map2.get(key) + "','"
+									+ INPUT_TIME_TEMPLATE + "'))");
+							sb.append(" OR ");
+							sb.append("(" + key);
+							sb.append(" BETWEEN ");
+							sb.append("TO_DATE('" + map2.get(key) + "','"
+									+ INPUT_TIME_TEMPLATE + "')");
+							sb.append(" AND ");
+							sb.append("TO_DATE('" + entry.getValue() + "','"
+									+ INPUT_TIME_TEMPLATE + "'))");
 						}
 					}
 
-					if (map1.isEmpty()) {
-						sb = new StringBuffer(sb.substring(0, sb.length() - 5));
-					}
-
-					// 时间字段使用范围查询
-					for (Entry<String, String> entry : map1.entrySet()) {
-						String key = entry.getKey();
-						sb.append("(" + key);
-						sb.append(" BETWEEN ");
-						sb.append("TO_DATE('" + entry.getValue() + "','"
-								+ INPUT_TIME_TEMPLATE + "')");
-						sb.append(" AND ");
-						sb.append("TO_DATE('" + map2.get(key) + "','"
-								+ INPUT_TIME_TEMPLATE + "'))");
-						sb.append(" OR ");
-						sb.append("(" + key);
-						sb.append(" BETWEEN ");
-						sb.append("TO_DATE('" + map2.get(key) + "','"
-								+ INPUT_TIME_TEMPLATE + "')");
-						sb.append(" AND ");
-						sb.append("TO_DATE('" + entry.getValue() + "','"
-								+ INPUT_TIME_TEMPLATE + "'))");
-					}
 					sb.append(" ORDER BY ");
 					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 							+ "MODIFYTIME");

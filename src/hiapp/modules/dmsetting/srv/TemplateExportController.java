@@ -95,6 +95,7 @@ public class TemplateExportController {
 		}
 		return serviceresult.toJson();
 	}
+	
 	//获取单个导出模板配置信息
 	@RequestMapping(value = "/srv/dm/dmGetBizExportMapColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetBizExportMapColumns(@RequestParam("bizId") String bizId,
@@ -102,10 +103,12 @@ public class TemplateExportController {
 		ServiceResult serviceresult = new ServiceResult();
 		String exportJson = "";	
 		exportJson = templateExportRepository.getBizExportMapColumn(bizId,templateId);	
+		
 		serviceresult.setReturnCode(0);
 		serviceresult.setReturnMessage(exportJson);
 		return serviceresult.toJson();
 	}
+	
 	//修改单个导出模板配置信息
 	@RequestMapping(value = "/srv/dm/dmModifyBizExportMapColumus.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBizExportMapColumus(@RequestParam("bizId") String bizId,

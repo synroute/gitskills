@@ -34,8 +34,17 @@ public class CustomerController {
 
 	// 获取UserId
 	@RequestMapping(value = "/srv/agent/getUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String getUserId(HttpSession session) {
-		return ((User) session.getAttribute("user")).getId();
+	public Map<String, Object> getUserId(HttpSession session) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		try {
+			result.put("data", ((User) session.getAttribute("user")).getId());
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+		}
+		result.put("result", 0);
+		return result;
 	}
 
 	// 更具字典id和字典级别id获取字典文本

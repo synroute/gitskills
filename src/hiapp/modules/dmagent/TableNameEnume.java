@@ -107,7 +107,7 @@ public enum TableNameEnume {
 			map3.put("LENGTH", -1);
 			
 			Map<String, Object> map4 = new HashMap<String, Object>();
-			map4.put("COLUMNNAME", getAbbr() + "." + "SOUECEID");
+			map4.put("COLUMNNAME", getAbbr() + "." + "SOURCEID");
 			map4.put("COLUMNNAMECH", "来源编号");
 			map4.put("COLUMNDESCRIPTION", "来源编号");
 			map4.put("dataType", "varchar");
