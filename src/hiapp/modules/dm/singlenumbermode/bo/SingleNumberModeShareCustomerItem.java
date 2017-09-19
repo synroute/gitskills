@@ -198,6 +198,15 @@ public class SingleNumberModeShareCustomerItem {
         isLoaded = loaded;
     }
 
+    public Boolean getRemovedFlag() {
+        return removedFlag;
+    }
+
+    public void setRemovedFlag(Boolean removedFlag) {
+        this.removedFlag = removedFlag;
+    }
+
+
     int id;
     int bizId;
     String shareBatchId;
@@ -222,5 +231,6 @@ public class SingleNumberModeShareCustomerItem {
     int   lostCallTotalCount; //未接通总次数
 
     // 非本表字段
-    Date shareBatchStartTime;
+    Date shareBatchStartTime;  //用于优先级控制
+    Boolean removedFlag;
 }

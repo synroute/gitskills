@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.result.DMBizTemplateExcelColums;
@@ -317,9 +318,10 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	public   boolean dmModifyBizImportMapColumns(DMBizImportTemplate dmBizImportTemplate,String mapColumns){
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		JsonObject jsonObject=new JsonParser().parse(mapColumns).getAsJsonObject();
 		try {
 			dbConn =this.getDbConnection();
-			String szSql =String.format( "update  HASYS_DM_BIZTEMPLATEIMPORT set xml='"+mapColumns+"' WHERE TemplateID="+dmBizImportTemplate.getTemplateId()+" AND BusinessId="+dmBizImportTemplate.getBizId()+" ");
+			String szSql =String.format( "update  HASYS_DM_BIZTEMPLATEIMPORT set xml='"+jsonObject.toString()+"' WHERE TemplateID="+dmBizImportTemplate.getTemplateId()+" AND BusinessId="+dmBizImportTemplate.getBizId()+" ");
 			stmt = dbConn.prepareStatement(szSql);
 			
 			stmt.execute();

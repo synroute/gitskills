@@ -1,7 +1,9 @@
 package hiapp.modules.dmsetting.srv;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,20 +67,22 @@ public class AutomaticController {
 	public String dmGetBizCustomer(@RequestParam("bizId") int bizId,@RequestParam("Cid") String Cid,@RequestParam("IID") String IID,
 			@RequestParam("columns") String columns) {
 		RecordsetResult recordsetResult = new RecordsetResult();
-		JsonObject jsonObject=new JsonObject();
+		Map<String, String> map=new HashMap<String, String>(); 
 		try {
 			
+			map=dmBizAutomatic.dmGetBizCustomer(bizId,Cid,IID,columns);
 			
-			jsonObject=dmBizAutomatic.dmGetBizCustomer(bizId,Cid,IID,columns);
 			recordsetResult.setReturnCode(0);
-			recordsetResult.setReturnMessage(jsonObject.toString());
-			
+			recordsetResult.setReturnMessage("成功");
+			recordsetResult.getRows().add(map);
 		} catch (Exception e) {
 			e.printStackTrace();
 			recordsetResult.setReturnCode(1);
 			recordsetResult.setReturnMessage("失败");
+			recordsetResult.getRows().add(map);
 		}
-		return jsonObject.toString();
+		return recordsetResult.toJson();
+
 	}
 	
 	
@@ -86,18 +90,19 @@ public class AutomaticController {
 	public String dmGetBizCustomerHis(@RequestParam("bizId") int bizId,@RequestParam("Cid") String Cid,
 			@RequestParam("columns") String columns) {
 		RecordsetResult recordsetResult = new RecordsetResult();
-		JsonObject jsonObject=new JsonObject();
+		List<Map<String,String>>  map=new ArrayList<Map<String,String>>(); 
 		try {
-			jsonObject=dmBizAutomatic.dmGetBizCustomerHis(bizId,Cid,columns);
-			recordsetResult.setReturnCode(0);
-			recordsetResult.setReturnMessage(jsonObject.toString());
 			
+			map=dmBizAutomatic.dmGetBizCustomerHis(bizId,Cid,columns);
+			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
+			recordsetResult.setPage(0);
+			recordsetResult.setTotal(map.size());
+			recordsetResult.setPageSize(map.size());
+			recordsetResult.setRows(map);
 		} catch (Exception e) {
 			e.printStackTrace();
-			recordsetResult.setReturnCode(1);
-			recordsetResult.setReturnMessage("失败");
 		}
-		return jsonObject.toString();
+		return recordsetResult.toJson();
 	}
 	
 	@RequestMapping(value = "/srv/dm/dmGetAllBizColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
