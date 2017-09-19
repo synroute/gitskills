@@ -260,7 +260,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	}
 	
 	//根据业务号获取url
-		private String dmGetAutomaticPageUrl(int bizId) {
+		public String dmGetAutomaticPageUrl(int bizId) {
 			 
 			Connection dbConn = null;
 			String url="";
@@ -284,7 +284,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		}
 	
 		//根据业务号获取url
-				private boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl) {
+				public boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl) {
 					 
 					Connection dbConn = null;
 					String url="";

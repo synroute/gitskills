@@ -157,10 +157,12 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				{
 					jsonObject_column.addProperty("RowIndex", "");
 					jsonObject_column.addProperty("DbFieldName", workSheetColumn.getColumnName());
+					jsonObject_column.addProperty("DbFieldNameCh", workSheetColumn.getColumnNameCh());
 					jsonObject_column.addProperty("ExcelHeader", "");
 					jsonArray.add(jsonObject_column);
 				}else{
 					jsonObject_column.addProperty("FieldName", workSheetColumn.getColumnName());
+					jsonObject_column.addProperty("FieldNameCh", workSheetColumn.getColumnNameCh());
 					jsonObject_column.addProperty("FieldNameSource", "");
 					jsonArray.add(jsonObject_column);
 				}

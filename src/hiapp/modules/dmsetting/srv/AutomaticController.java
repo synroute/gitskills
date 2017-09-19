@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.JsonObject;
 
 import hiapp.modules.dmsetting.result.*;
+import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.data.DmBizAutomaticRepository;
 import hiapp.utils.serviceresult.RecordsetResult;
+import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
 @RestController
 public class AutomaticController {
@@ -115,5 +117,30 @@ public class AutomaticController {
 		return recordsetResult.toJson();
 	}
 	
-	
+	@RequestMapping(value = "srv/dm/dmCreateAutomaticPageUrl.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmCreateAutomaticPageUrl(@RequestParam("bizId") int bizId,@RequestParam("pageName") String pageName,
+			@RequestParam("pageUrl") String pageUrl) {
+		
+		ServiceResult serviceresult = new ServiceResult();
+		if(dmBizAutomatic.dmCreateAutomaticPageUrl(bizId,pageName,pageUrl))
+		{
+			serviceresult.setReturnCode(0);
+			serviceresult.setReturnMessage("成功");
+		}else {
+			serviceresult.setReturnCode(0);
+			serviceresult.setReturnMessage("失败");
+		}
+		return serviceresult.toJson();
+	}
+	@RequestMapping(value = "srv/dm/dmGetAutomaticPageUrl.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmGetAutomaticPageUrl(@RequestParam("bizId") int bizId) {
+		
+		ServiceResult serviceresult = new ServiceResult();
+		String json= dmBizAutomatic.dmGetAutomaticPageUrl(bizId);
+		
+			serviceresult.setReturnCode(0);
+			serviceresult.setReturnMessage(json);
+		
+		return serviceresult.toJson();
+	}
 }
