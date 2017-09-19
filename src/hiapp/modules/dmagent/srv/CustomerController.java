@@ -32,7 +32,7 @@ public class CustomerController {
 	@Autowired
 	private DictRepository dictRepository;
 
-	//获取UserId
+	// 获取UserId
 	@RequestMapping(value = "/srv/agent/getUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String getUserId(HttpSession session) {
 		return ((User) session.getAttribute("user")).getId();
@@ -252,7 +252,7 @@ public class CustomerController {
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	public String dataToListPattern(Map[][] data) {
+	public String dataToListPattern1(Map[][] data) {
 		return "<table width=100% height=100% cellpadding=0 cellspacing=0>"
 				+ "<tr height=18px>"
 				+ "<th width=118px align=left style='font-size:8px;color: "
@@ -309,13 +309,76 @@ public class CustomerController {
 	}
 
 	/**
+	 * 讲数据注入模板
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public Map<String,String> dataToListPattern(Map[][] data) {
+		HashMap<String, String> hashMap = new HashMap<String, String>();
+		String result = "<table width=100% height=100% cellpadding=0 cellspacing=0>"
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[0][0].get("fontColor")
+				+ "'>"
+				+ data[0][0].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[0][1].get("fontColor")
+				+ "'>"
+				+ data[0][1].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[0][2].get("fontColor")
+				+ "'>"
+				+ data[0][2].get("value")
+				+ "</th>"
+				+ "</tr>"
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[1][0].get("fontColor")
+				+ "'>"
+				+ data[1][0].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[1][1].get("fontColor")
+				+ "'>"
+				+ data[1][1].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[1][2].get("fontColor")
+				+ "'>"
+				+ data[1][2].get("value")
+				+ "</th>"
+				+ "</tr>"
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[2][0].get("fontColor")
+				+ "'>"
+				+ data[2][0].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[2][1].get("fontColor")
+				+ "'>"
+				+ data[2][1].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[2][2].get("fontColor")
+				+ "'>"
+				+ data[2][2].get("value")
+				+ "</th>" + "</tr>" + "</table>";
+		hashMap.put("compose", result);
+		return hashMap;
+	}
+
+	/**
 	 * 把要显示的数据拼接成html供前台显示
 	 * 
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public List<String> listToHtml(List<List<Map<String, Object>>> queryData) {
-		List<String> result = new ArrayList<String>();
+	public List<Map<String,String>> listToHtml(List<List<Map<String, Object>>> queryData) {
+		List<Map<String,String>> result = new ArrayList<Map<String,String>>();
 		for (List<Map<String, Object>> list : queryData) {
 			Map[][] maps = new Map[3][3];
 			// 设置默认值
@@ -337,7 +400,7 @@ public class CustomerController {
 	}
 
 	/**
-	 * 支持坐席根据不同业务和管理员自定义配置的查询条件查询所有客户数据.
+	 * 支持坐席根据不同业务和管理员自定义配置的查询条件查询我的客户数据.
 	 * 
 	 * @param queryRequest
 	 * @return
@@ -386,7 +449,7 @@ public class CustomerController {
 			return result;
 		}
 
-		result.put("data", listToHtml(list));
+		result.put("data",listToHtml(list));
 		result.put("result", 0);
 		result.put("pageSize", pageSize);
 		result.put("pageNum", pageNum);
@@ -404,7 +467,7 @@ public class CustomerController {
 	 * @return
 	 */
 	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> queryMyPresetCustomers(
+	public Map<String,Object> queryMyPresetCustomers(
 			QueryRequest queryRequest, HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();
