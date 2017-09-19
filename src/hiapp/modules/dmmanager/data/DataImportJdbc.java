@@ -277,7 +277,8 @@ public class DataImportJdbc extends BaseRepository{
 				jsonData=ClobToString(rs.getClob(1));	
 			}
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
-			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
+			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
+			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
 			for (int i = 0; i < dataArray.size(); i++) {
@@ -423,7 +424,8 @@ public class DataImportJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 	    	//解析JSON RepetitionExcludeType
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
-			JsonObject excelTemplate=jsonObject.get("ImportExcelTemplate").getAsJsonObject();
+			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
+			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
 			String repetitionExcludeType=excelTemplate.get("RepetitionExcludeType").getAsString();
 			String RepetitionColumn=excelTemplate.get("RepetitionExcludeWorkSheetColumn").getAsString();
 			String RepetitionColumnCh=excelTemplate.get("RepetitionExcludeWorkSheetColumnCh").getAsString();
