@@ -259,6 +259,28 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		return listDMBizAutomaticColumns;
 	}
 	
-	
+	/*//根据结果名获取工作表id
+		private String getAutomaticPageUrl(int bizId) {
+			 
+			Connection dbConn = null;
+			String url="";
+			PreparedStatement stmt = null;	
+			ResultSet rs = null;	
+			try {
+				dbConn = this.getDbConnection();
+				String szSql =String.format("select ID from HASYS_WORKSHEET where NAME='%s' ", szWorkSheetName) ;
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				if (rs.next()) {
+					url=rs.getString(1)
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally{
+				DbUtil.DbCloseConnection(dbConn);
+				DbUtil.DbCloseQuery(rs, stmt);
+			}
+			return workSheetId;
+		}*/
 	
 }

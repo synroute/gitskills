@@ -204,13 +204,21 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        
 		        
 		        JsonArray jsonArray_EndCode= new JsonArray();
+		        JsonObject jsonobject_info=new JsonObject();
+		        
 		        JsonObject jsonObject_EndCode=new JsonObject();
 		        jsonObject_EndCode.addProperty("endCodeType", EndCodeType);
 		        jsonObject_EndCode.addProperty("endCode", EndCode);
 		        jsonObject_EndCode.addProperty("endCodedescription", Description);
 		        jsonObject_EndCode.addProperty("redialStateName", "");
 		        jsonArray_EndCode.add(jsonObject_EndCode);
-		        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
+		        jsonobject_info.add("dataInfo", jsonArray_EndCode);
+		        
+		        JsonArray jsonArray_show= new JsonArray();
+		        jsonobject_info.add("dataShow", jsonArray_show);
+		        JsonArray jsonArray_zong= new JsonArray();
+		        jsonArray_zong.add(jsonobject_info);
+		        jsonObject.add("EndCodeRedialStrategy", jsonArray_zong);
 		        
 		        
 		        	
@@ -223,13 +231,15 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				
 				JsonObject jsonObject= new JsonParser().parse(xml).getAsJsonObject();
 				JsonArray jsonArray=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
-
+				JsonObject jsonObject_endChild=jsonArray.get(0).getAsJsonObject();
+				JsonArray jsonArry_endChild=jsonObject_endChild.get("dataInfo").getAsJsonArray();
 				JsonObject jsonObject_EndCode=new  JsonObject();
+				
 				
 				jsonObject_EndCode.addProperty("EndCodeType", EndCodeType);
 		        jsonObject_EndCode.addProperty("EndCode", EndCode);
 		        jsonObject_EndCode.addProperty("RedialStateName", "");
-		        jsonArray.add(jsonObject_EndCode);
+		        jsonArry_endChild.add(jsonObject_EndCode);
 				
 		            String updatesql = "update HASYS_DM_BIZOUTBOUNDSETTING set XML='"+jsonObject.toString()+"' where BusinessId="+bizid+"";
 		            stmt = conn.prepareStatement(updatesql);
