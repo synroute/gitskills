@@ -2,7 +2,9 @@ package hiapp.modules.dm.singlenumbermode.bo;
 
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /*
@@ -26,7 +28,6 @@ import java.util.Map;
 </AddSetting>
 */
 
-@Component
 public class EndCodeRedialStrategy {
 
     public void setEndCodeToRedialStateName(String resultCodeType, String resultCode, String redialStateName) {
@@ -58,11 +59,44 @@ public class EndCodeRedialStrategy {
         return RedialStateMap.get(redialStateName);
     }
 
+    public void addRedialState(RedialState redialState) {
+        RedialStateMap.put(redialState.getName(), redialState);
+    }
+
+    public void addEndCodeToRedialState(String endCodeType, String endCode, String stateName) {
+        EndCodeToRedialStateNameMap.put(endCodeType + endCode, stateName);
+    }
+
     Map<String, RedialState> RedialStateMap = new HashMap<String, RedialState>();
 
     Map<String, String> EndCodeToRedialStateNameMap = new HashMap<String, String>();  // key <=> EndCodeType + EndCode
 
     int StageLimit;
     String StageExceedNextStateName;
+
+
+    public static EndCodeRedialStrategy getInstance(EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB) {
+
+        EndCodeRedialStrategy endCodeRedialStrategy = new EndCodeRedialStrategy();
+
+        List<RedialState> redialSateList = endCodeRedialStrategyFromDB.getRedialSate();
+        for (RedialState redialState : redialSateList) {
+            endCodeRedialStrategy.addRedialState(redialState);
+        }
+
+        EndCodeRedialStrategyFromDB.EndCodeRedialStrategyItem endCodeRedialStrategyItem = endCodeRedialStrategyFromDB.getEndCodeRedialStrategy();
+
+        EndCodeRedialStrategyFromDB.DataShow dataShow = endCodeRedialStrategyItem.getDataShow();
+        endCodeRedialStrategy.setStageLimit(dataShow.getStageLimit());
+        endCodeRedialStrategy.setStageExceedNextStateName(dataShow.getStageExceedNextState());
+
+
+        List<EndCodeRedialStrategyFromDB.DataInfo> dataInfoList = endCodeRedialStrategyItem.getDataInfo();
+        for (EndCodeRedialStrategyFromDB.DataInfo dataInfo : dataInfoList) {
+            endCodeRedialStrategy.addEndCodeToRedialState(dataInfo.getEndCodeType(), dataInfo.getEndCode(), dataInfo.getRedialStateName());
+        }
+
+        return endCodeRedialStrategy;
+    }
 
 }

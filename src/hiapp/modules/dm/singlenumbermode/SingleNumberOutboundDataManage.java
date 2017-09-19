@@ -97,12 +97,12 @@ public class SingleNumberOutboundDataManage {
         Map<String,SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
         SingleNumberModeShareCustomerItem customerItem = map.get(importBatchId+customerId);
 
-        String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
+        EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(bizId);
 
         // 经过 Outbound 策略处理器
-        procEndcode(bizId, shareBatchId, customerId, customerItem.getState(), resultCodeType, resultCode);
+        procEndcode(customerItem, endCodeRedialStrategy, resultCodeType, resultCode, presetTime);
 
-        // 更新导入表
+        // 插入导入表
         reviseCustomerInfo();
 
         return "";
@@ -134,7 +134,7 @@ public class SingleNumberOutboundDataManage {
 
     public void initialize() {
 
-        EndCodeRedialStrategy endCodeRedialStrategy = new EndCodeRedialStrategy();
+        /*EndCodeRedialStrategy endCodeRedialStrategy = new EndCodeRedialStrategy();
         endCodeRedialStrategy.setStageLimit(8);
 
         endCodeRedialStrategy.setStageExceedNextStateName("stageExceedNextStateName");
@@ -155,7 +155,24 @@ public class SingleNumberOutboundDataManage {
         endCodeRedialStrategy.setRedialStateItem("stateName2", redialState);
 
         String jsonObject=new Gson().toJson(endCodeRedialStrategy);
-        System.out.println(jsonObject);
+        System.out.println(jsonObject);*/
+
+        /*EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB = new EndCodeRedialStrategyFromDB();
+        RedialState redialState = new RedialState();
+        redialState.setDescription("description");
+        redialState.setLoopRedialCountExceedNextState("loopRedialCountExceedNextStateName");
+        redialState.setLoopRedialDialCount(9);
+        redialState.setLoopRedialFirstDialDayDialCountLimit(2);
+        redialState.setLoopRedialPerdayCountLimit(3);
+        redialState.setName("statename");
+        redialState.setStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
+        redialState.setStageRedialDelayDays(20);
+
+        endCodeRedialStrategyFromDB.addRedialState(redialState);
+        endCodeRedialStrategyFromDB.addEndCodeRedialStrategyItem();
+
+        String jsonObject=new Gson().toJson(endCodeRedialStrategyFromDB);
+        System.out.println(jsonObject);*/
 
 
         setDailyRoutine();
@@ -400,116 +417,137 @@ public class SingleNumberOutboundDataManage {
         // TODO
     }
 
-    private void procEndcode(int bizId, String shareBatchId, String customerId,
-                             SingleNumberModeShareCustomerStateEnum originalShareState,
-                             String resultCodeType, String resultCode) {
-        RedialState redialState = null; //endCodeRedialStrategy.getNextRedialState(resultCodeType, resultCode);
+    private void procEndcode(SingleNumberModeShareCustomerItem originCustomerItem,
+                             EndCodeRedialStrategy endCodeRedialStrategy,
+                             String resultCodeType, String resultCode, Date presetTime) {
+
+        Date today = new Date();
+        Boolean needRemove = true;
+
+        RedialState newRedialState = endCodeRedialStrategy.getNextRedialState(resultCodeType, resultCode);
 
         SingleNumberModeShareCustomerItem item = new SingleNumberModeShareCustomerItem();
-        item.setBizId(bizId);
-        item.setShareBatchId(shareBatchId);
-        item.setCustomerId(customerId);
+        item.setBizId(originCustomerItem.getBizId());
+        item.setShareBatchId(originCustomerItem.getShareBatchId());
+        item.setCustomerId(originCustomerItem.getCustomerId());
         item.setEndCodeType(resultCodeType);
         item.setEndCode(resultCode);
 
-        RedialStateTypeEnum redialStateType = redialState.getRedialStateType();
+        RedialStateTypeEnum redialStateType = newRedialState.getStateType();
         if (RedialStateTypeEnum.REDIAL_STATE_FINISHED.equals(redialStateType)) {
             // 更新共享状态表
             singleNumberModeDAO.updateCustomerShareStateToFinish(item);
 
+            // 插入共享历史表
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
-            // 更新结果表
+            // 插入结果表
             dmDAO.insertDMResult();
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_PRESET.equals(redialStateType)) {
             // 更新共享状态表   nextDialTime
+            item.setNextDialTime(presetTime);
             singleNumberModeDAO.updateCustomerShareStateToPreset(item);
 
+            // 插入共享历史表
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
-            // 更新结果表
+            // 插入结果表
             dmDAO.insertDMResult();
 
-            // 更新预约表
+            // 插入预约表
             dmDAO.insertPresetItem(null);
+
+            // 不要移出候选池，预约在今天
+            if (isSameDay(today, presetTime))
+                needRemove = false;
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_PHASE.equals(redialStateType)) {
             // 更新共享状态表  nextDialTime  curRedialStageCount
             // 到达最后阶段，直接跳转状态
+            item.setCurRedialStageCount(originCustomerItem.getCurRedialStageCount() + 1);
+            if ( item.getCurRedialStageCount() >= endCodeRedialStrategy.getStageLimit()) {
+                item.setState(SingleNumberModeShareCustomerStateEnum.getFromString(
+                        endCodeRedialStrategy.getStageExceedNextStateName()));
+            } else {
+                item.setNextDialTime(getNextXDay(newRedialState.getStageRedialDelayDays()));
+            }
+
             singleNumberModeDAO.updateCustomerShareStateToStage(item);
 
+            // 插入共享历史表
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
-            // 更新结果表
+            // 插入结果表
             dmDAO.insertDMResult();
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_LOSTCALL.equals(redialStateType)) {
             // 更新共享状态表  lostcallFirstDay  curDayLostCallCount  lostcallTotalCount
             // 总未接通数到达限定值，直接跳转状态
             // 每天未接通数到达限定值，移出候选池。每天处理时重新移回候选池。
+            if (0 == originCustomerItem.getLostCallTotalCount()) {
+                // 第一次发生未接通 的情形
+                item.setLostCallFirstDay(today);
+                originCustomerItem.setLostCallFirstDay(today);  // 必须设置，为了保持后续一致
+            }
+
+            item.setLostCallTotalCount(originCustomerItem.getLostCallTotalCount() + 1);
+            item.setLostCallCurDayCount(originCustomerItem.getLostCallCurDayCount() + 1);
+            if (item.getLostCallTotalCount() >= newRedialState.getLoopRedialDialCount()) {
+                item.setState(SingleNumberModeShareCustomerStateEnum.getFromString(
+                        newRedialState.getLoopRedialCountExceedNextState()));
+            } else {
+                int todayLoopRedialCountLimit = newRedialState.getLoopRedialPerdayCountLimit();
+                if (isSameDay(today, originCustomerItem.getLostCallFirstDay())) {
+                    todayLoopRedialCountLimit = newRedialState.getLoopRedialFirstDialDayDialCountLimit();
+                }
+
+                if (item.getLostCallCurDayCount() < todayLoopRedialCountLimit) {
+                    //不要移出候选池，还需要继续拨打
+                    needRemove = false;
+                }
+            }
+
             singleNumberModeDAO.updateCustomerShareStateToLostCall(item);
 
+            // 插入共享历史表
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
-            // 更新结果表
+            // 插入结果表
             dmDAO.insertDMResult();
         }
 
-        //若是预约拨打，更新 预约状态 @ 预约表
-        if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(originalShareState)) {
-            dmDAO.updatePresetState(bizId, shareBatchId, customerId, "???");
+        //若是当前是预约拨打，更新 预约状态 @ 预约表
+        if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(originCustomerItem.getState())) {
+            dmDAO.updatePresetState(item.getBizId(), item.getShareBatchId(), item.getCustomerId(), "预约完成");
         }
 
+        originCustomerItem.setRemovedFlag(needRemove);
     }
 
-/*
-<AddSetting>
-	<RedialState>
-		<Item Name="结案" Description="名称:结案;不再拨打;" StateType="结束" StageRedialDelayDays="" LoopRedialFirstDialDayDialCountLimit="" LoopRedialDialCount="" LoopRedialPerdayCountLimit="" LoopRedialCountExceedNextState=""/>
-		<Item Name="预约" Description="名称:预约;预约;" StateType="预约" StageRedialDelayDays="" LoopRedialFirstDialDayDialCountLimit="" LoopRedialDialCount="" LoopRedialPerdayCountLimit="" LoopRedialCountExceedNextState=""/>
-	</RedialState>
-	<EndCodeRedialStrategy StageLimit="1" StageExceedNextState="结案">
-		<Item EndCodeType="已联系上结案" EndCode="已联系上结案" RedialStateName="结案"/>
-		<Item EndCodeType="已联系上未结案" EndCode="已联系上未结案" RedialStateName="预约"/>
-		<Item EndCodeType="无效号码结案" EndCode="无效号码结案" RedialStateName="结案"/>
-		<Item EndCodeType="无效号码未结案" EndCode="无效号码未结案" RedialStateName="预约"/>
-		<Item EndCodeType="未联系上结案" EndCode="未联系上结案" RedialStateName="结案"/>
-		<Item EndCodeType="未联系上未结案" EndCode="未联系上未结案" RedialStateName="预约"/>
-		<Item EndCodeType="其他结案" EndCode="其他结案" RedialStateName="结案"/>
-		<Item EndCodeType="其他未结案" EndCode="其他未结案" RedialStateName="预约"/>
-		<Item EndCodeType="" EndCode="" RedialStateName=""/>
-	</EndCodeRedialStrategy>
-</AddSetting>
-            */
+    EndCodeRedialStrategy getEndCodeRedialStrategyByBizId(int bizId) {
+        String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
 
-    private void analyzeRedialStrategy(String strategy) {
-        Map<Integer, EndCodeRedialStrategy> mapBizIdVsEndCodeRedialStrategy;
+        EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB = new Gson().fromJson(jsonEndCodeRedialStrategy,
+                                                                              EndCodeRedialStrategyFromDB.class);
 
-        /*Map<String, RedialState> m_mapEndCodeVsRedialState;  // key <=> EndCodeType + EndCode
-        int StageLimit;
-        RedialState stageExceedNextState;*/
-
-       /* EndCodeRedialStrategy endCodeRedialStrategy = new EndCodeRedialStrategy();
-        endCodeRedialStrategy.setStageLimit(8);
-
-        endCodeRedialStrategy.setStageExceedNextStateName("stageExceedNextStateName");
-
-        RedialState redialState = new RedialState();
-        redialState.setDescription("description");
-        redialState.setLoopRedialCountExceedNextStateName("loopRedialCountExceedNextStateName");
-        redialState.setLoopRedialDialCount(9);
-        redialState.setLoopRedialFirstDialDayDialCountLimit(2);
-        redialState.setLoopRedialPerdayCountLimit(3);
-        redialState.setName("statename");
-        redialState.setRedialStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
-        redialState.setStageRedialDelayDays(20);
-        endCodeRedialStrategy.setEndCodeStrategyItem("EndCodeType", "EndCode", redialState);
-
-        String jsonObject=new Gson().toJson(endCodeRedialStrategy);
-        System.out.println(jsonObject);*/
+        return EndCodeRedialStrategy.getInstance(endCodeRedialStrategyFromDB);
     }
 
+    public Date getNextXDay(int deltaDayNum) {
+        Calendar curDay = Calendar.getInstance();
+        curDay.setTime(new Date());
+        curDay.add(Calendar.DAY_OF_MONTH, deltaDayNum);
+        curDay.set(Calendar.HOUR_OF_DAY, 0);
+        curDay.set(Calendar.MINUTE, 0);
+        curDay.set(Calendar.SECOND, 0);
+        curDay.set(Calendar.MILLISECOND, 0);
+        return curDay.getTime();
+    }
+
+    public Boolean isSameDay(Date date1, Date date2) {
+        return date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth() && date1.getDay() == date2.getDay();
+    }
 
 }
 
