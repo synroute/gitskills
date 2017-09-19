@@ -132,7 +132,7 @@ public class TemplateImportController {
 
 	
 	@RequestMapping(value = "srv/dm/dmGetBizImportTableName.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmGetBizImportTableName(@RequestParam("bizId") int bizId) {
+	public String dmGetBizImportTableName() {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try{
 			List<DMBizTemplateImportTableName> listDmBizImportTableName=new ArrayList<DMBizTemplateImportTableName>();
