@@ -113,28 +113,26 @@ public class CustomerController {
 			String columnNameCH = (String) map.get("columnNameCH");
 			String controlType = (String) map.get("controlType");
 			String dataType = (String) map.get("dataType");
+			sb.append("<div>"+columnNameCH+":</div>");
 			if ("文本框".equals(controlType)) {
 				sb.append("<input class='easyui-textbox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' style='width:250px' data-options='label:'"
+						+ "' style='width:250px'"
 						+ columnNameCH + ":''>");
 			} else if ("日期时间框".equals(controlType)) {
 				sb.append("<input class='easyui-datetimebox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' label='"
-						+ columnNameCH
 						+ "' labelPosition='left' style='width:250px'>");
 			} else if ("下拉框".equals(controlType)) {
 				sb.append("<select class='easyui-combobox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' style='width:250px' data-options='label:'"
-						+ columnNameCH + ":''>");
+						+ "' style='width:250px'");
 				String dictId = (String) map.get("dictId");
 				String dictLevel = (String) map.get("dictLevel");
 				List<String> itemsText = getItemsByDictIdAndLevel(
