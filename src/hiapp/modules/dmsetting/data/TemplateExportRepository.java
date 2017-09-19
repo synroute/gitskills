@@ -66,7 +66,7 @@ public class TemplateExportRepository extends BaseRepository{
 		}
 		try {
 			dbConn = this.getDbConnection();
-			String szSql2 = String.format("INSERT INTO HASYS_DM_BIZTEMPLATEEXPORT (ID,TemplateID,BusinessId,Name,Description,IsDefault) VALUES(HASYS_DM_BIZTEMPLATEEXPORT_TEMPLATEID.nextval,'%s','%s','%s','%s','%s')",templateID,bizId,name,description,isDefault);
+			String szSql2 = String.format("INSERT INTO HASYS_DM_BIZTEMPLATEEXPORT (ID,TemplateID,BusinessId,Name,Description,IsDefault) VALUES(S_HASYS_DM_BIZTEMPLATEEXPORT.nextval,'%s','%s','%s','%s','%s')",templateID,bizId,name,description,isDefault);
 			PreparedStatement stmt2 = dbConn.prepareStatement(szSql2);
 			stmt2.execute();
 		} catch (SQLException e) {

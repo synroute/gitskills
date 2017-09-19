@@ -87,7 +87,6 @@ public class DmBizRepository extends BaseRepository{
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {/////////////////////////////////////////////////////////////////
-			dbConn = this.getDbConnection();
 			int count=0;
 			szSql = " select COUNT(*) from HASYS_DM_BUSINESS where NAME='";
 			szSql+=name;
@@ -107,9 +106,20 @@ public class DmBizRepository extends BaseRepository{
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {/////////////////////////////////////////////////////////////////
-			dbConn = this.getDbConnection();
 			szSql = String.format("INSERT INTO HASYS_DM_BUSINESS (BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID) "+ "VALUES ('%s','%s','%s','%s',%s) ", 
 									id,name, description, ownerGroupId,modeId);
+			stmt = dbConn.prepareStatement(szSql);		
+			stmt.execute();				
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			DbUtil.DbCloseExecute(stmt);		
+		}
+		
+		try {//增加数据源池
+			dbConn = this.getDbConnection();
+			szSql = String.format("INSERT INTO HASYS_DM_DATAPOOL (ID,BUSINESSID,DATAPOOLNAME,DATAPOOLTYPE,DATAPOOLDES,PID,AREATYPE,POOLTOPLIMIT) "+ "VALUES (S_HASYS_DM_DATAPOOL.nextval,'%s','数据源池',1,'数据源池',-1,2,1000) ", 
+									id);
 			stmt = dbConn.prepareStatement(szSql);		
 			stmt.execute();				
 		} catch (Exception e) {
@@ -224,7 +234,7 @@ public class DmBizRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("DELETE FROM Hasys_DM_ BIZOutboundSetting WHERE BUSINESSID='%s'",bizId);
+			szSql = String.format("DELETE FROM Hasys_DM_BIZOutboundSetting WHERE BUSINESSID='%s'",bizId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
 			szSql = String.format("DELETE FROM HASYS_DM_BIZENDCODE WHERE BUSINESSID='%s'",bizId);
