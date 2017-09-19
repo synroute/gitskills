@@ -89,7 +89,7 @@ public class CustomerController {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "text/html;charset=utf-8")
 	public String getQueryTemplateForHTML(QueryTemplate queryTemplate) {
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
