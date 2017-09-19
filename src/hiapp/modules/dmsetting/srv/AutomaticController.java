@@ -52,6 +52,7 @@ public class AutomaticController {
 			recordsetResult.setTotal(listDMBizAutomaticColumns.size());
 			recordsetResult.setPageSize(listDMBizAutomaticColumns.size());
 			recordsetResult.setRows(listDMBizAutomaticColumns);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -75,7 +76,7 @@ public class AutomaticController {
 			recordsetResult.setReturnCode(1);
 			recordsetResult.setReturnMessage("失败");
 		}
-		return recordsetResult.toJson();
+		return jsonObject.toString();
 	}
 	
 	
@@ -94,7 +95,7 @@ public class AutomaticController {
 			recordsetResult.setReturnCode(1);
 			recordsetResult.setReturnMessage("失败");
 		}
-		return recordsetResult.toJson();
+		return jsonObject.toString();
 	}
 	
 	@RequestMapping(value = "/srv/dm/dmGetAllBizColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")

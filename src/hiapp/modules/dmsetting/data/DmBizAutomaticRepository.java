@@ -259,8 +259,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		return listDMBizAutomaticColumns;
 	}
 	
-	/*//根据结果名获取工作表id
-		private String getAutomaticPageUrl(int bizId) {
+	//根据业务号获取url
+		private String dmGetAutomaticPageUrl(int bizId) {
 			 
 			Connection dbConn = null;
 			String url="";
@@ -268,11 +268,11 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			ResultSet rs = null;	
 			try {
 				dbConn = this.getDbConnection();
-				String szSql =String.format("select ID from HASYS_WORKSHEET where NAME='%s' ", szWorkSheetName) ;
+				String szSql =String.format("select pageurl from HASYS_DM_PAGE_MAP_PER where BUSINESSID='%s' ", bizId) ;
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				if (rs.next()) {
-					url=rs.getString(1)
+					url=rs.getString(1);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -280,7 +280,30 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				DbUtil.DbCloseConnection(dbConn);
 				DbUtil.DbCloseQuery(rs, stmt);
 			}
-			return workSheetId;
-		}*/
+			return url;
+		}
 	
+		//根据业务号获取url
+				private boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl) {
+					 
+					Connection dbConn = null;
+					String url="";
+					PreparedStatement stmt = null;	
+					ResultSet rs = null;	
+					try {
+						dbConn = this.getDbConnection();
+						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(BUSINESSID,PAGENAME,PAGEURL) VALUES(%s,'%s','%s') ", bizId,pageName,pageUrl) ;
+						stmt = dbConn.prepareStatement(szSql);
+						stmt.execute();
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+						return false;
+					} finally{
+						DbUtil.DbCloseConnection(dbConn);
+						DbUtil.DbCloseQuery(rs, stmt);
+					}
+					return true;
+				}
+		
 }
