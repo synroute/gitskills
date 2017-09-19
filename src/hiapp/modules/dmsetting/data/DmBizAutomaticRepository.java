@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -132,24 +134,26 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	
 	
 	//根据cid，iid获取客户信息
-	public JsonObject dmGetBizCustomer(int bizId,String Cid,String IID,String columns)
+	public Map<String,String> dmGetBizCustomer(int bizId,String Cid,String IID,String columns)
 	{
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		
+		Map<String,String> map=new HashMap<String, String>(); 
 		JsonObject jsonObject=new JsonObject();
 		try {
 			dbConn =this.getDbConnection();
 			//查询客户信息
+			
 			String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"' and IID='"+IID+"'";
 			stmt = dbConn.prepareStatement(szSelectSql);
 			rs = stmt.executeQuery();
 			String[] column=columns.split(",");
 			while(rs.next()){
-				for(int i=0;i<column.length-1;i++)
+				for(int i=0;i<column.length;i++)
 				{
-					jsonObject.addProperty(column[i], rs.getString(column[i]));
+					map.put(column[i], rs.getString(column[i]));
+					//jsonObject.addProperty(column[i], rs.getString(column[i]));
 				}
 			}
 			stmt.close();
@@ -160,19 +164,23 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseExecute(stmt);
 		}
-		return jsonObject;
+		return map;
 	}
+
 	//根据cid查询前台所需信息
-	public JsonObject dmGetBizCustomerHis(int bizId,String Cid,String columns)
+	public List<Map<String,String>> dmGetBizCustomerHis(int bizId,String Cid,String columns)
 	{
+		List<Map<String,String>> list=new ArrayList<Map<String,String>>();
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
 		JsonObject jsonObject=new JsonObject();
 		JsonArray jsonArray=new JsonArray();
+		Map<String,String> map=new HashMap<String, String>(); 
 		try {
 			dbConn =this.getDbConnection();
+			//String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"'";
 			String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT,HASYS_DM_B"+bizId+"C_PresetTime,HAU_DM_B"+bizId+"C_RESULT "
 					+ " where HAU_DM_B"+bizId+"C_IMPORT.Cid=HAU_DM_B"+bizId+"C_RESULT.CID and HAU_DM_B"+bizId+"C_IMPORT.Cid=HASYS_DM_B"+bizId+"C_PresetTime.CID Cid='"+Cid+"'";
 			stmt = dbConn.prepareStatement(szSelectSql);
@@ -180,11 +188,14 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			String[] column=columns.split(",");
 			while(rs.next()){
 				JsonObject jsonObject_row=new JsonObject();
-				for(int i=0;i<column.length-1;i++)
+				for(int i=0;i<column.length;i++)
 				{
-					String[] workColumn=column[i].split(".");
-					jsonObject_row.addProperty(column[i], rs.getString(workColumn[1]));
+					String columnString=column[i];
+					String[] workColumn=columnString.split("\\.");
+					map.put(column[i], rs.getString(workColumn[1]));
+					
 				}
+				list.add(map);
 				jsonArray.add(jsonObject_row);
 			}
 			stmt.close();
@@ -196,7 +207,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			DbUtil.DbCloseExecute(stmt);
 		}
 		jsonObject.add("rows", jsonArray);
-		return jsonObject;
+		return list;
 	}
 	
 	
