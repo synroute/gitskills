@@ -6,17 +6,18 @@ package hiapp.modules.dmsetting.result;
  */
 public class DMBizTemplateImportTableColumns {
 	private String column_Name;//列名称
-	private String data_type;//数据类型
+	private String comments;//数据类型
 	public String getColumn_Name() {
 		return column_Name;
 	}
 	public void setColumn_Name(String column_Name) {
 		this.column_Name = column_Name;
 	}
-	public String getData_type() {
-		return data_type;
+	public String getComments() {
+		return comments;
 	}
-	public void setData_type(String data_type) {
-		this.data_type = data_type;
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
+	
 }

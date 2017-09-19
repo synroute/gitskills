@@ -270,13 +270,13 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		List<DMBizTemplateImportTableColumns> listDmTableColumns=new ArrayList<DMBizTemplateImportTableColumns>();
 		try {
 			dbConn =this.getDbConnection();
-			String szSql = String.format("select column_name,data_type from user_tab_columns where Table_Name='%s'",tableName);
+			String szSql = String.format("select column_name,comments from user_col_comments cc where cc.table_name='%s'",tableName);
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
 				DMBizTemplateImportTableColumns dmBizTemplateImportTableColumns =new DMBizTemplateImportTableColumns();
 				dmBizTemplateImportTableColumns.setColumn_Name(rs.getString(1));
-				dmBizTemplateImportTableColumns.setData_type(rs.getString(2));
+				dmBizTemplateImportTableColumns.setComments(rs.getString(2));
 				listDmTableColumns.add(dmBizTemplateImportTableColumns);
 			}
 
