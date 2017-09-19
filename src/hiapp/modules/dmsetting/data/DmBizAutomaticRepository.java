@@ -259,6 +259,51 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		return listDMBizAutomaticColumns;
 	}
 	
+	//根据业务号获取url
+		public String dmGetAutomaticPageUrl(int bizId) {
+			 
+			Connection dbConn = null;
+			String url="";
+			PreparedStatement stmt = null;	
+			ResultSet rs = null;	
+			try {
+				dbConn = this.getDbConnection();
+				String szSql =String.format("select pageurl from HASYS_DM_PAGE_MAP_PER where BUSINESSID='%s' ", bizId) ;
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				if (rs.next()) {
+					url=rs.getString(1);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally{
+				DbUtil.DbCloseConnection(dbConn);
+				DbUtil.DbCloseQuery(rs, stmt);
+			}
+			return url;
+		}
 	
-	
+		//根据业务号获取url
+				public boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl) {
+					 
+					Connection dbConn = null;
+					String url="";
+					PreparedStatement stmt = null;	
+					ResultSet rs = null;	
+					try {
+						dbConn = this.getDbConnection();
+						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(BUSINESSID,PAGENAME,PAGEURL) VALUES(%s,'%s','%s') ", bizId,pageName,pageUrl) ;
+						stmt = dbConn.prepareStatement(szSql);
+						stmt.execute();
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+						return false;
+					} finally{
+						DbUtil.DbCloseConnection(dbConn);
+						DbUtil.DbCloseQuery(rs, stmt);
+					}
+					return true;
+				}
+		
 }

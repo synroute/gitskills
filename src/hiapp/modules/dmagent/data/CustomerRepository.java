@@ -45,7 +45,7 @@ public class CustomerRepository extends BaseRepository {
 	@Autowired
 	private PermissionRepository permissionRepository;
 
-	private final String INPUT_TIME_TEMPLATE = "yyyy/MM/dd HH24:mi:ss";
+	private final String INPUT_TIME_TEMPLATE = "MM/dd/YYYY HH24:mi:ss";
 	private final String OUTPUT_TIME_TEMPLATE = "yyyy/MM/dd HH:mm:ss";
 
 	// 给返回的候选列添加序号

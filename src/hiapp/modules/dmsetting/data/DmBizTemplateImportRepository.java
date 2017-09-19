@@ -110,8 +110,10 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 			}
 			JsonObject jsonObject =new JsonObject();
 			JsonObject jsonObject_row=new JsonObject();
+			JsonArray jsonArray_Import=new JsonArray();
 			if(dmBizImportTemplate.getDataSourceType().equals("Excel"))
 			{
+				
 				jsonObject_row.addProperty("ExcelDefaultExt", ".xlsx");
 				jsonObject_row.addProperty("ExcelColEnd", "26");
 				jsonObject_row.addProperty("ExcelRowStart", "2");
@@ -121,16 +123,19 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumn", "id");
 				jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumnCh", "编号");
 				jsonObject_row.addProperty("RepetitionExcludeDayCount", "2");
-				jsonObject.add("ImportExcelTemplate", jsonObject_row);
+				jsonArray_Import.add(jsonObject_row);
+				jsonObject.add("ImportExcelTemplate", jsonArray_Import);
 				
 			}else{
+				
 				jsonObject_row.addProperty("ImportTableName", "HAU_DM_B"+dmBizImportTemplate.getBizId()+"C_IMPORT");
 				jsonObject_row.addProperty("SourceTableName", "");
 				jsonObject_row.addProperty("DateTimeFilterField", "ImportDate");
 				jsonObject_row.addProperty("ServerAutoImport", "");
 				jsonObject_row.addProperty("ServerAutoImportInterval", "");
 				jsonObject_row.addProperty("ServerAutoImportFieldLatestSource", "");
-				jsonObject.add("ImportExcelTemplate",jsonObject_row);
+				jsonArray_Import.add(jsonObject_row);
+				jsonObject.add("ImportExcelTemplate", jsonArray_Import);
 			}
 			JsonArray jsonArray=new JsonArray();
 			
@@ -152,10 +157,12 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				{
 					jsonObject_column.addProperty("RowIndex", "");
 					jsonObject_column.addProperty("DbFieldName", workSheetColumn.getColumnName());
+					jsonObject_column.addProperty("DbFieldNameCh", workSheetColumn.getColumnNameCh());
 					jsonObject_column.addProperty("ExcelHeader", "");
 					jsonArray.add(jsonObject_column);
 				}else{
 					jsonObject_column.addProperty("FieldName", workSheetColumn.getColumnName());
+					jsonObject_column.addProperty("FieldNameCh", workSheetColumn.getColumnNameCh());
 					jsonObject_column.addProperty("FieldNameSource", "");
 					jsonArray.add(jsonObject_column);
 				}

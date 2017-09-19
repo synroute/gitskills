@@ -357,7 +357,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				dmWorkSheet.setWorksheetNameCh(rs.getString(3));
 				dmWorkSheet.setWorksheetDes(rs.getString(4));
 				dmWorkSheet.setWorksheetType(rs.getString(5));
-				dmWorkSheet.setIdNameCh(String.format("%d:%s", dmWorkSheet.getWorksheetId(),dmWorkSheet.getWorksheetNameCh()));
+				dmWorkSheet.setIdNameCh(String.format("%s:%s", dmWorkSheet.getWorksheetId(),dmWorkSheet.getWorksheetNameCh()));
 				listWorkSheet.add(dmWorkSheet);
 			}
 		} catch (SQLException e) {

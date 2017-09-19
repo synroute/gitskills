@@ -32,7 +32,7 @@ public class CustomerController {
 	@Autowired
 	private DictRepository dictRepository;
 
-	//获取UserId
+	// 获取UserId
 	@RequestMapping(value = "/srv/agent/getUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String getUserId(HttpSession session) {
 		return ((User) session.getAttribute("user")).getId();
@@ -85,12 +85,13 @@ public class CustomerController {
 
 	/**
 	 * 获取查询HTML模板
-	 * 
+	 * @param queryTemplate
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String getQueryTemplateForHTML(QueryTemplate queryTemplate) {
+	public Map<String, Object> getQueryTemplateForHTML(QueryTemplate queryTemplate) {
+		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
 		try {
@@ -99,7 +100,9 @@ public class CustomerController {
 					List.class);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "";
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+			return result;
 		}
 
 		StringBuffer sb = new StringBuffer();
@@ -110,28 +113,26 @@ public class CustomerController {
 			String columnNameCH = (String) map.get("columnNameCH");
 			String controlType = (String) map.get("controlType");
 			String dataType = (String) map.get("dataType");
+			sb.append("<div>"+columnNameCH+":</div>");
 			if ("文本框".equals(controlType)) {
 				sb.append("<input class='easyui-textbox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' style='width:250px' data-options='label:'"
+						+ "' style='width:250px'"
 						+ columnNameCH + ":''>");
 			} else if ("日期时间框".equals(controlType)) {
 				sb.append("<input class='easyui-datetimebox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' label='"
-						+ columnNameCH
 						+ "' labelPosition='left' style='width:250px'>");
 			} else if ("下拉框".equals(controlType)) {
 				sb.append("<select class='easyui-combobox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' style='width:250px' data-options='label:'"
-						+ columnNameCH + ":''>");
+						+ "' style='width:250px'");
 				String dictId = (String) map.get("dictId");
 				String dictLevel = (String) map.get("dictLevel");
 				List<String> itemsText = getItemsByDictIdAndLevel(
@@ -144,7 +145,9 @@ public class CustomerController {
 			sb.append("</div>");
 		}
 		sb.append("</form>");
-		return sb.toString();
+		result.put("data", sb.toString());
+		result.put("result", 0);
+		return result;
 	}
 
 	/**
@@ -252,7 +255,7 @@ public class CustomerController {
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	public String dataToListPattern(Map[][] data) {
+	public String dataToListPattern1(Map[][] data) {
 		return "<table width=100% height=100% cellpadding=0 cellspacing=0>"
 				+ "<tr height=18px>"
 				+ "<th width=118px align=left style='font-size:8px;color: "
@@ -309,13 +312,76 @@ public class CustomerController {
 	}
 
 	/**
+	 * 讲数据注入模板
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public Map<String,String> dataToListPattern(Map[][] data) {
+		HashMap<String, String> hashMap = new HashMap<String, String>();
+		String result = "<table width=100% height=100% cellpadding=0 cellspacing=0>"
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[0][0].get("fontColor")
+				+ "'>"
+				+ data[0][0].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[0][1].get("fontColor")
+				+ "'>"
+				+ data[0][1].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[0][2].get("fontColor")
+				+ "'>"
+				+ data[0][2].get("value")
+				+ "</th>"
+				+ "</tr>"
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[1][0].get("fontColor")
+				+ "'>"
+				+ data[1][0].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[1][1].get("fontColor")
+				+ "'>"
+				+ data[1][1].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[1][2].get("fontColor")
+				+ "'>"
+				+ data[1][2].get("value")
+				+ "</th>"
+				+ "</tr>"
+				+ "<tr height=18px>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[2][0].get("fontColor")
+				+ "'>"
+				+ data[2][0].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[2][1].get("fontColor")
+				+ "'>"
+				+ data[2][1].get("value")
+				+ "</th>"
+				+ "<th width=118px align=left style='font-size:8px;color: "
+				+ data[2][2].get("fontColor")
+				+ "'>"
+				+ data[2][2].get("value")
+				+ "</th>" + "</tr>" + "</table>";
+		hashMap.put("compose", result);
+		return hashMap;
+	}
+
+	/**
 	 * 把要显示的数据拼接成html供前台显示
 	 * 
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public List<String> listToHtml(List<List<Map<String, Object>>> queryData) {
-		List<String> result = new ArrayList<String>();
+	public List<Map<String,String>> listToHtml(List<List<Map<String, Object>>> queryData) {
+		List<Map<String,String>> result = new ArrayList<Map<String,String>>();
 		for (List<Map<String, Object>> list : queryData) {
 			Map[][] maps = new Map[3][3];
 			// 设置默认值
@@ -337,7 +403,7 @@ public class CustomerController {
 	}
 
 	/**
-	 * 支持坐席根据不同业务和管理员自定义配置的查询条件查询所有客户数据.
+	 * 支持坐席根据不同业务和管理员自定义配置的查询条件查询我的客户数据.
 	 * 
 	 * @param queryRequest
 	 * @return
@@ -386,7 +452,7 @@ public class CustomerController {
 			return result;
 		}
 
-		result.put("data", listToHtml(list));
+		result.put("data",listToHtml(list));
 		result.put("result", 0);
 		result.put("pageSize", pageSize);
 		result.put("pageNum", pageNum);
@@ -404,7 +470,7 @@ public class CustomerController {
 	 * @return
 	 */
 	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> queryMyPresetCustomers(
+	public Map<String,Object> queryMyPresetCustomers(
 			QueryRequest queryRequest, HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();

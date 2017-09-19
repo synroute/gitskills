@@ -88,7 +88,8 @@ public class DMBizShareController {
 		ServiceResultCode serviceResultCode=null;
 		String newId = idFactory.newId("DM_SID");
 		String s=null;
-		String bizid=businessId;
+		//String bizid=businessId;
+		int bizid=Integer.parseInt(businessId);
 		String[] ary = importId.split(",");
 		try {
 			for (int i = 0; i < ary.length; i++){
@@ -115,6 +116,7 @@ public class DMBizShareController {
 		    	 serviceresult.setReturnCode(0);
 				 serviceresult.setResultCode(ServiceResultCode.SUCCESS);
 				 serviceresult.setReturnMessage("共享成功");
+				 //serviceresult.setReturnMessage(newId);
 				 s=serviceresult.toJson();
 				 return s;
 			}
@@ -125,27 +127,33 @@ public class DMBizShareController {
 	}
 	//追加共享
 	@RequestMapping(value="/srv/DataShareController/appendShareDataByShareId.srv", method=RequestMethod.POST, produces="application/json;charset=utf-8")
-	public String appendShareDataByShareId(@RequestParam(value="ShareBatchId") String shareBatchId,
-		                                   @RequestParam(value="saveid") String[] saveid,
-			                               @RequestParam(value="businessId") String businessId,
-			                               @RequestParam(value="importId") String[] importId,
-			                               HttpServletRequest request,
-			                               @RequestParam(value="shareName") String shareName,
-			                   			   @RequestParam(value="description") String description){
+	public String appendShareDataByShareId(
+			@RequestParam(value="businessId") String businessId,
+			@RequestParam(value="importId") String importId,
+			@RequestParam(value="shareName") String shareName,
+			@RequestParam(value="description") String description,
+			@RequestParam(value="shareid") String shareid,
+			HttpServletRequest request
+			){
+		System.out.println("业务id==="+businessId);
+		System.out.println("导入批次id===="+importId);
+		System.out.println("共享名称     ===="+shareName);
+		System.out.println("共享描述"+description);
+		System.out.println("共享号"+shareid);
 		HttpSession session=request.getSession(false);
 		User user=(User) session.getAttribute("user");
 		ServiceResult serviceresult = new ServiceResult();
 		ServiceResultCode serviceResultCode=null;
 		String s=null;
-		 String bizid=businessId;
+		 int bizid=Integer.parseInt(businessId);
+		 String[] ary = importId.split(",");
 		try {
-			for (int i = 0; i < saveid.length; i++) {	
-				 String shareid=saveid[i];
-				 String iId = importId[i];
+			for (int i = 0; i < ary.length; i++) {	
+				 String iId = ary[i];
 			//向单号码重播共享状态表添加数据并返回共享批次号id
-			 dMBizDataImport.confirmShareData(shareid,bizid,user,shareBatchId);
+			 dMBizDataImport.confirmShareData(iId,bizid,user,shareid);
 			 //向单号码重播共享历史表状态表添加数据
-			 dMBizDataImport.confirmShareDataOne(shareid,bizid,user,shareBatchId);
+			 dMBizDataImport.confirmShareDataOne(iId,bizid,user,shareid);
 			 //查询当前的业务的数据池
 			 int dataPool = dMBizDataImport.confirmShareDataTwo(bizid);
 			 //更改数据池记录表数据
@@ -153,7 +161,7 @@ public class DMBizShareController {
 			 //向数据池操作记录表添加数据
 			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool);
 			 //向共享批次信息表添加数据
-			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,shareBatchId,shareName,description,user);
+			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,shareid,shareName,description,user);
 			}
 			if(serviceResultCode != ServiceResultCode.SUCCESS){
 		    	 serviceresult.setResultCode(serviceResultCode);
