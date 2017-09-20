@@ -156,7 +156,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					List<DMDataPool> listDmDataPool=new ArrayList<DMDataPool>();
 					try {
 						dbConn =this.getDbConnection();
-						String szSql = String.format("select ID,DataPoolName,PID from HASYS_DM_DATAPOOL where BusinessID=%s",bizId);
+						String szSql = String.format("select ID,DataPoolName,PID,DATAPOOLTYPE from HASYS_DM_DATAPOOL where BusinessID=%s",bizId);
 						stmt = dbConn.prepareStatement(szSql);
 						rs = stmt.executeQuery();
 						while(rs.next()){
@@ -164,6 +164,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 							dmDataPool.setPoolId(rs.getInt(1));
 							dmDataPool.setDataPoolName(rs.getString(2));
 							dmDataPool.setpId(rs.getInt(3));
+							dmDataPool.setDataPoolType(rs.getString(4));
 							listDmDataPool.add(dmDataPool);
 						}
 					} catch (SQLException e) {
