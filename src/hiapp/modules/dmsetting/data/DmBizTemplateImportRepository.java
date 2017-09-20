@@ -235,21 +235,23 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String json="";
+		String SourceType="";
 		try {
 			dbConn =this.getDbConnection();
-			String szSql = String.format("select xml from HASYS_DM_BIZTEMPLATEIMPORT where BusinessID="+dmBizImportTemplate.getBizId()+" and TemplateID="+dmBizImportTemplate.getTemplateId()+"");
+			String szSql = String.format("select xml,SourceType from HASYS_DM_BIZTEMPLATEIMPORT where BusinessID="+dmBizImportTemplate.getBizId()+" and TemplateID="+dmBizImportTemplate.getTemplateId()+"");
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
 				json=rs.getString(1);
+				SourceType=rs.getString(2);
 			}
 
-			if(json.equals(""))
+			if(json==null)
 			{
 				JsonObject jsonObject =new JsonObject();
 				JsonObject jsonObject_row=new JsonObject();
 				JsonArray jsonArray_Import=new JsonArray();
-				if(dmBizImportTemplate.getDataSourceType().equals("Excel"))
+				if(SourceType.equals("Excel"))
 				{
 					
 					jsonObject_row.addProperty("ExcelDefaultExt", ".xlsx");
@@ -291,7 +293,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				for (int i = 0; i < listColumns.size(); i++) {
 					WorkSheetColumn workSheetColumn=listColumns.get(i);
 					JsonObject jsonObject_column=new JsonObject();
-					if(dmBizImportTemplate.getDataSourceType().equals("Excel"))
+					if(SourceType.equals("Excel"))
 					{
 						jsonObject_column.addProperty("RowIndex", "");
 						jsonObject_column.addProperty("DbFieldName", workSheetColumn.getColumnName());
