@@ -70,7 +70,7 @@ public class DMBizDataShare extends BaseRepository {
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject(); 
 			//从对象中获取列名数组json集合
 			dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
-			String sql="select iid,cid,";
+			String sql="select iid,";
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < dataArray.size(); i++) {
 				sb.append(dataArray.get(i).getAsJsonObject().get(flag).getAsString()+",");
