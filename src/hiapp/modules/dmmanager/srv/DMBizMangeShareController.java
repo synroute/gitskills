@@ -2,6 +2,9 @@ package hiapp.modules.dmmanager.srv;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dmmanager.DataPool;
+import hiapp.modules.dmmanager.ShareBatchItemS;
+import hiapp.modules.dmmanager.TreePool;
+import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import hiapp.system.buinfo.Permission;
 import hiapp.system.buinfo.RoleInGroupSet;
@@ -73,8 +76,8 @@ public class DMBizMangeShareController {
 		//User user = (User) session.getAttribute("user");
 		String json = null;
 		try {
-			List<ShareBatchItem> shareBatchItem = new ArrayList<ShareBatchItem>();
-			List<ShareBatchItem> list = bizMangeShare.getUserShareBatchByTime(
+			List<ShareBatchItemS> shareBatchItem = new ArrayList<ShareBatchItemS>();
+			List<ShareBatchItemS> list = bizMangeShare.getUserShareBatchByTime(
 					businessID, startTime, endTime,shareBatchItem);
 			json = new Gson().toJson(list);
 
@@ -148,29 +151,21 @@ public class DMBizMangeShareController {
 	}
 
 	// 查询本批次创建人权限下共享区内所属座席池
-	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	//@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public void selectShareCustomer(HttpServletRequest request,HttpServletResponse response,
 			HttpSession session,
-			@RequestParam(value = "id",required=false) String id) {
-		if(id==null){
-			RoleInGroupSet roleInGroupSet = userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
-			Permission permission = permissionRepository.getPermission(roleInGroupSet);
-			int permissionId = permission.getId();
-			DataPool  dataPool = bizMangeShare.selectShareCustomer(permissionId);
-			String json=new Gson().toJson(dataPool);
-			try {
-				PrintWriter printWriter = response.getWriter();
-				printWriter.print(json);
-			} catch (IOException e) {
-				
-				e.printStackTrace();
+			@RequestParam(value = "id",required=false) String id,@RequestParam(value = "text",required=false)String text) {
+			String json=null;
+			if(text!=null){
+				List<DataPool> dataPoolList = bizMangeShare.selectShareCustomerById(id,text);
+				json=new Gson().toJson(dataPoolList);
+			}else{
+				RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
+				Permission permission = permissionRepository.getPermission(roleInGroupSet);
+				int permissionId = permission.getId();
+				DataPool  dataPool = bizMangeShare.selectShareCustomer(permissionId);
+				json=new Gson().toJson(dataPool);
 			}
-		}else if(id!=null){
-			RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(id);
-			Permission permission = permissionRepository.getPermission(roleInGroupSet);
-			int permissionId = permission.getId();
-			DataPool  dataPool = bizMangeShare.selectShareCustomer(permissionId);
-			String json=new Gson().toJson(dataPool);
 			try {
 				PrintWriter printWriter = response.getWriter();
 				printWriter.print(json);
@@ -181,7 +176,7 @@ public class DMBizMangeShareController {
 		}
 		
 		
-	}
+
 
 	// 将共享数据指定给哪个用户
 	@RequestMapping(value = "/srv/DMBizMangeShareController/addShareCustomerfByUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
@@ -215,4 +210,29 @@ public class DMBizMangeShareController {
 			return p;
 		}
 	}
+	
+	
+	
+	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String TreeViewByUserId(HttpSession session){
+		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
+		Permission permission = permissionRepository.getPermission(roleInGroupSet);
+		int permissionId = permission.getId();
+		List<UserItem> userItem=new ArrayList<UserItem>();
+		String s=null;
+		TreeDataResult result = new TreeDataResult();
+		List<TreePool> treePool=new ArrayList<TreePool>();
+		bizMangeShare.getUserPoolTree(permissionId,treePool);
+		List<UserItem> list=bizMangeShare.getUserPoolTreeByPermissionID(permissionId,treePool);
+		result.getData().addAll(list);
+		s=result.toJson();
+		return s;
+	}
+	
+	
+	
+	
+	
+	
+	
 }

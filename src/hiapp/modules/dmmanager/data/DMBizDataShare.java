@@ -43,13 +43,19 @@ public class DMBizDataShare extends BaseRepository {
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
 	@SuppressWarnings("resource")
 	public List<Map<String, Object>> getNotShareDataByTimes(
-			String StartTime,String EndTime,String businessId, String templateId) {
+			String StartTime,String EndTime,String businessId, String templateId,String sourceType) {
 		String getXmlSql = "";
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		Connection dbConn = null;
 		String jsonData=null;
 		JsonArray dataArray=null;
+		String flag=null;
+		if(sourceType.equals("Excel")){
+			flag="DbFieldName";
+		}else{
+			flag="FieldName";
+		}
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		try {
 			dbConn = this.getDbConnection();//select to_char(sysdate,'yy-mm-dd hh24:mi:ss')
@@ -67,7 +73,7 @@ public class DMBizDataShare extends BaseRepository {
 			String sql="select iid,";
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < dataArray.size(); i++) {
-				sb.append(dataArray.get(i).getAsJsonObject().get("FieldName").getAsString()+",");
+				sb.append(dataArray.get(i).getAsJsonObject().get(flag).getAsString()+",");
 			}
 			sb.deleteCharAt(sb.length()-1);
 			sql+=sb;
@@ -81,7 +87,7 @@ public class DMBizDataShare extends BaseRepository {
 				//列名不确定 需要循环 录入到 map集合中
 				for (int i = 0; i < dataArray.size(); i++) {
 					// 将循环出来的列名作为key
-					String key=dataArray.get(i).getAsJsonObject().get("FieldName").getAsString();
+					String key=dataArray.get(i).getAsJsonObject().get(flag).getAsString();
 					map.put(key,rs.getObject(key));
 				}
 				dataList.add(map);
@@ -128,6 +134,8 @@ public class DMBizDataShare extends BaseRepository {
 			stmt.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseConnection(dbConn);
 		}
 		return newId;
 	}
@@ -144,6 +152,8 @@ public class DMBizDataShare extends BaseRepository {
 			stmt.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseConnection(dbConn);
 		}
 	}
 
@@ -165,6 +175,9 @@ public class DMBizDataShare extends BaseRepository {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,stmt);
+			DbUtil.DbCloseConnection(dbConn);
 		}
 		return s;
 	}
@@ -182,6 +195,8 @@ public class DMBizDataShare extends BaseRepository {
 			stmt.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseConnection(dbConn);
 		}
 	}
 	//向数据池操作记录表添加数据
@@ -192,11 +207,13 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn=this.getDbConnection();
-			insertsql=String.format("INSERT INTO HAU_DM_B1C_POOL_ORE (ID,DID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
+			insertsql=String.format("INSERT INTO HAU_DM_B1C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseConnection(dbConn);
 		}
 	}
 	//向共享批次信息表添加数据

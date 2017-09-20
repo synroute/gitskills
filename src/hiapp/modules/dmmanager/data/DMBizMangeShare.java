@@ -3,8 +3,13 @@ package hiapp.modules.dmmanager.data;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dmmanager.DataPool;
+import hiapp.modules.dmmanager.ShareBatchItemS;
+import hiapp.modules.dmmanager.TreePool;
+import hiapp.modules.dmmanager.UserItem;
 import hiapp.system.buinfo.User;
 import hiapp.system.dictionary.Dict;
+import hiapp.system.dictionary.DictItem;
+import hiapp.system.dictionary.dicItemsTreeBranch;
 import hiapp.system.dictionary.dictTreeBranch;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
@@ -36,7 +41,7 @@ public class DMBizMangeShare extends BaseRepository{
 				//SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='%s' AND B.SHAREID=A.SHAREID;
 				                 //SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='管' AND B.SHAREID=A.SHAREID
 				//sql=String.format("SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='%s' AND B.SHAREID=A.SHAREID",user.getName());
-				sql=String.format("SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A");
+				sql=String.format("SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A WHERE NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME");
 				stmt = dbConn.prepareStatement(sql);
 				rs = stmt.executeQuery();
 				while (rs.next()) {
@@ -72,19 +77,22 @@ public class DMBizMangeShare extends BaseRepository{
 			return shareBatchItem;
 		}
 		//根据userid的权限 获取到规定时间内的共享批次数据，通过业务id
-				public List<ShareBatchItem> getUserShareBatchByTime(String businessID,
-						String startTime, String endTime,List<ShareBatchItem> shareBatchItem) {
+				public List<ShareBatchItemS> getUserShareBatchByTime(String businessID,
+						String startTime, String endTime,List<ShareBatchItemS> shareBatchItem) {
 					String sql = "";
 					PreparedStatement stmt = null;
 					Connection dbConn = null;
 					ResultSet rs = null;
 					try {
 						dbConn = this.getDbConnection();
-						sql=String.format("SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A WHERE AND A.CREATETIME BETWEEN to_date('%s','mm/dd/yyyy') AND to_date('%s','mm/dd/yyyy')",startTime,endTime);
+						   //SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HASYS_DM_B1C_DATAM3 GROUP BY SHAREID,BUSINESSID )B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date('09/02/2017','mm/dd/yyyy') AND A.CREATETIME < to_date('09/20/2017','mm/dd/yyyy') AND A.BUSINESSID=2
+						//sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A LEFT JOIN (SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HASYS_DM_B1C_DATAM3 GROUP BY SHAREID,BUSINESSID )B ON A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID="+businessID+" AND A.CREATETIME BETWEEN to_date('"+startTime+"','mm/dd/yyyy') AND to_date('"+endTime+"','mm/dd/yyyy')";
+						//  sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HASYS_DM_B1C_DATAM3 GROUP BY SHAREID,BUSINESSID )B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date('"+startTime+"','mm/dd/yyyy') AND A.CREATETIME < to_date('"+endTime+"','mm/dd/yyyy') AND A.BUSINESSID="+businessID+"";
+						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HASYS_DM_B1C_DATAM3 GROUP BY SHAREID,BUSINESSID )B WHERE  A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date('"+startTime+"','mm/dd/yyyy') AND A.CREATETIME < to_date('"+endTime+"','mm/dd/yyyy') AND A.BUSINESSID="+businessID+" AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME";
 						stmt = dbConn.prepareStatement(sql);
 						rs = stmt.executeQuery();
 						while (rs.next()) {
-							ShareBatchItem shareBatchItems = new ShareBatchItem();
+							ShareBatchItemS shareBatchItems = new ShareBatchItemS();
 							shareBatchItems.setId(rs.getInt(1));
 							shareBatchItems.setBizId(rs.getInt(2));
 							shareBatchItems.setShareBatchId(rs.getString(3));
@@ -108,10 +116,14 @@ public class DMBizMangeShare extends BaseRepository{
 							shareBatchItems.setState(shareBatchStateEnum);
 							shareBatchItems.setStartTime(rs.getDate(9));
 							shareBatchItems.setEndTime(rs.getDate(10));
+							shareBatchItems.setAbc(rs.getInt(11));
 							shareBatchItem.add(shareBatchItems);
 						}//select count(SHAREID)　from HASYS_DM_B1C_DATAM3   WHERE SHAREID='DM_SID_20170917_601' 
 					} catch (Exception e) {
 						e.printStackTrace();
+					}finally{
+						DbUtil.DbCloseQuery(rs,stmt);
+						DbUtil.DbCloseConnection(dbConn);
 					}
 					return shareBatchItem;
 				}
@@ -208,6 +220,9 @@ public class DMBizMangeShare extends BaseRepository{
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs,stmt);
+				DbUtil.DbCloseConnection(dbConn);
 			}
 			return DataPoolName;
 		}
@@ -232,6 +247,8 @@ public class DMBizMangeShare extends BaseRepository{
 				stmt.execute();
 			} catch (Exception e) {
 				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseConnection(dbConn);
 			}	
 		}
 		
@@ -253,7 +270,6 @@ public class DMBizMangeShare extends BaseRepository{
 					a=rs.getInt(1);
 					dataPool.setId(a);
 					dataPool.setText(rs.getString(2));
-					//list.add(dataPool);
 				}
 				
 				String childrenSql="select b.ID,b.DataPoolName from HASYS_DM_DATAPOOL b where b.pid=? and b.DataPoolType=3";
@@ -269,9 +285,112 @@ public class DMBizMangeShare extends BaseRepository{
 				dataPool.setChildren(list);
 			} catch (Exception e) {
 				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs,stmt);
+				DbUtil.DbCloseConnection(dbConn);
 			}
 			
 			return dataPool;	
 		}	
+		
+		public List<DataPool> selectShareCustomerById(String id,String text) {
+			PreparedStatement stmt = null;
+			Connection dbConn = null;
+			ResultSet rs = null;
+			List<DataPool> list=new ArrayList<DataPool>();
+			try {
+				dbConn=this.getDbConnection();
+				String childrenSql="select b.ID,b.DataPoolName from HASYS_DM_DATAPOOL b where b.pid=? and b.DataPoolType=3";
+				stmt = dbConn.prepareStatement(childrenSql);
+				stmt.setInt(1,Integer.valueOf(id));
+				rs = stmt.executeQuery();
+				while (rs.next()) {
+					DataPool dataPoolChildren=new DataPool();
+					dataPoolChildren.setId(rs.getInt(1));
+					dataPoolChildren.setText(rs.getString(2));
+					list.add(dataPoolChildren);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs, stmt);
+				DbUtil.DbCloseConnection(dbConn);
+			}
+			
+			return list;	
+		}
+		
+		
+		public void getUserPoolTree(int permissionId, List<TreePool> treePool) {
+			PreparedStatement stmt = null;
+			Connection dbConn = null;
+			ResultSet rs = null;
+			try {
+				dbConn=this.getDbConnection();
+				String sql="select id,DATAPOOLNAME,pid from HASYS_DM_DATAPOOL";
+				stmt = dbConn.prepareStatement(sql);
+				rs = stmt.executeQuery();
+				while (rs.next()) {
+					TreePool tree=new TreePool();
+					tree.setId(rs.getInt(1));
+					tree.setDataPoolName(rs.getString(2));
+					tree.setPid(rs.getInt(3));
+					treePool.add(tree);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs,stmt);
+				DbUtil.DbCloseConnection(dbConn);
+			}
+			}
+		
+		public List<UserItem> getUserPoolTreeByPermissionID(int permissionId,
+				List<TreePool> treePool) {
+			try {
+				List<UserItem> listDictItem=new ArrayList<UserItem>();
+				for (int i = 0; i < treePool.size(); i++) {
+					TreePool pool = treePool.get(i);
+					if(pool.getPid()==-1){
+						UserItem userItem=new UserItem();
+						userItem.setId(Integer.toString(pool.getId()));
+						userItem.setText(pool.getDataPoolName());
+						userItem.setState("");
+						userItem.setDicId(pool.getId());
+						userItem.setItemText(pool.getDataPoolName());
+						userItem.setItemId(pool.getPid());
+						listDictItem.add(userItem);
+						addChildren(userItem,treePool,permissionId);
+					}
+				}
+				return listDictItem;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+		public static boolean addChildren(UserItem userTreeBranch,
+				List<TreePool> treePool,Integer permissionId) {
+			    TreeSet<TreeNode> listChildrenBranchs = userTreeBranch.getChildren();
+			for (int ii = 0; ii < treePool.size(); ii++) {
+				TreePool TreePoolBranch = treePool.get(ii);
+				if (TreePoolBranch.getPid()== userTreeBranch.getDicId()) {
+					UserItem treeBranch = new UserItem();
+					treeBranch.setId(Integer.toString(TreePoolBranch.getId()));
+					treeBranch.setText(TreePoolBranch.getDataPoolName());
+					treeBranch.setState("");
+					treeBranch.setDicId(TreePoolBranch.getId());
+					treeBranch.setItemText(TreePoolBranch.getDataPoolName());
+					treeBranch.setItemId(TreePoolBranch.getPid());
+					listChildrenBranchs.add(treeBranch);
+					addChildren(treeBranch,treePool,permissionId);
+				}
+			}
+			return true;
+		}	
+		
+		
+		
+		
 		
 }
