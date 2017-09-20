@@ -1,6 +1,6 @@
 package hiapp.modules.dmsetting;
 
-import java.sql.Date;
+import java.util.Date;
 
 /** 
  * @author yangwentian
