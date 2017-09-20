@@ -236,9 +236,10 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				JsonObject jsonObject_EndCode=new  JsonObject();
 				
 				
-				jsonObject_EndCode.addProperty("EndCodeType", EndCodeType);
-		        jsonObject_EndCode.addProperty("EndCode", EndCode);
-		        jsonObject_EndCode.addProperty("RedialStateName", "");
+				jsonObject_EndCode.addProperty("endCodeType", EndCodeType);
+		        jsonObject_EndCode.addProperty("endCode", EndCode);
+		        jsonObject_EndCode.addProperty("endCodeDescription", Description);
+		        jsonObject_EndCode.addProperty("redialStateName", "");
 		        jsonArry_endChild.add(jsonObject_EndCode);
 				
 		            String updatesql = "update HASYS_DM_BIZOUTBOUNDSETTING set XML='"+jsonObject.toString()+"' where BusinessId="+bizid+"";
