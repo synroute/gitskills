@@ -78,7 +78,7 @@ public class DMBizDataShare extends BaseRepository {
 			sb.deleteCharAt(sb.length()-1);
 			sql+=sb;
 			//测试表名待修正
-			sql=sql+" from HAU_DM_B"+businessId+"C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
+			sql=sql+" from HAU_DM_B"+businessId+"C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B"+businessId+"C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
 			stmt=dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -129,7 +129,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HASYS_DM_B1C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
+			insertsql =String.format("INSERT INTO HAU_DM_B"+businessId+"C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -147,7 +147,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HASYS_DM_B"+bizid+"C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
+			insertsql =String.format("INSERT INTO HAU_DM_B"+bizid+"C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
