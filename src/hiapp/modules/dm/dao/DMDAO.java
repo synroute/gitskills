@@ -283,26 +283,15 @@ public class DMDAO extends BaseRepository {
         return true;
     }
 
-    public Boolean insertPresetItem(DMBizPresetItem presetItem) {
-//        private int id = 0;				//ID
-//        private String sourceId;	//来源编号，指分配编号或共享编号
-//        private String importId;	//导入批次ID
-//        private String customerId;	//客户号
-//        private java.sql.Date presetTime;	//预约时间
-//        private String state;		//预约状态
-//        private String comment;		//预约备注
-//        private int modifyId;		//修改ID
-//        private int modifyLast;		//是否为最后一次修改，0：否。1：是
-//        private int modifyUserId;	//修改用户ID
-//        private java.sql.Date modifyTime;	//修改时间
-//        private String modifyDesc;	//修改描述
-//        private String phoneType;	//号码类型  枚举
+    public Boolean insertPresetItem(int bizId, DMBizPresetItem presetItem) {
 
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO HASYS_DM_B1C_PresetTime (ID, SourceID, IID," +
-                "CID, PresetTime, State, Comment, ModifyId, ModifyUserId, ModifyTime, ModifyDesc，ModifyLast, PhoneType" +
-                ") VALUES ( ");
+        String presetTimeTableName = String.format("HASYS_DM_B%dC_PresetTime", bizId);
 
-        sqlBuilder.append("'").append(presetItem.getId()).append("',");
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO" + presetTimeTableName);
+        sqlBuilder.append(" (ID, SourceID, IID, CID, PresetTime, State, Comment, ModifyId, ModifyUserId, ModifyTime, " +
+                                      "ModifyDesc，ModifyLast, PhoneType) VALUES ( ");
+
+        sqlBuilder.append("'").append("S_" + presetTimeTableName + ".nextval").append("',");
         sqlBuilder.append("'").append(presetItem.getSourceId()).append("',");
         sqlBuilder.append("'").append(presetItem.getImportId()).append("',");
         sqlBuilder.append("'").append(presetItem.getCustomerId()).append("',");

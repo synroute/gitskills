@@ -105,7 +105,7 @@ public class SingleNumberOutboundDataManage {
         // 客户原信息变更、拨打信息、结果信息
 
         Map<String,SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
-        SingleNumberModeShareCustomerItem customerItem = map.get(importBatchId+customerId);
+        SingleNumberModeShareCustomerItem customerItem = map.get(importBatchId + customerId);
 
         EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(bizId);
 
@@ -244,16 +244,7 @@ public class SingleNumberOutboundDataManage {
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
         Boolean result = singleNumberModeDAO.getShareDataItemsByState(shareBatchItems, shareCustomerStateList, shareDataItems);
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
-            int bizId = customerItem.getBizId();
-            PriorityBlockingQueue<SingleNumberModeShareCustomerItem> dialPriorityQueue = mapDialCustomer.get(bizId);
-            if (null == dialPriorityQueue) {
-                dialPriorityQueue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, shareBatchBeginTimeComparator);
-                mapDialCustomer.put(bizId, dialPriorityQueue);
-            }
-
-            dialPriorityQueue.put(customerItem);
-
-            insertBizIdVsCustomerMap(bizId, customerItem);
+            addCustomerToPool(customerItem);
         }
 
         // 是否不需要 loaded 标记
@@ -268,25 +259,7 @@ public class SingleNumberOutboundDataManage {
         /*Boolean result = */ singleNumberModeDAO.getShareDataItemsByStateAndNextDialTime(shareBatchItems, shareCustomerStateList, shareDataItems3);
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems2) {
-            int bizId = customerItem.getBizId();
-            if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(customerItem.getState())) {
-                PriorityBlockingQueue<SingleNumberModeShareCustomerItem> presetDialPriorityQueue = mapPresetDialCustomer.get(bizId);
-                if (null == presetDialPriorityQueue) {
-                    presetDialPriorityQueue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
-                    mapPresetDialCustomer.put(bizId, presetDialPriorityQueue);
-                }
-                presetDialPriorityQueue.put(customerItem);
-            }
-            else if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(customerItem.getState())) {
-                PriorityBlockingQueue<SingleNumberModeShareCustomerItem> phaseDialPriorityQueue = mapPhaseDialCustomer.get(bizId);
-                if (null == phaseDialPriorityQueue) {
-                    phaseDialPriorityQueue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
-                    mapPhaseDialCustomer.put(bizId, phaseDialPriorityQueue);
-                }
-                phaseDialPriorityQueue.put(customerItem);
-            }
-
-            insertBizIdVsCustomerMap(bizId, customerItem);
+            addCustomerToPool(customerItem);
         }
 
         // 是否不需要 loaded 标记
@@ -304,14 +277,7 @@ public class SingleNumberOutboundDataManage {
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
         Boolean result = singleNumberModeDAO.getShareDataItemsByState(shareBatchItems, shareCustomerStateList, shareDataItems);
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
-            int bizId = customerItem.getBizId();
-            PriorityBlockingQueue<SingleNumberModeShareCustomerItem> dialPriorityQueue = mapDialCustomer.get(bizId);
-            if (null == dialPriorityQueue) {
-                dialPriorityQueue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, shareBatchBeginTimeComparator);
-                mapDialCustomer.put(bizId, dialPriorityQueue);
-            }
-
-            dialPriorityQueue.put(customerItem);
+            addCustomerToPool(customerItem);
         }
 
         // 是否不需要 loaded 标记
@@ -326,24 +292,7 @@ public class SingleNumberOutboundDataManage {
         result = singleNumberModeDAO.getShareDataItemsByStateAndNextDialTime(shareBatchItems, shareCustomerStateList, shareDataItems2);
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems2) {
-            if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(customerItem.getState())) {
-                int bizId = customerItem.getBizId();
-                PriorityBlockingQueue<SingleNumberModeShareCustomerItem> presetDialPriorityQueue = mapPresetDialCustomer.get(bizId);
-                if (null == presetDialPriorityQueue) {
-                    presetDialPriorityQueue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
-                    mapPresetDialCustomer.put(bizId, presetDialPriorityQueue);
-                }
-                presetDialPriorityQueue.put(customerItem);
-            }
-            else if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(customerItem.getState())) {
-                int bizId = customerItem.getBizId();
-                PriorityBlockingQueue<SingleNumberModeShareCustomerItem> phaseDialPriorityQueue = mapPhaseDialCustomer.get(bizId);
-                if (null == phaseDialPriorityQueue) {
-                    phaseDialPriorityQueue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
-                    mapPhaseDialCustomer.put(bizId, phaseDialPriorityQueue);
-                }
-                phaseDialPriorityQueue.put(customerItem);
-            }
+            addCustomerToPool(customerItem);
         }
 
         // 是否不需要 loaded 标记
@@ -410,6 +359,14 @@ public class SingleNumberOutboundDataManage {
         map.put(customerItem.getImportBatchId()+customerItem.getCustomerId(), customerItem);
     }
 
+    private void removeBizIdVsCustomerMap(int bizId, SingleNumberModeShareCustomerItem customerItem) {
+        Map<String,SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
+        if (null == map)
+            return;
+
+        map.remove(customerItem.getImportBatchId()+customerItem.getCustomerId(), customerItem);
+    }
+
     private void reviseCustomerInfo() {
         // TODO
     }
@@ -419,9 +376,9 @@ public class SingleNumberOutboundDataManage {
                              String resultCodeType, String resultCode, Date presetTime, String resultData) {
 
         Date today = new Date();
-        Boolean needRemove = true;
 
         RedialState newRedialState = endCodeRedialStrategy.getNextRedialState(resultCodeType, resultCode);
+        RedialStateTypeEnum redialStateType = newRedialState.getStateTypeEnum();
 
         SingleNumberModeShareCustomerItem item = new SingleNumberModeShareCustomerItem();
         item.setBizId(originCustomerItem.getBizId());
@@ -429,9 +386,13 @@ public class SingleNumberOutboundDataManage {
         item.setCustomerId(originCustomerItem.getCustomerId());
         item.setEndCodeType(resultCodeType);
         item.setEndCode(resultCode);
+        item.setModifyUserId(userId);
+        item.setModifyTime(today);
+        item.setModifyId(originCustomerItem.getModifyId() + 1);
 
-        RedialStateTypeEnum redialStateType = newRedialState.getStateTypeEnum();
         if (RedialStateTypeEnum.REDIAL_STATE_FINISHED.equals(redialStateType)) {
+            item.setState(SingleNumberModeShareCustomerStateEnum.FINISHED);
+
             // 更新共享状态表
             singleNumberModeDAO.updateCustomerShareStateToFinish(item);
 
@@ -439,6 +400,8 @@ public class SingleNumberOutboundDataManage {
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_PRESET.equals(redialStateType)) {
+            item.setState(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
+
             // 更新共享状态表   nextDialTime
             item.setNextDialTime(presetTime);
             singleNumberModeDAO.updateCustomerShareStateToPreset(item);
@@ -447,13 +410,29 @@ public class SingleNumberOutboundDataManage {
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
             // 插入预约表
-            dmDAO.insertPresetItem(null);
+            DMBizPresetItem presetItem = new DMBizPresetItem();
+            presetItem.setSourceId(originCustomerItem.getShareBatchId());
+            presetItem.setCustomerId(originCustomerItem.getCustomerId());
+            presetItem.setImportId(originCustomerItem.getImportBatchId());
+            presetItem.setPresetTime(presetTime);
+            presetItem.setState(DMPresetStateEnum.InUse.getStateName());
+            presetItem.setComment("xxx");
+            presetItem.setModifyId(item.getModifyId());
+            presetItem.setModifyLast(1);            // TODO 更新原来记录未0
+            presetItem.setModifyUserId(userId);
+            presetItem.setModifyTime(today);
+            presetItem.setModifyDesc("xxx");
+            presetItem.setPhoneType("xxx");
+            dmDAO.insertPresetItem(originCustomerItem.getBizId(), presetItem);
 
             // 不要移出候选池，预约在今天
-            if (isSameDay(today, presetTime))
-                needRemove = false;
+            if (isSameDay(today, presetTime)) {
+                addCustomerToPool(item);
+            }
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_PHASE.equals(redialStateType)) {
+            item.setState(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
+
             // 更新共享状态表  nextDialTime  curRedialStageCount
             // 到达最后阶段，直接跳转状态
             item.setCurRedialStageCount(originCustomerItem.getCurRedialStageCount() + 1);
@@ -470,6 +449,8 @@ public class SingleNumberOutboundDataManage {
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_LOSTCALL.equals(redialStateType)) {
+            item.setState(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL);
+
             // 更新共享状态表  lostcallFirstDay  curDayLostCallCount  lostcallTotalCount
             // 总未接通数到达限定值，直接跳转状态
             // 每天未接通数到达限定值，移出候选池。每天处理时重新移回候选池。
@@ -492,7 +473,7 @@ public class SingleNumberOutboundDataManage {
 
                 if (item.getLostCallCurDayCount() < todayLoopRedialCountLimit) {
                     //不要移出候选池，还需要继续拨打
-                    needRemove = false;
+                    addCustomerToPool(item);
                 }
             }
 
@@ -507,7 +488,7 @@ public class SingleNumberOutboundDataManage {
             dmDAO.updatePresetState(item.getBizId(), item.getShareBatchId(), item.getCustomerId(), DMPresetStateEnum.FinishPreset.getStateName());
         }
 
-        originCustomerItem.setRemovedFlag(needRemove);
+        removeCustomerFromPool(originCustomerItem);
     }
 
     EndCodeRedialStrategy getEndCodeRedialStrategyByBizId(int bizId) {
@@ -532,6 +513,48 @@ public class SingleNumberOutboundDataManage {
 
     public Boolean isSameDay(Date date1, Date date2) {
         return date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth() && date1.getDay() == date2.getDay();
+    }
+
+    private void removeCustomerFromPool(SingleNumberModeShareCustomerItem originCustomerItem ) {
+        /*PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
+        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(originCustomerItem.getState())) {
+            queue = mapPhaseDialCustomer.get(originCustomerItem.getBizId());
+        } else if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(originCustomerItem.getState())) {
+            queue = mapPresetDialCustomer.get(originCustomerItem.getBizId());
+        } else {
+            queue = mapDialCustomer.get(originCustomerItem.getBizId());
+        }
+
+        queue.remove(originCustomerItem);*/
+
+        removeBizIdVsCustomerMap(originCustomerItem.getBizId(), originCustomerItem);
+    }
+
+    private void addCustomerToPool(SingleNumberModeShareCustomerItem newCustomerItem) {
+        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
+        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(newCustomerItem.getState())) {
+            queue = mapPhaseDialCustomer.get(newCustomerItem.getBizId());
+            if (null == queue) {
+                queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
+                mapPhaseDialCustomer.put(newCustomerItem.getBizId(), queue);
+            }
+        } else if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(newCustomerItem.getState())) {
+            queue = mapPresetDialCustomer.get(newCustomerItem.getBizId());
+            if (null == queue) {
+                queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
+                mapPresetDialCustomer.put(newCustomerItem.getBizId(), queue);
+            }
+        } else {
+            queue = mapDialCustomer.get(newCustomerItem.getBizId());
+            if (null == queue) {
+                queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, shareBatchBeginTimeComparator);
+                mapDialCustomer.put(newCustomerItem.getBizId(), queue);
+            }
+        }
+
+        queue.put(newCustomerItem);
+
+        insertBizIdVsCustomerMap(newCustomerItem.getBizId(), newCustomerItem);
     }
 
 }
