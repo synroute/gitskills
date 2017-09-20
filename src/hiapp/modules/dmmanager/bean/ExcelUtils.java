@@ -60,7 +60,11 @@ public class ExcelUtils {
         	 for (int j = 0; j < sheetCulomn.size(); j++) {
         		 HSSFCell  cell = null;   //设置单元格的数据类型
         		 cell=row.createCell(j);
-        		 cell.setCellValue(dataList.get(i).get(sheetCulomn.get(j)).toString());
+        		 if(dataList.get(i).keySet().contains(sheetCulomn.get(j))){
+        			 String value=dataList.get(i).get(sheetCulomn.get(j)).toString();
+        			 cell.setCellValue(dataList.get(i).get(sheetCulomn.get(j)).toString());
+            		 
+        		 }
         		 cell.setCellStyle(style);   
 			}
         	 

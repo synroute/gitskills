@@ -123,11 +123,12 @@ public class DataImportJdbc extends BaseRepository{
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String wookSheetId=null;
+		String name="HAU_DM_B"+bizId+"C_IMPORT";
 		try {
 			conn= this.getDbConnection();
-			String sql="select WORKSHEETID from Hasys_Dm_Bizworksheet where BIZID=?";
+			String sql="select id from hasys_worksheet  where name=?";
 			pst=conn.prepareStatement(sql);
-			pst.setInt(1, bizId);
+			pst.setString(1, name);
 			rs = pst.executeQuery();
 		
 			while(rs.next()){
@@ -367,7 +368,7 @@ public class DataImportJdbc extends BaseRepository{
 			if("Excel导入".equals(operationName)){
 				resultMap=insertExcelData(jsonData,workSheetId,tableName,isnertData,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
 			}else{
-				resultMap=insertDbData(jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
+				resultMap=insertDbData(bizId,jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
 			}
 			//导入批次表里面插数据
 			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
@@ -434,6 +435,8 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> columList=new ArrayList<String>();
 		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
 		List<String> repeatColumns=new ArrayList<String>();//重复字段的集合
+		String poolName="HAU_DM_B"+bizId+"C_POOL";
+		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
 		try {
 			conn=this.getDbConnection();
 	    	//解析JSON RepetitionExcludeType
@@ -462,7 +465,7 @@ public class DataImportJdbc extends BaseRepository{
 			String distinctSql=null;
 			String resultTableName="HAU_DM_B"+bizId+"C_Result";
 			//查询数据
-			if("按导入时间排重".equals(repetitionExcludeType)){
+			if("根据导入时间排重".equals(repetitionExcludeType)){
 				if(type.startsWith("datetime")){
 					 distinctSql="select to_char("+RepetitionColumn+",'yyyy-mm-dd') from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
 				}else{
@@ -501,7 +504,7 @@ public class DataImportJdbc extends BaseRepository{
 					String customerBatchId=idfactory.newId("DM_CID");//客户号
 					String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
 					//数据池记录表里面插数据
-					String isnertDataPoolSql="insert into HAU_DM_B1C_POOL(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+					String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
 											+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
 					pst=conn.prepareStatement(isnertDataPoolSql);
 					pst.setString(1,disBatchId);
@@ -514,7 +517,7 @@ public class DataImportJdbc extends BaseRepository{
 					pst.setInt(8, 0);
 					pst.setString(9, userId);
 					//数据池操作记录表里面插数据
-					String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
+					String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
 												+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
 					pst1=conn.prepareStatement(dataPoolOperationSql);
 					pst1.setString(1,disBatchId);
@@ -571,7 +574,7 @@ public class DataImportJdbc extends BaseRepository{
     /**
      * 将数据库来源数据插入到导入表中
      */
-    public Map<String,Object> insertDbData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+    public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
     	Connection conn=null;
 		Statement statement=null;
 		PreparedStatement pst = null;
@@ -580,6 +583,8 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> dataTypeList=new ArrayList<String>();
 		List<String> columList=new ArrayList<String>();
 		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
+		String poolName="HAU_DM_B"+bizId+"C_POOL";
+		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
 		try {
 			conn=this.getDbConnection();
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
@@ -592,7 +597,7 @@ public class DataImportJdbc extends BaseRepository{
 				String customerBatchId=idfactory.newId("DM_CID");//客户号
 				String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
 				//数据池记录表里面插数据
-				String isnertDataPoolSql="insert into HAU_DM_B1C_POOL(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+				String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
 										+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
 				pst=conn.prepareStatement(isnertDataPoolSql);
 				pst.setString(1,disBatchId);
@@ -605,7 +610,7 @@ public class DataImportJdbc extends BaseRepository{
 				pst.setInt(8, 0);
 				pst.setString(9, userId);
 				//数据池操作记录表里面插数据
-				String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
+				String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
 											+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
 				pst1=conn.prepareStatement(dataPoolOperationSql);
 				pst1.setString(1,disBatchId);

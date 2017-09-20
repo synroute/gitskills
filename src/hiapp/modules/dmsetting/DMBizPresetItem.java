@@ -17,7 +17,7 @@ public class DMBizPresetItem {
 	private String comment;		//预约备注
 	private int modifyId;		//修改ID
 	private int modifyLast;		//是否为最后一次修改，0：否。1：是
-	private int modifyUserId;	//修改用户ID
+	private String modifyUserId;	//修改用户ID
 	private Date modifyTime;	//修改时间
 	private String modifyDesc;	//修改描述
 	private String phoneType;	//号码类型  枚举
@@ -63,10 +63,10 @@ public class DMBizPresetItem {
 	public void setModifyLast(int modifyLast) {
 		this.modifyLast = modifyLast;
 	}
-	public int getModifyUserId() {
+	public String getModifyUserId() {
 		return modifyUserId;
 	}
-	public void setModifyUserId(int modifyUserId) {
+	public void setModifyUserId(String modifyUserId) {
 		this.modifyUserId = modifyUserId;
 	}
 	public Date getModifyTime() {

@@ -59,6 +59,8 @@ public class DmBizRepository extends BaseRepository{
 		return true;
 	}
 	
+
+	
 	public ServiceResultCode newDMBusiness(
 			String id, String name, String description,
 			String ownerGroupId, String modeId, StringBuffer errMessage) {
@@ -117,7 +119,6 @@ public class DmBizRepository extends BaseRepository{
 		}
 		
 		try {//增加数据源池
-			dbConn = this.getDbConnection();
 			szSql = String.format("INSERT INTO HASYS_DM_DATAPOOL (ID,BUSINESSID,DATAPOOLNAME,DATAPOOLTYPE,DATAPOOLDES,PID,AREATYPE,POOLTOPLIMIT) "+ "VALUES (S_HASYS_DM_DATAPOOL.nextval,'%s','数据源池',1,'数据源池',-1,2,10000000) ", 
 									id);
 			stmt = dbConn.prepareStatement(szSql);		

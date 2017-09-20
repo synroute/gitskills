@@ -29,6 +29,7 @@ import java.util.Map;
 
 
 
+
 /*import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;*/
 import org.springframework.stereotype.Repository;
@@ -51,6 +52,7 @@ public class DMBizDataShare extends BaseRepository {
 		String jsonData=null;
 		JsonArray dataArray=null;
 		String flag=null;
+		Integer bizid = Integer.valueOf(businessId);
 		if(sourceType.equals("Excel")){
 			flag="DbFieldName";
 		}else{
@@ -59,7 +61,7 @@ public class DMBizDataShare extends BaseRepository {
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		try {
 			dbConn = this.getDbConnection();//select to_char(sysdate,'yy-mm-dd hh24:mi:ss')
-			getXmlSql=String.format("SELECT XML FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE TEMPLATEID='%s' AND BUSINESSID='%s'",templateId,businessId);
+			getXmlSql=String.format("SELECT XML FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE TEMPLATEID='%s' AND BUSINESSID='%s'",templateId,bizid);
 			stmt=dbConn.prepareStatement(getXmlSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -70,7 +72,7 @@ public class DMBizDataShare extends BaseRepository {
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject(); 
 			//从对象中获取列名数组json集合
 			dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
-			String sql="select iid,cid,";
+			String sql="select iid,";
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < dataArray.size(); i++) {
 				sb.append(dataArray.get(i).getAsJsonObject().get(flag).getAsString()+",");
@@ -78,7 +80,7 @@ public class DMBizDataShare extends BaseRepository {
 			sb.deleteCharAt(sb.length()-1);
 			sql+=sb;
 			//测试表名待修正
-			sql=sql+" from HAU_DM_B"+businessId+"C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
+			sql=sql+" from HAU_DM_B"+bizid+"C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B"+businessId+"C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
 			stmt=dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -129,7 +131,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HASYS_DM_B1C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
+			insertsql =String.format("INSERT INTO HAU_DM_B"+businessId+"C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -147,7 +149,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HASYS_DM_B1C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
+			insertsql =String.format("INSERT INTO HAU_DM_B"+bizid+"C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -167,7 +169,7 @@ public class DMBizDataShare extends BaseRepository {
 		//int a=Integer.parseInt(businessId);
 		try {
 			dbConn = this.getDbConnection();
-			sql ="SELECT DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE BUSINESSID="+businessId+" AND DATAPOOLTYPE=2";
+			sql ="SELECT ID FROM HASYS_DM_DATAPOOL WHERE BUSINESSID="+businessId+"";
 			stmt = dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -184,13 +186,13 @@ public class DMBizDataShare extends BaseRepository {
 
 	// 更改数据池记录表数据
 	public void confirmShareDataThree(String iId,
-			int dataPool, User user) {
+			int dataPool, User user,int businessId) {
 		String updatesql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn=null;
         try {
-        	dbConn=this.getDbConnection();
-        	updatesql=String.format("UPDATE HAU_DM_B1C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s'",user.getId(),dataPool,dataPool,0,1,iId);
+        	dbConn=this.getDbConnection();//sql没问题
+        	updatesql=String.format("UPDATE HAU_DM_B"+businessId+"C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s'",user.getId(),dataPool,dataPool,0,1,iId);
         	stmt = dbConn.prepareStatement(updatesql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -201,13 +203,13 @@ public class DMBizDataShare extends BaseRepository {
 	}
 	//向数据池操作记录表添加数据
 	public void confirmShareDataFree(String iId,
-			User user, int dataPool) {
+			User user, int dataPool, int bizid) {
 		String insertsql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		try {
-			dbConn=this.getDbConnection();
-			insertsql=String.format("INSERT INTO HAU_DM_B1C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
+			dbConn=this.getDbConnection();//sql没问题
+			insertsql=String.format("INSERT INTO HAU_DM_B"+bizid+"C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {

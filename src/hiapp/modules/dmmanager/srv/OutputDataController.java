@@ -55,7 +55,8 @@ public class OutputDataController{
 	@RequestMapping(value="/srv/ImportDataController/getOutDataColumns.srv")
 	public void getOutDataColumns(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
-		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(templateId);
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(bizId,templateId);
 		String jsonObject=new Gson().toJson(columnList);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
@@ -72,7 +73,8 @@ public class OutputDataController{
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
-		List<Map<String, Object>> outputDataList = dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId);
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		List<Map<String, Object>> outputDataList = dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId,bizId);
 		String jsonObject=new Gson().toJson(outputDataList);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
@@ -87,9 +89,10 @@ public class OutputDataController{
 	@RequestMapping(value="/srv/DataShareController/GetOutputExcelData.srv")
 	public void getOutputExcelCustomerData(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String importData=request.getParameter("importData");
 		List<Map<String,Object>> dataList=new Gson().fromJson(importData, List.class);
-		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(templateId);
+		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(bizId,templateId);
 		List<String> excelHeader =new ArrayList<String>();
 		List<String> sheetCulomn =new ArrayList<String>();
 		for (int i = 0; i < columnList.size(); i++) {

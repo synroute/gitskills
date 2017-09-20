@@ -22,8 +22,8 @@ public class SingleNumberModeDAO extends BaseRepository {
     /*
      * 仅处理的激活状态的共享批次包括的客户
      */
-    public Boolean getShareDataItemsByState(List<ShareBatchItem> ShareBatchItems,
-                                            List<SingleNumberModeShareCustomerStateEnum> shareDataStateList,
+    public Boolean getGivenBizShareDataItemsByState(int bizId, List<ShareBatchItem> ShareBatchItems,
+                                                    List<SingleNumberModeShareCustomerStateEnum> shareDataStateList,
                                             /*OUT*/ List<SingleNumberModeShareCustomerItem> shareCustomerItems) {
 
         Connection dbConn = null;
@@ -34,6 +34,8 @@ public class SingleNumberModeDAO extends BaseRepository {
             mapShareBatchIdVsShareBatchItem.put(shareBatchItem.getShareBatchId(), shareBatchItem);
         }
 
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", bizId);
+
         try {
             dbConn = this.getDbConnection();
 
@@ -41,8 +43,8 @@ public class SingleNumberModeDAO extends BaseRepository {
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BusinessID, ShareId, IID, CID, State, ModifyID, " +
                     "ModifyUserId, ModifyTime, ModifyDesc, CustomerCallID, EndCodeType, EndCode, LastDialTime, " +
                     "NextDialTime, LOSTCALLCURDAYCOUNT, CurRedialStageCount, UserUseState, LostCallFirstDay, LostCallCurDay, " +
-                    "LostCallTotalCount FROM HASYS_DM_B1C_DATAM3 WHERE ");
-            sqlBuilder.append(" ShareId IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
+                    "LostCallTotalCount FROM " + tableName);
+            sqlBuilder.append(" WHERE ShareId IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND State IN (").append(shareBatchStatelistToCommaSplitString(shareDataStateList)).append(")");
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
@@ -93,8 +95,9 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     // 当天应该拨打的项
-    public Boolean getShareDataItemsByStateAndNextDialTime(List<ShareBatchItem> ShareBatchItems,
-                                                           List<SingleNumberModeShareCustomerStateEnum> shareDataStateList,
+    public Boolean getGivenBizShareDataItemsByStateAndNextDialTime(int bizId,
+                                                                   List<ShareBatchItem> ShareBatchItems,
+                                                                   List<SingleNumberModeShareCustomerStateEnum> shareDataStateList,
                                                            /*OUT*/List<SingleNumberModeShareCustomerItem> shareCustomerItems) {
 
         Connection dbConn = null;
@@ -104,6 +107,8 @@ public class SingleNumberModeDAO extends BaseRepository {
         for (ShareBatchItem shareBatchItem : ShareBatchItems) {
             mapShareBatchIdVsShareBatchItem.put(shareBatchItem.getShareBatchId(), shareBatchItem);
         }
+
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", bizId);
 
         try {
             dbConn = this.getDbConnection();
@@ -120,8 +125,8 @@ public class SingleNumberModeDAO extends BaseRepository {
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BusinessID, ShareId, IID, CID, State, ModifyID, " +
                     "ModifyUserId, ModifyTime, ModifyDesc, CustomerCallID, EndCodeType, EndCode, LastDialTime, " +
                     "NextDialTime, LostCallCurDayCount, CurRedialStageCount, UserUseState, LostCallFirstDay, LostCallCurDay, " +
-                    "LostCallTotalCount FROM HASYS_DM_B1C_DATAM3 WHERE ");
-            sqlBuilder.append(" ShareId IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
+                    "LostCallTotalCount FROM " + tableName);
+            sqlBuilder.append(" WHERE ShareId IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND State IN (").append(shareBatchStatelistToCommaSplitString(shareDataStateList)).append(")");
             sqlBuilder.append(" AND NextDialTime < ").append("TO_DATA(").append(curDay).append(",'yyyy-MM-dd')");
 
@@ -172,9 +177,12 @@ public class SingleNumberModeDAO extends BaseRepository {
         // 未加载的客户
     }
 
-    public Boolean setAgentOccupied(int bizId, String shareBatchId, String customerId) {
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_B1C_DATAM3 SET ");
-        sqlBuilder.append("UserUseState = ").append("true");
+    public Boolean setUserUseState(int bizId, String shareBatchId, String customerId) {
+
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET UserUseState = ").append("true");
         sqlBuilder.append("WHERE BusinessID = ").append(bizId);
         sqlBuilder.append(" ShareID = ").append(shareBatchId);
         sqlBuilder.append(" CID = ").append(customerId);
@@ -197,10 +205,12 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     // 从已加载复位成未加载状态
-    public Boolean resetLoadedFlag() {
+    public Boolean resetLoadedFlag(int bizId) {
 
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_B1C_DATAM3 SET ");
-        sqlBuilder.append("IsMemoryLoading = ").append(0);
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET IsMemoryLoading = ").append(0);
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -223,8 +233,11 @@ public class SingleNumberModeDAO extends BaseRepository {
         // endCodeType endCode
         // lastDialTime  nextDailTime
 
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", item.getBizId());
+
         //
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_B1C_DATAM3 SET ");
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET ");
         sqlBuilder.append(" State = ").append(item.getState());
         sqlBuilder.append(" EndCodeType = ").append(item.getEndCodeType());
         sqlBuilder.append(", EndCode = ").append(item.getEndCode());
@@ -257,8 +270,11 @@ public class SingleNumberModeDAO extends BaseRepository {
     public Boolean updateCustomerShareStateToPreset(SingleNumberModeShareCustomerItem item) {
         // endCodeType endCode
         // lastDialTime  nextDailTime
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", item.getBizId());
 
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_B1C_DATAM3 SET ");
+        //
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET ");
         sqlBuilder.append(" State = ").append(item.getState());
         sqlBuilder.append(" EndCodeType = ").append(item.getEndCodeType());
         sqlBuilder.append(", EndCode = ").append(item.getEndCode());
@@ -292,8 +308,11 @@ public class SingleNumberModeDAO extends BaseRepository {
     public Boolean updateCustomerShareStateToStage(SingleNumberModeShareCustomerItem item) {
         // endCodeType endCode
         // lastDialTime  nextDailTime
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", item.getBizId());
 
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_B1C_DATAM3 SET ");
+        //
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET ");
         sqlBuilder.append(" State = ").append(item.getState());
         sqlBuilder.append(" EndCodeType = ").append(item.getEndCodeType());
         sqlBuilder.append(", EndCode = ").append(item.getEndCode());
@@ -328,8 +347,11 @@ public class SingleNumberModeDAO extends BaseRepository {
     public Boolean updateCustomerShareStateToLostCall(SingleNumberModeShareCustomerItem item) {
         // endCodeType endCode
         // lastDialTime  nextDailTime
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", item.getBizId());
 
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_B1C_DATAM3 SET ");
+        //
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET ");
         sqlBuilder.append(" State = ").append(item.getState());
         sqlBuilder.append(" EndCodeType = ").append(item.getEndCodeType());
         sqlBuilder.append(", EndCode = ").append(item.getEndCode());
@@ -366,10 +388,12 @@ public class SingleNumberModeDAO extends BaseRepository {
 
     public Boolean insertCustomerShareStateHistory(SingleNumberModeShareCustomerItem item) {
 
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO HASYS_DM_B1C_DATAM3_HIS (ID, BusinessID, ShareID," +
-                "IID, CID, State, ModifyId, ModifyUserId, ModifyTime, ModifyDesc, CustomerCallId, LastDialTime, " +
-                "UserUseState, IsMemoryLoading, NextDialTime, CurRedialStageCount, LostCallCurDayCount, LostCallFirstDay," +
-                "LostCallCurDay, LostCallTotalCount) VALUES ( ");
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3_HIS", item.getBizId());
+
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
+        sqlBuilder.append(" (ID, BusinessID, ShareID, IID, CID, State, ModifyId, ModifyUserId, ModifyTime, ModifyDesc, " +
+                "CustomerCallId, LastDialTime, UserUseState, IsMemoryLoading, NextDialTime, CurRedialStageCount, " +
+                "LostCallCurDayCount, LostCallFirstDay, LostCallCurDay, LostCallTotalCount) VALUES ( ");
         sqlBuilder.append("'").append(item.getId()).append("',");
         sqlBuilder.append("'").append(item.getBizId()).append("',");
         sqlBuilder.append("'").append(item.getShareBatchId()).append("',");
@@ -410,8 +434,12 @@ public class SingleNumberModeDAO extends BaseRepository {
         return true;
     }
 
-    public Boolean clearPreviousDayLostCallCount() {
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_B1C_DATAM3 SET ");
+    public Boolean clearPreviousDayLostCallCount(int bizId) {
+
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET ");
         sqlBuilder.append(" LOSTCALLCURDAYCOUNT = ").append(0);
         sqlBuilder.append(" WHERE trunc(LOSTCALLCURDAY) < trunc(sysdate)");
 
@@ -433,9 +461,12 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     // 中间重启时，去除当天未接通次数满的项
-    public Boolean getXXX(List<ShareBatchItem> ShareBatchItems,
-                                            List<SingleNumberModeShareCustomerStateEnum> shareDataStateList,
-                                            /*OUT*/ List<SingleNumberModeShareCustomerItem> shareCustomerItems) {
+    public Boolean getXXX(int bizId,
+                          List<ShareBatchItem> ShareBatchItems,
+                          List<SingleNumberModeShareCustomerStateEnum> shareDataStateList,
+                          /*OUT*/ List<SingleNumberModeShareCustomerItem> shareCustomerItems) {
+
+        String tableName = String.format("HASYS_DM_B%dC_DATAM3", bizId);
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -455,7 +486,8 @@ public class SingleNumberModeDAO extends BaseRepository {
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
                     "MODIFYUSERID, MODIFYTIME, MODIFYDESC, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, LASTDIALTIME, " +
                     "NEXTDIALTIME, LOSTCALLCURDAYCOUNT, CURREDIALSTAGECOUNT, USERUSESTATE, LOSTCALLFIRSTDAY, LOSTCALLCURDAY, " +
-                    "LOSTCALLTOTALCOUNT FROM HASYS_DM_B1C_DATAM3 WHERE ");
+                    "LOSTCALLTOTALCOUNT FROM " + tableName);
+            sqlBuilder.append(" WHERE ");
             sqlBuilder.append(" SHAREID IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND STATE IN (").append(shareBatchStatelistToCommaSplitString(shareDataStateList)).append(")");
             sqlBuilder.append(" AND LOSTCALLCURDAYCOUNT > 0");
