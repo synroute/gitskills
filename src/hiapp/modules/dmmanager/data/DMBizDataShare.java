@@ -125,13 +125,13 @@ public class DMBizDataShare extends BaseRepository {
 	// 2.1将共享的数据填入单号码重拨一份
 	@SuppressWarnings("all")
 	public String confirmShareData(String iId,int businessId,
-			User user, String newId) {
+			User user, String newId,String cid) {
 		String insertsql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HAU_DM_B"+businessId+"C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
+			insertsql =String.format("INSERT INTO HAU_DM_B"+businessId+"C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newId,iId,cid,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId()) ;
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -143,13 +143,13 @@ public class DMBizDataShare extends BaseRepository {
 	}
 
 	// 2.2将共享的数据填入单号码重拨共享历史表一份
-	public void confirmShareDataOne(String iId, int bizid, User user, String newId) {
+	public void confirmShareDataOne(String iId, int bizid, User user, String newId,String cid) {
 		String insertsql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HAU_DM_B"+bizid+"C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
+			insertsql =String.format("INSERT INTO HAU_DM_B"+bizid+"C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",bizid,newId,iId,cid,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId());
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -186,13 +186,13 @@ public class DMBizDataShare extends BaseRepository {
 
 	// 更改数据池记录表数据
 	public void confirmShareDataThree(String iId,
-			int dataPool, User user,int businessId) {
+			int dataPool, User user,int businessId,String cid) {
 		String updatesql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn=null;
         try {
         	dbConn=this.getDbConnection();//sql没问题
-        	updatesql=String.format("UPDATE HAU_DM_B"+businessId+"C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s'",user.getId(),dataPool,dataPool,0,1,iId);
+        	updatesql=String.format("UPDATE HAU_DM_B"+businessId+"C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s' AND CID='%s'",cid,dataPool,dataPool,0,1,iId,cid);
         	stmt = dbConn.prepareStatement(updatesql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -203,13 +203,13 @@ public class DMBizDataShare extends BaseRepository {
 	}
 	//向数据池操作记录表添加数据
 	public void confirmShareDataFree(String iId,
-			User user, int dataPool, int bizid) {
+			User user, int dataPool, int bizid,String cid,String newId) {
 		String insertsql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		try {
 			dbConn=this.getDbConnection();//sql没问题
-			insertsql=String.format("INSERT INTO HAU_DM_B"+bizid+"C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
+			insertsql=String.format("INSERT INTO HAU_DM_B"+bizid+"C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",newId,iId,cid,OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
