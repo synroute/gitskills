@@ -350,28 +350,59 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
 			sb.append(" WHERE ");
 			// 查询条件
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
+			QueryTemplate queryTemplate = new QueryTemplate();
+			queryTemplate.setBizId(bizId);
+			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
+			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
+			String template = getQueryTemplate(queryTemplate);
+			int flag1 = 0;
+			int flag2 = 0;
+			@SuppressWarnings("unchecked")
+			List<Map<String, String>> list = new Gson().fromJson(template,
+					List.class);
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				if (columnName != null) {
+					if (columnName.contains(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + ".")) {
+						flag1 = 2;
+					} else if (columnName
+							.contains(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+									+ ".")) {
+						flag2 = 2;
+					}
+				}
+			}
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
+			if (flag1 == 2) {
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(" AND ");
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append(1);
+				sb.append(" AND ");
+			}
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
+			if (flag2 == 2) {
+				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(" AND ");
+
+				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append(1);
+				sb.append(" AND ");
+			}
+
+			sb = new StringBuffer(sb.substring(0, sb.length() - 5));
 
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
@@ -486,6 +517,43 @@ public class CustomerRepository extends BaseRepository {
 			@SuppressWarnings("unchecked")
 			List<Map<String, String>> list = new Gson().fromJson(template,
 					List.class);
+			int flag1 = 0;
+			int flag2 = 0;
+			int flag3 = 0;
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				if (columnName != null) {
+					if (columnName.equals(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + "." + "IID")) {
+						flag1 = 1;
+					} else if (columnName.equals(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + "." + "CID")) {
+						flag2 = 1;
+					} else if (columnName.equals(TableNameEnume.JIEGUOTABLENAME
+							.getAbbr() + "." + "SOURCEID")) {
+						flag3 = 1;
+					}
+				}
+			}
+			if (flag1 == 0) {
+				HashMap<String, String> hashMap1 = new HashMap<String, String>();
+				hashMap1.put("columnName",
+						TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "IID");
+				list.add(hashMap1);
+			}
+			if (flag2 == 0) {
+				HashMap<String, String> hashMap2 = new HashMap<String, String>();
+				hashMap2.put("columnName",
+						TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "CID");
+				list.add(hashMap2);
+			}
+			if (flag3 == 0) {
+				HashMap<String, String> hashMap3 = new HashMap<String, String>();
+				hashMap3.put("columnName",
+						TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+								+ "SOURCEID");
+				list.add(hashMap3);
+			}
 			for (Map<String, String> map : list) {
 				String columnName = map.get("columnName");
 				sb.append(columnName);
@@ -517,27 +585,52 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "IID");
 			sb.append(" = ");
 			sb.append("'" + queryRequest.getIID() + "'");
-
 			sb.append(" AND ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "." + "IID");
-			sb.append(" = ");
-			sb.append("'" + queryRequest.getIID() + "'");
 
-			sb.append(" AND ");
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "CID");
 			sb.append(" = ");
 			sb.append("'" + queryRequest.getCID() + "'");
-
 			sb.append(" AND ");
+
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "." + "IID");
+			sb.append(" = ");
+			sb.append("'" + queryRequest.getIID() + "'");
+			sb.append(" AND ");
+
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "." + "CID");
 			sb.append(" = ");
 			sb.append("'" + queryRequest.getCID() + "'");
-
 			sb.append(" AND ");
+			
+			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+					+ "MODIFYUSERID");
+			sb.append(" = ");
+			sb.append(userId);
+			sb.append(" AND ");
+
+			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+					+ "MODIFYLAST");
+			sb.append(" = ");
+			sb.append(1);
+			sb.append(" AND ");
+			
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+					+ "MODIFYUSERID");
+			sb.append(" = ");
+			sb.append(userId);
+			sb.append(" AND ");
+
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+					+ "MODIFYLAST");
+			sb.append(" = ");
+			sb.append(1);
+			
+			
+
+			/*sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
 					+ "SourceID");
 			sb.append(" = ");
-			sb.append("'" + queryRequest.getSourceId() + "'");
+			sb.append("'" + queryRequest.getSourceId() + "'");*/
 
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
@@ -633,13 +726,11 @@ public class CustomerRepository extends BaseRepository {
 					if (columnName.equals(TableNameEnume.INPUTTABLENAME
 							.getAbbr() + "." + "IID")) {
 						flag1 = 1;
-					} else if (columnName
-							.equals(TableNameEnume.INPUTTABLENAME
-									.getAbbr() + "." + "CID")) {
+					} else if (columnName.equals(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + "." + "CID")) {
 						flag2 = 1;
-					} else if (columnName
-							.equals(TableNameEnume.JIEGUOTABLENAME
-									.getAbbr() + "." + "SOURCEID")) {
+					} else if (columnName.equals(TableNameEnume.JIEGUOTABLENAME
+							.getAbbr() + "." + "SOURCEID")) {
 						flag3 = 1;
 					}
 				}
@@ -647,15 +738,13 @@ public class CustomerRepository extends BaseRepository {
 			if (flag1 == 0) {
 				HashMap<String, String> hashMap1 = new HashMap<String, String>();
 				hashMap1.put("columnName",
-						TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-								+ "IID");
+						TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "IID");
 				list.add(hashMap1);
 			}
 			if (flag2 == 0) {
 				HashMap<String, String> hashMap2 = new HashMap<String, String>();
 				hashMap2.put("columnName",
-						TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-								+ "CID");
+						TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "CID");
 				list.add(hashMap2);
 			}
 			if (flag3 == 0) {
@@ -693,30 +782,49 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" WHERE ");
 
 			// 查询条件
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				if (columnName != null) {
+					if (columnName.contains(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + ".")) {
+						flag1 = 2;
+					} else if (columnName
+							.contains(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+									+ ".")) {
+						flag2 = 2;
+					}
+				}
+			}
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
+			if (flag1 == 2) {
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(" AND ");
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append(1);
+				sb.append(" AND ");
+			}
 
-			sb.append(" AND ");
+			if (flag2 == 2) {
+				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(" AND ");
+
+				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append(1);
+				sb.append(" AND ");
+			}
+
 			sb.append("ROWNUM");
 			sb.append(" <= ");
 			sb.append(queryRequest.getEnd());
@@ -899,30 +1007,60 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" WHERE ");
 
 			// 查询条件
+			QueryTemplate queryTemplate = new QueryTemplate();
+			queryTemplate.setBizId(bizId);
+			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
+			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
+			String template = getQueryTemplate(queryTemplate);
+			int flag1 = 0;
+			int flag2 = 0;
+			@SuppressWarnings("unchecked")
+			List<Map<String, String>> list = new Gson().fromJson(template,
+					List.class);
 
-			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				if (columnName != null) {
+					if (columnName.contains(TableNameEnume.PRESETTABLENAME
+							.getAbbr() + ".")) {
+						flag1 = 2;
+					} else if (columnName
+							.contains(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+									+ ".")) {
+						flag2 = 2;
+					}
+				}
+			}
 
-			sb.append(" AND ");
+			if (flag1 == 2) {
+				sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(" AND ");
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
+				sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append(1);
+				sb.append(" AND ");
+			}
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
+			if (flag2 == 2) {
+				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(" AND ");
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
+				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append(1);
+				sb.append(" AND ");
+			}
+
+			sb = new StringBuffer(sb.substring(0, sb.length() - 5));
 
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
@@ -1057,13 +1195,11 @@ public class CustomerRepository extends BaseRepository {
 					if (columnName.equals(TableNameEnume.PRESETTABLENAME
 							.getAbbr() + "." + "IID")) {
 						flag1 = 1;
-					} else if (columnName
-							.equals(TableNameEnume.PRESETTABLENAME
-									.getAbbr() + "." + "CID")) {
+					} else if (columnName.equals(TableNameEnume.PRESETTABLENAME
+							.getAbbr() + "." + "CID")) {
 						flag2 = 1;
-					} else if (columnName
-							.equals(TableNameEnume.JIEGUOTABLENAME
-									.getAbbr() + "." + "SOURCEID")) {
+					} else if (columnName.equals(TableNameEnume.JIEGUOTABLENAME
+							.getAbbr() + "." + "SOURCEID")) {
 						flag3 = 1;
 					}
 				}
@@ -1071,15 +1207,13 @@ public class CustomerRepository extends BaseRepository {
 			if (flag1 == 0) {
 				HashMap<String, String> hashMap1 = new HashMap<String, String>();
 				hashMap1.put("columnName",
-						TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-								+ "IID");
+						TableNameEnume.PRESETTABLENAME.getAbbr() + "." + "IID");
 				list.add(hashMap1);
 			}
 			if (flag2 == 0) {
 				HashMap<String, String> hashMap2 = new HashMap<String, String>();
 				hashMap2.put("columnName",
-						TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-								+ "CID");
+						TableNameEnume.PRESETTABLENAME.getAbbr() + "." + "CID");
 				list.add(hashMap2);
 			}
 			if (flag3 == 0) {
@@ -1115,32 +1249,48 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" WHERE ");
 
 			// 查询条件
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				if (columnName != null) {
+					if (columnName.contains(TableNameEnume.PRESETTABLENAME
+							.getAbbr() + ".")) {
+						flag1 = 2;
+					} else if (columnName
+							.contains(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+									+ ".")) {
+						flag2 = 2;
+					}
+				}
+			}
 
-			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
+			if (flag1 == 2) {
+				sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(" AND ");
 
-			sb.append(" AND ");
+				sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append(1);
+				sb.append(" AND ");
+			}
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
+			if (flag2 == 2) {
+				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(" AND ");
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
+				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append(1);
+				sb.append(" AND ");
+			}
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
-
-			sb.append(" AND ");
 			sb.append("ROWNUM");
 			sb.append(" <= ");
 
@@ -1454,40 +1604,84 @@ public class CustomerRepository extends BaseRepository {
 
 					// 查询条件
 
-					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-							+ "MODIFYUSERID");
-					sb.append(" IN ");
-					sb.append(userIds);
-					sb.append(" AND ");
+					QueryTemplate queryTemplate = new QueryTemplate();
+					queryTemplate.setBizId(bizId);
+					queryTemplate.setConfigPage(ConfigPageEnume.ALLCUSTOMERS
+							.getName());
+					queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST
+							.getName());
+					String template = getQueryTemplate(queryTemplate);
 
-					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-							+ "MODIFYUSERID");
-					sb.append(" IN ");
-					sb.append(userIds);
-					sb.append(" AND ");
+					@SuppressWarnings("unchecked")
+					List<Map<String, String>> list = new Gson().fromJson(
+							template, List.class);
 
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-							+ "MODIFYUSERID");
-					sb.append(" IN ");
-					sb.append(userIds);
+					int flag1 = 0;
+					int flag2 = 0;
+					int flag3 = 0;
 
-					sb.append(" AND ");
-					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-							+ "MODIFYLAST");
-					sb.append(" = ");
-					sb.append(1);
+					for (Map<String, String> map : list) {
+						String columnName = map.get("columnName");
+						if (columnName != null) {
+							if (columnName
+									.contains(TableNameEnume.INPUTTABLENAME
+											.getAbbr() + ".")) {
+								flag1 = 2;
+							} else if (columnName
+									.contains(TableNameEnume.JIEGUOTABLENAME
+											.getAbbr() + ".")) {
+								flag2 = 2;
+							} else if (columnName
+									.contains(TableNameEnume.PRESETTABLENAME
+											.getAbbr() + ".")) {
+								flag3 = 2;
+							}
+						}
+					}
 
-					sb.append(" AND ");
-					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-							+ "MODIFYLAST");
-					sb.append(" = ");
-					sb.append(1);
+					if (flag1 == 2) {
+						sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+								+ "MODIFYUSERID");
+						sb.append(" IN ");
+						sb.append(userIds);
+						sb.append(" AND ");
 
-					sb.append(" AND ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-							+ "MODIFYLAST");
-					sb.append(" = ");
-					sb.append(1);
+						sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+								+ "MODIFYLAST");
+						sb.append(" = ");
+						sb.append(1);
+						sb.append(" AND ");
+					}
+
+					if (flag2 == 2) {
+						sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+								+ "." + "MODIFYUSERID");
+						sb.append(" IN ");
+						sb.append(userIds);
+						sb.append(" AND ");
+
+						sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+								+ "." + "MODIFYLAST");
+						sb.append(" = ");
+						sb.append(1);
+						sb.append(" AND ");
+					}
+
+					if (flag3 == 0) {
+						sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()
+								+ "." + "MODIFYUSERID");
+						sb.append(" IN ");
+						sb.append(userIds);
+						sb.append(" AND ");
+
+						sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()
+								+ "." + "MODIFYLAST");
+						sb.append(" = ");
+						sb.append(1);
+						sb.append(" AND ");
+					}
+
+					sb = new StringBuffer(sb.substring(0, sb.length() - 5));
 
 					List<Map<String, String>> queryCondition = queryRequest
 							.getQueryCondition();
@@ -1711,42 +1905,67 @@ public class CustomerRepository extends BaseRepository {
 
 					// 查询条件
 
-					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-							+ "MODIFYUSERID");
-					sb.append(" IN ");
-					sb.append(userIds);
-					sb.append(" AND ");
+					for (Map<String, String> map : list) {
+						String columnName = map.get("columnName");
+						if (columnName != null) {
+							if (columnName
+									.contains(TableNameEnume.INPUTTABLENAME
+											.getAbbr() + ".")) {
+								flag1 = 2;
+							} else if (columnName
+									.contains(TableNameEnume.JIEGUOTABLENAME
+											.getAbbr() + ".")) {
+								flag2 = 2;
+							} else if (columnName
+									.contains(TableNameEnume.PRESETTABLENAME
+											.getAbbr() + ".")) {
+								flag3 = 2;
+							}
+						}
+					}
 
-					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-							+ "MODIFYUSERID");
-					sb.append(" IN ");
-					sb.append(userIds);
-					sb.append(" AND ");
+					if (flag1 == 2) {
+						sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+								+ "MODIFYUSERID");
+						sb.append(" IN ");
+						sb.append(userIds);
+						sb.append(" AND ");
 
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-							+ "MODIFYUSERID");
-					sb.append(" IN ");
-					sb.append(userIds);
+						sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+								+ "MODIFYLAST");
+						sb.append(" = ");
+						sb.append(1);
+						sb.append(" AND ");
+					}
 
-					sb.append(" AND ");
-					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-							+ "MODIFYLAST");
-					sb.append(" = ");
-					sb.append(1);
+					if (flag2 == 2) {
+						sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+								+ "." + "MODIFYUSERID");
+						sb.append(" IN ");
+						sb.append(userIds);
+						sb.append(" AND ");
 
-					sb.append(" AND ");
-					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
-							+ "MODIFYLAST");
-					sb.append(" = ");
-					sb.append(1);
+						sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+								+ "." + "MODIFYLAST");
+						sb.append(" = ");
+						sb.append(1);
+						sb.append(" AND ");
+					}
 
-					sb.append(" AND ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
-							+ "MODIFYLAST");
-					sb.append(" = ");
-					sb.append(1);
+					if (flag3 == 2) {
+						sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()
+								+ "." + "MODIFYUSERID");
+						sb.append(" IN ");
+						sb.append(userIds);
+						sb.append(" AND ");
 
-					sb.append(" AND ");
+						sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()
+								+ "." + "MODIFYLAST");
+						sb.append(" = ");
+						sb.append(1);
+						sb.append(" AND ");
+					}
+
 					sb.append("ROWNUM");
 					sb.append(" <= ");
 
