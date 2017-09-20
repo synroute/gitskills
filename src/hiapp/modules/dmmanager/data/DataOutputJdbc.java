@@ -120,7 +120,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId) throws IOException{
+	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -129,9 +129,10 @@ public class DataOutputJdbc extends BaseRepository{
 		List<Map<String,Object>> outDataList=new ArrayList<Map<String,Object>>();
 		try {
 			conn=this.getDbConnection();
-			String getOutputXmlSql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=?";
+			String getOutputXmlSql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=? and BUSINESSID=?";
 			pst=conn.prepareStatement(getOutputXmlSql);
 			pst.setInt(1,templateId );
+			pst.setInt(2,bizId);
 			rs=pst.executeQuery();
 			String workSheets=null;
 			while(rs.next()){

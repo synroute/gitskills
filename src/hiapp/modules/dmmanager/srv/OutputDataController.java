@@ -72,7 +72,8 @@ public class OutputDataController{
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
-		List<Map<String, Object>> outputDataList = dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId);
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		List<Map<String, Object>> outputDataList = dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId,bizId);
 		String jsonObject=new Gson().toJson(outputDataList);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
