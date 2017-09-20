@@ -72,16 +72,17 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	public List<OutputFirstRow>  getOutDataColumns(Integer templateId) throws IOException{
+	public List<OutputFirstRow>  getOutDataColumns(Integer bizId,Integer templateId) throws IOException{
 		List<OutputFirstRow> columnList=new ArrayList<OutputFirstRow>();
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		try {
 			conn=this.getDbConnection();
-			String sql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=?";
+			String sql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=? and  BUSINESSID=?";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1, templateId);
+			pst.setInt(2,bizId);
 			rs=pst.executeQuery();
 			String columns=null;
 			while(rs.next()){
@@ -96,7 +97,7 @@ public class DataOutputJdbc extends BaseRepository{
 				OutputFirstRow output=new OutputFirstRow();
 				String excelHeader=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
 				String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
-				output.setField(column);
+				output.setField(excelHeader);
 				output.setTitle(excelHeader);
 				output.setExcelHeader(excelHeader);
 				columnList.add(output);
@@ -153,7 +154,11 @@ public class DataOutputJdbc extends BaseRepository{
 				for (int j = 0; j <newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName1)){
 						String asName="a"+j+".";//别名
-						getOutDataSql+=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString()+",";
+						String column=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
+						if(column!=null&&!"".equals(column)){
+							getOutDataSql+=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString()+",";
+
+						}
 						break;
 					}
 				}
@@ -177,8 +182,13 @@ public class DataOutputJdbc extends BaseRepository{
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int i = 0; i < dataArray.size(); i++) {
-					String key=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
-					map.put(key,rs.getObject(i+1));
+					String value=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
+					String key=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
+					if(value!=null&&!"".equals(value)){
+						map.put(key,rs.getObject(value));
+					}else{
+						map.put(key,"");
+					}
 				}
 				outDataList.add(map);
 			}
