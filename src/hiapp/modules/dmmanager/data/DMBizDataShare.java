@@ -70,7 +70,7 @@ public class DMBizDataShare extends BaseRepository {
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject(); 
 			//从对象中获取列名数组json集合
 			dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
-			String sql="select iid,";
+			String sql="select iid,cid,";
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < dataArray.size(); i++) {
 				sb.append(dataArray.get(i).getAsJsonObject().get(flag).getAsString()+",");
@@ -78,7 +78,7 @@ public class DMBizDataShare extends BaseRepository {
 			sb.deleteCharAt(sb.length()-1);
 			sql+=sb;
 			//测试表名待修正
-			sql=sql+" from HAU_DM_B1C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
+			sql=sql+" from HAU_DM_B"+businessId+"C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B1C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
 			stmt=dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next()){

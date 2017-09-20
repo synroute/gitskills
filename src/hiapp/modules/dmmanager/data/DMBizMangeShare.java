@@ -101,17 +101,19 @@ public class DMBizMangeShare extends BaseRepository{
 							shareBatchItems.setCreateTime(rs.getTime(6));
 							shareBatchItems.setDescription(rs.getString(7));
 							String state = (String)rs.getObject(8);
-							ShareBatchStateEnum shareBatchStateEnum = null;
+							String shareBatchStateEnum = null;
 							if("enable".equals(state)){
-								shareBatchStateEnum = ShareBatchStateEnum.ENABLE;
+								shareBatchStateEnum ="启用";
 							}else if("active".equals(state)){
-								shareBatchStateEnum = ShareBatchStateEnum.ACTIVE;
+								shareBatchStateEnum ="激活";
 							}else if("pause".equals(state)){
-								shareBatchStateEnum = ShareBatchStateEnum.PAUSE;
+								shareBatchStateEnum ="暂停";
 							}else if("stop".equals(state)){
-								shareBatchStateEnum = ShareBatchStateEnum.STOP;
+								shareBatchStateEnum ="停止";
 							}else if("expired".equals(state)){
-								shareBatchStateEnum = ShareBatchStateEnum.EXPIRED;
+								shareBatchStateEnum ="过期";
+							}else{
+								shareBatchStateEnum ="未操作";
 							}
 							shareBatchItems.setState(shareBatchStateEnum);
 							shareBatchItems.setStartTime(rs.getDate(9));
@@ -186,6 +188,14 @@ public class DMBizMangeShare extends BaseRepository{
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
 			StringBuilder sb=new StringBuilder();
+			String shareBatchStateEnum = null;
+			if("1".equals(String.valueOf(flag))){
+				shareBatchStateEnum ="enable";
+			}else if("2".equals(String.valueOf(flag))){
+				shareBatchStateEnum ="pause";
+			}else if("3".equals(String.valueOf(flag))){
+				shareBatchStateEnum ="stop";
+			}
 			for (int i = 0; i < shareID.length; i++) {
 			sb.append(shareID[i]+",");
 			}
@@ -193,7 +203,7 @@ public class DMBizMangeShare extends BaseRepository{
 			sb.deleteCharAt(sb.length()-1);
 			try {
 				dbConn=this.getDbConnection();
-				sql=String.format("UPDATE HASYS_DM_SID SET STATE=%s WHERE SHAREID IN ('"+sb+"')",flag);
+				sql=String.format("UPDATE HASYS_DM_SID SET STATE='%s' WHERE SHAREID IN ('"+sb+"')",shareBatchStateEnum);
 				stmt = dbConn.prepareStatement(sql);
 				stmt.execute();
 			} catch (Exception e) {
@@ -212,7 +222,7 @@ public class DMBizMangeShare extends BaseRepository{
 			int bizID=Integer.valueOf(businessID);
 			try {
 				dbConn=this.getDbConnection();
-				sql=String.format("SELECT DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE BUSINESSID=%s AND ID='%s'",bizID,s);
+				sql=String.format("SELECT DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE ID='%s'",s);
 				stmt = dbConn.prepareStatement(sql);
 				rs = stmt.executeQuery();
 				while (rs.next()) {

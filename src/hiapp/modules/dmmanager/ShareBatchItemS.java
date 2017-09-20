@@ -60,15 +60,6 @@ public class ShareBatchItemS {
 	    public void setDescription(String description) {
 	        this.description = description;
 	    }
-
-	    public ShareBatchStateEnum getState() {
-	        return state;
-	    }
-
-	    public void setState(ShareBatchStateEnum state) {
-	        this.state = state;
-	    }
-
 	    public Date getStartTime() {
 	        return StartTime;
 	    }
@@ -92,7 +83,15 @@ public class ShareBatchItemS {
 	    String  createUserId;
 	    Date createTime;
 	    String description;
-	    ShareBatchStateEnum	state;
+	    public String getState() {
+			return state;
+		}
+
+		public void setState(String state) {
+			this.state = state;
+		}
+
+		String	state;
 	    Date StartTime;
 	    Date EndTime;
 	    int abc;

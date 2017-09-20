@@ -212,7 +212,7 @@ public class DMBizMangeShareController {
 	}
 	
 	
-	
+	//页面一加载 查询所有能被共享的人
 	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String TreeViewByUserId(HttpSession session){
 		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
