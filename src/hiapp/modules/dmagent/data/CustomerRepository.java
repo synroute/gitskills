@@ -661,6 +661,7 @@ public class CustomerRepository extends BaseRepository {
 					String rowNumber = next.get("rowNumber");
 					String colNumber = next.get("colNumber");
 					String fontColor = next.get("fontColor");
+					String columnName = next.get("columnName");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -672,6 +673,7 @@ public class CustomerRepository extends BaseRepository {
 					map.put("rowNumber", rowNumber);
 					map.put("colNumber", colNumber);
 					map.put("fontColor", fontColor);
+					map.put("columnName", columnName);
 					record.add(map);
 				}
 				result.add(record);
