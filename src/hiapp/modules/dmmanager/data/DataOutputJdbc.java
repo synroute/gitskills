@@ -143,7 +143,10 @@ public class DataOutputJdbc extends BaseRepository{
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
-				workSheetNameList.add(workSheetName);
+				if(workSheetName!=null&&!"".equals(workSheetName)){
+					workSheetNameList.add(workSheetName);
+				}
+				
 			}
 			//对workSheetNameList去重
 			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
@@ -154,19 +157,19 @@ public class DataOutputJdbc extends BaseRepository{
 				for (int j = 0; j <newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName1)){
 						String asName="a"+j+".";//别名
-						String column=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
-						if(column!=null&&!"".equals(column)){
+						String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
 							getOutDataSql+=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString()+",";
 
-						}
 						break;
 					}
 				}
 			}
 			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" from ";
 			for(int k=0;k<newList.size();k++){
-				String asName="a"+k;//别名
-				getOutDataSql+=newList.get(k)+" "+asName+",";
+				String column=dataArray.get(k).getAsJsonObject().get("WorkSheetColName").getAsString();
+					String asName="a"+k;//别名
+					getOutDataSql+=newList.get(k)+" "+asName+",";
+			
 			}
 			
 			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" where ";
@@ -174,10 +177,15 @@ public class DataOutputJdbc extends BaseRepository{
 				String asName="a"+h+".";
 				getOutDataSql+="a0.IID="+asName+"IID and ";
 			}
-			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'mm-dd-yyyy') and IMPORTTIME<to_date(?,'mm-dd-yyyy'))";
+			for (int h = 1; h < newList.size(); h++) {
+				String asName="a"+h+".";
+				getOutDataSql+="a0.CID="+asName+"CID and ";
+			}
+			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'mm-dd-yyyy') and IMPORTTIME<to_date(?,'mm-dd-yyyy') and BUSINESSID=?)";
 			pst=conn.prepareStatement(getOutDataSql);
 			pst.setString(1,startTime);
 			pst.setString(2, endTime);
+			pst.setInt(3,bizId);
 			rs=pst.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
