@@ -163,15 +163,14 @@ public class ImportDataController {
 				for (int j = 0; j <=coloumNum; j++) {
 					String cellVlue=null;
 	            	if(sheet.getRow(0).getCell(j)!=null){
-	            	/*	if(HSSFDateUtil.isCellDateFormatted(sheet.getRow(0).getCell(j))){
-	            			SimpleDateFormat sdf = null;   
-	                        sdf = new SimpleDateFormat("yyyy-MM-dd");    
-	                        Date date = sheet.getRow(0).getCell(j).getDateCellValue();  
-	                        cellVlue=sdf.format(date);
-	            		}else{*/
+	            		String value=getStringcell(sheet.getRow(0).getCell(j));
+	            		if(value!=null){
+	            			cellVlue=value;
+	            		}else{
 	            			sheet.getRow(0).getCell(j).setCellType(Cell.CELL_TYPE_STRING);
-		            		cellVlue=sheet.getRow(0).getCell(j).getRichStringCellValue().toString();
-	            		//}
+			            	cellVlue=sheet.getRow(0).getCell(j).getRichStringCellValue().toString();
+	            		}
+	            		
 	            		
 	               }
 					if(newList.get(i).equals(cellVlue)){
@@ -188,15 +187,13 @@ public class ImportDataController {
 	            	if(map1.keySet().contains(column)){
 	            		String value=null;
 	            		if(row.getCell(intMap.get(map1.get(column)))!=null){
-	            			/*if(HSSFDateUtil.isCellDateFormatted(row.getCell(intMap.get(map1.get(column))))){
-		            			SimpleDateFormat sdf = null;   
-		                        sdf = new SimpleDateFormat("yyyy-MM-dd");    
-		                        Date date = row.getCell(intMap.get(map1.get(column))).getDateCellValue();  
-		                        value=sdf.format(date);
-		            		}else{*/
+	            			String value1=getStringcell(row.getCell(intMap.get(map1.get(column))));
+		            		if(value1!=null){
+		            			value=value1;
+		            		}else{
 		            			row.getCell(intMap.get(map1.get(column))).setCellType(Cell.CELL_TYPE_STRING);
-			            		value=row.getCell(intMap.get(map1.get(column))).getStringCellValue().toString();
-		            		//}
+		            			value=row.getCell(intMap.get(map1.get(column))).getRichStringCellValue().toString();
+		            		}
 	            		
 	            		}
 	            		map.put(sheetColumnList.get(j).getField(),value);
@@ -275,5 +272,13 @@ public class ImportDataController {
 		 
 	};
 
-	
+	public String getStringcell(Cell cell){
+		String value=null;
+		if("yyyy/mm/dd".equals(cell.getCellStyle().getDataFormatString()) || "m/d/yy".equals(cell.getCellStyle().getDataFormatString())
+		        || "yy/m/d".equals(cell.getCellStyle().getDataFormatString()) || "mm/dd/yy".equals(cell.getCellStyle().getDataFormatString())
+		        || "dd-mmm-yy".equals(cell.getCellStyle().getDataFormatString())|| "yyyy/m/d".equals(cell.getCellStyle().getDataFormatString())){
+			value= new SimpleDateFormat("yyyy/MM/dd").format(cell.getDateCellValue());
+		}
+		return value;
+	}
 }
