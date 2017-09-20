@@ -59,6 +59,37 @@ public class DmBizRepository extends BaseRepository{
 		return true;
 	}
 	
+	public boolean getAllDMBizPerm(List<DMBusiness> listDMBusiness) {
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			dbConn = this.getDbConnection();
+			szSql = String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS ORDER BY BUSINESSID ");
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				DMBusiness DMBusiness = new DMBusiness();
+				DMBusiness.setBizId(rs.getInt(1));
+				DMBusiness.setName(rs.getString(2));
+				DMBusiness.setDesc(rs.getString(3));
+				DMBusiness.setOwnerGroupId(rs.getString(4));
+				DMBusiness.setModeId(rs.getInt(5));
+				DMBizOutboundModelEnum modelEnum = DMBizOutboundModelEnum.values()[DMBusiness.getModeId()-1];
+				DMBusiness.setModeInfo(modelEnum.getOutboundID()+";"+modelEnum.getOutboundType()+";"+modelEnum.getOutboundMode());
+				listDMBusiness.add(DMBusiness);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		return true;
+	}
+	
 	public ServiceResultCode newDMBusiness(
 			String id, String name, String description,
 			String ownerGroupId, String modeId, StringBuffer errMessage) {
