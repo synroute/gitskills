@@ -8,6 +8,7 @@ import hiapp.modules.dm.singlenumbermode.dao.SingleNumberModeDAO;
 import hiapp.modules.dm.dao.DMDAO;
 
 import hiapp.modules.dmsetting.DMBizPresetItem;
+import hiapp.modules.dmsetting.DMPresetStateEnum;
 import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
 import hiapp.utils.database.DBConnectionPool;
 import hiapp.utils.serviceresult.RecordsetResult;
@@ -38,7 +39,7 @@ public class SingleNumberOutboundDataManage {
     public void setDBConnectionPool(DBConnectionPool dbConnectionPool) {
         this.dbConnectionPool = dbConnectionPool;
 
-        //initialize();
+        initialize();
     }
 
     DBConnectionPool dbConnectionPool;
@@ -54,9 +55,11 @@ public class SingleNumberOutboundDataManage {
     TimerTask dailyTimerTask;
 
 
-    public SingleNumberModeShareCustomerItem extractNextOutboundCustomer(String userId,
-                                                                  int bizId) {
+    public synchronized SingleNumberModeShareCustomerItem extractNextOutboundCustomer(
+                                                            String userId, int bizId) {
         System.out.println(userId + "。。。" + bizId);
+
+        Date now = new Date();
 
         // 根据userID，获取有权限访问的shareBatchIds
 
@@ -67,6 +70,10 @@ public class SingleNumberOutboundDataManage {
         customerQueue = mapPresetDialCustomer.get(bizId);
         if (null != customerQueue) {
             shareDataItem = customerQueue.poll();
+            if (shareDataItem.getNextDialTime().after(now)) {
+                customerQueue.put(shareDataItem);
+                shareDataItem = null;
+            }
         }
 
         if (null == shareDataItem) {
@@ -519,7 +526,7 @@ public class SingleNumberOutboundDataManage {
 
         //若是当前是预约拨打，更新 预约状态 @ 预约表
         if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(originCustomerItem.getState())) {
-            dmDAO.updatePresetState(item.getBizId(), item.getShareBatchId(), item.getCustomerId(), "预约完成");
+            dmDAO.updatePresetState(item.getBizId(), item.getShareBatchId(), item.getCustomerId(), DMPresetStateEnum.FinishPreset.getStateName());
         }
 
         originCustomerItem.setRemovedFlag(needRemove);

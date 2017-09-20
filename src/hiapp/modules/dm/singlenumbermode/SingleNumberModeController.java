@@ -1,6 +1,7 @@
 package hiapp.modules.dm.singlenumbermode;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.utils.serviceresult.RecordsetResult;
 import hiapp.utils.serviceresult.ServiceResult;
@@ -28,20 +29,21 @@ public class SingleNumberModeController {
         Integer intBizId = Integer.valueOf(bizId);
         SingleNumberModeShareCustomerItem item = singleNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId);
 
-        RecordsetResult recordsetResult = new RecordsetResult();
-        try {
-            List<SingleNumberModeShareCustomerItem> itemList = new ArrayList<SingleNumberModeShareCustomerItem>();
-            itemList.add(item);
+        /*item = new SingleNumberModeShareCustomerItem();
+        item.setCustomerId("customer");
+        item.setShareBatchId("sharebatch");
+        item.setImportBatchId("importbatch");*/
 
-            recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
-            recordsetResult.setPage(0);
-            recordsetResult.setTotal(itemList.size());
-            recordsetResult.setPageSize(itemList.size());
-            recordsetResult.setRows(itemList);
-        } catch (Exception e) {
-            e.printStackTrace();
+        NextOutboundCustomerResult result = new NextOutboundCustomerResult();
+        if (null == item) {
+            result.setResultCode(ServiceResultCode.CUSTOMER_NONE);
+        } else {
+            result.setResultCode(ServiceResultCode.SUCCESS);
+            result.setCustomerId(item.getCustomerId());
+            result.setImportBatchId(item.getImportBatchId());
+            result.setShareBatchId(item.getShareBatchId());
         }
-        return recordsetResult.toJson();
+        return result.toJson();
     }
 
     @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, produces="application/json")
