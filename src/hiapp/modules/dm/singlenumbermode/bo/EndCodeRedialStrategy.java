@@ -1,8 +1,5 @@
 package hiapp.modules.dm.singlenumbermode.bo;
 
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +76,7 @@ public class EndCodeRedialStrategy {
 
         EndCodeRedialStrategy endCodeRedialStrategy = new EndCodeRedialStrategy();
 
-        List<RedialState> redialSateList = endCodeRedialStrategyFromDB.getRedialSate();
+        List<RedialState> redialSateList = endCodeRedialStrategyFromDB.getRedialState();
         for (RedialState redialState : redialSateList) {
             endCodeRedialStrategy.addRedialState(redialState);
         }
@@ -87,7 +84,7 @@ public class EndCodeRedialStrategy {
         EndCodeRedialStrategyFromDB.EndCodeRedialStrategyItem endCodeRedialStrategyItem = endCodeRedialStrategyFromDB.getEndCodeRedialStrategy();
 
         EndCodeRedialStrategyFromDB.DataShow dataShow = endCodeRedialStrategyItem.getDataShow();
-        endCodeRedialStrategy.setStageLimit(dataShow.getStageLimit());
+        endCodeRedialStrategy.setStageLimit(dataShow.getStageLimitNum());
         endCodeRedialStrategy.setStageExceedNextStateName(dataShow.getStageExceedNextState());
 
 

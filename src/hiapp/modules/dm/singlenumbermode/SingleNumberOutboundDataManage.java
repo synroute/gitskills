@@ -73,10 +73,9 @@ public class SingleNumberOutboundDataManage {
 
         customerQueue = mapPresetDialCustomer.get(bizId);
         if (null != customerQueue) {
-            shareDataItem = customerQueue.poll();
-            if (shareDataItem.getNextDialTime().after(now)) {
-                customerQueue.put(shareDataItem);
-                shareDataItem = null;
+            shareDataItem = customerQueue.peek();
+            if (shareDataItem.getNextDialTime().before(now)) {
+                shareDataItem = customerQueue.poll();
             }
         }
 
@@ -149,45 +148,28 @@ public class SingleNumberOutboundDataManage {
 
     public void initialize() {
 
-        /*EndCodeRedialStrategy endCodeRedialStrategy = new EndCodeRedialStrategy();
-        endCodeRedialStrategy.setStageLimit(8);
-
-        endCodeRedialStrategy.setStageExceedNextStateName("stageExceedNextStateName");
-
-        RedialState redialState = new RedialState();
-        redialState.setDescription("description");
-        redialState.setLoopRedialCountExceedNextStateName("loopRedialCountExceedNextStateName");
-        redialState.setLoopRedialDialCount(9);
-        redialState.setLoopRedialFirstDialDayDialCountLimit(2);
-        redialState.setLoopRedialPerdayCountLimit(3);
-        redialState.setName("statename");
-        redialState.setRedialStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
-        redialState.setStageRedialDelayDays(20);
-        endCodeRedialStrategy.setEndCodeToRedialStateName("EndCodeType", "EndCode", "stateName");
-        endCodeRedialStrategy.setEndCodeToRedialStateName("EndCodeType2", "EndCode2", "stateName2");
-
-        endCodeRedialStrategy.setRedialStateItem("stateName", redialState);
-        endCodeRedialStrategy.setRedialStateItem("stateName2", redialState);
-
-        String jsonObject=new Gson().toJson(endCodeRedialStrategy);
-        System.out.println(jsonObject);*/
-
         /*EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB = new EndCodeRedialStrategyFromDB();
         RedialState redialState = new RedialState();
         redialState.setDescription("description");
         redialState.setLoopRedialCountExceedNextState("loopRedialCountExceedNextStateName");
-        redialState.setLoopRedialDialCount(9);
-        redialState.setLoopRedialFirstDialDayDialCountLimit(2);
-        redialState.setLoopRedialPerdayCountLimit(3);
+        redialState.setLoopRedialDialCount("9");
+        redialState.setLoopRedialFirstDialDayDialCountLimit("2");
+        redialState.setLoopRedialPerdayCountLimit("3");
         redialState.setName("statename");
         redialState.setStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
-        redialState.setStageRedialDelayDays(20);
+        redialState.setStageRedialDelayDays("20");
 
+        endCodeRedialStrategyFromDB.addRedialState(redialState);
         endCodeRedialStrategyFromDB.addRedialState(redialState);
         endCodeRedialStrategyFromDB.addEndCodeRedialStrategyItem();
 
         String jsonObject=new Gson().toJson(endCodeRedialStrategyFromDB);
-        System.out.println(jsonObject);*/
+        System.out.println(jsonObject);
+
+        EndCodeRedialStrategyFromDB tmp00 = new Gson().fromJson(jsonObject,
+                EndCodeRedialStrategyFromDB.class);*/
+
+        EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
 
 
         setDailyRoutine();
@@ -448,7 +430,7 @@ public class SingleNumberOutboundDataManage {
         item.setEndCodeType(resultCodeType);
         item.setEndCode(resultCode);
 
-        RedialStateTypeEnum redialStateType = newRedialState.getStateType();
+        RedialStateTypeEnum redialStateType = newRedialState.getStateTypeEnum();
         if (RedialStateTypeEnum.REDIAL_STATE_FINISHED.equals(redialStateType)) {
             // 更新共享状态表
             singleNumberModeDAO.updateCustomerShareStateToFinish(item);
@@ -479,7 +461,7 @@ public class SingleNumberOutboundDataManage {
                 item.setState(SingleNumberModeShareCustomerStateEnum.getFromString(
                         endCodeRedialStrategy.getStageExceedNextStateName()));
             } else {
-                item.setNextDialTime(getNextXDay(newRedialState.getStageRedialDelayDays()));
+                item.setNextDialTime(getNextXDay(newRedialState.getStageRedialDelayDaysNum()));
             }
 
             singleNumberModeDAO.updateCustomerShareStateToStage(item);
@@ -499,13 +481,13 @@ public class SingleNumberOutboundDataManage {
 
             item.setLostCallTotalCount(originCustomerItem.getLostCallTotalCount() + 1);
             item.setLostCallCurDayCount(originCustomerItem.getLostCallCurDayCount() + 1);
-            if (item.getLostCallTotalCount() >= newRedialState.getLoopRedialDialCount()) {
+            if (item.getLostCallTotalCount() >= newRedialState.getLoopRedialDialCountNum()) {
                 item.setState(SingleNumberModeShareCustomerStateEnum.getFromString(
                         newRedialState.getLoopRedialCountExceedNextState()));
             } else {
-                int todayLoopRedialCountLimit = newRedialState.getLoopRedialPerdayCountLimit();
+                int todayLoopRedialCountLimit = newRedialState.getLoopRedialPerdayCountLimitNum();
                 if (isSameDay(today, originCustomerItem.getLostCallFirstDay())) {
-                    todayLoopRedialCountLimit = newRedialState.getLoopRedialFirstDialDayDialCountLimit();
+                    todayLoopRedialCountLimit = newRedialState.getLoopRedialFirstDialDayDialCountLimitNum();
                 }
 
                 if (item.getLostCallCurDayCount() < todayLoopRedialCountLimit) {

@@ -1,14 +1,12 @@
 package hiapp.modules.dm.singlenumbermode.bo;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class EndCodeRedialStrategyFromDB {
 
-    public List<RedialState> getRedialSate() {
-        return RedialSate;
+    public List<RedialState> getRedialState() {
+        return RedialState;
     }
 
     public EndCodeRedialStrategyItem getEndCodeRedialStrategy() {
@@ -18,11 +16,11 @@ public class EndCodeRedialStrategyFromDB {
 
     class EndCodeRedialStrategyItem {
         public DataShow getDataShow() {
-            return dataShow;
+            return dataShow.get(0);
         }
 
-        public void setDataShow(DataShow dataShow) {
-            this.dataShow = dataShow;
+        public void addDataShow(DataShow dataShowItem) {
+            dataShow.add(dataShowItem);
         }
 
         public void addDataInfo(DataInfo dataInfoItem) {
@@ -33,16 +31,20 @@ public class EndCodeRedialStrategyFromDB {
             return dataInfo;
         }
 
-        DataShow dataShow;
+        List<DataShow> dataShow = new ArrayList<DataShow>();
         List<DataInfo> dataInfo = new ArrayList<DataInfo>();
     }
 
     class DataShow {
-        public int getStageLimit() {
+        public String getStageLimit() {
             return stageLimit;
         }
 
-        public void setStageLimit(int stageLimit) {
+        public int getStageLimitNum() {
+            return Integer.parseInt(stageLimit);
+        }
+
+        public void setStageLimit(String stageLimit) {
             this.stageLimit = stageLimit;
         }
 
@@ -54,7 +56,7 @@ public class EndCodeRedialStrategyFromDB {
             this.stageExceedNextState = stageExceedNextState;
         }
 
-        int stageLimit;
+        String stageLimit;
         String stageExceedNextState;
     }
 
@@ -75,12 +77,12 @@ public class EndCodeRedialStrategyFromDB {
             this.endCode = endCode;
         }
 
-        public String getEndCodedescription() {
-            return endCodedescription;
+        public String getEndCodeDescription() {
+            return endCodeDescription;
         }
 
-        public void setEndCodedescription(String endCodedescription) {
-            this.endCodedescription = endCodedescription;
+        public void setEndCodeDescription(String endCodeDescription) {
+            this.endCodeDescription = endCodeDescription;
         }
 
         public String getRedialStateName() {
@@ -101,29 +103,29 @@ public class EndCodeRedialStrategyFromDB {
 
         String endCodeType;
         String endCode;
-        String endCodedescription;
+        String endCodeDescription;
         String redialStateName;
         String redialStateDec;
     }
 
     public void addRedialState(RedialState state) {
-        RedialSate.add(state);
+        RedialState.add(state);
     }
 
     public void addEndCodeRedialStrategyItem() {
         DataShow dataShow = new DataShow();
-        dataShow.setStageLimit(10);
+        dataShow.setStageLimit("10");
         dataShow.setStageExceedNextState("nextStateName");
 
         DataInfo dataInfo = new DataInfo();
         dataInfo.setEndCode("endCode");
         dataInfo.setEndCodeType("endCodeType");
-        dataInfo.setEndCodedescription("enddesc");
+        dataInfo.setEndCodeDescription("enddesc");
         dataInfo.setRedialStateName("stateName");
         dataInfo.setRedialStateDec("statdesc");
 
         EndCodeRedialStrategyItem endCodeRedialStrategyItem = new EndCodeRedialStrategyItem();
-        endCodeRedialStrategyItem.setDataShow(dataShow);
+        endCodeRedialStrategyItem.addDataShow(dataShow);
         endCodeRedialStrategyItem.addDataInfo(dataInfo);
         endCodeRedialStrategyItem.addDataInfo(dataInfo);
 
@@ -131,7 +133,7 @@ public class EndCodeRedialStrategyFromDB {
     }
 
 
-    List<RedialState> RedialSate = new ArrayList<RedialState>();
+    List<RedialState> RedialState = new ArrayList<RedialState>();
 
     List<EndCodeRedialStrategyItem> EndCodeRedialStrategy = new ArrayList<EndCodeRedialStrategyItem>();
 }

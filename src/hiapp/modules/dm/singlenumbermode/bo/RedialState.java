@@ -18,43 +18,13 @@ public class RedialState {
         this.description = description;
     }
 
-    public int getStageRedialDelayDays() {
-        return stageRedialDelayDays;
+    public RedialStateTypeEnum getStateTypeEnum() {
+        return RedialStateTypeEnum.valueOf(stateType);
     }
 
-    public void setStageRedialDelayDays(int stageRedialDelayDays) {
-        this.stageRedialDelayDays = stageRedialDelayDays;
-    }
+    public String getStateType() { return stateType; }
 
-    public int getLoopRedialFirstDialDayDialCountLimit() {
-        return loopRedialFirstDialDayDialCountLimit;
-    }
-
-    public void setLoopRedialFirstDialDayDialCountLimit(int loopRedialFirstDialDayDialCountLimit) {
-        this.loopRedialFirstDialDayDialCountLimit = loopRedialFirstDialDayDialCountLimit;
-    }
-
-    public int getLoopRedialDialCount() {
-        return loopRedialDialCount;
-    }
-
-    public void setLoopRedialDialCount(int loopRedialDialCount) {
-        this.loopRedialDialCount = loopRedialDialCount;
-    }
-
-    public int getLoopRedialPerdayCountLimit() {
-        return loopRedialPerdayCountLimit;
-    }
-
-    public void setLoopRedialPerdayCountLimit(int loopRedialPerdayCountLimit) {
-        this.loopRedialPerdayCountLimit = loopRedialPerdayCountLimit;
-    }
-
-    public RedialStateTypeEnum getStateType() {
-        return stateType;
-    }
-
-    public void setStateType(RedialStateTypeEnum stateType) {
+    public void setStateType(String stateType) {
         this.stateType = stateType;
     }
 
@@ -66,14 +36,62 @@ public class RedialState {
         this.loopRedialCountExceedNextState = loopRedialCountExceedNextState;
     }
 
+    public String getStageRedialDelayDays() {
+        return stageRedialDelayDays;
+    }
+
+    public int getStageRedialDelayDaysNum() {
+        return Integer.parseInt(stageRedialDelayDays);
+    }
+
+
+    public void setStageRedialDelayDays(String stageRedialDelayDays) {
+        this.stageRedialDelayDays = stageRedialDelayDays;
+    }
+
+    public String getLoopRedialFirstDialDayDialCountLimit() {
+        return loopRedialFirstDialDayDialCountLimit;
+    }
+
+    public int getLoopRedialFirstDialDayDialCountLimitNum() {
+        return Integer.parseInt(loopRedialFirstDialDayDialCountLimit);
+    }
+
+    public void setLoopRedialFirstDialDayDialCountLimit(String loopRedialFirstDialDayDialCountLimit) {
+        this.loopRedialFirstDialDayDialCountLimit = loopRedialFirstDialDayDialCountLimit;
+    }
+
+    public String getLoopRedialDialCount() {
+        return loopRedialDialCount;
+    }
+
+    public int getLoopRedialDialCountNum() {
+        return Integer.parseInt(loopRedialDialCount);
+    }
+
+    public void setLoopRedialDialCount(String loopRedialDialCount) {
+        this.loopRedialDialCount = loopRedialDialCount;
+    }
+
+    public String getLoopRedialPerdayCountLimit() {
+        return loopRedialPerdayCountLimit;
+    }
+
+    public int getLoopRedialPerdayCountLimitNum() {
+        return Integer.parseInt(loopRedialPerdayCountLimit);
+    }
+
+    public void setLoopRedialPerdayCountLimit(String loopRedialPerdayCountLimit) {
+        this.loopRedialPerdayCountLimit = loopRedialPerdayCountLimit;
+    }
 
     String name; //="结案"
-    String description; //="名称:结案;不再拨打"
-    RedialStateTypeEnum stateType; //="结束"
-    int stageRedialDelayDays; //=""
-    int loopRedialFirstDialDayDialCountLimit; //=""
-    int loopRedialDialCount; //=""
-    int loopRedialPerdayCountLimit; //=""
+    String stateType; //="结束"
+    String stageRedialDelayDays; //=""
+    String loopRedialFirstDialDayDialCountLimit; //=""
+    String loopRedialDialCount; //=""
+    String loopRedialPerdayCountLimit; //=""
     String loopRedialCountExceedNextState; //=""
+    String description; //="名称:结案;不再拨打"
 
 }
