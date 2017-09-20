@@ -123,11 +123,12 @@ public class DataImportJdbc extends BaseRepository{
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String wookSheetId=null;
+		String name="HAU_DM_B"+bizId+"C_IMPORT";
 		try {
 			conn= this.getDbConnection();
-			String sql="select WORKSHEETID from Hasys_Dm_Bizworksheet where BIZID=?";
+			String sql="select id from hasys_worksheet  where name=?";
 			pst=conn.prepareStatement(sql);
-			pst.setInt(1, bizId);
+			pst.setString(1, name);
 			rs = pst.executeQuery();
 		
 			while(rs.next()){
@@ -462,7 +463,7 @@ public class DataImportJdbc extends BaseRepository{
 			String distinctSql=null;
 			String resultTableName="HAU_DM_B"+bizId+"C_Result";
 			//查询数据
-			if("按导入时间排重".equals(repetitionExcludeType)){
+			if("根据导入时间排重".equals(repetitionExcludeType)){
 				if(type.startsWith("datetime")){
 					 distinctSql="select to_char("+RepetitionColumn+",'yyyy-mm-dd') from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
 				}else{

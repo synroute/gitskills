@@ -16,7 +16,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -111,7 +114,6 @@ public class ImportDataController {
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
-		WorkSheet workSheet=dataImportJdbc.getWorkSheet(workSheetId);
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
 		String jsonObject=new Gson().toJson(sheetColumnList);
 		try {
@@ -161,8 +163,16 @@ public class ImportDataController {
 				for (int j = 0; j <=coloumNum; j++) {
 					String cellVlue=null;
 	            	if(sheet.getRow(0).getCell(j)!=null){
-	            		sheet.getRow(0).getCell(j).setCellType(Cell.CELL_TYPE_STRING);
-	            		cellVlue=sheet.getRow(0).getCell(j).getRichStringCellValue().toString();
+	            	/*	if(HSSFDateUtil.isCellDateFormatted(sheet.getRow(0).getCell(j))){
+	            			SimpleDateFormat sdf = null;   
+	                        sdf = new SimpleDateFormat("yyyy-MM-dd");    
+	                        Date date = sheet.getRow(0).getCell(j).getDateCellValue();  
+	                        cellVlue=sdf.format(date);
+	            		}else{*/
+	            			sheet.getRow(0).getCell(j).setCellType(Cell.CELL_TYPE_STRING);
+		            		cellVlue=sheet.getRow(0).getCell(j).getRichStringCellValue().toString();
+	            		//}
+	            		
 	               }
 					if(newList.get(i).equals(cellVlue)){
 						intMap.put(newList.get(i),j);
@@ -174,11 +184,20 @@ public class ImportDataController {
 	            Row row = sheet.getRow(i);
 	            Map<String,Object> map=new HashMap<String, Object>();
 	            for(int j=0;j<sheetColumnList.size();j++){
-	            	if(map1.keySet().contains(sheetColumnList.get(j).getField())){
+	            	String column=sheetColumnList.get(j).getField().toUpperCase();
+	            	if(map1.keySet().contains(column)){
 	            		String value=null;
-	            		if(row.getCell(intMap.get(map1.get(sheetColumnList.get(j).getField())))!=null){
-	            			row.getCell(intMap.get(map1.get(sheetColumnList.get(j).getField()))).setCellType(Cell.CELL_TYPE_STRING);
-		            		 value=row.getCell(intMap.get(map1.get(sheetColumnList.get(j).getField()))).getStringCellValue().toString();
+	            		if(row.getCell(intMap.get(map1.get(column)))!=null){
+	            			/*if(HSSFDateUtil.isCellDateFormatted(row.getCell(intMap.get(map1.get(column))))){
+		            			SimpleDateFormat sdf = null;   
+		                        sdf = new SimpleDateFormat("yyyy-MM-dd");    
+		                        Date date = row.getCell(intMap.get(map1.get(column))).getDateCellValue();  
+		                        value=sdf.format(date);
+		            		}else{*/
+		            			row.getCell(intMap.get(map1.get(column))).setCellType(Cell.CELL_TYPE_STRING);
+			            		value=row.getCell(intMap.get(map1.get(column))).getStringCellValue().toString();
+		            		//}
+	            		
 	            		}
 	            		map.put(sheetColumnList.get(j).getField(),value);
 	            	}else{
@@ -255,5 +274,6 @@ public class ImportDataController {
 		printWriter.print(jsonObject);
 		 
 	};
+
 	
 }
