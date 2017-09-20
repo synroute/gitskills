@@ -37,7 +37,7 @@ public class DMBizMangeShare extends BaseRepository{
 			ResultSet rs = null;
 			try {
 				dbConn = this.getDbConnection();
-				// 查询 共享批次信息表 里面所有共享批次   来自共享批次信息表 a，座席池所属共享批次信息表 b,条件 B.数据池名称=user.getname and a.共享批次id=b.共享批次id
+				// 查询 共享批次信息表 里面所有共享批次   来自共享批次信息表 a，座席池所属共享批次信息表 b,条件 B.数据池名称=user.getname and a.共享批次id=b.共享批次id                                        HASYS_DM_SID
 				//SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='%s' AND B.SHAREID=A.SHAREID;
 				                 //SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='管' AND B.SHAREID=A.SHAREID
 				//sql=String.format("SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='%s' AND B.SHAREID=A.SHAREID",user.getName());

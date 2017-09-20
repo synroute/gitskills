@@ -129,7 +129,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HASYS_DM_B"+businessId+"C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
+			insertsql =String.format("INSERT INTO HASYS_DM_B1C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
