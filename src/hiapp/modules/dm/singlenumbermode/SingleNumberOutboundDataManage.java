@@ -7,6 +7,7 @@ import hiapp.modules.dm.singlenumbermode.bo.*;
 import hiapp.modules.dm.singlenumbermode.dao.SingleNumberModeDAO;
 import hiapp.modules.dm.dao.DMDAO;
 
+import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMPresetStateEnum;
 import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
@@ -33,6 +34,9 @@ public class SingleNumberOutboundDataManage {
 
     @Autowired
     private DmBizOutboundConfigRepository dmBizOutboundConfig;
+
+    @Autowired
+    private DataImportJdbc dataImportJdbc;
 
     @Autowired
     @Qualifier("tenantDBConnectionPool")
@@ -96,8 +100,8 @@ public class SingleNumberOutboundDataManage {
         return shareDataItem;
     }
 
-    public String submitOutboundResult(int bizId, String importBatchId, String shareBatchId, String customerId,
-                                       String resultCodeType, String resultCode, Date presetTime /*, customerInfo*/) {
+    public String submitOutboundResult(String userId, int bizId, String importBatchId, String shareBatchId, String customerId,
+                                       String resultCodeType, String resultCode, Date presetTime, String resultData, String customerInfo) {
 
         // 客户原信息变更、拨打信息、结果信息
 
@@ -107,10 +111,14 @@ public class SingleNumberOutboundDataManage {
         EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(bizId);
 
         // 经过 Outbound 策略处理器
-        procEndcode(customerItem, endCodeRedialStrategy, resultCodeType, resultCode, presetTime);
+        procEndcode(userId, customerItem, endCodeRedialStrategy, resultCodeType, resultCode, presetTime, resultData);
 
-        // 插入导入表
-        reviseCustomerInfo();
+        // 插入结果表
+        //dmDAO.insertDMResult();
+        dataImportJdbc.insertDataToResultTable(bizId, shareBatchId, importBatchId, customerId, userId, resultData);
+
+        // 插入导入客户表
+        dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo);
 
         return "";
     }
@@ -424,9 +432,9 @@ public class SingleNumberOutboundDataManage {
         // TODO
     }
 
-    private void procEndcode(SingleNumberModeShareCustomerItem originCustomerItem,
+    private void procEndcode(String userId, SingleNumberModeShareCustomerItem originCustomerItem,
                              EndCodeRedialStrategy endCodeRedialStrategy,
-                             String resultCodeType, String resultCode, Date presetTime) {
+                             String resultCodeType, String resultCode, Date presetTime, String resultData) {
 
         Date today = new Date();
         Boolean needRemove = true;
@@ -448,9 +456,6 @@ public class SingleNumberOutboundDataManage {
             // 插入共享历史表
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
 
-            // 插入结果表
-            dmDAO.insertDMResult();
-
         } else if (RedialStateTypeEnum.REDIAL_STATE_PRESET.equals(redialStateType)) {
             // 更新共享状态表   nextDialTime
             item.setNextDialTime(presetTime);
@@ -458,9 +463,6 @@ public class SingleNumberOutboundDataManage {
 
             // 插入共享历史表
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
-
-            // 插入结果表
-            dmDAO.insertDMResult();
 
             // 插入预约表
             dmDAO.insertPresetItem(null);
@@ -484,9 +486,6 @@ public class SingleNumberOutboundDataManage {
 
             // 插入共享历史表
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
-
-            // 插入结果表
-            dmDAO.insertDMResult();
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_LOSTCALL.equals(redialStateType)) {
             // 更新共享状态表  lostcallFirstDay  curDayLostCallCount  lostcallTotalCount
@@ -519,9 +518,6 @@ public class SingleNumberOutboundDataManage {
 
             // 插入共享历史表
             singleNumberModeDAO.insertCustomerShareStateHistory(item);
-
-            // 插入结果表
-            dmDAO.insertDMResult();
         }
 
         //若是当前是预约拨打，更新 预约状态 @ 预约表

@@ -3,12 +3,15 @@ package hiapp.modules.dm.singlenumbermode;
 import com.google.gson.Gson;
 import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
+import hiapp.system.buinfo.User;
 import hiapp.utils.serviceresult.RecordsetResult;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,11 +50,14 @@ public class SingleNumberModeController {
     }
 
     @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, produces="application/json")
-    public String submitOutboundResult(@RequestBody String requestBody) {
+    public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
 
         // 客户原信息变更、拨打信息、结果信息
         /*{"bizId":11,"importBatchId":77","shareBatchId":"66","customerId":91,"resultCodeType":"结束","resultCode":"结案"," +
             "presetTime":"2017-10-05 15:30:00","customerInfo":{xxx}}*/
+
+        HttpSession session = request.getSession();
+        User user=(User) session.getAttribute("user");
 
         Map<String, String> map = new Gson().fromJson(requestBody, Map.class);
         String strBizId = map.get("bizId");
@@ -60,6 +66,8 @@ public class SingleNumberModeController {
         String importBatchId = map.get("importBatchId");
         String shareBatchId = map.get("shareBatchId");
         String customerId = map.get("customerId");
+        String resultData = map.get("resultData");
+        String customerInfo = map.get("customerInfo");
 
         ServiceResult serviceresult = new ServiceResult();
 
@@ -74,8 +82,8 @@ public class SingleNumberModeController {
             return serviceresult.toJson();
         }
 
-        singleNumberOutboundDataManage.submitOutboundResult(Integer.parseInt(strBizId), importBatchId, shareBatchId, customerId,
-                resultCodeType, resultCode, presetTime /*, customerInfo*/);
+        singleNumberOutboundDataManage.submitOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId, shareBatchId, customerId,
+                resultCodeType, resultCode, presetTime , resultData, customerInfo);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();
