@@ -43,6 +43,7 @@ public class DMBizShareController {
 			                            @RequestParam(value="EndTime") String EndTime,
 			                            @RequestParam(value="BusinessID") String BusinessId,
 			                            @RequestParam(value="templateId") String templateId,
+			                            @RequestParam(value="sourceType" )String sourceType,
 			                            HttpServletResponse response
 			                            ){
 		List<Map<String,Object>> dataList=null;
@@ -51,7 +52,7 @@ public class DMBizShareController {
 			String workSheetId=dataImportJdbc.getWookSeetId(Integer.valueOf(BusinessId));
 			//获取要展示的列
 			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-			dataList = dMBizDataImport.getNotShareDataByTimes(StartTime,EndTime,BusinessId,templateId);
+			dataList = dMBizDataImport.getNotShareDataByTimes(StartTime,EndTime,BusinessId,templateId,sourceType);
 			for (int i = 0; i < dataList.size(); i++) {
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int j = 0; j < sheetColumnList.size(); j++) {
