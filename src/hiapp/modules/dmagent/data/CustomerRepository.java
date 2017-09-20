@@ -355,7 +355,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" = ");
 			sb.append(userId);
 
-			sb.append(" OR ");
+			sb.append(" AND ");
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
 					+ "MODIFYUSERID");
 			sb.append(" = ");
@@ -698,7 +698,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" = ");
 			sb.append(userId);
 
-			sb.append(" OR ");
+			sb.append(" AND ");
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
 					+ "MODIFYUSERID");
 			sb.append(" = ");
@@ -905,7 +905,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" = ");
 			sb.append(userId);
 
-			sb.append(" OR ");
+			sb.append(" AND ");
 
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
 					+ "MODIFYUSERID");
@@ -1121,7 +1121,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" = ");
 			sb.append(userId);
 
-			sb.append(" OR ");
+			sb.append(" AND ");
 
 			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
 					+ "MODIFYUSERID");
@@ -1458,13 +1458,13 @@ public class CustomerRepository extends BaseRepository {
 							+ "MODIFYUSERID");
 					sb.append(" IN ");
 					sb.append(userIds);
-					sb.append(" OR ");
+					sb.append(" AND ");
 
 					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
 							+ "MODIFYUSERID");
 					sb.append(" IN ");
 					sb.append(userIds);
-					sb.append(" OR ");
+					sb.append(" AND ");
 
 					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
 							+ "MODIFYUSERID");
@@ -1715,13 +1715,13 @@ public class CustomerRepository extends BaseRepository {
 							+ "MODIFYUSERID");
 					sb.append(" IN ");
 					sb.append(userIds);
-					sb.append(" OR ");
+					sb.append(" AND ");
 
 					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
 							+ "MODIFYUSERID");
 					sb.append(" IN ");
 					sb.append(userIds);
-					sb.append(" OR ");
+					sb.append(" AND ");
 
 					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
 							+ "MODIFYUSERID");
