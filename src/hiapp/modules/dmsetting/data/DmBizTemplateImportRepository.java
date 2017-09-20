@@ -109,68 +109,8 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			JsonObject jsonObject =new JsonObject();
-			JsonObject jsonObject_row=new JsonObject();
-			JsonArray jsonArray_Import=new JsonArray();
-			if(dmBizImportTemplate.getDataSourceType().equals("Excel"))
-			{
-				
-				jsonObject_row.addProperty("ExcelDefaultExt", ".xlsx");
-				jsonObject_row.addProperty("ExcelColEnd", "26");
-				jsonObject_row.addProperty("ExcelRowStart", "2");
-				jsonObject_row.addProperty("ExcelColStart", "0");
-				jsonObject_row.addProperty("ExcelCsvFastInsertTable", "1");
-				jsonObject_row.addProperty("RepetitionExcludeType", "根据导入时间排重");
-				jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumn", "id");
-				jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumnCh", "编号");
-				jsonObject_row.addProperty("RepetitionExcludeDayCount", "2");
-				jsonArray_Import.add(jsonObject_row);
-				jsonObject.add("ImportExcelTemplate", jsonArray_Import);
-				
-			}else{
-				
-				jsonObject_row.addProperty("ImportTableName", "HAU_DM_B"+dmBizImportTemplate.getBizId()+"C_IMPORT");
-				jsonObject_row.addProperty("SourceTableName", "");
-				jsonObject_row.addProperty("DateTimeFilterField", "ImportDate");
-				jsonObject_row.addProperty("ServerAutoImport", "");
-				jsonObject_row.addProperty("ServerAutoImportInterval", "");
-				jsonObject_row.addProperty("ServerAutoImportFieldLatestSource", "");
-				jsonArray_Import.add(jsonObject_row);
-				jsonObject.add("ImportExcelTemplate", jsonArray_Import);
-			}
-			JsonArray jsonArray=new JsonArray();
 			
-			String szSelectSql="select ID from HASYS_WORKSHEET where NAME='HAU_DM_B"+dmBizImportTemplate.getBizId()+"C_IMPORT'";
-			stmt = dbConn.prepareStatement(szSelectSql);
-			rs = stmt.executeQuery();
-			String workSheetId="";
-			while(rs.next()){
-				workSheetId=rs.getString(1);
-			}
-			stmt.close();
-			List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
-			workSheet.getColumns(dbConn, workSheetId, listColumns);
-			
-			for (int i = 0; i < listColumns.size(); i++) {
-				WorkSheetColumn workSheetColumn=listColumns.get(i);
-				JsonObject jsonObject_column=new JsonObject();
-				if(dmBizImportTemplate.getDataSourceType().equals("Excel"))
-				{
-					jsonObject_column.addProperty("RowIndex", "");
-					jsonObject_column.addProperty("DbFieldName", workSheetColumn.getColumnName());
-					jsonObject_column.addProperty("DbFieldNameCh", workSheetColumn.getColumnNameCh());
-					jsonObject_column.addProperty("ExcelHeader", "");
-					jsonArray.add(jsonObject_column);
-				}else{
-					jsonObject_column.addProperty("FieldName", workSheetColumn.getColumnName());
-					jsonObject_column.addProperty("FieldNameCh", workSheetColumn.getColumnNameCh());
-					jsonObject_column.addProperty("FieldNameSource", "");
-					jsonArray.add(jsonObject_column);
-				}
-			}
-			jsonObject.add("FieldMaps", jsonArray);
-			
-			String szSql = "INSERT INTO HASYS_DM_BIZTEMPLATEIMPORT (ID,TemplateID,BusinessId,Name,Description,IsDefault,SourceType,Xml) VALUES(S_HASYS_DM_BIZTEMPLATEIMPORT.nextval,?,?,?,?,?,?,?) ";
+			String szSql = "INSERT INTO HASYS_DM_BIZTEMPLATEIMPORT (ID,TemplateID,BusinessId,Name,Description,IsDefault,SourceType,Xml) VALUES(S_HASYS_DM_BIZTEMPLATEIMPORT.nextval,?,?,?,?,?,?,'') ";
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.setInt(1,dmBizImportTemplate.getTemplateId());
 			stmt.setInt(2,dmBizImportTemplate.getBizId());
@@ -178,7 +118,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 			stmt.setString(4,dmBizImportTemplate.getDesc());
 			stmt.setInt(5,dmBizImportTemplate.getIsDefault());
 			stmt.setString(6,dmBizImportTemplate.getDataSourceType());
-			stmt.setString(7,jsonObject.toString());
+			
 			stmt.execute();
 
 			
@@ -304,6 +244,70 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				json=rs.getString(1);
 			}
 
+			if(json.equals(""))
+			{
+				JsonObject jsonObject =new JsonObject();
+				JsonObject jsonObject_row=new JsonObject();
+				JsonArray jsonArray_Import=new JsonArray();
+				if(dmBizImportTemplate.getDataSourceType().equals("Excel"))
+				{
+					
+					jsonObject_row.addProperty("ExcelDefaultExt", ".xlsx");
+					jsonObject_row.addProperty("ExcelColEnd", "26");
+					jsonObject_row.addProperty("ExcelRowStart", "2");
+					jsonObject_row.addProperty("ExcelColStart", "0");
+					jsonObject_row.addProperty("ExcelCsvFastInsertTable", "1");
+					jsonObject_row.addProperty("RepetitionExcludeType", "根据导入时间排重");
+					jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumn", "id");
+					jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumnCh", "编号");
+					jsonObject_row.addProperty("RepetitionExcludeDayCount", "2");
+					jsonArray_Import.add(jsonObject_row);
+					jsonObject.add("ImportExcelTemplate", jsonArray_Import);
+					
+				}else{
+					
+					jsonObject_row.addProperty("ImportTableName", "HAU_DM_B"+dmBizImportTemplate.getBizId()+"C_IMPORT");
+					jsonObject_row.addProperty("SourceTableName", "");
+					jsonObject_row.addProperty("DateTimeFilterField", "ImportDate");
+					jsonObject_row.addProperty("ServerAutoImport", "");
+					jsonObject_row.addProperty("ServerAutoImportInterval", "");
+					jsonObject_row.addProperty("ServerAutoImportFieldLatestSource", "");
+					jsonArray_Import.add(jsonObject_row);
+					jsonObject.add("ImportExcelTemplate", jsonArray_Import);
+				}
+				JsonArray jsonArray=new JsonArray();
+				
+				String szSelectSql="select ID from HASYS_WORKSHEET where NAME='HAU_DM_B"+dmBizImportTemplate.getBizId()+"C_IMPORT'";
+				stmt = dbConn.prepareStatement(szSelectSql);
+				rs = stmt.executeQuery();
+				String workSheetId="";
+				while(rs.next()){
+					workSheetId=rs.getString(1);
+				}
+				stmt.close();
+				List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
+				workSheet.getColumns(dbConn, workSheetId, listColumns);
+				
+				for (int i = 0; i < listColumns.size(); i++) {
+					WorkSheetColumn workSheetColumn=listColumns.get(i);
+					JsonObject jsonObject_column=new JsonObject();
+					if(dmBizImportTemplate.getDataSourceType().equals("Excel"))
+					{
+						jsonObject_column.addProperty("RowIndex", "");
+						jsonObject_column.addProperty("DbFieldName", workSheetColumn.getColumnName());
+						jsonObject_column.addProperty("DbFieldNameCh", workSheetColumn.getColumnNameCh());
+						jsonObject_column.addProperty("ExcelHeader", "");
+						jsonArray.add(jsonObject_column);
+					}else{
+						jsonObject_column.addProperty("FieldName", workSheetColumn.getColumnName());
+						jsonObject_column.addProperty("FieldNameCh", workSheetColumn.getColumnNameCh());
+						jsonObject_column.addProperty("FieldNameSource", "");
+						jsonArray.add(jsonObject_column);
+					}
+				}
+				jsonObject.add("FieldMaps", jsonArray);
+				json=jsonObject.toString();
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
