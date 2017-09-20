@@ -50,14 +50,16 @@ public class DMBizMangeShareController {
 
 	// 根据userid的权限 获取到所有的共享批次数据
 	@RequestMapping(value = "/srv/DMBizMangeShareController/getUserShareBatch.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String getUserShareBatch(HttpServletRequest request) {
+	public String getUserShareBatch(HttpServletRequest request,
+			@RequestParam(value = "businessId") String businessID) {
 		HttpSession session = request.getSession(false);
 		User user = (User) session.getAttribute("user");
 		String s = null;
+		Integer bizid = Integer.valueOf(businessID);
 		try {
 			List<ShareBatchItem> shareBatchItem = new ArrayList<ShareBatchItem>();
 			List<ShareBatchItem> list = bizMangeShare.getUserShareBatch(
-					shareBatchItem, user);
+					shareBatchItem, user,bizid);
 			s = new Gson().toJson(list);
 		} catch (Exception e) {
 			e.printStackTrace();

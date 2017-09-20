@@ -77,7 +77,8 @@ public class DMBizShareController {
 			@RequestParam(value="businessId") String businessId,
 			@RequestParam(value="importId") String importId,
 			@RequestParam(value="shareName") String shareName,
-			@RequestParam(value="description") String description){
+			@RequestParam(value="description") String description,
+			@RequestParam(value="CID") String Cid){
 		System.out.println(businessId);
 		System.out.println(importId);
 		System.out.println(shareName);
@@ -88,23 +89,26 @@ public class DMBizShareController {
 		ServiceResult serviceresult = new ServiceResult();
 		ServiceResultCode serviceResultCode=null;
 		String newId = idFactory.newId("DM_SID");
+		String newDid=idFactory.newId("DM_DID");
 		String s=null;
 		//String bizid=businessId;
 		int bizid=Integer.parseInt(businessId);
 		String[] ary = importId.split(",");
+		String[] customerid=Cid.split(",");
 		try {
 			for (int i = 0; i < ary.length; i++){
 			 String iId = ary[i];
+			 String cid=customerid[i];
 			 //向单号码重播共享状态表添加数据并返回共享批次号id
-			 dMBizDataImport.confirmShareData(iId,bizid,user,newId);
+			 dMBizDataImport.confirmShareData(iId,bizid,user,newId,cid);
 			 //向单号码重播共享历史表状态表添加数据
-			 dMBizDataImport.confirmShareDataOne(iId,bizid,user,newId);
+			 dMBizDataImport.confirmShareDataOne(iId,bizid,user,newId,cid);
 			 //查询当前的业务的数据池
 			 int dataPool = dMBizDataImport.confirmShareDataTwo(bizid);
 			 //更改数据池记录表数据
-			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid);
+			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid,cid);
 			 //向数据池操作记录表添加数据
-			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid);
+			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid,cid,newId);
 			}
 			//向共享批次信息表添加数据
 			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,newId,shareName,description,user);
@@ -134,6 +138,7 @@ public class DMBizShareController {
 			@RequestParam(value="shareName") String shareName,
 			@RequestParam(value="description") String description,
 			@RequestParam(value="shareid") String shareid,
+			@RequestParam(value="CID") String Cid,
 			HttpServletRequest request
 			){
 		System.out.println("业务id==="+businessId);
@@ -146,21 +151,23 @@ public class DMBizShareController {
 		ServiceResult serviceresult = new ServiceResult();
 		ServiceResultCode serviceResultCode=null;
 		String s=null;
+		String[] customerid=Cid.split(",");
 		 int bizid=Integer.parseInt(businessId);
 		 String[] ary = importId.split(",");
 		try {
 			for (int i = 0; i < ary.length; i++) {	
 				 String iId = ary[i];
+				 String cid=customerid[i];
 			//向单号码重播共享状态表添加数据并返回共享批次号id
-			 dMBizDataImport.confirmShareData(iId,bizid,user,shareid);
+			 dMBizDataImport.confirmShareData(iId,bizid,user,shareid,cid);
 			 //向单号码重播共享历史表状态表添加数据
-			 dMBizDataImport.confirmShareDataOne(iId,bizid,user,shareid);
+			 dMBizDataImport.confirmShareDataOne(iId,bizid,user,shareid,cid);
 			 //查询当前的业务的数据池
 			 int dataPool = dMBizDataImport.confirmShareDataTwo(bizid);
 			 //更改数据池记录表数据
-			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid);
+			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid,cid);
 			 //向数据池操作记录表添加数据
-			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid);
+			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid,cid,shareid);
 			 //向共享批次信息表添加数据
 			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,shareid,shareName,description,user);
 			}
