@@ -186,6 +186,10 @@ public class ImportDataController {
 	            	String column=sheetColumnList.get(j).getField().toUpperCase();
 	            	if(map1.keySet().contains(column)){
 	            		String value=null;
+	            		Integer columnValue=intMap.get(map1.get(column));
+	            		if(columnValue==null){
+	            			continue;
+	            		}
 	            		if(row.getCell(intMap.get(map1.get(column)))!=null){
 	            			String value1=getStringcell(row.getCell(intMap.get(map1.get(column))));
 		            		if(value1!=null){
