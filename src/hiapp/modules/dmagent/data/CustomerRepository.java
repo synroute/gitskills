@@ -401,7 +401,17 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(1);
 				sb.append(" AND ");
 			}
-
+			
+			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"IID");
+			sb.append(" = ");
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+			sb.append(" AND ");
+			
+			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"CID");
+			sb.append(" = ");
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+			sb.append(" AND ");
+			
 			sb = new StringBuffer(sb.substring(0, sb.length() - 5));
 
 			List<Map<String, String>> queryCondition = queryRequest
@@ -824,6 +834,16 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(1);
 				sb.append(" AND ");
 			}
+			
+			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"IID");
+			sb.append(" = ");
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+			sb.append(" AND ");
+			
+			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"CID");
+			sb.append(" = ");
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+			sb.append(" AND ");
 
 			sb.append("ROWNUM");
 			sb.append(" <= ");
@@ -1059,6 +1079,16 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(1);
 				sb.append(" AND ");
 			}
+			
+			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"IID");
+			sb.append(" = ");
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+			sb.append(" AND ");
+			
+			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"CID");
+			sb.append(" = ");
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+			sb.append(" AND ");
 
 			sb = new StringBuffer(sb.substring(0, sb.length() - 5));
 
@@ -1290,6 +1320,16 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(1);
 				sb.append(" AND ");
 			}
+			
+			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"IID");
+			sb.append(" = ");
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+			sb.append(" AND ");
+			
+			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"CID");
+			sb.append(" = ");
+			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+			sb.append(" AND ");
 
 			sb.append("ROWNUM");
 			sb.append(" <= ");
@@ -1680,6 +1720,26 @@ public class CustomerRepository extends BaseRepository {
 						sb.append(1);
 						sb.append(" AND ");
 					}
+					
+					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"IID");
+					sb.append(" = ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+					sb.append(" AND ");
+					
+					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"CID");
+					sb.append(" = ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+					sb.append(" AND ");
+					
+					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"IID");
+					sb.append(" = ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+					sb.append(" AND ");
+					
+					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"CID");
+					sb.append(" = ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+					sb.append(" AND ");
 
 					sb = new StringBuffer(sb.substring(0, sb.length() - 5));
 
@@ -1965,6 +2025,26 @@ public class CustomerRepository extends BaseRepository {
 						sb.append(1);
 						sb.append(" AND ");
 					}
+					
+					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"IID");
+					sb.append(" = ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+					sb.append(" AND ");
+					
+					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"CID");
+					sb.append(" = ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+					sb.append(" AND ");
+					
+					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"IID");
+					sb.append(" = ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+					sb.append(" AND ");
+					
+					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"CID");
+					sb.append(" = ");
+					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+					sb.append(" AND ");
 
 					sb.append("ROWNUM");
 					sb.append(" <= ");
