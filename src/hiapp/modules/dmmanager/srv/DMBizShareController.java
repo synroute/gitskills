@@ -102,9 +102,9 @@ public class DMBizShareController {
 			 //查询当前的业务的数据池
 			 int dataPool = dMBizDataImport.confirmShareDataTwo(bizid);
 			 //更改数据池记录表数据
-			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user);
+			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid);
 			 //向数据池操作记录表添加数据
-			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool);
+			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid);
 			 //向共享批次信息表添加数据
 			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,newId,shareName,description,user);
 			}
@@ -158,9 +158,9 @@ public class DMBizShareController {
 			 //查询当前的业务的数据池
 			 int dataPool = dMBizDataImport.confirmShareDataTwo(bizid);
 			 //更改数据池记录表数据
-			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user);
+			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid);
 			 //向数据池操作记录表添加数据
-			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool);
+			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid);
 			 //向共享批次信息表添加数据
 			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,shareid,shareName,description,user);
 			}

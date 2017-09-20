@@ -129,7 +129,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HASYS_DM_B1C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
+			insertsql =String.format("INSERT INTO HASYS_DM_B"+businessId+"C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s')",businessId,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED) ;
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -147,7 +147,7 @@ public class DMBizDataShare extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HASYS_DM_B1C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
+			insertsql =String.format("INSERT INTO HASYS_DM_B"+bizid+"C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s')",bizid,newId,iId,user.getId(),SingleNumberModeShareCustomerStateEnum.CREATED);
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -184,13 +184,13 @@ public class DMBizDataShare extends BaseRepository {
 
 	// 更改数据池记录表数据
 	public void confirmShareDataThree(String iId,
-			int dataPool, User user) {
+			int dataPool, User user,int businessId) {
 		String updatesql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn=null;
         try {
         	dbConn=this.getDbConnection();
-        	updatesql=String.format("UPDATE HAU_DM_B1C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s'",user.getId(),dataPool,dataPool,0,1,iId);
+        	updatesql=String.format("UPDATE HAU_DM_B"+businessId+"C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s'",user.getId(),dataPool,dataPool,0,1,iId);
         	stmt = dbConn.prepareStatement(updatesql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -201,13 +201,13 @@ public class DMBizDataShare extends BaseRepository {
 	}
 	//向数据池操作记录表添加数据
 	public void confirmShareDataFree(String iId,
-			User user, int dataPool) {
+			User user, int dataPool, int bizid) {
 		String insertsql = "";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		try {
 			dbConn=this.getDbConnection();
-			insertsql=String.format("INSERT INTO HAU_DM_B1C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
+			insertsql=String.format("INSERT INTO HAU_DM_B"+bizid+"C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();
 		} catch (Exception e) {
