@@ -260,7 +260,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 					jsonObject_row.addProperty("ExcelColStart", "0");
 					jsonObject_row.addProperty("ExcelCsvFastInsertTable", "1");
 					jsonObject_row.addProperty("RepetitionExcludeType", "根据导入时间排重");
-					jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumn", "id");
+					jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumn", "ID");
 					jsonObject_row.addProperty("RepetitionExcludeWorkSheetColumnCh", "编号");
 					jsonObject_row.addProperty("RepetitionExcludeDayCount", "2");
 					jsonArray_Import.add(jsonObject_row);
