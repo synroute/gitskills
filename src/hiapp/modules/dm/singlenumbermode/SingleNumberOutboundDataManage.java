@@ -12,13 +12,9 @@ import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMPresetStateEnum;
 import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
 import hiapp.utils.database.DBConnectionPool;
-import hiapp.utils.serviceresult.RecordsetResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -94,7 +90,7 @@ public class SingleNumberOutboundDataManage {
         }
 
         if (null != shareDataItem)
-            singleNumberModeDAO.setAgentOccupied(bizId, shareDataItem.getShareBatchId(), shareDataItem.getCustomerId());
+            singleNumberModeDAO.setUserUseState(bizId, shareDataItem.getShareBatchId(), shareDataItem.getCustomerId());
 
         return shareDataItem;
     }
@@ -169,8 +165,7 @@ public class SingleNumberOutboundDataManage {
         EndCodeRedialStrategyFromDB tmp00 = new Gson().fromJson(jsonObject,
                 EndCodeRedialStrategyFromDB.class);*/
 
-        EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
-
+        //EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
 
         setDailyRoutine();
 
@@ -224,79 +219,102 @@ public class SingleNumberOutboundDataManage {
     // 加载数据后会设置已加载标记
     private void loadCustomersDaily(List<ShareBatchItem> shareBatchItems) {
 
-        // TODO 根据未接通拨打日期，决定是否清零<当日未接通重拨次数>
-        singleNumberModeDAO.clearPreviousDayLostCallCount();
+        // 根据BizId, 归类共享客户数据
+        Map<Integer, List<ShareBatchItem>> mapBizIdVsShareBatchItem = new HashMap<Integer, List<ShareBatchItem>>();
+        for (ShareBatchItem shareBatchItem : shareBatchItems) {
+            List<ShareBatchItem> shareBatchItemList = mapBizIdVsShareBatchItem.get(shareBatchItem.getBizId());
+            if (null == shareBatchItemList) {
+                shareBatchItemList = new ArrayList<ShareBatchItem>();
+                mapBizIdVsShareBatchItem.put(shareBatchItem.getBizId(), shareBatchItemList);
+            }
+            shareBatchItemList.add(shareBatchItem);
+        }
 
-        // TODO 如果保留<当日未接通重拨次数>，需要判断是否移出候选池（per endcode）
+
+        List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
+        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.CREATED);
+        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.APPENDED);
+        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL);
+        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.REVERT);
+
+        List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList2 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
+        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
+        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
+
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList3 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
         shareCustomerStateList3.add(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL);
-        List<SingleNumberModeShareCustomerItem> shareDataItems2 = new ArrayList<SingleNumberModeShareCustomerItem>();
-        singleNumberModeDAO.getXXX(shareBatchItems,shareCustomerStateList3,shareDataItems2);
 
-        // TODO 根据未接通拨打日期, 决定是否移回候选池  <每次重新加载已不需要本操作>
-
-        // TODO 成批从DB取数据
-        List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.CREATED);
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.APPENDED);
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL);
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.REVERT);
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
-        Boolean result = singleNumberModeDAO.getShareDataItemsByState(shareBatchItems, shareCustomerStateList, shareDataItems);
+        for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
+            int bizId = entry.getKey();
+            List<ShareBatchItem> givenBizShareBatchItems = entry.getValue();
+
+            System.out.println("bizId " + bizId + "... ");
+
+            // TODO 根据未接通拨打日期，决定是否清零<当日未接通重拨次数>
+            singleNumberModeDAO.clearPreviousDayLostCallCount(bizId);
+
+            // TODO 如果保留<当日未接通重拨次数>，需要判断是否移出候选池（per endcode）
+            {
+                List<SingleNumberModeShareCustomerItem> shareDataItems2 = new ArrayList<SingleNumberModeShareCustomerItem>();
+                singleNumberModeDAO.getXXX(bizId, shareBatchItems, shareCustomerStateList3, shareDataItems2);
+            }
+
+            // TODO 成批从DB取数据
+            Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
+                                            bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
+
+            // TODO 可以改成批从DB取数据, 根据nextDialTime
+            result = singleNumberModeDAO.getGivenBizShareDataItemsByStateAndNextDialTime(
+                                            bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
+        }
+
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
             addCustomerToPool(customerItem);
         }
-
-        // 是否不需要 loaded 标记
-        // singleNumberModeDAO.setLoadedFlagShareDataItemsByState(shareBatchItem.getShareBatchId(), shareCustomerStateList);
-
-
-        // TODO 可以改成批从DB取数据, 根据nextDialTime
-        shareCustomerStateList.clear();
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
-        List<SingleNumberModeShareCustomerItem> shareDataItems3 = new ArrayList<SingleNumberModeShareCustomerItem>();
-        /*Boolean result = */ singleNumberModeDAO.getShareDataItemsByStateAndNextDialTime(shareBatchItems, shareCustomerStateList, shareDataItems3);
-
-        for (SingleNumberModeShareCustomerItem customerItem : shareDataItems2) {
-            addCustomerToPool(customerItem);
-        }
-
-        // 是否不需要 loaded 标记
-        // singleNumberModeDAO.setLoadedFlagShareDataItemsByState(shareBatchItem.getShareBatchId(), shareCustomerStateList);
     }
 
+    // 根据共享批次，不会导致重复加载
     private void loadCustomersIncremental(List<ShareBatchItem> shareBatchItems) {
 
-        // TODO 成批从DB取数据
+        // 根据BizId, 归类共享客户数据
+        Map<Integer, List<ShareBatchItem>> mapBizIdVsShareBatchItem = new HashMap<Integer, List<ShareBatchItem>>();
+        for (ShareBatchItem shareBatchItem : shareBatchItems) {
+            List<ShareBatchItem> shareBatchItemList = mapBizIdVsShareBatchItem.get(shareBatchItem.getBizId());
+            if (null == shareBatchItemList) {
+                shareBatchItemList = new ArrayList<ShareBatchItem>();
+                mapBizIdVsShareBatchItem.put(shareBatchItem.getBizId(), shareBatchItemList);
+            }
+            shareBatchItemList.add(shareBatchItem);
+        }
+
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.CREATED);
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.APPENDED);
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL);
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.REVERT);
+
+        List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList2 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
+        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
+        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
+
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
-        Boolean result = singleNumberModeDAO.getShareDataItemsByState(shareBatchItems, shareCustomerStateList, shareDataItems);
+
+        for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
+            System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+
+            // TODO 成批从DB取数据
+            Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
+                                    entry.getKey(), entry.getValue(), shareCustomerStateList, shareDataItems);
+
+            // TODO 成批从DB取数据, 根据nextDialTime
+            result = singleNumberModeDAO.getGivenBizShareDataItemsByStateAndNextDialTime(
+                                    entry.getKey(), entry.getValue(), shareCustomerStateList, shareDataItems);
+        }
+
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
             addCustomerToPool(customerItem);
         }
-
-        // 是否不需要 loaded 标记
-        // singleNumberModeDAO.setLoadedFlagShareDataItemsByState(shareBatchItem.getShareBatchId(), shareCustomerStateList);
-
-
-        // TODO 成批从DB取数据, 根据nextDialTime
-        shareCustomerStateList.clear();
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
-        List<SingleNumberModeShareCustomerItem> shareDataItems2 = new ArrayList<SingleNumberModeShareCustomerItem>();
-        result = singleNumberModeDAO.getShareDataItemsByStateAndNextDialTime(shareBatchItems, shareCustomerStateList, shareDataItems2);
-
-        for (SingleNumberModeShareCustomerItem customerItem : shareDataItems2) {
-            addCustomerToPool(customerItem);
-        }
-
-        // 是否不需要 loaded 标记
-        // singleNumberModeDAO.setLoadedFlagShareDataItemsByState(shareBatchItem.getShareBatchId(), shareCustomerStateList);
     }
 
     //匿名Comparator实现

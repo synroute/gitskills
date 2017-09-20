@@ -79,7 +79,7 @@ public class DMDAO extends BaseRepository {
     }
 
     /*
-     *  取得当天启用 且未处理的共享批次
+     *  取得当天启用 且未处理的共享批次, 处理后续启用的共享批次
      */
     public Boolean getCurDayUsingShareBatchItems( /*OUT*/List<ShareBatchItem> shareBatchItems) {
 
@@ -234,7 +234,7 @@ public class DMDAO extends BaseRepository {
         return null;
     }
 
-    public Boolean insertDMResult() {
+    public Boolean insertDMResult(int bizId) {
 
         //需更新  modifyLast 标记
 
@@ -250,10 +250,11 @@ public class DMDAO extends BaseRepository {
         Date 	dialTime = null; //
         String 	customerCallId = ""; // 呼叫流水号
 
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO HAU_DM_B1C_Result (ID, SourceID, IID," +
-                "CID, ModifyId, ModifyUserId, ModifyTime, ModifyLast, DialType, DialTime, CustomerCallId" +
-                ") VALUES ( ");
+        String tableName = String.format("HAU_DM_B%dC_Result", bizId);
 
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
+        sqlBuilder.append(" (ID, SourceID, IID, CID, ModifyId, ModifyUserId, ModifyTime, ModifyLast, DialType, " +
+                                "DialTime, CustomerCallId) VALUES ( ");
         sqlBuilder.append("'").append(id).append("',");
         sqlBuilder.append("'").append(sourceID).append("',");
         sqlBuilder.append("'").append(importBatchID).append("',");
@@ -337,8 +338,11 @@ public class DMDAO extends BaseRepository {
 //        private String modifyDesc;	//修改描述
 //        private String phoneType;	//号码类型  枚举
 
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_B1C_PresetTime");
+        String presetTimeTableName = String.format("HASYS_DM_B%dC_PresetTime", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + presetTimeTableName);
         sqlBuilder.append(" Set State = ").append(newState);
+        sqlBuilder.append(" ModifyLast = ").append("0");
         sqlBuilder.append(" WHERE BusinessID = ").append(bizId);
         sqlBuilder.append(" SourceID = ").append(shareBatchId);
         sqlBuilder.append(" CID = ").append(customerId);
