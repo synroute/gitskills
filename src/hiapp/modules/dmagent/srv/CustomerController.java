@@ -2,6 +2,7 @@ package hiapp.modules.dmagent.srv;
 
 import hiapp.modules.dmagent.QueryRequest;
 import hiapp.modules.dmagent.QueryTemplate;
+import hiapp.modules.dmagent.TableNameEnume;
 import hiapp.modules.dmagent.data.CustomerRepository;
 import hiapp.system.buinfo.User;
 import hiapp.system.dictionary.DictItem;
@@ -94,12 +95,14 @@ public class CustomerController {
 
 	/**
 	 * 获取查询HTML模板
+	 * 
 	 * @param queryTemplate
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> getQueryTemplateForHTML(QueryTemplate queryTemplate) {
+	public Map<String, Object> getQueryTemplateForHTML(
+			QueryTemplate queryTemplate) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
@@ -122,14 +125,13 @@ public class CustomerController {
 			String columnNameCH = (String) map.get("columnNameCH");
 			String controlType = (String) map.get("controlType");
 			String dataType = (String) map.get("dataType");
-			sb.append("<div>"+columnNameCH+":</div>");
+			sb.append("<div>" + columnNameCH + ":</div>");
 			if ("文本框".equals(controlType)) {
 				sb.append("<input class='easyui-textbox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' style='width:250px'"
-						+ columnNameCH + ":''>");
+						+ "' style='width:250px'" + columnNameCH + ":''>");
 			} else if ("日期时间框".equals(controlType)) {
 				sb.append("<input class='easyui-datetimebox' name='param' columnName='"
 						+ columnName
@@ -263,70 +265,45 @@ public class CustomerController {
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings("rawtypes")
-	public String dataToListPattern1(Map[][] data) {
-		return "<table width=100% height=100% cellpadding=0 cellspacing=0>"
-				+ "<tr height=18px>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[0][0].get("fontColor")
-				+ "'>"
-				+ data[0][0].get("value")
-				+ "</th>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[0][1].get("fontColor")
-				+ "'>"
-				+ data[0][1].get("value")
-				+ "</th>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[0][2].get("fontColor")
-				+ "'>"
-				+ data[0][2].get("value")
-				+ "</th>"
-				+ "</tr>"
-
-				+ "<tr height=18px>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[1][0].get("fontColor")
-				+ "'>"
-				+ data[1][0].get("value")
-				+ "</th>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[1][1].get("fontColor")
-				+ "'>"
-				+ data[1][1].get("value")
-				+ "</th>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[1][2].get("fontColor")
-				+ "'>"
-				+ data[1][2].get("value")
-				+ "</th>"
-				+ "</tr>"
-
-				+ "<tr height=18px>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[2][0].get("fontColor")
-				+ "'>"
-				+ data[2][0].get("value")
-				+ "</th>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[2][1].get("fontColor")
-				+ "'>"
-				+ data[2][1].get("value")
-				+ "</th>"
-				+ "<th width=118px align=left style='font-size:8px;color: "
-				+ data[2][2].get("fontColor")
-				+ "'>"
-				+ data[2][2].get("value")
-				+ "</th>" + "</tr>" + "</table>";
-	}
-
+	/*
+	 * @SuppressWarnings("rawtypes") public String dataToListPattern1(Map[][]
+	 * data) { return
+	 * "<table width=100% height=100% cellpadding=0 cellspacing=0>" +
+	 * "<tr height=18px>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[0][0].get("fontColor") + "'>" + data[0][0].get("value") + "</th>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[0][1].get("fontColor") + "'>" + data[0][1].get("value") + "</th>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[0][2].get("fontColor") + "'>" + data[0][2].get("value") + "</th>" +
+	 * "</tr>"
+	 * 
+	 * + "<tr height=18px>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[1][0].get("fontColor") + "'>" + data[1][0].get("value") + "</th>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[1][1].get("fontColor") + "'>" + data[1][1].get("value") + "</th>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[1][2].get("fontColor") + "'>" + data[1][2].get("value") + "</th>" +
+	 * "</tr>"
+	 * 
+	 * + "<tr height=18px>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[2][0].get("fontColor") + "'>" + data[2][0].get("value") + "</th>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[2][1].get("fontColor") + "'>" + data[2][1].get("value") + "</th>" +
+	 * "<th width=118px align=left style='font-size:8px;color: " +
+	 * data[2][2].get("fontColor") + "'>" + data[2][2].get("value") + "</th>" +
+	 * "</tr>" + "</table>"; }
+	 */
 	/**
 	 * 讲数据注入模板
 	 * 
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	public Map<String,String> dataToListPattern(Map[][] data) {
+	public Map<String, String> dataToListPattern(Map[][] data,
+			Map<String, String> addMap) {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		String result = "<table width=100% height=100% cellpadding=0 cellspacing=0>"
 				+ "<tr height=18px>"
@@ -380,6 +357,7 @@ public class CustomerController {
 				+ data[2][2].get("value")
 				+ "</th>" + "</tr>" + "</table>";
 		hashMap.put("compose", result);
+		hashMap.putAll(addMap);
 		return hashMap;
 	}
 
@@ -388,10 +366,12 @@ public class CustomerController {
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public List<Map<String,String>> listToHtml(List<List<Map<String, Object>>> queryData) {
-		List<Map<String,String>> result = new ArrayList<Map<String,String>>();
+	@SuppressWarnings("unchecked")
+	public List<Map<String, String>> listToHtml(
+			List<List<Map<String, Object>>> queryData) {
+		List<Map<String, String>> result = new ArrayList<Map<String, String>>();
 		for (List<Map<String, Object>> list : queryData) {
+			HashMap<String, String> addMap = new HashMap<String, String>();
 			Map[][] maps = new Map[3][3];
 			// 设置默认值
 			for (int i = 0; i < maps.length; i++) {
@@ -403,10 +383,46 @@ public class CustomerController {
 			}
 			// 匹配模板
 			for (Map<String, Object> map : list) {
-				maps[Integer.parseInt((String) map.get("rowNumber")) - 1][Integer
-						.parseInt((String) map.get("colNumber")) - 1] = map;
+				Object rowNumber = map.get("rowNumber");
+				Object colNumber = map.get("colNumber");
+				String columnName = (String) map.get("columnName");
+				if (rowNumber != null && colNumber != null) {
+					int row = Integer.parseInt((String) rowNumber) - 1;
+					int col = Integer.parseInt((String) colNumber) - 1;
+					maps[row][col] = map;
+					if (columnName.equals(TableNameEnume.PRESETTABLENAME
+							.getAbbr() + "." + "IID")) {
+						addMap.put(
+								(columnName.substring(3, columnName.length())),
+								((String) map.get("value")));
+					} else if (columnName.equals(TableNameEnume.PRESETTABLENAME
+							.getAbbr() + "." + "CID")) {
+						addMap.put(
+								(columnName.substring(3, columnName.length())),
+								((String) map.get("value")));
+					} else if (columnName.equals(TableNameEnume.JIEGUOTABLENAME
+							.getAbbr() + "." + "SOURCEID")) {
+						addMap.put(
+								(columnName.substring(3, columnName.length())),
+								((String) map.get("value")));
+					} else if (columnName.equals(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + "." + "IID")) {
+						addMap.put(
+								(columnName.substring(3, columnName.length())),
+								((String) map.get("value")));
+					} else if (columnName.equals(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + "." + "CID")) {
+						addMap.put(
+								(columnName.substring(3, columnName.length())),
+								((String) map.get("value")));
+					}
+
+				} else {
+					addMap.put((columnName.substring(3, columnName.length())),
+							((String) map.get("value")));
+				}
 			}
-			result.add(dataToListPattern(maps));
+			result.add(dataToListPattern(maps, addMap));
 		}
 		return result;
 	}
@@ -461,7 +477,7 @@ public class CustomerController {
 			return result;
 		}
 
-		result.put("data",listToHtml(list));
+		result.put("data", listToHtml(list));
 		result.put("result", 0);
 		result.put("pageSize", pageSize);
 		result.put("pageNum", pageNum);
@@ -479,7 +495,7 @@ public class CustomerController {
 	 * @return
 	 */
 	@RequestMapping(value = "/srv/agent/queryMyPresetCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String,Object> queryMyPresetCustomers(
+	public Map<String, Object> queryMyPresetCustomers(
 			QueryRequest queryRequest, HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();

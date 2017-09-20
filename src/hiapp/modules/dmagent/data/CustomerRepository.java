@@ -388,12 +388,12 @@ public class CustomerRepository extends BaseRepository {
 					String field = map.get("field");
 					String value = map.get("value");
 					String type = map.get("dataType");
-					if(value!=null){
+					if (value != null) {
 						// 时间字段使用范围查询
-						if (type != null
-								&& type.toLowerCase().contains("date")) {
+						if (type != null && type.toLowerCase().contains("date")) {
 							try {
-								new SimpleDateFormat(INPUT_TIME_JTEMPLATE).parse(value);
+								new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
+										.parse(value);
 								if (map1.get(field) == null) {
 									map1.put(field, value);
 								} else {
@@ -624,6 +624,47 @@ public class CustomerRepository extends BaseRepository {
 			@SuppressWarnings("unchecked")
 			List<Map<String, String>> list = new Gson().fromJson(template,
 					List.class);
+			int flag1 = 0;
+			int flag2 = 0;
+			int flag3 = 0;
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				if (columnName != null) {
+					if (columnName.equals(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + "." + "IID")) {
+						flag1 = 1;
+					} else if (columnName
+							.equals(TableNameEnume.INPUTTABLENAME
+									.getAbbr() + "." + "CID")) {
+						flag2 = 1;
+					} else if (columnName
+							.equals(TableNameEnume.JIEGUOTABLENAME
+									.getAbbr() + "." + "SOURCEID")) {
+						flag3 = 1;
+					}
+				}
+			}
+			if (flag1 == 0) {
+				HashMap<String, String> hashMap1 = new HashMap<String, String>();
+				hashMap1.put("columnName",
+						TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+								+ "IID");
+				list.add(hashMap1);
+			}
+			if (flag2 == 0) {
+				HashMap<String, String> hashMap2 = new HashMap<String, String>();
+				hashMap2.put("columnName",
+						TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+								+ "CID");
+				list.add(hashMap2);
+			}
+			if (flag3 == 0) {
+				HashMap<String, String> hashMap3 = new HashMap<String, String>();
+				hashMap3.put("columnName",
+						TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+								+ "SOURCEID");
+				list.add(hashMap3);
+			}
 			for (Map<String, String> map : list) {
 				String columnName = map.get("columnName");
 				sb.append(columnName);
@@ -695,12 +736,12 @@ public class CustomerRepository extends BaseRepository {
 					String field = map.get("field");
 					String value = map.get("value");
 					String type = map.get("dataType");
-					if(value!=null){
+					if (value != null) {
 						// 时间字段使用范围查询
-						if (type != null
-								&& type.toLowerCase().contains("date")) {
+						if (type != null && type.toLowerCase().contains("date")) {
 							try {
-								new SimpleDateFormat(INPUT_TIME_JTEMPLATE).parse(value);
+								new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
+										.parse(value);
 								if (map1.get(field) == null) {
 									map1.put(field, value);
 								} else {
@@ -777,6 +818,7 @@ public class CustomerRepository extends BaseRepository {
 					String rowNumber = next.get("rowNumber");
 					String colNumber = next.get("colNumber");
 					String fontColor = next.get("fontColor");
+					String columnName = next.get("columnName");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -788,6 +830,7 @@ public class CustomerRepository extends BaseRepository {
 					map.put("rowNumber", rowNumber);
 					map.put("colNumber", colNumber);
 					map.put("fontColor", fontColor);
+					map.put("columnName", columnName);
 					record.add(map);
 				}
 				result.add(record);
@@ -897,12 +940,12 @@ public class CustomerRepository extends BaseRepository {
 					String value = map.get("value");
 					String type = map.get("dataType");
 
-					if(value!=null){
+					if (value != null) {
 						// 时间字段使用范围查询
-						if (type != null
-								&& type.toLowerCase().contains("date")) {
+						if (type != null && type.toLowerCase().contains("date")) {
 							try {
-								new SimpleDateFormat(INPUT_TIME_JTEMPLATE).parse(value);
+								new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
+										.parse(value);
 								if (map1.get(field) == null) {
 									map1.put(field, value);
 								} else {
@@ -1005,6 +1048,47 @@ public class CustomerRepository extends BaseRepository {
 			@SuppressWarnings("unchecked")
 			List<Map<String, String>> list = new Gson().fromJson(template,
 					List.class);
+			int flag1 = 0;
+			int flag2 = 0;
+			int flag3 = 0;
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				if (columnName != null) {
+					if (columnName.equals(TableNameEnume.PRESETTABLENAME
+							.getAbbr() + "." + "IID")) {
+						flag1 = 1;
+					} else if (columnName
+							.equals(TableNameEnume.PRESETTABLENAME
+									.getAbbr() + "." + "CID")) {
+						flag2 = 1;
+					} else if (columnName
+							.equals(TableNameEnume.JIEGUOTABLENAME
+									.getAbbr() + "." + "SOURCEID")) {
+						flag3 = 1;
+					}
+				}
+			}
+			if (flag1 == 0) {
+				HashMap<String, String> hashMap1 = new HashMap<String, String>();
+				hashMap1.put("columnName",
+						TableNameEnume.PRESETTABLENAME.getAbbr() + "."
+								+ "IID");
+				list.add(hashMap1);
+			}
+			if (flag2 == 0) {
+				HashMap<String, String> hashMap2 = new HashMap<String, String>();
+				hashMap2.put("columnName",
+						TableNameEnume.PRESETTABLENAME.getAbbr() + "."
+								+ "CID");
+				list.add(hashMap2);
+			}
+			if (flag3 == 0) {
+				HashMap<String, String> hashMap3 = new HashMap<String, String>();
+				hashMap3.put("columnName",
+						TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+								+ "SOURCEID");
+				list.add(hashMap3);
+			}
 			for (Map<String, String> map : list) {
 				String columnName = map.get("columnName");
 				sb.append(columnName);
@@ -1078,12 +1162,12 @@ public class CustomerRepository extends BaseRepository {
 					String value = map.get("value");
 					String type = map.get("dataType");
 
-					if(value!=null){
+					if (value != null) {
 						// 时间字段使用范围查询
-						if (type != null
-								&& type.toLowerCase().contains("date")) {
+						if (type != null && type.toLowerCase().contains("date")) {
 							try {
-								new SimpleDateFormat(INPUT_TIME_JTEMPLATE).parse(value);
+								new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
+										.parse(value);
 								if (map1.get(field) == null) {
 									map1.put(field, value);
 								} else {
@@ -1161,6 +1245,7 @@ public class CustomerRepository extends BaseRepository {
 					String rowNumber = next.get("rowNumber");
 					String colNumber = next.get("colNumber");
 					String fontColor = next.get("fontColor");
+					String columnName = next.get("columnName");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -1172,6 +1257,7 @@ public class CustomerRepository extends BaseRepository {
 					map.put("rowNumber", rowNumber);
 					map.put("colNumber", colNumber);
 					map.put("fontColor", fontColor);
+					map.put("columnName", columnName);
 					record.add(map);
 				}
 				result.add(record);
@@ -1418,12 +1504,14 @@ public class CustomerRepository extends BaseRepository {
 							String field = map.get("field");
 							String value = map.get("value");
 							String type = map.get("dataType");
-							if(value!=null){
+							if (value != null) {
 								// 时间字段使用范围查询
 								if (type != null
 										&& type.toLowerCase().contains("date")) {
 									try {
-										new SimpleDateFormat(INPUT_TIME_JTEMPLATE).parse(value);
+										new SimpleDateFormat(
+												INPUT_TIME_JTEMPLATE)
+												.parse(value);
 										if (map1.get(field) == null) {
 											map1.put(field, value);
 										} else {
@@ -1547,6 +1635,47 @@ public class CustomerRepository extends BaseRepository {
 					@SuppressWarnings("unchecked")
 					List<Map<String, String>> list = new Gson().fromJson(
 							template, List.class);
+					int flag1 = 0;
+					int flag2 = 0;
+					int flag3 = 0;
+					for (Map<String, String> map : list) {
+						String columnName = map.get("columnName");
+						if (columnName != null) {
+							if (columnName.equals(TableNameEnume.INPUTTABLENAME
+									.getAbbr() + "." + "IID")) {
+								flag1 = 1;
+							} else if (columnName
+									.equals(TableNameEnume.INPUTTABLENAME
+											.getAbbr() + "." + "CID")) {
+								flag2 = 1;
+							} else if (columnName
+									.equals(TableNameEnume.JIEGUOTABLENAME
+											.getAbbr() + "." + "SOURCEID")) {
+								flag3 = 1;
+							}
+						}
+					}
+					if (flag1 == 0) {
+						HashMap<String, String> hashMap1 = new HashMap<String, String>();
+						hashMap1.put("columnName",
+								TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+										+ "IID");
+						list.add(hashMap1);
+					}
+					if (flag2 == 0) {
+						HashMap<String, String> hashMap2 = new HashMap<String, String>();
+						hashMap2.put("columnName",
+								TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+										+ "CID");
+						list.add(hashMap2);
+					}
+					if (flag3 == 0) {
+						HashMap<String, String> hashMap3 = new HashMap<String, String>();
+						hashMap3.put("columnName",
+								TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+										+ "SOURCEID");
+						list.add(hashMap3);
+					}
 					for (Map<String, String> map : list) {
 						String columnName = map.get("columnName");
 						sb.append(columnName);
@@ -1638,13 +1767,15 @@ public class CustomerRepository extends BaseRepository {
 							String field = map.get("field");
 							String value = map.get("value");
 							String type = map.get("dataType");
-							
-							if(value!=null){
+
+							if (value != null) {
 								// 时间字段使用范围查询
 								if (type != null
 										&& type.toLowerCase().contains("date")) {
 									try {
-										new SimpleDateFormat(INPUT_TIME_JTEMPLATE).parse(value);
+										new SimpleDateFormat(
+												INPUT_TIME_JTEMPLATE)
+												.parse(value);
 										if (map1.get(field) == null) {
 											map1.put(field, value);
 										} else {
@@ -1724,6 +1855,7 @@ public class CustomerRepository extends BaseRepository {
 							String rowNumber = next.get("rowNumber");
 							String colNumber = next.get("colNumber");
 							String fontColor = next.get("fontColor");
+							String columnName = next.get("columnName");
 							String type = next.get("dataType");
 							if (type != null
 									&& type.toLowerCase().contains("date")) {
@@ -1737,6 +1869,7 @@ public class CustomerRepository extends BaseRepository {
 							map.put("rowNumber", rowNumber);
 							map.put("colNumber", colNumber);
 							map.put("fontColor", fontColor);
+							map.put("columnName", columnName);
 							record.add(map);
 						}
 						result.add(record);
