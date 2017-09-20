@@ -150,7 +150,7 @@ public class ImportDataController {
 				wookbook = new XSSFWorkbook(in);
 			}
 			Sheet sheet = wookbook.getSheetAt(0);
-			int totalRowNum = sheet.getLastRowNum(); //总行数
+			int totalRowNum = sheet.getLastRowNum()+1; //总行数
 			int coloumNum=sheet.getRow(0).getPhysicalNumberOfCells();//总列数
 			//获取前台要展示的字段
 			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);

@@ -351,8 +351,9 @@ public class DataImportJdbc extends BaseRepository{
 			}
 			String importBatchId=idfactory.newId("DM_IID");//饶茹批次号
 			String disBatchId=idfactory.newId("DM_DID");//分配号
-			String getDataSourceSql="select id from HASYS_DM_DATAPOOL where DataPoolName ='数据源池'";
+			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
 			pst=conn.prepareStatement(getDataSourceSql);
+			pst.setInt(1,bizId);
 			rs=pst.executeQuery();
 			Integer dataPoolNumber=null;
 			while(rs.next()){
@@ -372,6 +373,14 @@ public class DataImportJdbc extends BaseRepository{
 			pst.setString(4, "导入批次");
 			pst.setString(5, "导入批次");
 			pst.setString(6, operationName);
+			pst.executeUpdate();
+			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
+			pst=conn.prepareStatement(insertDisBatchSql);
+			pst.setInt(1,bizId);
+			pst.setString(2, disBatchId);
+			pst.setString(3,"分配批次");
+			pst.setString(4,userId);
+			pst.setString(5,"分配批次");
 			pst.executeUpdate();
 			resultMap.put("result", true);
 		} catch (SQLException e) {
@@ -487,7 +496,7 @@ public class DataImportJdbc extends BaseRepository{
 					String customerBatchId=idfactory.newId("DM_CID");//客户号
 					String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
 					//数据池记录表里面插数据
-					String isnertDataPoolSql="insert into HAU_DM_B1C_POOL(ID,DID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+					String isnertDataPoolSql="insert into HAU_DM_B1C_POOL(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
 											+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
 					pst=conn.prepareStatement(isnertDataPoolSql);
 					pst.setString(1,disBatchId);
@@ -500,7 +509,7 @@ public class DataImportJdbc extends BaseRepository{
 					pst.setInt(8, 0);
 					pst.setString(9, userId);
 					//数据池操作记录表里面插数据
-					String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,DID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
+					String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
 												+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
 					pst1=conn.prepareStatement(dataPoolOperationSql);
 					pst1.setString(1,disBatchId);
@@ -575,7 +584,7 @@ public class DataImportJdbc extends BaseRepository{
 				String customerBatchId=idfactory.newId("DM_CID");//客户号
 				String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
 				//数据池记录表里面插数据
-				String isnertDataPoolSql="insert into HAU_DM_B1C_POOL(ID,DID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+				String isnertDataPoolSql="insert into HAU_DM_B1C_POOL(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
 										+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
 				pst=conn.prepareStatement(isnertDataPoolSql);
 				pst.setString(1,disBatchId);
@@ -588,7 +597,7 @@ public class DataImportJdbc extends BaseRepository{
 				pst.setInt(8, 0);
 				pst.setString(9, userId);
 				//数据池操作记录表里面插数据
-				String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,DID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
+				String dataPoolOperationSql="insert into HAU_DM_B1C_POOL_ORE(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
 											+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
 				pst1=conn.prepareStatement(dataPoolOperationSql);
 				pst1.setString(1,disBatchId);
