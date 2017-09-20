@@ -169,7 +169,7 @@ public class DMBizDataShare extends BaseRepository {
 		//int a=Integer.parseInt(businessId);
 		try {
 			dbConn = this.getDbConnection();
-			sql ="SELECT DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE BUSINESSID="+businessId+" AND DATAPOOLTYPE=2";
+			sql ="SELECT ID FROM HASYS_DM_DATAPOOL WHERE BUSINESSID="+businessId+"";
 			stmt = dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -191,7 +191,7 @@ public class DMBizDataShare extends BaseRepository {
 		PreparedStatement stmt = null;
 		Connection dbConn=null;
         try {
-        	dbConn=this.getDbConnection();
+        	dbConn=this.getDbConnection();//sql没问题
         	updatesql=String.format("UPDATE HAU_DM_B"+businessId+"C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s'",user.getId(),dataPool,dataPool,0,1,iId);
         	stmt = dbConn.prepareStatement(updatesql);
 			stmt.execute();
@@ -208,7 +208,7 @@ public class DMBizDataShare extends BaseRepository {
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		try {
-			dbConn=this.getDbConnection();
+			dbConn=this.getDbConnection();//sql没问题
 			insertsql=String.format("INSERT INTO HAU_DM_B"+bizid+"C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",null,iId,user.getId(),OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
 			stmt = dbConn.prepareStatement(insertsql);
 			stmt.execute();

@@ -105,9 +105,9 @@ public class DMBizShareController {
 			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid);
 			 //向数据池操作记录表添加数据
 			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid);
-			 //向共享批次信息表添加数据
-			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,newId,shareName,description,user);
 			}
+			//向共享批次信息表添加数据
+			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,newId,shareName,description,user);
 			if(serviceResultCode != ServiceResultCode.SUCCESS){
 		    	 serviceresult.setResultCode(serviceResultCode);
 				 serviceresult.setReturnMessage("共享失败"); 
