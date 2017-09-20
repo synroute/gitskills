@@ -443,19 +443,7 @@ public class CustomerController {
 
 		int pageSize = queryRequest.getPageSize();
 		int pageNum = queryRequest.getPageNum();
-		if (queryRequest.hasQueryNext()) {
-			pageNum = 1;
-			try {
-				list = customerRepository.queryMyNextCustomer(queryRequest,
-						userId);
-			} catch (HiAppException e) {
-				e.printStackTrace();
-				result.put("result", 1);
-				result.put("reason", e.getMessage());
-				return result;
-			}
-		}
-
+		
 		int count = 0;
 		try {
 			count = customerRepository.queryMyCustomersCount(queryRequest,
@@ -466,6 +454,21 @@ public class CustomerController {
 			result.put("reason", e.getMessage());
 			return result;
 		}
+		
+		if (queryRequest.hasQueryNext()) {
+			pageNum = 1;
+			try {
+				list = customerRepository.queryMyNextCustomer(queryRequest,
+						userId);
+				count += list.size();
+			} catch (HiAppException e) {
+				e.printStackTrace();
+				result.put("result", 1);
+				result.put("reason", e.getMessage());
+				return result;
+			}
+		}
+
 
 		try {
 			list1 = customerRepository.queryMyCustomers(queryRequest, userId);

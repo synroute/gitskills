@@ -18,11 +18,17 @@ public class QueryRequest {
 
 	public int getStart() {
 		int start = (pageNum - 1) * pageSize + 1;
+		if(hasQueryNext()){
+			start = 1;
+		}
 		return start;
 	}
 
 	public int getEnd() {
 		int end = pageNum * pageSize;
+		if(hasQueryNext()){
+			end = pageSize - 1;
+		}
 		return end;
 	}
 
