@@ -245,13 +245,14 @@ public class DMBizMangeShare extends BaseRepository{
 			Connection dbConn = null;
 			int datapoolid=Integer.valueOf(uid);
 			StringBuilder sb=new StringBuilder();
+			Integer bizid = Integer.valueOf(businessID);
 			try {
 				for (int i = 0; i < shareID.length; i++) {
 					String shareid = shareID[i];
 					sb.append(shareid);
 					sb.deleteCharAt(sb.length()-1);
 					dbConn=this.getDbConnection();
-					insertsql=String.format("INSERT INTO HASYS_DM_SIDUSERPOOl (ID,BUSINESSID,SHAREID,DATAPOOLNAME,DATAPOOLID) VALUES (S_HASYS_DM_SIDUSERPOOl.NEXTVAL,%s,'%s','%s',%s)",businessID,sb,DataPoolName,datapoolid);
+					insertsql=String.format("INSERT INTO HASYS_DM_SIDUSERPOOl (ID,BUSINESSID,SHAREID,DATAPOOLNAME,DATAPOOLID) VALUES (S_HASYS_DM_SIDUSERPOOl.NEXTVAL,%s,'%s','%s',%s)",bizid,sb,DataPoolName,datapoolid);
 					stmt = dbConn.prepareStatement(insertsql);
 				}
 				

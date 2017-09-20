@@ -29,6 +29,7 @@ import java.util.Map;
 
 
 
+
 /*import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;*/
 import org.springframework.stereotype.Repository;
@@ -51,6 +52,7 @@ public class DMBizDataShare extends BaseRepository {
 		String jsonData=null;
 		JsonArray dataArray=null;
 		String flag=null;
+		Integer bizid = Integer.valueOf(businessId);
 		if(sourceType.equals("Excel")){
 			flag="DbFieldName";
 		}else{
@@ -59,7 +61,7 @@ public class DMBizDataShare extends BaseRepository {
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		try {
 			dbConn = this.getDbConnection();//select to_char(sysdate,'yy-mm-dd hh24:mi:ss')
-			getXmlSql=String.format("SELECT XML FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE TEMPLATEID='%s' AND BUSINESSID='%s'",templateId,businessId);
+			getXmlSql=String.format("SELECT XML FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE TEMPLATEID='%s' AND BUSINESSID='%s'",templateId,bizid);
 			stmt=dbConn.prepareStatement(getXmlSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -78,7 +80,7 @@ public class DMBizDataShare extends BaseRepository {
 			sb.deleteCharAt(sb.length()-1);
 			sql+=sb;
 			//测试表名待修正
-			sql=sql+" from HAU_DM_B"+businessId+"C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B"+businessId+"C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
+			sql=sql+" from HAU_DM_B"+bizid+"C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B"+businessId+"C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
 			stmt=dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
