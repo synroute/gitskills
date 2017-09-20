@@ -303,7 +303,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(BUSINESSID,PAGENAME,PAGEURL) VALUES(%s,'%s','%s') ", bizId,pageName,pageUrl) ;
+						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,BUSINESSID,PAGENAME,PAGEURL) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s') ", bizId,pageName,pageUrl) ;
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();
 						
