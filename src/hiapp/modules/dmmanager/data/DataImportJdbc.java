@@ -43,7 +43,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException 
 	 */
-	public List<Business> getBusinessData(String userId) throws IOException{
+	public List<Business> getBusinessData(int pemissId) throws IOException{
 		List<Business> businessList=new ArrayList<Business>();
 		List<Integer> ornizeIdList=new ArrayList<Integer>();
 		Connection conn=null;
@@ -52,9 +52,9 @@ public class DataImportJdbc extends BaseRepository{
 		
 		try {
 			conn= this.getDbConnection();
-			String getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from BU_MAP_USERORGROLE a,HASYS_DM_Business b  where a.GROUPID=b.OWNERGROUPID and a.USERID=?";
+			String getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? and a.itemname ='数据管理'";
 			pst=conn.prepareStatement(getOrgnizeSql);
-			pst.setString(1,userId);
+			pst.setInt(1,pemissId);
 			rs = pst.executeQuery();
 			while (rs.next()) {
 				Business bus=new Business();
@@ -239,8 +239,11 @@ public class DataImportJdbc extends BaseRepository{
 			for (int i = 0; i < dataArray.size(); i++) {
 				String key=dataArray.get(i).getAsJsonObject().get("DbFieldName").getAsString();
 				String value=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
-				map1.put(key,value );
-				excelList.add(value);
+				if(value!=null&&!"".equals(value)){
+					map1.put(key,value );
+					excelList.add(value);
+
+				}
 			}
 			
 			map.put("exMap", map1);
@@ -282,9 +285,11 @@ public class DataImportJdbc extends BaseRepository{
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
 			for (int i = 0; i < dataArray.size(); i++) {
-				String key=dataArray.get(i).getAsJsonObject().get("FieldName").getAsString();
 				String value=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
-				sourceColumns.add(value);
+				if(value!=null&&!"".equals(value)){
+					sourceColumns.add(value);
+				}
+			
 			}
 			List<String> newList=new ArrayList<String>(new HashSet(sourceColumns));
 			for (int i = 0; i < newList.size(); i++) {
@@ -524,7 +529,10 @@ public class DataImportJdbc extends BaseRepository{
 					pst1.setString(10, userId);
 					
 					for (int k = 0; k < dataArray.size(); k++) {
-						insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("DbFieldName").getAsString()+",";
+						String excelHeader=dataArray.get(k).getAsJsonObject().get("ExcelHeader").getAsString();
+						if(excelHeader!=null&&!"".equals(excelHeader)){
+							insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("DbFieldName").getAsString()+",";
+						}
 					}
 					insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
 					for (int j = 0; j < dataArray.size(); j++) {
@@ -611,7 +619,11 @@ public class DataImportJdbc extends BaseRepository{
 				pst1.setInt(9, 0);
 				pst1.setString(10, userId);
 				for (int k = 0; k < dataArray.size(); k++) {
-					insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("FieldName").getAsString()+",";
+					String sourceName=dataArray.get(k).getAsJsonObject().get("FieldNameSource").getAsString();
+					if(sourceName!=null&&!"".equals(sourceName)){
+						insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("FieldName").getAsString()+",";
+
+					}
 				}
 				insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
 				for (int j = 0; j < dataArray.size(); j++) {
@@ -657,18 +669,24 @@ public class DataImportJdbc extends BaseRepository{
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String actionName=null;
+		String sourceName=null;
 		try {
 			conn=this.getDbConnection();
 			//获取导入表字段所属类型和
 			String getDataTypeSql="select datatype,columnname from hasys_worksheetcolumn  where workSheetId=? and columnname in(";
 			if(action==1){
 				actionName="DbFieldName";
+				sourceName="ExcelHeader";
 			}else{
 				actionName="FieldName";
+				sourceName="FieldNameSource";
 			}
 			for (int i = 0; i < dataArray.size(); i++) {
 				String name=dataArray.get(i).getAsJsonObject().get(actionName).getAsString();
-				getDataTypeSql+="'"+name+"',";
+				String exname=dataArray.get(i).getAsJsonObject().get(sourceName).getAsString();
+				if(exname!=null&&!"".equals(exname)){
+					getDataTypeSql+="'"+name+"',";
+				}
 			}
 			getDataTypeSql=getDataTypeSql.substring(0,getDataTypeSql.length()-1)+")";
 			pst=conn.prepareStatement(getDataTypeSql);

@@ -1,15 +1,17 @@
 package hiapp.modules.dmmanager.srv;
 
 import hiapp.modules.dmmanager.bean.Business;
-import hiapp.modules.dmmanager.bean.ImportQueryCondition;
 import hiapp.modules.dmmanager.bean.ImportTemplate;
 import hiapp.modules.dmmanager.bean.WorkSheet;
 import hiapp.modules.dmmanager.bean.WorkSheetColumn;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
+import hiapp.system.buinfo.Permission;
+import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
+import hiapp.system.buinfo.data.GroupRepository;
+import hiapp.system.buinfo.data.PermissionRepository;
+import hiapp.system.buinfo.data.UserRepository;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,22 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-
-
-
-
-
-
-
-
-
-
-
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -60,6 +49,12 @@ import com.google.gson.Gson;
 public class ImportDataController {
 	@Autowired
 	private DataImportJdbc dataImportJdbc;
+	@Autowired
+	private UserRepository userRepository;
+	@Autowired
+	private GroupRepository groupRepository;
+	@Autowired
+	private PermissionRepository permissionRepository;
 	/**
 	 * 获取所有业务
 	 * @param request
@@ -71,7 +66,10 @@ public class ImportDataController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
-		List<Business> busList=dataImportJdbc.getBusinessData(userId);
+		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(userId);
+		Permission permission = permissionRepository.getPermission(roleInGroupSet);
+		int permissionId = permission.getId();
+		List<Business> busList=dataImportJdbc.getBusinessData(permissionId);
 		String gson=new Gson().toJson(busList);
 		try {
 			PrintWriter printWriter = response.getWriter();
