@@ -102,11 +102,10 @@ public class DMDAO extends BaseRepository {
             dbConn = this.getDbConnection();
 
             //
-            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BusinessID, ShareId, ShareName, CreateUserID, " +
-                    "CreateTime, Description, State, StartTime, EndTime" +
-                    " FROM HASYS_DM_SID WHERE ");
-            sqlBuilder.append(" State = ").append(ShareBatchStateEnum.ENABLE.getName());
-            sqlBuilder.append("AND trunc(CreateTime) = trunc(sysdate)");
+            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
+                    "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
+            sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
+            sqlBuilder.append(" AND trunc(CREATETIME) = trunc(sysdate)");
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             ResultSet rs = stmt.executeQuery();

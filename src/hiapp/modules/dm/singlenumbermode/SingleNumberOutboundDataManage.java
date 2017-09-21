@@ -11,11 +11,13 @@ import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMPresetStateEnum;
 import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
+import hiapp.system.buinfo.User;
 import hiapp.utils.database.DBConnectionPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -166,6 +168,18 @@ public class SingleNumberOutboundDataManage {
                 EndCodeRedialStrategyFromDB.class);*/
 
         //EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
+
+        /*String tmp = "{\"bizId\":11,\"importBatchId\":77\" }";
+        Map<String, String> map = new Gson().fromJson(tmp, Map.class);
+        String strBizId = map.get("bizId");
+        String resultCodeType = map.get("resultCodeType");
+        String resultCode = map.get("resultCode");
+        String importBatchId = map.get("importBatchId");
+        String shareBatchId = map.get("shareBatchId");
+        String customerId = map.get("customerId");
+        String resultData = map.get("resultData");
+        String customerInfo = map.get("customerInfo");*/
+
 
         setDailyRoutine();
 

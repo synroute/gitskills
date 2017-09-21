@@ -26,8 +26,16 @@ public class SingleNumberModeController {
     SingleNumberOutboundDataManage singleNumberOutboundDataManage;
 
     @RequestMapping(value="/srv/dm/extractNextCustomer.srv", method= RequestMethod.GET, produces="application/json")
-    public /*OutboundCustomer*/String extractNextCustomer(@RequestParam("userId") String userId,
+    public /*OutboundCustomer*/String extractNextCustomer(HttpServletRequest request,
+                                                          @RequestParam("userId") String userId,
                                                           @RequestParam("bizId") String bizId) {
+
+/*        HttpSession session = request.getSession();
+        User user=(User) session.getAttribute("user");
+
+        userId = user.getId();
+        bizId = "25";*/
+
         System.out.println(userId + "。。。" + bizId);
         Integer intBizId = Integer.valueOf(bizId);
         SingleNumberModeShareCustomerItem item = singleNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId);
@@ -54,7 +62,7 @@ public class SingleNumberModeController {
 
         // 客户原信息变更、拨打信息、结果信息
         /*{"bizId":11,"importBatchId":77","shareBatchId":"66","customerId":91,"resultCodeType":"结束","resultCode":"结案"," +
-            "presetTime":"2017-10-05 15:30:00","customerInfo":{xxx}}*/
+            "presetTime":"2017-10-05 15:30:00","resultData":{xxx},"customerInfo":{xxx}}*/
 
         HttpSession session = request.getSession();
         User user=(User) session.getAttribute("user");
@@ -94,7 +102,12 @@ public class SingleNumberModeController {
 
         ServiceResult serviceresult = new ServiceResult();
 
-        List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
+        //List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
+        List<String> shareBatchIds = new ArrayList<String>();
+
+        String[] arrayShareBatchId = strShareBatchIds.split(",");
+        for (String shareBatchId : arrayShareBatchId)
+            shareBatchIds.add(shareBatchId);
 
         singleNumberOutboundDataManage.startShareBatch(bizId, shareBatchIds);
 

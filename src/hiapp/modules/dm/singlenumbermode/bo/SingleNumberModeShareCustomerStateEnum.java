@@ -1,13 +1,13 @@
 package hiapp.modules.dm.singlenumbermode.bo;
 
 public enum SingleNumberModeShareCustomerStateEnum {
-    CREATED("created"),
-    APPENDED("appended"),
-    WAIT_NEXT_PHASE_DAIL("wait_next_phase_dail"),   //等待下阶段拨打状态，有下次拨打时间
-    PRESET_DIAL("preset_dial"),   // 预约拨打状态，有下次拨打时间
-    LOSTCALL_WAIT_REDIAL("lostcall_wait_redial"),   //未接通，等待重拨状态，没有下次拨打时间，通过拨打次数控制
-    FINISHED("finished"),
-    REVERT("revert");         // 回退状态
+    CREATED("CREATED"),
+    APPENDED("APPENDED"),
+    WAIT_NEXT_PHASE_DAIL("WAIT_NEXT_PHASE_DAIL"),   //等待下阶段拨打状态，有下次拨打时间
+    PRESET_DIAL("PRESET_DIAL"),   // 预约拨打状态，有下次拨打时间
+    LOSTCALL_WAIT_REDIAL("LOSTCALL_WAIT_REDIAL"),   //未接通，等待重拨状态，没有下次拨打时间，通过拨打次数控制
+    FINISHED("FINISHED"),
+    REVERT("REVERT");         // 回退状态
 
     private SingleNumberModeShareCustomerStateEnum(String name) {
         this.name = name;
