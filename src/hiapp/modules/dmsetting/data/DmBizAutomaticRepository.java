@@ -144,7 +144,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		try {
 			dbConn =this.getDbConnection();
 			//查询客户信息
-			
+			columns=columns.substring(0, columns.length()-1);
 			String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"' and IID='"+IID+"'";
 			stmt = dbConn.prepareStatement(szSelectSql);
 			rs = stmt.executeQuery();
@@ -180,6 +180,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		Map<String,String> map=new HashMap<String, String>(); 
 		try {
 			dbConn =this.getDbConnection();
+			columns=columns.substring(0, columns.length()-1);
 			//String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"'";
 			String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT,HASYS_DM_B"+bizId+"C_PresetTime,HAU_DM_B"+bizId+"C_RESULT "
 					+ " where HAU_DM_B"+bizId+"C_IMPORT.Cid=HAU_DM_B"+bizId+"C_RESULT.CID and HAU_DM_B"+bizId+"C_IMPORT.Cid=HASYS_DM_B"+bizId+"C_PresetTime.CID Cid='"+Cid+"'";
