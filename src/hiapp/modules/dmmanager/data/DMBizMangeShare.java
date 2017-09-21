@@ -335,13 +335,14 @@ public class DMBizMangeShare extends BaseRepository{
 		}
 		
 		
-		public void getUserPoolTree(int permissionId, List<TreePool> treePool) {
+		public void getUserPoolTree(int permissionId, List<TreePool> treePool,String businessID) {
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
 			ResultSet rs = null;
+			Integer biz = Integer.valueOf(businessID);
 			try {
 				dbConn=this.getDbConnection();
-				String sql="select id,DATAPOOLNAME,pid from HASYS_DM_DATAPOOL";
+				String sql="SELECT A.ID,A.DATAPOOLNAME,A.PID from HASYS_DM_DATAPOOL A where A.BUSINESSID="+biz+"";
 				stmt = dbConn.prepareStatement(sql);
 				rs = stmt.executeQuery();
 				while (rs.next()) {

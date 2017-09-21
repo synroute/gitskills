@@ -216,7 +216,9 @@ public class DMBizMangeShareController {
 	
 	//页面一加载 查询所有能被共享的人
 	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String TreeViewByUserId(HttpSession session){
+	public String TreeViewByUserId(HttpSession session,
+			@RequestParam(value = "BusinessID") String businessID
+			){
 		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
@@ -224,7 +226,7 @@ public class DMBizMangeShareController {
 		String s=null;
 		TreeDataResult result = new TreeDataResult();
 		List<TreePool> treePool=new ArrayList<TreePool>();
-		bizMangeShare.getUserPoolTree(permissionId,treePool);
+		bizMangeShare.getUserPoolTree(permissionId,treePool,businessID);
 		List<UserItem> list=bizMangeShare.getUserPoolTreeByPermissionID(permissionId,treePool);
 		result.getData().addAll(list);
 		s=result.toJson();
