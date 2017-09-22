@@ -7,6 +7,7 @@ import hiapp.modules.dmagent.data.CustomerRepository;
 import hiapp.system.buinfo.User;
 import hiapp.system.dictionary.DictItem;
 import hiapp.system.dictionary.data.DictRepository;
+import hiapp.system.dictionary.srv.DictionaryConfigurationController;
 import hiapp.utils.base.HiAppException;
 
 import java.sql.SQLException;
@@ -32,6 +33,8 @@ public class CustomerController {
 	private CustomerRepository customerRepository;
 	@Autowired
 	private DictRepository dictRepository;
+	@Autowired
+	private DictionaryConfigurationController dictionaryConfigurationController;
 
 	// 从会话中获取当前用户的用户Id
 	@RequestMapping(value = "/srv/agent/getUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
@@ -48,7 +51,7 @@ public class CustomerController {
 		return result;
 	}
 
-	// 根据字典id和字典级别id获取字典文本
+	/*// 根据字典id和字典级别id获取字典文本
 	@RequestMapping(value = "/srv/agent/getItemsByDictIdAndLevel.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public List<String> getItemsByDictIdAndLevel(int dicId, int level) {
 		// 拿数据
@@ -92,7 +95,7 @@ public class CustomerController {
 		}
 		return new ArrayList<String>();
 	}
-
+*/
 	
 
 	/**
@@ -237,7 +240,7 @@ public class CustomerController {
 						+ "' style='width:250px'");
 				String dictId = (String) map.get("dictId");
 				String dictLevel = (String) map.get("dictLevel");
-				List<String> itemsText = getItemsByDictIdAndLevel(
+				List<String> itemsText = dictionaryConfigurationController.getItemsByDictIdAndLevel(
 						Integer.parseInt(dictId), Integer.parseInt(dictLevel));
 				for (String string : itemsText) {
 					sb.append("<option>" + string + "</option>");
