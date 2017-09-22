@@ -50,7 +50,7 @@ public class CustomerRepository extends BaseRepository {
 	private final String INPUT_TIME_JTEMPLATE = "MM/dd/YYYY HH:mm:ss";
 	private final String OUTPUT_TIME_TEMPLATE = "yyyy/MM/dd HH:mm:ss";
 
-	// 给返回的候选列添加序号
+	// 给返回的待选列添加序号
 	public void addColumnIndex(List<Map<String, Object>> list) {
 		AtomicInteger atomicInteger = new AtomicInteger(0);
 		for (Iterator<Map<String, Object>> iterator = list.iterator(); iterator
@@ -60,8 +60,8 @@ public class CustomerRepository extends BaseRepository {
 		}
 	}
 
-	// 获取指定业务中用户自定义表中用户自定义的列用于候选列
-	public List<Map<String, Object>> getJieGuoTableColumn(String sql,
+	// 根据业务ID获取结果表中作为待选列的固定列
+	public List<Map<String, Object>> getResultTableColumn(String sql,
 			String bizId) throws HiAppException {
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
@@ -70,8 +70,8 @@ public class CustomerRepository extends BaseRepository {
 		ResultSet rs = null;
 
 		try {
-			String jieGuoTableName = TableNameEnume.JIEGUOTABLENAME.getPrefix()
-					+ bizId + TableNameEnume.JIEGUOTABLENAME.getSuffix();
+			String jieGuoTableName = TableNameEnume.RESULTTABLENAME.getPrefix()
+					+ bizId + TableNameEnume.RESULTTABLENAME.getSuffix();
 
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sql);
@@ -79,7 +79,7 @@ public class CustomerRepository extends BaseRepository {
 			rs = stmt.executeQuery();
 			while (rs.next()) {
 				Map<String, Object> map = new HashMap<String, Object>();
-				map.put("COLUMNNAME", TableNameEnume.JIEGUOTABLENAME.getAbbr()
+				map.put("COLUMNNAME", TableNameEnume.RESULTTABLENAME.getAbbr()
 						+ "." + rs.getString(1));
 				map.put("COLUMNNAMECH", rs.getString(2));
 				map.put("COLUMNDESCRIPTION", rs.getString(3));
@@ -98,7 +98,7 @@ public class CustomerRepository extends BaseRepository {
 		return list;
 	}
 
-	// 获取指定业务中导入表中用户自定义的列用于候选列
+	// 根据业务ID获取导入表中作为待选列的固定列
 	public List<Map<String, Object>> getInputTableColumn(String sql,
 			String bizId) throws HiAppException {
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
@@ -136,7 +136,7 @@ public class CustomerRepository extends BaseRepository {
 		return list;
 	}
 
-	// 获取指定业务中候选表中用户自定义的列用于候选列
+	// 根据业务ID获取预约表中作为待选列的固定列
 	public List<Map<String, Object>> getPresetTableColumn(String sql,
 			String bizId) throws HiAppException {
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
@@ -175,14 +175,14 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 获取配置查询模板时需要使用的候选列
+	 * 获取配置查询模板时需要使用的待选列
 	 * 
 	 * @param bizId
 	 * @param deployPage
 	 * @return
 	 * @throws HiAppException
 	 */
-	public List<Map<String, Object>> getCandidadeColumn(String bizId,
+	public List<Map<String, Object>> getSourceColumn(String bizId,
 			String configPage) throws HiAppException {
 
 		String sql = "SELECT COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH FROM HASYS_WORKSHEETCOLUMN A,HASYS_WORKSHEET B WHERE A.ISSYSCOLUMN = 0 AND A.WORKSHEETID = B.ID AND B.NAME = ?";
@@ -191,9 +191,9 @@ public class CustomerRepository extends BaseRepository {
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
 		try {
-			list.addAll(getJieGuoTableColumn(sql, bizId));
+			list.addAll(getResultTableColumn(sql, bizId));
 			// 获取用户自定义表中固定的候选列
-			list.addAll(TableNameEnume.JIEGUOTABLENAME.getCandidadeColumn());
+			list.addAll(TableNameEnume.RESULTTABLENAME.getCandidadeColumn());
 
 			// 我的客户
 			if (ConfigPageEnume.MYCUSTOMERS.getName().equals(configPage)) {
@@ -226,12 +226,12 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 保存配置好的查询模板
+	 * 保存配置好的筛选模板（包括高级筛选和普通筛选）
 	 * 
 	 * @param queryTemplate
 	 * @return
 	 */
-	public boolean saveQueryTemplate(QueryTemplate queryTemplate) {
+	public boolean saveFilterTemplate(QueryTemplate queryTemplate) {
 		String bizId = queryTemplate.getBizId();
 		String configPage = queryTemplate.getConfigPage();
 		String configType = queryTemplate.getConfigType();
@@ -279,12 +279,12 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 获取查询模板
+	 * 获取筛选模板模板(包括普通筛选和高级筛选)
 	 * 
 	 * @return
 	 * @throws HiAppException
 	 */
-	public String getQueryTemplate(QueryTemplate queryTemplate)
+	public String getFilterTemplate(QueryTemplate queryTemplate)
 			throws HiAppException {
 		String result = null;
 		String bizId = queryTemplate.getBizId();
@@ -320,7 +320,7 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 支持坐席根据不同业务和管理员自定义配置的查询条件查询我的客户数量
+	 * 根据条件查询前台页面上“我的客户”模块下符合条件的客户的数量
 	 * 
 	 * @return
 	 * @throws HiAppException
@@ -343,18 +343,18 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" ");
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr());
 			sb.append(",");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 			sb.append(bizId);
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
 			sb.append(" ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 			sb.append(" WHERE ");
 			// 查询条件
 			QueryTemplate queryTemplate = new QueryTemplate();
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getQueryTemplate(queryTemplate);
+			String template = getFilterTemplate(queryTemplate);
 			int flag1 = 0;
 			int flag2 = 0;
 			@SuppressWarnings("unchecked")
@@ -367,7 +367,7 @@ public class CustomerRepository extends BaseRepository {
 							.getAbbr() + ".")) {
 						flag1 = 2;
 					} else if (columnName
-							.contains(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+							.contains(TableNameEnume.RESULTTABLENAME.getAbbr()
 									+ ".")) {
 						flag2 = 2;
 					}
@@ -389,13 +389,13 @@ public class CustomerRepository extends BaseRepository {
 			}
 
 			if (flag2 == 2) {
-				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYUSERID");
 				sb.append(" = ");
 				sb.append(userId);
 				sb.append(" AND ");
 
-				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");
 				sb.append(" = ");
 				sb.append(1);
@@ -404,12 +404,12 @@ public class CustomerRepository extends BaseRepository {
 			
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"IID");
 			sb.append(" = ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"IID");
 			sb.append(" AND ");
 			
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"CID");
 			sb.append(" = ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"CID");
 			sb.append(" AND ");
 			
 			sb = new StringBuffer(sb.substring(0, sb.length() - 5));
@@ -497,7 +497,7 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 支持坐席查询下一条我的客户
+	 * “我的客户”模块点击下一条
 	 * 
 	 * @param queryRequest
 	 * @param userId
@@ -519,7 +519,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getQueryTemplate(queryTemplate);
+			String template = getFilterTemplate(queryTemplate);
 
 			sb.append("SELECT ");
 
@@ -539,7 +539,7 @@ public class CustomerRepository extends BaseRepository {
 					} else if (columnName.equals(TableNameEnume.INPUTTABLENAME
 							.getAbbr() + "." + "CID")) {
 						flag2 = 1;
-					} else if (columnName.equals(TableNameEnume.JIEGUOTABLENAME
+					} else if (columnName.equals(TableNameEnume.RESULTTABLENAME
 							.getAbbr() + "." + "SOURCEID")) {
 						flag3 = 1;
 					}
@@ -560,7 +560,7 @@ public class CustomerRepository extends BaseRepository {
 			if (flag3 == 0) {
 				HashMap<String, String> hashMap3 = new HashMap<String, String>();
 				hashMap3.put("columnName",
-						TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 								+ "SOURCEID");
 				list.add(hashMap3);
 			}
@@ -583,11 +583,11 @@ public class CustomerRepository extends BaseRepository {
 
 			sb.append(",");
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 			sb.append(bizId);
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
 			sb.append(" ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 
 			sb.append(" WHERE ");
 
@@ -602,12 +602,12 @@ public class CustomerRepository extends BaseRepository {
 			sb.append("'" + queryRequest.getCID() + "'");
 			sb.append(" AND ");
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "." + "IID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "IID");
 			sb.append(" = ");
 			sb.append("'" + queryRequest.getIID() + "'");
 			sb.append(" AND ");
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "." + "CID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "CID");
 			sb.append(" = ");
 			sb.append("'" + queryRequest.getCID() + "'");
 			sb.append(" AND ");
@@ -624,13 +624,13 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(1);
 			sb.append(" AND ");
 			
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 					+ "MODIFYUSERID");
 			sb.append(" = ");
 			sb.append(userId);
 			sb.append(" AND ");
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 					+ "MODIFYLAST");
 			sb.append(" = ");
 			sb.append(1);
@@ -699,7 +699,7 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 支持坐席根据不同业务和管理员自定义配置的查询条件查询我的客户
+	 * 根据条件查询前台页面上“我的客户”模块下符合条件的客户
 	 * 
 	 * @param queryRequest
 	 * @return
@@ -721,7 +721,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getQueryTemplate(queryTemplate);
+			String template = getFilterTemplate(queryTemplate);
 
 			sb.append("SELECT * FROM (SELECT ");
 
@@ -741,7 +741,7 @@ public class CustomerRepository extends BaseRepository {
 					} else if (columnName.equals(TableNameEnume.INPUTTABLENAME
 							.getAbbr() + "." + "CID")) {
 						flag2 = 1;
-					} else if (columnName.equals(TableNameEnume.JIEGUOTABLENAME
+					} else if (columnName.equals(TableNameEnume.RESULTTABLENAME
 							.getAbbr() + "." + "SOURCEID")) {
 						flag3 = 1;
 					}
@@ -762,7 +762,7 @@ public class CustomerRepository extends BaseRepository {
 			if (flag3 == 0) {
 				HashMap<String, String> hashMap3 = new HashMap<String, String>();
 				hashMap3.put("columnName",
-						TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 								+ "SOURCEID");
 				list.add(hashMap3);
 			}
@@ -785,11 +785,11 @@ public class CustomerRepository extends BaseRepository {
 
 			sb.append(",");
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 			sb.append(bizId);
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
 			sb.append(" ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 
 			sb.append(" WHERE ");
 
@@ -802,7 +802,7 @@ public class CustomerRepository extends BaseRepository {
 							.getAbbr() + ".")) {
 						flag1 = 2;
 					} else if (columnName
-							.contains(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+							.contains(TableNameEnume.RESULTTABLENAME.getAbbr()
 									+ ".")) {
 						flag2 = 2;
 					}
@@ -824,13 +824,13 @@ public class CustomerRepository extends BaseRepository {
 			}
 
 			if (flag2 == 2) {
-				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYUSERID");
 				sb.append(" = ");
 				sb.append(userId);
 				sb.append(" AND ");
 
-				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");
 				sb.append(" = ");
 				sb.append(1);
@@ -839,12 +839,12 @@ public class CustomerRepository extends BaseRepository {
 			
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"IID");
 			sb.append(" = ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"IID");
 			sb.append(" AND ");
 			
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"CID");
 			sb.append(" = ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"CID");
 			sb.append(" AND ");
 
 			sb.append("ROWNUM");
@@ -920,7 +920,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
 			sb.append(" DESC,");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
 			sb.append(" DESC)");
 
@@ -986,7 +986,7 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 支持坐席根据不同业务和管理员自定义的查询条件查询我的预约或待跟进的客户的数量
+	 * 根据条件查询前台页面上“联系计划”模块下符合条件的客户的数量
 	 * 
 	 * @param queryRequest
 	 * @return
@@ -1020,11 +1020,11 @@ public class CustomerRepository extends BaseRepository {
 
 			sb.append(",");
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 			sb.append(bizId);
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
 			sb.append(" ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 
 			sb.append(" WHERE ");
 
@@ -1033,7 +1033,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getQueryTemplate(queryTemplate);
+			String template = getFilterTemplate(queryTemplate);
 			int flag1 = 0;
 			int flag2 = 0;
 			@SuppressWarnings("unchecked")
@@ -1047,7 +1047,7 @@ public class CustomerRepository extends BaseRepository {
 							.getAbbr() + ".")) {
 						flag1 = 2;
 					} else if (columnName
-							.contains(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+							.contains(TableNameEnume.RESULTTABLENAME.getAbbr()
 									+ ".")) {
 						flag2 = 2;
 					}
@@ -1069,13 +1069,13 @@ public class CustomerRepository extends BaseRepository {
 			}
 
 			if (flag2 == 2) {
-				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYUSERID");
 				sb.append(" = ");
 				sb.append(userId);
 				sb.append(" AND ");
 
-				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");
 				sb.append(" = ");
 				sb.append(1);
@@ -1084,12 +1084,12 @@ public class CustomerRepository extends BaseRepository {
 			
 			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"IID");
 			sb.append(" = ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"IID");
 			sb.append(" AND ");
 			
 			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"CID");
 			sb.append(" = ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"CID");
 			sb.append(" AND ");
 
 			sb = new StringBuffer(sb.substring(0, sb.length() - 5));
@@ -1186,7 +1186,7 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 支持坐席根据不同业务和管理员自定义的查询条件查询我的预约或待跟进的客户
+	 * 根据条件查询前台页面上“联系计划”模块下符合条件的客户
 	 * 
 	 * @param queryRequest
 	 * @return
@@ -1210,7 +1210,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.CONTACTPLAN.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getQueryTemplate(queryTemplate);
+			String template = getFilterTemplate(queryTemplate);
 
 			sb.append("SELECT * FROM (SELECT ");
 
@@ -1230,7 +1230,7 @@ public class CustomerRepository extends BaseRepository {
 					} else if (columnName.equals(TableNameEnume.PRESETTABLENAME
 							.getAbbr() + "." + "CID")) {
 						flag2 = 1;
-					} else if (columnName.equals(TableNameEnume.JIEGUOTABLENAME
+					} else if (columnName.equals(TableNameEnume.RESULTTABLENAME
 							.getAbbr() + "." + "SOURCEID")) {
 						flag3 = 1;
 					}
@@ -1251,7 +1251,7 @@ public class CustomerRepository extends BaseRepository {
 			if (flag3 == 0) {
 				HashMap<String, String> hashMap3 = new HashMap<String, String>();
 				hashMap3.put("columnName",
-						TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+						TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 								+ "SOURCEID");
 				list.add(hashMap3);
 			}
@@ -1272,11 +1272,11 @@ public class CustomerRepository extends BaseRepository {
 
 			sb.append(",");
 
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 			sb.append(bizId);
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
+			sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
 			sb.append(" ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 
 			sb.append(" WHERE ");
 
@@ -1288,7 +1288,7 @@ public class CustomerRepository extends BaseRepository {
 							.getAbbr() + ".")) {
 						flag1 = 2;
 					} else if (columnName
-							.contains(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+							.contains(TableNameEnume.RESULTTABLENAME.getAbbr()
 									+ ".")) {
 						flag2 = 2;
 					}
@@ -1310,13 +1310,13 @@ public class CustomerRepository extends BaseRepository {
 			}
 
 			if (flag2 == 2) {
-				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYUSERID");
 				sb.append(" = ");
 				sb.append(userId);
 				sb.append(" AND ");
 
-				sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");
 				sb.append(" = ");
 				sb.append(1);
@@ -1325,12 +1325,12 @@ public class CustomerRepository extends BaseRepository {
 			
 			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"IID");
 			sb.append(" = ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"IID");
 			sb.append(" AND ");
 			
 			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"CID");
 			sb.append(" = ");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"CID");
 			sb.append(" AND ");
 
 			sb.append("ROWNUM");
@@ -1409,7 +1409,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
 			sb.append(" DESC,");
-			sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
 			sb.append(" DESC)");
 
@@ -1504,8 +1504,8 @@ public class CustomerRepository extends BaseRepository {
 		return dataPoolId;
 	}
 
-	// 获取当前业务下的所有数据池记录
-	public List<Map<String, Object>> getDataPoolByBizId(String bizId)
+	// 获取当前业务下的所有数据池
+	public List<Map<String, Object>> getDataPoolsByBizId(String bizId)
 			throws HiAppException {
 		String sql = "SELECT ID,PID,DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE BUSINESSID = ?";
 		Connection dbConn = null;
@@ -1536,7 +1536,7 @@ public class CustomerRepository extends BaseRepository {
 		return list;
 	}
 
-	// 获取当前数据池和所有子数据池下的数据池名称
+	// 获取当前数据池和其所有子数据池下的数据池名称
 	public void getAllChildrenDataPoolNames(int dataPoolId,
 			List<Map<String, Object>> dataPools, Set<String> dataPoolNames) {
 
@@ -1553,11 +1553,11 @@ public class CustomerRepository extends BaseRepository {
 
 	}
 
-	// 获取当前数据池和所有子数据池下的坐席id拼接成的字符串
+	// 获取当前数据池和其所有子数据池下的坐席id拼接成的字符串
 	public String getUserIdsFromDataPool(int dataPoolId, String bizId,
 			String userId) throws HiAppException {
 
-		List<Map<String, Object>> dataPools = getDataPoolByBizId(bizId);
+		List<Map<String, Object>> dataPools = getDataPoolsByBizId(bizId);
 
 		Set<String> dataPoolNames = new HashSet<String>();
 
@@ -1582,7 +1582,7 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 支持根据不同业务和管理员自定义的查询条件查询所有客户的数量
+	 * 根据条件查询前台页面上“所有客户”模块下符合条件的客户的数量
 	 * 
 	 * @param queryRequest
 	 * @return
@@ -1636,11 +1636,11 @@ public class CustomerRepository extends BaseRepository {
 
 					sb.append(",");
 
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
+					sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 					sb.append(bizId);
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
+					sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
 					sb.append(" ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 
 					sb.append(" WHERE ");
 
@@ -1652,7 +1652,7 @@ public class CustomerRepository extends BaseRepository {
 							.getName());
 					queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST
 							.getName());
-					String template = getQueryTemplate(queryTemplate);
+					String template = getFilterTemplate(queryTemplate);
 
 					@SuppressWarnings("unchecked")
 					List<Map<String, String>> list = new Gson().fromJson(
@@ -1670,7 +1670,7 @@ public class CustomerRepository extends BaseRepository {
 											.getAbbr() + ".")) {
 								flag1 = 2;
 							} else if (columnName
-									.contains(TableNameEnume.JIEGUOTABLENAME
+									.contains(TableNameEnume.RESULTTABLENAME
 											.getAbbr() + ".")) {
 								flag2 = 2;
 							} else if (columnName
@@ -1696,13 +1696,13 @@ public class CustomerRepository extends BaseRepository {
 					}
 
 					if (flag2 == 2) {
-						sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+						sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()
 								+ "." + "MODIFYUSERID");
 						sb.append(" IN ");
 						sb.append(userIds);
 						sb.append(" AND ");
 
-						sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+						sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()
 								+ "." + "MODIFYLAST");
 						sb.append(" = ");
 						sb.append(1);
@@ -1725,22 +1725,22 @@ public class CustomerRepository extends BaseRepository {
 					
 					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"IID");
 					sb.append(" = ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"IID");
 					sb.append(" AND ");
 					
 					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"CID");
 					sb.append(" = ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"CID");
 					sb.append(" AND ");
 					
 					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"IID");
 					sb.append(" = ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"IID");
 					sb.append(" AND ");
 					
 					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"CID");
 					sb.append(" = ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"CID");
 					sb.append(" AND ");
 
 					sb = new StringBuffer(sb.substring(0, sb.length() - 5));
@@ -1846,7 +1846,7 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 支持根据不同业务和管理员自定义的查询条件查询所有客户
+	 * 根据条件查询前台页面上“所有客户”模块下符合条件的客户
 	 * 
 	 * @param queryRequest
 	 * @return
@@ -1869,7 +1869,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.ALLCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getQueryTemplate(queryTemplate);
+			String template = getFilterTemplate(queryTemplate);
 
 			RoleInGroupSet roleInGroupSet = userRepository
 					.getRoleInGroupSetByUserId(userId);
@@ -1905,7 +1905,7 @@ public class CustomerRepository extends BaseRepository {
 											.getAbbr() + "." + "CID")) {
 								flag2 = 1;
 							} else if (columnName
-									.equals(TableNameEnume.JIEGUOTABLENAME
+									.equals(TableNameEnume.RESULTTABLENAME
 											.getAbbr() + "." + "SOURCEID")) {
 								flag3 = 1;
 							}
@@ -1928,7 +1928,7 @@ public class CustomerRepository extends BaseRepository {
 					if (flag3 == 0) {
 						HashMap<String, String> hashMap3 = new HashMap<String, String>();
 						hashMap3.put("columnName",
-								TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+								TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 										+ "SOURCEID");
 						list.add(hashMap3);
 					}
@@ -1957,11 +1957,11 @@ public class CustomerRepository extends BaseRepository {
 
 					sb.append(",");
 
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getPrefix());
+					sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 					sb.append(bizId);
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getSuffix());
+					sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
 					sb.append(" ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr());
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 
 					sb.append(" WHERE ");
 
@@ -1975,7 +1975,7 @@ public class CustomerRepository extends BaseRepository {
 											.getAbbr() + ".")) {
 								flag1 = 2;
 							} else if (columnName
-									.contains(TableNameEnume.JIEGUOTABLENAME
+									.contains(TableNameEnume.RESULTTABLENAME
 											.getAbbr() + ".")) {
 								flag2 = 2;
 							} else if (columnName
@@ -2001,13 +2001,13 @@ public class CustomerRepository extends BaseRepository {
 					}
 
 					if (flag2 == 2) {
-						sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+						sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()
 								+ "." + "MODIFYUSERID");
 						sb.append(" IN ");
 						sb.append(userIds);
 						sb.append(" AND ");
 
-						sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()
+						sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()
 								+ "." + "MODIFYLAST");
 						sb.append(" = ");
 						sb.append(1);
@@ -2030,22 +2030,22 @@ public class CustomerRepository extends BaseRepository {
 					
 					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"IID");
 					sb.append(" = ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"IID");
 					sb.append(" AND ");
 					
 					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr()+"."+"CID");
 					sb.append(" = ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"CID");
 					sb.append(" AND ");
 					
 					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"IID");
 					sb.append(" = ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"IID");
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"IID");
 					sb.append(" AND ");
 					
 					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr()+"."+"CID");
 					sb.append(" = ");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr()+"."+"CID");
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr()+"."+"CID");
 					sb.append(" AND ");
 
 					sb.append("ROWNUM");
@@ -2129,7 +2129,7 @@ public class CustomerRepository extends BaseRepository {
 					sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
 							+ "MODIFYTIME");
 					sb.append(" DESC,");
-					sb.append(TableNameEnume.JIEGUOTABLENAME.getAbbr() + "."
+					sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 							+ "MODIFYTIME");
 					sb.append(" DESC)");
 

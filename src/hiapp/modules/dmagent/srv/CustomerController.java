@@ -33,7 +33,7 @@ public class CustomerController {
 	@Autowired
 	private DictRepository dictRepository;
 
-	// 获取UserId
+	// 从会话中获取当前用户的用户Id
 	@RequestMapping(value = "/srv/agent/getUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public Map<String, Object> getUserId(HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
@@ -48,7 +48,7 @@ public class CustomerController {
 		return result;
 	}
 
-	// 更具字典id和字典级别id获取字典文本
+	// 根据字典id和字典级别id获取字典文本
 	@RequestMapping(value = "/srv/agent/getItemsByDictIdAndLevel.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public List<String> getItemsByDictIdAndLevel(int dicId, int level) {
 		// 拿数据
@@ -59,7 +59,7 @@ public class CustomerController {
 		if (level < 0 || level > 4) {
 			return arrayList;
 		}
-		// level为1
+		// 当字典级别为1
 		Set<Integer> set = new HashSet<Integer>();
 
 		for (DictItem dictItem : listDictItem) {
@@ -71,7 +71,7 @@ public class CustomerController {
 		if (1 == level) {
 			return arrayList;
 		}
-		// level为其他
+		// 字典级别为其他
 		int count = 2;
 		while (count <= level) {
 			arrayList = new ArrayList<String>();
@@ -93,22 +93,113 @@ public class CustomerController {
 		return new ArrayList<String>();
 	}
 
+	
+
 	/**
-	 * 获取查询HTML模板
+	 * 获取配置筛选模板时需要使用的待选列
+	 * 
+	 * @param bizId
+	 * @param configPage
+	 * @return
+	 * @throws SQLException
+	 */
+	@RequestMapping(value = "/srv/agent/getSourceColumn.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> getSourceColumn(String bizId,
+			String configPage) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		List<Map<String, Object>> candidadeColumn = null;
+
+		try {
+			candidadeColumn = customerRepository.getSourceColumn(bizId,
+					configPage);
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+			return result;
+		}
+
+		result.put("data", candidadeColumn);
+		result.put("result", 0);
+
+		return result;
+	}
+
+	/**
+	 * 保存配置好的筛选模板（包括普通筛选和高级筛选）
+	 * 
+	 * @param queryItem
+	 * @return
+	 */
+	@RequestMapping(value = "/srv/agent/saveFilterTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> saveFilterTemplate(QueryTemplate queryTemplate) {
+		Map<String, Object> result = new HashMap<String, Object>();
+
+		if (customerRepository.saveFilterTemplate(queryTemplate)) {
+			result.put("result", 0);
+		} else {
+			result.put("result", 1);
+			result.put("reason", "参数错误！");
+			return result;
+		}
+
+		return result;
+	}
+
+	/**
+	 * 保存客户列表显示模板（在显示客户信息的时候显示哪些字段以及显示的样式）
+	 * 
+	 * @param queryItem
+	 * @return
+	 */
+	@RequestMapping(value = "/srv/agent/saveDisplayTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> saveDisplayTemplate(QueryTemplate queryTemplate) {
+		return saveFilterTemplate(queryTemplate);
+	}
+
+	/**
+	 * 获取筛选模板（包括普通筛选和高级筛选）
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/srv/agent/getFilterTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> getFilterTemplate(QueryTemplate queryTemplate) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+
+		try {
+			list = new Gson().fromJson(
+					customerRepository.getFilterTemplate(queryTemplate),
+					List.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+			return result;
+		}
+
+		result.put("data", list);
+		result.put("result", 0);
+		return result;
+	}
+	
+	/**
+	 * 获取HTML格式的高级筛选模板
 	 * 
 	 * @param queryTemplate
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	@RequestMapping(value = "/srv/agent/getQueryTemplateForHTML.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> getQueryTemplateForHTML(
+	@RequestMapping(value = "/srv/agent/getAdvancedFilterTemplateForHTML.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> getAdvancedFilterTemplateForHTML(
 			QueryTemplate queryTemplate) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
 		try {
 			list = new Gson().fromJson(
-					customerRepository.getQueryTemplate(queryTemplate),
+					customerRepository.getFilterTemplate(queryTemplate),
 					List.class);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -162,102 +253,13 @@ public class CustomerController {
 	}
 
 	/**
-	 * 获取配置查询模板时需要使用的候选列
-	 * 
-	 * @param bizId
-	 * @param configPage
-	 * @return
-	 * @throws SQLException
-	 */
-	@RequestMapping(value = "/srv/agent/getCandidadeColumn.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> getCandidadeColumn(String bizId,
-			String configPage) {
-		Map<String, Object> result = new HashMap<String, Object>();
-		List<Map<String, Object>> candidadeColumn = null;
-
-		try {
-			candidadeColumn = customerRepository.getCandidadeColumn(bizId,
-					configPage);
-		} catch (Exception e) {
-			e.printStackTrace();
-			result.put("result", 1);
-			result.put("reason", e.getMessage());
-			return result;
-		}
-
-		result.put("data", candidadeColumn);
-		result.put("result", 0);
-
-		return result;
-	}
-
-	/**
-	 * 保存配置好的查询模板
-	 * 
-	 * @param queryItem
-	 * @return
-	 */
-	@RequestMapping(value = "/srv/agent/saveQueryTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> saveQueryTemplate(QueryTemplate queryTemplate) {
-		Map<String, Object> result = new HashMap<String, Object>();
-
-		if (customerRepository.saveQueryTemplate(queryTemplate)) {
-			result.put("result", 0);
-		} else {
-			result.put("result", 1);
-			result.put("reason", "参数错误！");
-			return result;
-		}
-
-		return result;
-	}
-
-	/**
-	 * 保存配置好的查询模板
-	 * 
-	 * @param queryItem
-	 * @return
-	 */
-	@RequestMapping(value = "/srv/agent/saveListTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> saveListTemplate(QueryTemplate queryTemplate) {
-		return saveQueryTemplate(queryTemplate);
-	}
-
-	/**
-	 * 获取查询模板
+	 * 获取客户列表展示模板（包括展示哪些列和每列展示的样式）
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
-	@RequestMapping(value = "/srv/agent/getQueryTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> getQueryTemplate(QueryTemplate queryTemplate) {
-		Map<String, Object> result = new HashMap<String, Object>();
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
-		try {
-			list = new Gson().fromJson(
-					customerRepository.getQueryTemplate(queryTemplate),
-					List.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-			result.put("result", 1);
-			result.put("reason", e.getMessage());
-			return result;
-		}
-
-		result.put("data", list);
-		result.put("result", 0);
-		return result;
-	}
-
-	/**
-	 * 获取列表模板
-	 * 
-	 * @return
-	 */
-	@RequestMapping(value = "/srv/agent/getListTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> getListTemplate(QueryTemplate queryTemplate) {
-		return getQueryTemplate(queryTemplate);
+	@RequestMapping(value = "/srv/agent/getDisplayTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> getDisplayTemplate(QueryTemplate queryTemplate) {
+		return getFilterTemplate(queryTemplate);
 	}
 
 	/**
@@ -297,12 +299,12 @@ public class CustomerController {
 	 * "</tr>" + "</table>"; }
 	 */
 	/**
-	 * 讲数据注入模板
+	 * 该方法处理客户列表的显示，用于将数据匹配显示模板，匹配一个客户的信息
 	 * 
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	public Map<String, String> dataToListPattern(Map[][] data,
+	public Map<String, String> dataToDisplayPattern(Map[][] data,
 			Map<String, String> addMap) {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		String result = "<table width=100% height=100% cellpadding=0 cellspacing=0>"
@@ -362,7 +364,7 @@ public class CustomerController {
 	}
 
 	/**
-	 * 把要显示的数据拼接成html供前台显示
+	 * 该方法处理客户列表的显示，用于将数据匹配显示模板，匹配所有客户的信息
 	 * 
 	 * @return
 	 */
@@ -400,7 +402,7 @@ public class CustomerController {
 						addMap.put(
 								(columnName.substring(3, columnName.length())),
 								((String) map.get("value")));
-					} else if (columnName.equals(TableNameEnume.JIEGUOTABLENAME
+					} else if (columnName.equals(TableNameEnume.RESULTTABLENAME
 							.getAbbr() + "." + "SOURCEID")) {
 						addMap.put(
 								(columnName.substring(3, columnName.length())),
@@ -422,13 +424,13 @@ public class CustomerController {
 							((String) map.get("value")));
 				}
 			}
-			result.add(dataToListPattern(maps, addMap));
+			result.add(dataToDisplayPattern(maps, addMap));
 		}
 		return result;
 	}
 
 	/**
-	 * 支持坐席根据不同业务和管理员自定义配置的查询条件查询我的客户数据.
+	 * 根据条件查询前台页面上“我的客户”模块下符合条件的客户
 	 * 
 	 * @param queryRequest
 	 * @return
@@ -492,8 +494,7 @@ public class CustomerController {
 	}
 
 	/**
-	 * 支持坐席根据不同业务和管理员自定义的查询条件查询预约或待跟进的客户列表
-	 * 
+	 * 根据条件查询前台页面上“联系计划”模块下符合条件的客户
 	 * @param queryRequest
 	 * @return
 	 */
@@ -538,7 +539,7 @@ public class CustomerController {
 	}
 
 	/**
-	 * 查询不同业务和管理员自定义的查询条件查询客户列表
+	 * 根据条件查询前台页面上“所有客户”模块下符合条件的客户
 	 * 
 	 * @param queryRequest
 	 * @return
