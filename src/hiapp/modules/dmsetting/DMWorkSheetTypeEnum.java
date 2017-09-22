@@ -5,9 +5,13 @@ package hiapp.modules.dmsetting;
  * 类说明  工作表类型枚举
  */
 public enum DMWorkSheetTypeEnum {
-	WSTDM_SYSTEM(1,"系统型"),
-	WSTDM_MIDDLE(2,"中间型"),
-	WSTDM_USERDEFINE(3,"用户自定义型");
+	WSTDM_IMPORT(1,"导入表"),
+	WSTDM_RESULT(2,"结果表"),
+	WSTDM_PRESET(3,"预约表"),
+	WSTDM_POOL(4,"数据池记录表"),
+	WSTDM_POOLORE(5,"数据池操作记录表"),
+	WSTDM_SHARE(6,"共享表"),
+	WSTDM_SHAREHISTROY(7,"共享历史表");
 	
 	private int code;
     private String type;  

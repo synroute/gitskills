@@ -109,7 +109,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		return true;
 	}
 	//根据结果名获取工作表id
-	private String getWorksheetIdByName(String szWorkSheetName) {
+	public String getWorksheetIdByName(String szWorkSheetName) {
 		String workSheetId = "";
 		Connection dbConn = null;
 		String szSql = "";

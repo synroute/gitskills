@@ -88,7 +88,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改唯一标识", WorkSheetDataType.INT, -1, false, true);
 		creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
-		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_MIDDLE,errMessage);
+		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_IMPORT,errMessage);
 	}
 	//结果表
 	private ServiceResultCode m_newWorkSheetResult(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
@@ -112,7 +112,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("拨打时间", "DAILTIME", "拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 		creationInfoWorkSheet.addColumn("呼叫流水号", "CUSTOMERCALLID", "呼叫流水号", WorkSheetDataType.INT, -1, false, true);
 		
-		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_MIDDLE,errMessage);
+		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_RESULT,errMessage);
 	}
 	
 	//预约时间表
@@ -139,7 +139,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("修改描述", "MODIFYDESCRIPTION", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
 		creationInfoWorkSheet.addColumn("号码类型", "PHONETYPE", "号码类型", WorkSheetDataType.TEXT, 50, false, true);
 		
-		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_MIDDLE,errMessage);
+		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_PRESET,errMessage);
 	}
 	//数据池记录表
 	private ServiceResultCode m_newWorkSheetDataPool(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
@@ -163,15 +163,15 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
 		
-		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_MIDDLE,errMessage);
+		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_POOL,errMessage);
 	}
 	
-	//数据池记录操作表
+	//数据池操作记录表
 		private ServiceResultCode m_newWorkSheetDataPoolORE(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
 			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
 			creationInfoWorkSheet.setOwner(true);
 			String szWorkSheetName=String.format("HAU_DM_B%dC_POOL_ORE", dmBusiness.getBizId());
-			String szWorkSheetNameCh=String.format("外拨业务%ds数据池记录操作表", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%ds数据池操作记录表", dmBusiness.getBizId());
 			String szWorkSheetDescription=String.format("外拨业务%d数据池记录操作表，数据池记录操作数据存入此工作表",dmBusiness.getBizId());
 			creationInfoWorkSheet.setName(szWorkSheetName);
 			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
@@ -189,7 +189,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
 			
-			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_MIDDLE,errMessage);
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_POOLORE,errMessage);
 		}
 		//单号码重拨模式共享数据状态表
 		private ServiceResultCode m_newWorkSheetDataM3(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
@@ -224,7 +224,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("当前未接通日期", "LOSTCALLCURDAY", "当前未接通日期", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("未接通总次数", "LOSTCALLTOTALCOUNT", "未接通总次数", WorkSheetDataType.INT, -1, false, true);
 			
-			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_MIDDLE,errMessage);
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
 		//单号码重拨模式共享数据状态历史表
 		private ServiceResultCode m_newWorkSheetDataM3_his(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
@@ -259,7 +259,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("当前未接通日期", "LOSTCALLCURDAY", "当前未接通日期", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("未接通总次数", "LOSTCALLTOTALCOUNT", "未接通总次数", WorkSheetDataType.INT, -1, false, true);
 			
-			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_MIDDLE,errMessage);
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHAREHISTROY,errMessage);
 		}
 	
 	//设置工作表ID前缀，创建表
@@ -566,5 +566,28 @@ public class DmWorkSheetRepository extends BaseRepository {
 		}
 		// TODO Auto-generated method stub
 		return ServiceResultCode.SUCCESS;
+	}
+	
+	public String getWorkSheetIdByType(int bizId,String worksheetType){
+		String worksheetId = "";
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			dbConn = this.getDbConnection();
+			String szSql = String.format("select WORKSHEETID from HASYS_DM_BIZWORKSHEET where BIZID='%S' and TYPE='%s' ",bizId,worksheetType);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				worksheetId = rs.getString(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		return worksheetId;
 	}
 }
