@@ -296,7 +296,9 @@ public class DMBizPermissionRepository extends BaseRepository {
 					
 					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmDataPool.getPoolId())))
 					{
-						
+						String isInsert=jArray.get(row).getAsJsonObject().get(String.valueOf(dmDataPool.getPoolId())).getAsString();
+						if(!isInsert.equals("0"))
+						{
 							try {
 								dbConn =this.getDbConnection();
 								String szSql = "select BusinessID from HASYS_DM_DATAPOOL where id="+dmDataPool.getPoolId()+"" ;
@@ -314,6 +316,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 							finally {
 								DbUtil.DbCloseQuery(rs, stmt);
 							}
+						}
 							
 						
 					}
@@ -324,32 +327,40 @@ public class DMBizPermissionRepository extends BaseRepository {
 					//String bizGuanli=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"数据管理")).getAsString();
 					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmBusiness.getBizId()+"数据管理")))
 					{
-						try {
-								String insertSql = "insert into HASYS_DM_PER_MAP_POOL(BusinessID,PermissionID,ItemName) values("+dmBusiness.getBizId()+","+permid+",'数据管理')" ;
-								stmt = dbConn.prepareStatement(insertSql);
-								rs = stmt.executeQuery();
-							
-						} catch (SQLException e) {
-							e.printStackTrace();
-						} 
-						finally {
-							DbUtil.DbCloseQuery(rs, stmt);
+						String isInsert=jArray.get(row).getAsJsonObject().get(String.valueOf(String.valueOf(dmBusiness.getBizId()+"数据管理"))).getAsString();
+						if(!isInsert.equals("0"))
+						{
+							try {
+									String insertSql = "insert into HASYS_DM_PER_MAP_POOL(BusinessID,PermissionID,ItemName) values("+dmBusiness.getBizId()+","+permid+",'数据管理')" ;
+									stmt = dbConn.prepareStatement(insertSql);
+									rs = stmt.executeQuery();
+								
+							} catch (SQLException e) {
+								e.printStackTrace();
+							} 
+							finally {
+								DbUtil.DbCloseQuery(rs, stmt);
+							}
 						}
 						
 					}
 					//String bizConfig=jArray.get(row).getAsJsonObject().get(String.valueOf(dmBusiness.getBizId()+"系统配置")).getAsString();
 					if(jArray.get(row).getAsJsonObject().has(String.valueOf(dmBusiness.getBizId()+"系统配置")))
 					{
-						try {
-								String insertSql = "insert into HASYS_DM_PER_MAP_POOL(BusinessID,PermissionID,ItemName) values("+dmBusiness.getBizId()+","+permid+",'系统配置')" ;
-								stmt = dbConn.prepareStatement(insertSql);
-								rs = stmt.executeQuery();
-							
-						} catch (SQLException e) {
-							e.printStackTrace();
-						} 
-						finally {
-							DbUtil.DbCloseQuery(rs, stmt);
+						String isInsert=jArray.get(row).getAsJsonObject().get(String.valueOf(String.valueOf(dmBusiness.getBizId()+"系统配置"))).getAsString();
+						if(!isInsert.equals("0"))
+						{
+							try {
+									String insertSql = "insert into HASYS_DM_PER_MAP_POOL(BusinessID,PermissionID,ItemName) values("+dmBusiness.getBizId()+","+permid+",'系统配置')" ;
+									stmt = dbConn.prepareStatement(insertSql);
+									rs = stmt.executeQuery();
+								
+							} catch (SQLException e) {
+								e.printStackTrace();
+							} 
+							finally {
+								DbUtil.DbCloseQuery(rs, stmt);
+							}
 						}
 						
 					}

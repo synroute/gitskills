@@ -79,7 +79,7 @@ public enum TableNameEnume {
 			return "YY";
 		}
 	},
-	JIEGUOTABLENAME("HAU_DM_B", "C_RESULT") {
+	RESULTTABLENAME("HAU_DM_B", "C_RESULT") {
 		@Override
 		public List<Map<String, Object>> getCandidadeColumn() {
 			List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
