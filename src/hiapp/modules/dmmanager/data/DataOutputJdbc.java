@@ -24,12 +24,16 @@ import java.util.Map;
 import org.springframework.stereotype.Repository;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 
 @Repository
 public class DataOutputJdbc extends BaseRepository{
+	private static final JsonElement JsonNull = null;
+
+
 	/**
 	 * 获取所有导出模板
 	 * @param bizId
@@ -96,7 +100,6 @@ public class DataOutputJdbc extends BaseRepository{
 			for (int i = 0; i < dataArray.size(); i++) {
 				OutputFirstRow output=new OutputFirstRow();
 				String excelHeader=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
-				String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
 				output.setField(excelHeader);
 				output.setTitle(excelHeader);
 				output.setExcelHeader(excelHeader);
@@ -142,31 +145,36 @@ public class DataOutputJdbc extends BaseRepository{
 			JsonObject jsonObject= new JsonParser().parse(workSheets).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
-				String workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+				String  workSheetName=null;
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+				 workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+				}
 				if(workSheetName!=null&&!"".equals(workSheetName)){
 					workSheetNameList.add(workSheetName);
 				}
 				
 			}
+			
 			//对workSheetNameList去重
 			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
 			//查询数据Sql
 			String getOutDataSql="select ";
 			for (int i = 0; i < dataArray.size(); i++) {
-				String workSheetName1=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+				String workSheetName1=null;
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+					 workSheetName1=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+					}
 				for (int j = 0; j <newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName1)){
 						String asName="a"+j+".";//别名
 						String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
-							getOutDataSql+=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString()+",";
-
+						getOutDataSql+=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString()+",";
 						break;
 					}
 				}
 			}
 			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" from ";
 			for(int k=0;k<newList.size();k++){
-				String column=dataArray.get(k).getAsJsonObject().get("WorkSheetColName").getAsString();
 					String asName="a"+k;//别名
 					getOutDataSql+=newList.get(k)+" "+asName+",";
 			
@@ -190,7 +198,10 @@ public class DataOutputJdbc extends BaseRepository{
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int i = 0; i < dataArray.size(); i++) {
-					String value=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
+					String value=null;
+					if(!dataArray.get(i).getAsJsonObject().get("WorkSheetColName").isJsonNull()){
+						value=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
+					}
 					String key=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
 					if(value!=null&&!"".equals(value)){
 						map.put(key,rs.getObject(value));
