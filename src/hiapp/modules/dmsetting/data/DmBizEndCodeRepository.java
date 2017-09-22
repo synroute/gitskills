@@ -293,6 +293,30 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			stmt = conn.prepareStatement(updatecode);
 			stmt.executeUpdate();
 			
+			String deletedadd="select xml from HASYS_DM_BIZOUTBOUNDSETTING where businessid="+dmEndCode.getBizId()+"";
+			stmt = conn.prepareStatement(deletedadd);
+			rs = stmt.executeQuery();
+			String xml="";
+			while(rs.next())
+			{
+				xml=rs.getString(1);
+			}
+			
+			JsonObject jsonObject= new JsonParser().parse(xml).getAsJsonObject();
+			JsonArray jsonArray=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
+			JsonObject jsonObject_endChild=jsonArray.get(0).getAsJsonObject();
+			JsonArray jsonArry_endChild=jsonObject_endChild.get("dataInfo").getAsJsonArray();
+			for(int i=0;i<jsonArry_endChild.size();i++)
+			{
+				JsonObject jsonObject_endcode=jsonArry_endChild.get(i).getAsJsonObject();
+				if (jsonObject_endcode.get(dmEndCode.getEndCodeType()).getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get(dmEndCode.getEndCode()).getAsString().equals(dmEndCode.getEndCode())) {
+					jsonArray.remove(i);
+				}
+			}
+			
+			String updateadd="update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where businessid="+dmEndCode.getBizId()+"";
+			stmt = conn.prepareStatement(updateadd);
+			stmt.executeUpdate();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
