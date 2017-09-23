@@ -20,7 +20,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -29,21 +31,23 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class DMBizMangeShare extends BaseRepository{
 
-	//根据userid的权限 获取到所有的共享批次数据
-		public List<ShareBatchItem> getUserShareBatch(List<ShareBatchItem> shareBatchItem, User user,int businessID) {
+	    //根据用户的权限 获取到所有的共享批次数据
+		public List<ShareBatchItem> getUserShareBatch(int permissionId,int businessID) {
 			String sql = "";
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
 			ResultSet rs = null;
+			String  HAUDMBCDATAM3="HAU_DM_B"+businessID+"C_DATAM3";
+			List<ShareBatchItem> shareBatchItem= new ArrayList<ShareBatchItem>();
 			try {
 				dbConn = this.getDbConnection();
 				// 查询 共享批次信息表 里面所有共享批次   来自共享批次信息表 a，座席池所属共享批次信息表 b,条件 B.数据池名称=user.getname and a.共享批次id=b.共享批次id                                        HASYS_DM_SID
-				//SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='%s' AND B.SHAREID=A.SHAREID;
-				                 //SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='管' AND B.SHAREID=A.SHAREID
-				//sql=String.format("SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A,HASYS_DM_SIDUSERPOOL B WHERE B.DATAPOOlNAME='%s' AND B.SHAREID=A.SHAREID",user.getName());
-				//sql=String.format("SELECT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME FROM HASYS_DM_SID A WHERE NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME");
-				sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HAU_DM_B25C_DATAM3 GROUP BY SHAREID,BUSINESSID )B WHERE  A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID="+businessID+" AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME";
+				//SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HAU_DM_B25C_DATAM3 GROUP BY SHAREID,BUSINESSID)B ,(SELECT DATAPOOLID from HASYS_DM_PER_MAP_POOL where BUSINESSID=25) C WHERE C.DATAPOOLID=96 AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID=25 AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME
+				sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B,(SELECT DATAPOOLTYPE from HASYS_DM_DATAPOOL where BUSINESSID=?) C WHERE C.DATAPOOLTYPE=? AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME";
 				stmt = dbConn.prepareStatement(sql);
+				stmt.setInt(1,businessID);
+				stmt.setInt(2,permissionId);
+				stmt.setInt(3,businessID); 
 				rs = stmt.executeQuery();
 				while (rs.next()) {
 					ShareBatchItem shareBatchItems = new ShareBatchItem();
@@ -79,20 +83,24 @@ public class DMBizMangeShare extends BaseRepository{
 		}
 		//根据userid的权限 获取到规定时间内的共享批次数据，通过业务id
 				public List<ShareBatchItemS> getUserShareBatchByTime(String businessID,
-						String startTime, String endTime,List<ShareBatchItemS> shareBatchItem) {
+						String startTime, String endTime,List<ShareBatchItemS> shareBatchItem,int permissionId) {
 					String sql = "";
 					PreparedStatement stmt = null;
 					Connection dbConn = null;
 					ResultSet rs = null;
 					int bizid=Integer.valueOf(businessID);
+					String HAUDMBCDATAM3="HAU_DM_B"+bizid+"C_DATAM3";
 					try {
 						dbConn = this.getDbConnection();
-						   //SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HASYS_DM_B1C_DATAM3 GROUP BY SHAREID,BUSINESSID )B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date('09/02/2017','mm/dd/yyyy') AND A.CREATETIME < to_date('09/20/2017','mm/dd/yyyy') AND A.BUSINESSID=2
-						//sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A LEFT JOIN (SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HASYS_DM_B1C_DATAM3 GROUP BY SHAREID,BUSINESSID )B ON A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID="+businessID+" AND A.CREATETIME BETWEEN to_date('"+startTime+"','mm/dd/yyyy') AND to_date('"+endTime+"','mm/dd/yyyy')";
-						//  sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HASYS_DM_B1C_DATAM3 GROUP BY SHAREID,BUSINESSID )B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date('"+startTime+"','mm/dd/yyyy') AND A.CREATETIME < to_date('"+endTime+"','mm/dd/yyyy') AND A.BUSINESSID="+businessID+"";
-						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HAU_DM_B"+bizid+"C_DATAM3 GROUP BY SHAREID,BUSINESSID )B WHERE  A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date('"+startTime+"','mm/dd/yyyy') AND A.CREATETIME < to_date('"+endTime+"','mm/dd/yyyy') AND A.BUSINESSID="+bizid+" AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME";
-						//sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HAU_DM_B25C_DATAM3 GROUP BY SHAREID,BUSINESSID )B WHERE  A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID="++" AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME";
+						   //SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HAU_DM_B"+busin+"C_DATAM3 GROUP BY SHAREID,BUSINESSID )B ,(SELECT DATAPOOLID from HASYS_DM_PER_MAP_POOL where BUSINESSID=?) C WHERE C.DATAPOOLID=? AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME
+						   //SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM HAU_DM_B25C_DATAM3 GROUP BY SHAREID,BUSINESSID)B ,(SELECT DATAPOOLID from HASYS_DM_PER_MAP_POOL where BUSINESSID=25) C WHERE C.DATAPOOLID=96 AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID=25 AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME
+						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B,(SELECT DATAPOOLTYPE from HASYS_DM_DATAPOOL where BUSINESSID=?) C WHERE C.DATAPOOLTYPE=? AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'mm/dd/yyyy') AND A.CREATETIME < to_date(?,'mm/dd/yyyy') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME";
 						stmt = dbConn.prepareStatement(sql);
+						stmt.setInt(1,bizid);
+						stmt.setInt(2,permissionId);
+						stmt.setString(3,startTime);
+						stmt.setString(4,endTime);
+						stmt.setInt(5,bizid);
 						rs = stmt.executeQuery();
 						while (rs.next()) {
 							ShareBatchItemS shareBatchItems = new ShareBatchItemS();
@@ -123,7 +131,7 @@ public class DMBizMangeShare extends BaseRepository{
 							shareBatchItems.setEndTime(rs.getDate(10));
 							shareBatchItems.setAbc(rs.getInt(11));
 							shareBatchItem.add(shareBatchItems);
-						}//select count(SHAREID)　from HASYS_DM_B1C_DATAM3   WHERE SHAREID='DM_SID_20170917_601' 
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}finally{
@@ -135,7 +143,7 @@ public class DMBizMangeShare extends BaseRepository{
 		//接收一个共享批次号 设置共享批次的启动时间和结束时间  
 		public ServiceResultCode setShareDataTime(String[] shareID, String startTime,
 				String endTime, User user) {
-			String sql =null; //"UPDATA HASYS_DM_SID SET CREATEUSERID="+user.getId()+",STARTTIME=to_date('"+startTime+"','mm/dd/2017'),ENDTIME=to_date('"+endTime+"','mm/dd/2017') WHERE SHAREID in "+s+"";
+			String sql =null; 
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
 			StringBuilder sb=new StringBuilder();
@@ -146,10 +154,11 @@ public class DMBizMangeShare extends BaseRepository{
 			sb.deleteCharAt(sb.length()-1);
 			try {
 				dbConn=this.getDbConnection();
-				//sql=String.format("UPDATA HASYS_DM_SID SET CREATEUSERID='%s',STARTTIME=to_date('%s','mm/dd/2017'),ENDTIME=to_date('%s','mm/dd/2017') WHERE SHAREID='%s'",user.getId(),startTime,endTime,shareID);
-				sql = "UPDATE HASYS_DM_SID SET CREATEUSERID='"+user.getId()+"',STARTTIME=to_date('"+startTime+"','mm/dd/yyyy hh24:mi:ss'),ENDTIME=to_date('"+endTime+"','mm/dd/yyyy hh24:mi:ss') WHERE SHAREID in ('"+sb+"')";
-				
+				sql = "UPDATE HASYS_DM_SID SET CREATEUSERID=?,STARTTIME=to_date(?,'mm/dd/yyyy hh24:mi:ss'),ENDTIME=to_date(?,'mm/dd/yyyy hh24:mi:ss') WHERE SHAREID in ('"+sb+"')";
 				stmt = dbConn.prepareStatement(sql);
+				stmt.setString(1,user.getId()); 
+				stmt.setString(2,startTime);
+				stmt.setString(3,endTime);
 				stmt.execute();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -225,7 +234,7 @@ public class DMBizMangeShare extends BaseRepository{
 			int bizID=Integer.valueOf(businessID);
 			try {
 				dbConn=this.getDbConnection();
-				sql=String.format("SELECT DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE ID='%s'",s);
+				sql=String.format("SELECT DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE ID='%s' AND BUSINESSID=%s",s,bizID);
 				stmt = dbConn.prepareStatement(sql);
 				rs = stmt.executeQuery();
 				while (rs.next()) {
@@ -257,7 +266,6 @@ public class DMBizMangeShare extends BaseRepository{
 					insertsql=String.format("INSERT INTO HASYS_DM_SIDUSERPOOl (ID,BUSINESSID,SHAREID,DATAPOOLNAME,DATAPOOLID) VALUES (S_HASYS_DM_SIDUSERPOOl.NEXTVAL,%s,'%s','%s',%s)",bizid,sb,DataPoolName,datapoolid);
 					stmt = dbConn.prepareStatement(insertsql);
 				}
-				
 				stmt.execute();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -265,76 +273,8 @@ public class DMBizMangeShare extends BaseRepository{
 				DbUtil.DbCloseConnection(dbConn);
 			}	
 		}
-		
-		public DataPool selectShareCustomer(int permissionId) {
-			String sql = "";
-			PreparedStatement stmt = null;
-			Connection dbConn = null;
-			ResultSet rs = null;
-			DataPool dataPool=new DataPool();
-			List<DataPool> list=new ArrayList<DataPool>();
-			int a=0;
-			int b=0;
-			try {
-				dbConn=this.getDbConnection();
-				sql=" select b.ID,b.DataPoolName from HASYS_DM_PER_MAP_POOL a,HASYS_DM_DATAPOOL b where a.DATAPOOLID=b.ID and a.PERMISSIONID="+permissionId+"";
-				stmt = dbConn.prepareStatement(sql);
-				rs = stmt.executeQuery();
-				while (rs.next()) {
-					a=rs.getInt(1);
-					dataPool.setId(a);
-					dataPool.setText(rs.getString(2));
-				}
-				
-				String childrenSql="select b.ID,b.DataPoolName from HASYS_DM_DATAPOOL b where b.pid=? and b.DataPoolType=3";
-				stmt = dbConn.prepareStatement(childrenSql);
-				stmt.setInt(1,a);
-				rs = stmt.executeQuery();
-				while (rs.next()) {
-					DataPool dataPoolChildren=new DataPool();
-					dataPoolChildren.setId(rs.getInt(1));
-					dataPoolChildren.setText(rs.getString(2));
-					list.add(dataPoolChildren);
-				}
-				dataPool.setChildren(list);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}finally{
-				DbUtil.DbCloseQuery(rs,stmt);
-				DbUtil.DbCloseConnection(dbConn);
-			}
-			
-			return dataPool;	
-		}	
-		
-		public List<DataPool> selectShareCustomerById(String id,String text) {
-			PreparedStatement stmt = null;
-			Connection dbConn = null;
-			ResultSet rs = null;
-			List<DataPool> list=new ArrayList<DataPool>();
-			try {
-				dbConn=this.getDbConnection();
-				String childrenSql="select b.ID,b.DataPoolName from HASYS_DM_DATAPOOL b where b.pid=? and b.DataPoolType=3";
-				stmt = dbConn.prepareStatement(childrenSql);
-				stmt.setInt(1,Integer.valueOf(id));
-				rs = stmt.executeQuery();
-				while (rs.next()) {
-					DataPool dataPoolChildren=new DataPool();
-					dataPoolChildren.setId(rs.getInt(1));
-					dataPoolChildren.setText(rs.getString(2));
-					list.add(dataPoolChildren);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}finally{
-				DbUtil.DbCloseQuery(rs, stmt);
-				DbUtil.DbCloseConnection(dbConn);
-			}
-			
-			return list;	
-		}
-		
-		
+
+		//根据业务id查询所有数据池名称及其子父
 		public void getUserPoolTree(int permissionId, List<TreePool> treePool,String businessID) {
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
@@ -342,8 +282,9 @@ public class DMBizMangeShare extends BaseRepository{
 			Integer biz = Integer.valueOf(businessID);
 			try {
 				dbConn=this.getDbConnection();
-				String sql="SELECT A.ID,A.DATAPOOLNAME,A.PID from HASYS_DM_DATAPOOL A where A.BUSINESSID="+biz+"";
+				String sql="SELECT A.ID,A.DATAPOOLNAME,A.PID from HASYS_DM_DATAPOOL A where A.BUSINESSID=?";
 				stmt = dbConn.prepareStatement(sql);
+				stmt.setInt(1, biz);
 				rs = stmt.executeQuery();
 				while (rs.next()) {
 					TreePool tree=new TreePool();
@@ -384,6 +325,7 @@ public class DMBizMangeShare extends BaseRepository{
 			}
 			return null;
 		}
+		//递归
 		public static boolean addChildren(UserItem userTreeBranch,
 				List<TreePool> treePool,Integer permissionId) {
 			    TreeSet<TreeNode> listChildrenBranchs = userTreeBranch.getChildren();

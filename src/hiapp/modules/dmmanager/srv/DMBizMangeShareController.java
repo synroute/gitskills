@@ -6,6 +6,8 @@ import hiapp.modules.dmmanager.ShareBatchItemS;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
+import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
+import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.system.buinfo.Permission;
 import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
@@ -47,19 +49,21 @@ public class DMBizMangeShareController {
 	private GroupRepository groupRepository;
 	@Autowired
 	private PermissionRepository permissionRepository;
-
-	// 根据userid的权限 获取到所有的共享批次数据
+    @Autowired
+    private DmWorkSheetRepository dmWorkSheetRepository;
+	// 根据userid的权限 获取到所有业务下共享批次客户数据
 	@RequestMapping(value = "/srv/DMBizMangeShareController/getUserShareBatch.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String getUserShareBatch(HttpServletRequest request,
-			@RequestParam(value = "businessId") String businessID) {
+			@RequestParam(value = "businessId") String businessID){
 		HttpSession session = request.getSession(false);
-		User user = (User) session.getAttribute("user");
+		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
+		Permission permission = permissionRepository.getPermission(roleInGroupSet);
+		int permissionId = permission.getId();
+		//String workSheetImport=dmWorkSheetRepository.getWorkSheetIdByType(Integer.valueOf(businessID),DMWorkSheetTypeEnum.);
 		String s = null;
 		Integer bizid = Integer.valueOf(businessID);
 		try {
-			List<ShareBatchItem> shareBatchItem = new ArrayList<ShareBatchItem>();
-			List<ShareBatchItem> list = bizMangeShare.getUserShareBatch(
-					shareBatchItem, user,bizid);
+			List<ShareBatchItem> list = bizMangeShare.getUserShareBatch(permissionId,bizid);
 			s = new Gson().toJson(list);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -67,20 +71,22 @@ public class DMBizMangeShareController {
 		return s;
 	}
 
-	// 根据userid的权限 获取到规定时间内的共享批次数据，通过业务id
+	//  获取到规定时间内的共享批次数据，通过业务id
 	@RequestMapping(value = "/srv/DMBizMangeShareController/getUserShareBatchByTime.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String getUserShareBatchByTime(
 			@RequestParam(value = "BusinessID") String businessID,
 			@RequestParam(value = "StartTime") String startTime,
 			@RequestParam(value = "EndTime") String endTime,
 			HttpServletRequest request) {
-		//HttpSession session = request.getSession(false);
-		//User user = (User) session.getAttribute("user");
+		HttpSession session = request.getSession(false);
+		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
+		Permission permission = permissionRepository.getPermission(roleInGroupSet);
+		int permissionId = permission.getId();
 		String json = null;
 		try {
 			List<ShareBatchItemS> shareBatchItem = new ArrayList<ShareBatchItemS>();
 			List<ShareBatchItemS> list = bizMangeShare.getUserShareBatchByTime(
-					businessID, startTime, endTime,shareBatchItem);
+					businessID, startTime, endTime,shareBatchItem,permissionId);
 			json = new Gson().toJson(list);
 
 		} catch (Exception e) {
@@ -102,7 +108,6 @@ public class DMBizMangeShareController {
 		String s = null;
 		String[] shareId = shareID.split(",");
 		try {
-
 			serviceResultCode = bizMangeShare.setShareDataTime(shareId,
 					startTime, endTime, user);
 			if (serviceResultCode != ServiceResultCode.SUCCESS) {
@@ -152,8 +157,9 @@ public class DMBizMangeShareController {
 		return s;
 	}
 
-	// 查询本批次创建人权限下共享区内所属座席池
-	//@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	/* 已作废
+	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	
 	public void selectShareCustomer(HttpServletRequest request,HttpServletResponse response,
 			HttpSession session,
 			@RequestParam(value = "id",required=false) String id,@RequestParam(value = "text",required=false)String text) {
@@ -175,11 +181,7 @@ public class DMBizMangeShareController {
 				
 				e.printStackTrace();
 			}
-		}
-		
-		
-
-
+		}*/
 	// 将共享数据指定给哪个用户
 	@RequestMapping(value = "/srv/DMBizMangeShareController/addShareCustomerfByUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String addShareCustomerfByUserId(
@@ -212,9 +214,7 @@ public class DMBizMangeShareController {
 			return p;
 		}
 	}
-	
-	
-	//页面一加载 查询所有能被共享的人
+	//页面一加载 查询所有能被共享的用户
 	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String TreeViewByUserId(HttpSession session,
 			@RequestParam(value = "BusinessID") String businessID
@@ -222,7 +222,6 @@ public class DMBizMangeShareController {
 		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
-		List<UserItem> userItem=new ArrayList<UserItem>();
 		String s=null;
 		TreeDataResult result = new TreeDataResult();
 		List<TreePool> treePool=new ArrayList<TreePool>();
@@ -232,11 +231,4 @@ public class DMBizMangeShareController {
 		s=result.toJson();
 		return s;
 	}
-	
-	
-	
-	
-	
-	
-	
 }

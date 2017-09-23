@@ -3,7 +3,10 @@ package hiapp.modules.dmmanager.srv;
 import hiapp.modules.dmmanager.bean.WorkSheetColumn;
 import hiapp.modules.dmmanager.data.DMBizDataShare;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
+import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
+import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.system.buinfo.User;
+import hiapp.system.worksheet.data.WorkSheetRepository;
 import hiapp.utils.idfactory.IdFactory;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -32,11 +35,13 @@ import com.google.gson.Gson;
 @RestController
 public class DMBizShareController {
     @Autowired
-	private DMBizDataShare dMBizDataImport;
+	private DMBizDataShare dMBizDataShare;
     @Autowired
     private IdFactory idFactory;
     @Autowired
 	private DataImportJdbc dataImportJdbc;
+    @Autowired
+    private DmWorkSheetRepository dmWorkSheetRepository;
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
 	@RequestMapping(value="/srv/DataShareController/getNotShareDataByTime.srv")
 	public void getNotShareDataByTime(@RequestParam(value="StartTime") String StartTime,
@@ -49,10 +54,12 @@ public class DMBizShareController {
 		List<Map<String,Object>> dataList=null;
 		List<Map<String,Object>> allDataList=new ArrayList<Map<String,Object>>();
 		try {
+			//此接口不通 待修改
+			//String workSheetId=dmWorkSheetRepository.getWorkSheetIdByType(Integer.valueOf(BusinessId),DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 			String workSheetId=dataImportJdbc.getWookSeetId(Integer.valueOf(BusinessId));
 			//获取要展示的列
 			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-			dataList = dMBizDataImport.getNotShareDataByTimes(StartTime,EndTime,BusinessId,templateId,sourceType);
+			dataList = dMBizDataShare.getNotShareDataByTimes(StartTime,EndTime,BusinessId,templateId,sourceType);
 			for (int i = 0; i < dataList.size(); i++) {
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int j = 0; j < sheetColumnList.size(); j++) {
@@ -71,121 +78,86 @@ public class DMBizShareController {
 			e.printStackTrace();
 		}
 	}
-	//选择要共享的客户数据确认创建共享批次
+	//创建共享添加事务
 	@RequestMapping(value="/srv/DataShareController/confirmShareData.srv",method=RequestMethod.POST,produces="application/json;charset=utf-8")
-	public String confirmShareData(HttpServletRequest request,
+	public String addConfirmShareData(HttpServletRequest request,
 			@RequestParam(value="businessId") String businessId,
 			@RequestParam(value="importId") String importId,
 			@RequestParam(value="shareName") String shareName,
 			@RequestParam(value="description") String description,
 			@RequestParam(value="CID") String Cid){
-		System.out.println(businessId);
-		System.out.println(importId);
-		System.out.println(shareName);
-		System.out.println(description);
-		
 		HttpSession session=request.getSession(false);
 		User user=(User) session.getAttribute("user");
 		ServiceResult serviceresult = new ServiceResult();
 		ServiceResultCode serviceResultCode=null;
-		String newId = idFactory.newId("DM_SID");
-		String newDid=idFactory.newId("DM_DID");
-		String s=null;
-		//String bizid=businessId;
+		String newShareId = idFactory.newId("DM_SID");
 		int bizid=Integer.parseInt(businessId);
 		String[] ary = importId.split(",");
 		String[] customerid=Cid.split(",");
+		String returnMessage=null;
 		try {
-			for (int i = 0; i < ary.length; i++){
-			 String iId = ary[i];
-			 String cid=customerid[i];
-			 //向单号码重播共享状态表添加数据并返回共享批次号id
-			 dMBizDataImport.confirmShareData(iId,bizid,user,newId,cid);
-			 //向单号码重播共享历史表状态表添加数据
-			 dMBizDataImport.confirmShareDataOne(iId,bizid,user,newId,cid);
-			 //查询当前的业务的数据池
-			 int dataPool = dMBizDataImport.confirmShareDataTwo(bizid);
-			 //更改数据池记录表数据
-			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid,cid);
-			 //向数据池操作记录表添加数据
-			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid,cid,newId);
+			for (int j = 0; j < customerid.length; j++) {
+				 String iId = ary[j];
+				 String customerId=customerid[j];
+				 serviceResultCode=dMBizDataShare.addConfirmShareData(bizid,iId, user,newShareId,customerId, shareName, description);
 			}
-			//向共享批次信息表添加数据
-			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,newId,shareName,description,user);
 			if(serviceResultCode != ServiceResultCode.SUCCESS){
 		    	 serviceresult.setResultCode(serviceResultCode);
 				 serviceresult.setReturnMessage("共享失败"); 
-				 s=serviceresult.toJson();
-				 return s;
+				 returnMessage=serviceresult.toJson();
+				 return returnMessage;
 		     }else{
 		    	 serviceresult.setReturnCode(0);
 				 serviceresult.setResultCode(ServiceResultCode.SUCCESS);
 				 serviceresult.setReturnMessage("共享成功");
-				 //serviceresult.setReturnMessage(newId);
-				 s=serviceresult.toJson();
-				 return s;
+				 returnMessage=serviceresult.toJson();
+				 return returnMessage;
 			}
-			}catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+		e.printStackTrace();
 		}
-		return s;
+		return null;
 	}
-	//追加共享
+	//追加共享添加事务
 	@RequestMapping(value="/srv/DataShareController/appendShareDataByShareId.srv", method=RequestMethod.POST, produces="application/json;charset=utf-8")
-	public String appendShareDataByShareId(
+	public String addConfirmShareDataByShareId(HttpServletRequest request,
 			@RequestParam(value="businessId") String businessId,
 			@RequestParam(value="importId") String importId,
 			@RequestParam(value="shareName") String shareName,
 			@RequestParam(value="description") String description,
-			@RequestParam(value="shareid") String shareid,
-			@RequestParam(value="CID") String Cid,
-			HttpServletRequest request
-			){
-		System.out.println("业务id==="+businessId);
-		System.out.println("导入批次id===="+importId);
-		System.out.println("共享名称     ===="+shareName);
-		System.out.println("共享描述"+description);
-		System.out.println("共享号"+shareid);
+			@RequestParam(value="shareid") String newShareId,
+			@RequestParam(value="CID") String Cid){
 		HttpSession session=request.getSession(false);
 		User user=(User) session.getAttribute("user");
 		ServiceResult serviceresult = new ServiceResult();
 		ServiceResultCode serviceResultCode=null;
-		String s=null;
+		int bizid=Integer.parseInt(businessId);
+		String[] ary = importId.split(",");
 		String[] customerid=Cid.split(",");
-		 int bizid=Integer.parseInt(businessId);
-		 String[] ary = importId.split(",");
+		String returnMessage=null;
 		try {
-			for (int i = 0; i < ary.length; i++) {	
-				 String iId = ary[i];
-				 String cid=customerid[i];
-			//向单号码重播共享状态表添加数据并返回共享批次号id
-			 dMBizDataImport.confirmShareData(iId,bizid,user,shareid,cid);
-			 //向单号码重播共享历史表状态表添加数据
-			 dMBizDataImport.confirmShareDataOne(iId,bizid,user,shareid,cid);
-			 //查询当前的业务的数据池
-			 int dataPool = dMBizDataImport.confirmShareDataTwo(bizid);
-			 //更改数据池记录表数据
-			 dMBizDataImport.confirmShareDataThree(iId,dataPool,user,bizid,cid);
-			 //向数据池操作记录表添加数据
-			 dMBizDataImport.confirmShareDataFree(iId,user,dataPool,bizid,cid,shareid);
-			 //向共享批次信息表添加数据
-			 serviceResultCode = dMBizDataImport.confirmShareDataFive(bizid,shareid,shareName,description,user);
+			for (int j = 0; j < customerid.length; j++) {
+				 String iId = ary[j];
+				 iId.toString();
+				 String customerId=customerid[j];
+				 customerId.toString();
+				 serviceResultCode=dMBizDataShare.addConfirmShareData(bizid,iId, user,newShareId,customerId, shareName, description);
 			}
 			if(serviceResultCode != ServiceResultCode.SUCCESS){
 		    	 serviceresult.setResultCode(serviceResultCode);
-				 serviceresult.setReturnMessage("追加共享失败"); 
-				 s=serviceresult.toJson();
-				 return s;
+				 serviceresult.setReturnMessage("共享失败"); 
+				 returnMessage=serviceresult.toJson();
+				 return returnMessage;
 		     }else{
 		    	 serviceresult.setReturnCode(0);
 				 serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-				 serviceresult.setReturnMessage("追加共享成功");
-				 s=serviceresult.toJson();
-				 return s;
+				 serviceresult.setReturnMessage("共享成功");
+				 returnMessage=serviceresult.toJson();
+				 return returnMessage;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+		e.printStackTrace();
 		}
-		return s;
+		return null;
 	}
 }
