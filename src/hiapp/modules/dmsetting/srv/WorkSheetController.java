@@ -94,16 +94,30 @@ public class WorkSheetController {
 	
 	@RequestMapping(value = "/srv/dm/dmNewBizWorkSheetColumn.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmNewBizWorkSheetColumn(
-			@RequestParam("worksheetId") String worksheetId,
-			@RequestParam("fixedColumn") String fixedColumn,
-			@RequestParam("columnName") String columnName,
-			@RequestParam("columnNameCh") String columnNameCh,
-			@RequestParam("columnType") String columnType,
-			@RequestParam("columnLength") String columnLength,
-			@RequestParam("columnDes") String columnDes) {
-		ServiceResult serviceresult = new ServiceResult();
+			@RequestParam("columns") String columns) {
+		String worksheetId = "";
+		String fixedColumn = "";
+		String columnName = "";
+		String columnNameCh = "";
+		String columnType = "";
+		String columnLength = "";
+		String columnDes = "";
+		ServiceResultCode serviceResultCode = ServiceResultCode.SUCCESS;
 		StringBuffer errMessage = new StringBuffer();
-		ServiceResultCode serviceResultCode = dmWorkSheetRepository.newColumn(worksheetId,fixedColumn,columnName,columnNameCh,columnType,columnLength,columnDes,errMessage);
+		ServiceResult serviceresult = new ServiceResult();
+		JsonParser jsonParser = new JsonParser();
+		JsonArray jsonArray = jsonParser.parse(columns).getAsJsonArray();
+		for (int i = 0; i < jsonArray.size(); i++) {
+			JsonObject jsonObject = (JsonObject) jsonArray.get(i);
+			worksheetId = jsonObject.get("worksheetId").getAsString();
+			fixedColumn = jsonObject.get("fixedColumn").getAsString();
+			columnName = jsonObject.get("columnName").getAsString();
+			columnNameCh = jsonObject.get("columnNameCh").getAsString();
+			columnType = jsonObject.get("columnType").getAsString();
+			columnLength = jsonObject.get("columnLength").getAsString();
+			columnDes = jsonObject.get("columnDes").getAsString();
+			serviceResultCode = dmWorkSheetRepository.newColumn(worksheetId,fixedColumn,columnName,columnNameCh,columnType,columnLength,columnDes,errMessage);
+		}
 		if (serviceResultCode != ServiceResultCode.SUCCESS) {
 			serviceresult.setResultCode(serviceResultCode);
 			serviceresult.setReturnMessage(errMessage.toString());
