@@ -5,13 +5,13 @@ import hiapp.modules.dmagent.ConfigTypeEnume;
 import hiapp.modules.dmagent.QueryRequest;
 import hiapp.modules.dmagent.QueryTemplate;
 import hiapp.modules.dmagent.TableNameEnume;
-import hiapp.modules.dmsetting.data.DmBizAutomaticRepository;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.system.buinfo.Permission;
 import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.data.PermissionRepository;
 import hiapp.system.buinfo.data.UserRepository;
 import hiapp.system.worksheet.bean.WorkSheetColumn;
+import hiapp.system.worksheet.data.WorkSheetRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.base.HiAppException;
 import hiapp.utils.database.BaseRepository;
@@ -48,7 +48,7 @@ public class CustomerRepository extends BaseRepository {
 	@Autowired
 	private PermissionRepository permissionRepository;
 	@Autowired
-	private DmBizAutomaticRepository automaticRepository;
+	private WorkSheetRepository workSheetRepository;
 	@Autowired
 	private DmWorkSheetRepository dmWorkSheetRepository;
 
@@ -56,15 +56,13 @@ public class CustomerRepository extends BaseRepository {
 	private final String INPUT_TIME_JTEMPLATE = "MM/dd/YYYY HH:mm:ss";
 	private final String OUTPUT_TIME_TEMPLATE = "yyyy/MM/dd HH:mm:ss";
 
-	/*// 给返回的待选列添加序号
-	public void addColumnIndex(List<Map<String, Object>> list) {
-		AtomicInteger atomicInteger = new AtomicInteger(0);
-		for (Iterator<Map<String, Object>> iterator = list.iterator(); iterator
-				.hasNext();) {
-			Map<String, Object> map = (Map<String, Object>) iterator.next();
-			map.put("index", atomicInteger.incrementAndGet());
-		}
-	}*/
+	/*
+	 * // 给返回的待选列添加序号 public void addColumnIndex(List<Map<String, Object>> list)
+	 * { AtomicInteger atomicInteger = new AtomicInteger(0); for
+	 * (Iterator<Map<String, Object>> iterator = list.iterator(); iterator
+	 * .hasNext();) { Map<String, Object> map = (Map<String, Object>)
+	 * iterator.next(); map.put("index", atomicInteger.incrementAndGet()); } }
+	 */
 
 	/*
 	 * // 根据业务ID获取结果表中作为待选列的非固定列 public List<Map<String, Object>>
@@ -96,16 +94,17 @@ public class CustomerRepository extends BaseRepository {
 
 		String resultTableName = TableNameEnume.RESULTTABLENAME.getPrefix()
 				+ bizId + TableNameEnume.RESULTTABLENAME.getSuffix();
-		String worksheetId = automaticRepository
+		String worksheetId = workSheetRepository
 				.getWorksheetIdByName(resultTableName);
 		List<WorkSheetColumn> listWorkSheetColumn = new ArrayList<WorkSheetColumn>();
 		if (dmWorkSheetRepository.getWorkSheetColumnByWorksheetId(
 				listWorkSheetColumn, worksheetId)) {
 			for (WorkSheetColumn workSheetColumn : listWorkSheetColumn) {
-				if("0".equals(workSheetColumn.getFixedColumn())){
+				if ("0".equals(workSheetColumn.getFixedColumn())) {
 					Map<String, Object> map = new HashMap<String, Object>();
-					map.put("COLUMNNAME", TableNameEnume.RESULTTABLENAME.getAbbr()
-							+ "." + workSheetColumn.getColumnName());
+					map.put("COLUMNNAME",
+							TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+									+ workSheetColumn.getColumnName());
 					map.put("COLUMNNAMECH", workSheetColumn.getColumnNameCh());
 					map.put("COLUMNDESCRIPTION", workSheetColumn.getColumnDes());
 					map.put("dataType", workSheetColumn.getDataType());
@@ -117,60 +116,49 @@ public class CustomerRepository extends BaseRepository {
 		return list;
 	}
 
-	/*// 根据业务ID获取导入表中作为待选列的非固定列
-	public List<Map<String, Object>> getInputTableColumn(String sql,
-			String bizId) throws HiAppException {
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
-		Connection dbConn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-
-		try {
-			String inputTableName = TableNameEnume.INPUTTABLENAME.getPrefix()
-					+ bizId + TableNameEnume.INPUTTABLENAME.getSuffix();
-			dbConn = this.getDbConnection();
-			stmt = dbConn.prepareStatement(sql);
-			stmt.setObject(1, inputTableName);
-			rs = stmt.executeQuery();
-			while (rs.next()) {
-				Map<String, Object> map = new HashMap<String, Object>();
-				map.put("COLUMNNAME", TableNameEnume.INPUTTABLENAME.getAbbr()
-						+ "." + rs.getString(1));
-				map.put("COLUMNNAMECH", rs.getString(2));
-				map.put("COLUMNDESCRIPTION", rs.getString(3));
-				map.put("dataType", rs.getString(4));
-				map.put("LENGTH", rs.getInt(5));
-				list.add(map);
-			}
-		} catch (SQLException e) {
-			System.out.println(sql);
-			e.printStackTrace();
-			throw new HiAppException("getInputTableColumn SQLException", 1);
-		} finally {
-			DbUtil.DbCloseQuery(rs, stmt);
-			DbUtil.DbCloseConnection(dbConn);
-		}
-
-		return list;
-	}*/
+	/*
+	 * // 根据业务ID获取导入表中作为待选列的非固定列 public List<Map<String, Object>>
+	 * getInputTableColumn(String sql, String bizId) throws HiAppException {
+	 * List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+	 * 
+	 * Connection dbConn = null; PreparedStatement stmt = null; ResultSet rs =
+	 * null;
+	 * 
+	 * try { String inputTableName = TableNameEnume.INPUTTABLENAME.getPrefix() +
+	 * bizId + TableNameEnume.INPUTTABLENAME.getSuffix(); dbConn =
+	 * this.getDbConnection(); stmt = dbConn.prepareStatement(sql);
+	 * stmt.setObject(1, inputTableName); rs = stmt.executeQuery(); while
+	 * (rs.next()) { Map<String, Object> map = new HashMap<String, Object>();
+	 * map.put("COLUMNNAME", TableNameEnume.INPUTTABLENAME.getAbbr() + "." +
+	 * rs.getString(1)); map.put("COLUMNNAMECH", rs.getString(2));
+	 * map.put("COLUMNDESCRIPTION", rs.getString(3)); map.put("dataType",
+	 * rs.getString(4)); map.put("LENGTH", rs.getInt(5)); list.add(map); } }
+	 * catch (SQLException e) { System.out.println(sql); e.printStackTrace();
+	 * throw new HiAppException("getInputTableColumn SQLException", 1); }
+	 * finally { DbUtil.DbCloseQuery(rs, stmt);
+	 * DbUtil.DbCloseConnection(dbConn); }
+	 * 
+	 * return list; }
+	 */
 	// 根据业务ID获取导入表中作为待选列的非固定列
-	public List<Map<String, Object>> getInputTableColumn(String bizId) throws HiAppException {
+	public List<Map<String, Object>> getInputTableColumn(String bizId)
+			throws HiAppException {
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		
+
 		String inputTableName = TableNameEnume.INPUTTABLENAME.getPrefix()
 				+ bizId + TableNameEnume.INPUTTABLENAME.getSuffix();
-		
-		String worksheetId = automaticRepository
+
+		String worksheetId = workSheetRepository
 				.getWorksheetIdByName(inputTableName);
 		List<WorkSheetColumn> listWorkSheetColumn = new ArrayList<WorkSheetColumn>();
 		if (dmWorkSheetRepository.getWorkSheetColumnByWorksheetId(
 				listWorkSheetColumn, worksheetId)) {
 			for (WorkSheetColumn workSheetColumn : listWorkSheetColumn) {
-				if("0".equals(workSheetColumn.getFixedColumn())){
+				if ("0".equals(workSheetColumn.getFixedColumn())) {
 					Map<String, Object> map = new HashMap<String, Object>();
-					map.put("COLUMNNAME", TableNameEnume.RESULTTABLENAME.getAbbr()
-							+ "." + workSheetColumn.getColumnName());
+					map.put("COLUMNNAME",
+							TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+									+ workSheetColumn.getColumnName());
 					map.put("COLUMNNAMECH", workSheetColumn.getColumnNameCh());
 					map.put("COLUMNDESCRIPTION", workSheetColumn.getColumnDes());
 					map.put("dataType", workSheetColumn.getDataType());
@@ -179,64 +167,53 @@ public class CustomerRepository extends BaseRepository {
 				}
 			}
 		}
-		
+
 		return list;
 	}
 
-	/*// 根据业务ID获取预约表中作为待选列的非固定列
-	public List<Map<String, Object>> getPresetTableColumn(String sql,
-			String bizId) throws HiAppException {
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
-		Connection dbConn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-
-		try {
-			String presetTableName = TableNameEnume.PRESETTABLENAME.getPrefix()
-					+ bizId + TableNameEnume.INPUTTABLENAME.getSuffix();
-			dbConn = this.getDbConnection();
-			stmt = dbConn.prepareStatement(sql);
-			stmt.setObject(1, presetTableName);
-			rs = stmt.executeQuery();
-			while (rs.next()) {
-				Map<String, Object> map = new HashMap<String, Object>();
-				map.put("COLUMNNAME", TableNameEnume.INPUTTABLENAME.getAbbr()
-						+ "." + rs.getString(1));
-				map.put("COLUMNNAMECH", rs.getString(2));
-				map.put("COLUMNDESCRIPTION", rs.getString(3));
-				map.put("dataType", rs.getString(4));
-				map.put("LENGTH", rs.getInt(5));
-				list.add(map);
-			}
-		} catch (SQLException e) {
-			System.out.println(sql);
-			e.printStackTrace();
-			throw new HiAppException("getPresetTableColumn SQLException", 1);
-		} finally {
-			DbUtil.DbCloseQuery(rs, stmt);
-			DbUtil.DbCloseConnection(dbConn);
-		}
-
-		return list;
-	}*/
+	/*
+	 * // 根据业务ID获取预约表中作为待选列的非固定列 public List<Map<String, Object>>
+	 * getPresetTableColumn(String sql, String bizId) throws HiAppException {
+	 * List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+	 * 
+	 * Connection dbConn = null; PreparedStatement stmt = null; ResultSet rs =
+	 * null;
+	 * 
+	 * try { String presetTableName = TableNameEnume.PRESETTABLENAME.getPrefix()
+	 * + bizId + TableNameEnume.INPUTTABLENAME.getSuffix(); dbConn =
+	 * this.getDbConnection(); stmt = dbConn.prepareStatement(sql);
+	 * stmt.setObject(1, presetTableName); rs = stmt.executeQuery(); while
+	 * (rs.next()) { Map<String, Object> map = new HashMap<String, Object>();
+	 * map.put("COLUMNNAME", TableNameEnume.INPUTTABLENAME.getAbbr() + "." +
+	 * rs.getString(1)); map.put("COLUMNNAMECH", rs.getString(2));
+	 * map.put("COLUMNDESCRIPTION", rs.getString(3)); map.put("dataType",
+	 * rs.getString(4)); map.put("LENGTH", rs.getInt(5)); list.add(map); } }
+	 * catch (SQLException e) { System.out.println(sql); e.printStackTrace();
+	 * throw new HiAppException("getPresetTableColumn SQLException", 1); }
+	 * finally { DbUtil.DbCloseQuery(rs, stmt);
+	 * DbUtil.DbCloseConnection(dbConn); }
+	 * 
+	 * return list; }
+	 */
 	// 根据业务ID获取预约表中作为待选列的非固定列
-	public List<Map<String, Object>> getPresetTableColumn(String bizId) throws HiAppException {
+	public List<Map<String, Object>> getPresetTableColumn(String bizId)
+			throws HiAppException {
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		
+
 		String presetTableName = TableNameEnume.PRESETTABLENAME.getPrefix()
 				+ bizId + TableNameEnume.INPUTTABLENAME.getSuffix();
-		
-		String worksheetId = automaticRepository
+
+		String worksheetId = workSheetRepository
 				.getWorksheetIdByName(presetTableName);
 		List<WorkSheetColumn> listWorkSheetColumn = new ArrayList<WorkSheetColumn>();
 		if (dmWorkSheetRepository.getWorkSheetColumnByWorksheetId(
 				listWorkSheetColumn, worksheetId)) {
 			for (WorkSheetColumn workSheetColumn : listWorkSheetColumn) {
-				if("0".equals(workSheetColumn.getFixedColumn())){
+				if ("0".equals(workSheetColumn.getFixedColumn())) {
 					Map<String, Object> map = new HashMap<String, Object>();
-					map.put("COLUMNNAME", TableNameEnume.RESULTTABLENAME.getAbbr()
-							+ "." + workSheetColumn.getColumnName());
+					map.put("COLUMNNAME",
+							TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+									+ workSheetColumn.getColumnName());
 					map.put("COLUMNNAMECH", workSheetColumn.getColumnNameCh());
 					map.put("COLUMNDESCRIPTION", workSheetColumn.getColumnDes());
 					map.put("dataType", workSheetColumn.getDataType());
@@ -245,8 +222,7 @@ public class CustomerRepository extends BaseRepository {
 				}
 			}
 		}
-		
-		
+
 		return list;
 	}
 
@@ -257,49 +233,38 @@ public class CustomerRepository extends BaseRepository {
 	 * @param deployPage
 	 * @return
 	 * @throws HiAppException
-	 *//*
-	public List<Map<String, Object>> getSourceColumn(String bizId,
-			String configPage) throws HiAppException {
-
-		String sql = "SELECT COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH FROM HASYS_WORKSHEETCOLUMN A,HASYS_WORKSHEET B WHERE A.ISSYSCOLUMN = 0 AND A.WORKSHEETID = B.ID AND B.NAME = ?";
-
-		// 获取用户自定义表中用户自定义的候选列
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
-		try {
-			list.addAll(getResultTableColumn(sql, bizId));
-			// 获取用户自定义表中固定的候选列
-			list.addAll(TableNameEnume.RESULTTABLENAME.getCandidadeColumn());
-
-			// 我的客户
-			if (ConfigPageEnume.MYCUSTOMERS.getName().equals(configPage)) {
-				// 获取导入表中用户自定义的候选列
-				list.addAll(getInputTableColumn(sql, bizId));
-				// 获取导入表中固定的候选列
-				list.addAll(TableNameEnume.INPUTTABLENAME.getCandidadeColumn());
-			}
-			// 联系计划
-			else if (ConfigPageEnume.CONTACTPLAN.getName().equals(configPage)) {
-				// 获取预约表中用户自定义的候选列
-				list.addAll(getPresetTableColumn(sql, bizId));
-				// 获取预约表中固定的候选列
-				list.addAll(TableNameEnume.PRESETTABLENAME.getCandidadeColumn());
-			}
-			// 全部客户
-			else if (ConfigPageEnume.ALLCUSTOMERS.getName().equals(configPage)) {
-				// 获取导入表中用户自定义的候选列
-				list.addAll(getInputTableColumn(sql, bizId));
-				// 获取预约表中用户自定义的候选列
-				list.addAll(getPresetTableColumn(sql, bizId));
-				// 获取预约表中固定的候选列
-				list.addAll(TableNameEnume.PRESETTABLENAME.getCandidadeColumn());
-			}
-		} catch (HiAppException e) {
-			throw e;
-		}
-
-		return list;
-	}*/
+	 */
+	/*
+	 * public List<Map<String, Object>> getSourceColumn(String bizId, String
+	 * configPage) throws HiAppException {
+	 * 
+	 * String sql =
+	 * "SELECT COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH FROM HASYS_WORKSHEETCOLUMN A,HASYS_WORKSHEET B WHERE A.ISSYSCOLUMN = 0 AND A.WORKSHEETID = B.ID AND B.NAME = ?"
+	 * ;
+	 * 
+	 * // 获取用户自定义表中用户自定义的候选列 List<Map<String, Object>> list = new
+	 * ArrayList<Map<String, Object>>();
+	 * 
+	 * try { list.addAll(getResultTableColumn(sql, bizId)); // 获取用户自定义表中固定的候选列
+	 * list.addAll(TableNameEnume.RESULTTABLENAME.getCandidadeColumn());
+	 * 
+	 * // 我的客户 if (ConfigPageEnume.MYCUSTOMERS.getName().equals(configPage)) {
+	 * // 获取导入表中用户自定义的候选列 list.addAll(getInputTableColumn(sql, bizId)); //
+	 * 获取导入表中固定的候选列
+	 * list.addAll(TableNameEnume.INPUTTABLENAME.getCandidadeColumn()); } //
+	 * 联系计划 else if (ConfigPageEnume.CONTACTPLAN.getName().equals(configPage)) {
+	 * // 获取预约表中用户自定义的候选列 list.addAll(getPresetTableColumn(sql, bizId)); //
+	 * 获取预约表中固定的候选列
+	 * list.addAll(TableNameEnume.PRESETTABLENAME.getCandidadeColumn()); } //
+	 * 全部客户 else if (ConfigPageEnume.ALLCUSTOMERS.getName().equals(configPage))
+	 * { // 获取导入表中用户自定义的候选列 list.addAll(getInputTableColumn(sql, bizId)); //
+	 * 获取预约表中用户自定义的候选列 list.addAll(getPresetTableColumn(sql, bizId)); //
+	 * 获取预约表中固定的候选列
+	 * list.addAll(TableNameEnume.PRESETTABLENAME.getCandidadeColumn()); } }
+	 * catch (HiAppException e) { throw e; }
+	 * 
+	 * return list; }
+	 */
 	/**
 	 * 获取配置查询模板时需要使用的待选列
 	 * 
@@ -310,16 +275,15 @@ public class CustomerRepository extends BaseRepository {
 	 */
 	public List<Map<String, Object>> getSourceColumn(String bizId,
 			String configPage) throws HiAppException {
-		
-		
+
 		// 获取用户自定义表中用户自定义的候选列
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		
+
 		try {
 			list.addAll(getResultTableColumn(bizId));
 			// 获取用户自定义表中固定的候选列
 			list.addAll(TableNameEnume.RESULTTABLENAME.getCandidadeColumn());
-			
+
 			// 我的客户
 			if (ConfigPageEnume.MYCUSTOMERS.getName().equals(configPage)) {
 				// 获取导入表中用户自定义的候选列
@@ -346,7 +310,7 @@ public class CustomerRepository extends BaseRepository {
 		} catch (HiAppException e) {
 			throw e;
 		}
-		
+
 		return list;
 	}
 
