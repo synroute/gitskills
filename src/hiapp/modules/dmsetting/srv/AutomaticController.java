@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import hiapp.modules.dmsetting.result.*;
 import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.data.DmBizAutomaticRepository;
+import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.utils.serviceresult.RecordsetResult;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -23,6 +24,8 @@ import hiapp.utils.serviceresult.ServiceResultCode;
 public class AutomaticController {
 	@Autowired
 	private DmBizAutomaticRepository dmBizAutomatic;
+	@Autowired
+	private WorkSheet worksheet;
 	
 	@RequestMapping(value = "/srv/dm/dmGetBizResultColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetBizResultColumns(@RequestParam("bizId") String bizId) {

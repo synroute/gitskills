@@ -590,4 +590,27 @@ public class DmWorkSheetRepository extends BaseRepository {
 		}
 		return worksheetId;
 	}
+	//根据结果名获取工作表id
+	public String getWorksheetIdByName(String szWorkSheetName) {
+		String workSheetId = "";
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;	
+		ResultSet rs = null;	
+		try {
+			dbConn = this.getDbConnection();
+			szSql =String.format("select ID from HASYS_WORKSHEET where NAME='%s' ", szWorkSheetName) ;
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				workSheetId=rs.getString(1);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally{
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		return workSheetId;
+	}
 }

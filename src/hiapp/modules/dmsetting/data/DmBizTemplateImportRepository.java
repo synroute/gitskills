@@ -288,7 +288,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				}
 				stmt.close();
 				List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
-				workSheet.getColumns(dbConn, workSheetId, listColumns);
+				workSheet.getColumns(dbConn,workSheetId, listColumns);
 				
 				for (int i = 0; i < listColumns.size(); i++) {
 					WorkSheetColumn workSheetColumn=listColumns.get(i);
