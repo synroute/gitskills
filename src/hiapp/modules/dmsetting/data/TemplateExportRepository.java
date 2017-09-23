@@ -106,7 +106,7 @@ public class TemplateExportRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			String szSql =String.format("SELECT TemplateID,Name,Description,IsDefault FROM HASYS_DM_BIZTEMPLATEExport WHERE BusinessId='%s' ", bizId) ;
+			String szSql =String.format("SELECT TemplateID,Name,Description,IsDefault FROM HASYS_DM_BIZTEMPLATEExport WHERE BusinessId='%s' order by TemplateID", bizId) ;
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){

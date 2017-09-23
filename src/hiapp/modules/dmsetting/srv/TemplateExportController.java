@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 @RestController
 public class TemplateExportController {
 	@Autowired
@@ -46,16 +50,23 @@ public class TemplateExportController {
 	@RequestMapping(value = "/srv/dm/dmDeleteBizExportTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmDeleteBizExportTemplate(@RequestParam("bizId") String bizId,
 			@RequestParam("templateId") String templateId) {
-		ServiceResult serviceresult = new ServiceResult();	
-		try {
-			if (!templateExportRepository.deleteExportTemplate(bizId, templateId)) {
-				serviceresult.setReturnMessage("删除失败！");
-			} else {
-				serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-				serviceresult.setReturnMessage("删除成功");
+		String tId = "";
+		ServiceResult serviceresult = new ServiceResult();
+		JsonParser jsonParser = new JsonParser();
+		JsonArray jsonArray = jsonParser.parse(templateId).getAsJsonArray();
+		for (int i = 0; i < jsonArray.size(); i++) {
+			JsonObject jsonObject = (JsonObject) jsonArray.get(i);
+			tId = jsonObject.get("templateId").getAsString();
+			try {
+				if (!templateExportRepository.deleteExportTemplate(bizId, tId)) {
+					serviceresult.setReturnMessage("删除失败！");
+				} else {
+					serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+					serviceresult.setReturnMessage("删除成功");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 		return serviceresult.toJson();
 	}
