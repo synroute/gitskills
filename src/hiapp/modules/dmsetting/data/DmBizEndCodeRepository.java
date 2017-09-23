@@ -27,14 +27,14 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	@Autowired
 	 private DictRepository dictManager;
 	//添加结束码
-	public boolean dmAddBizEndCode(DMEndCode dmEndCode,StringBuffer err)throws SQLException, IOException
+	public boolean dmAddBizEndCode(String mapColmns,int bizId,StringBuffer err)throws SQLException, IOException
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
 			conn =this.getDbConnection();
 			//判断是否有活动的共享批次
-			String selectsql=String.format("select count(*) from HASYS_DM_SID where BusinessID="+dmEndCode.getBizId()+" and State='启动'");
+			String selectsql=String.format("select count(*) from HASYS_DM_SID where BusinessID="+bizId+" and State='启动'");
 			stmt = conn.prepareStatement(selectsql);
 			rs = stmt.executeQuery();
 			int count=0;
@@ -47,30 +47,34 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				err.append("有正在活动的共享批次，请停止后再添加结束码！");
 				return false;
 			}
-			
-			//插入结束码表信息
-			String szSql = String.format("INSERT INTO HASYS_DM_BIZENDCODE (BusinessId,CodeType,Code,Description) values("+dmEndCode.getBizId()+",'"+dmEndCode.getEndCodeType()+"','"+dmEndCode.getEndCode()+"','"+dmEndCode.getDesc()+"')");
-			stmt = conn.prepareStatement(szSql);
-			stmt.executeUpdate();
-			StringBuffer errMessage=new StringBuffer();
-			//创建字典表
-			String dictionary=String.format("select CLASSID from (select CLASSID from HASYS_DIC_CLASS order by CLASSID desc)  WHERE ROWNUM <=1");
-			stmt = conn.prepareStatement(dictionary);
-			rs = stmt.executeQuery();
-			Integer CLASSID=0;
-			while(rs.next())
+			JsonArray jsonArray= new JsonParser().parse(mapColmns).getAsJsonArray();
+			for(int i=0;i<jsonArray.size();i++)
 			{
-				CLASSID=rs.getInt("CLASSID");
+				JsonObject jsonObject=jsonArray.get(i).getAsJsonObject();
+				//插入结束码表信息
+				String szSql = String.format("INSERT INTO HASYS_DM_BIZENDCODE (BusinessId,CodeType,Code,Description) values("+bizId+",'"+jsonObject.get("endCodeType").getAsString()+"','"+jsonObject.get("endCode").getAsString()+"','"+jsonObject.get("desc").getAsString()+"')");
+				stmt = conn.prepareStatement(szSql);
+				stmt.executeUpdate();
+				StringBuffer errMessage=new StringBuffer();
+				//创建字典表
+				String dictionary=String.format("select CLASSID from (select CLASSID from HASYS_DIC_CLASS order by CLASSID desc)  WHERE ROWNUM <=1");
+				stmt = conn.prepareStatement(dictionary);
+				rs = stmt.executeQuery();
+				Integer CLASSID=0;
+				while(rs.next())
+				{
+					CLASSID=rs.getInt("CLASSID");
+				}
+				CLASSID=CLASSID+1;
+				dictManager.newDictionaryClass(CLASSID.toString(), bizId+jsonObject.get("endCodeType").getAsString(), "", errMessage);
+				Dict dict=new Dict();
+				dict.setClassId(CLASSID);
+				dict.setClassName(jsonObject.get("endCodeType").getAsString());
+				dict.setName(jsonObject.get("endCode").getAsString());
+				
+				dictManager.newDictionay(dict);
+				add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),jsonObject.get("desc").getAsString());
 			}
-			CLASSID=CLASSID+1;
-			dictManager.newDictionaryClass(CLASSID.toString(), dmEndCode.getBizId()+dmEndCode.getEndCodeType(), "", errMessage);
-			Dict dict=new Dict();
-			dict.setClassId(CLASSID);
-			dict.setClassName(dmEndCode.getEndCodeType());
-			dict.setName(dmEndCode.getEndCode());
-			
-			dictManager.newDictionay(dict);
-			add( dmEndCode.getBizId(), dmEndCode.getEndCodeType(), dmEndCode.getEndCode(),dmEndCode.getDesc());
 		} catch (SQLException e) {
 			e.printStackTrace();
 			err.append("失败！");

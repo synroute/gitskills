@@ -173,7 +173,7 @@ public class CustomerController {
 
 		try {
 			list = new Gson().fromJson(
-					customerRepository.getFilterTemplate(queryTemplate),
+					customerRepository.getTemplate(queryTemplate),
 					List.class);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -202,7 +202,7 @@ public class CustomerController {
 
 		try {
 			list = new Gson().fromJson(
-					customerRepository.getFilterTemplate(queryTemplate),
+					customerRepository.getTemplate(queryTemplate),
 					List.class);
 		} catch (Exception e) {
 			e.printStackTrace();

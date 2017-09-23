@@ -30,6 +30,8 @@ import java.util.Map;
 
 
 
+
+
 /*import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;*/
 import org.springframework.stereotype.Repository;
@@ -53,6 +55,9 @@ public class DMBizDataShare extends BaseRepository {
 		JsonArray dataArray=null;
 		String flag=null;
 		Integer bizid = Integer.valueOf(businessId);
+		Integer temp  =Integer.valueOf(templateId);
+		String workSheetImport="HAU_DM_B"+businessId+"C_IMPORT";
+		String workSheetPool="HAU_DM_B"+businessId+"C_POOL";
 		if(sourceType.equals("Excel")){
 			flag="DbFieldName";
 		}else{
@@ -60,12 +65,14 @@ public class DMBizDataShare extends BaseRepository {
 		}
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		try {
-			dbConn = this.getDbConnection();//select to_char(sysdate,'yy-mm-dd hh24:mi:ss')
-			getXmlSql=String.format("SELECT XML FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE TEMPLATEID='%s' AND BUSINESSID='%s'",templateId,bizid);
+			dbConn = this.getDbConnection();
+			getXmlSql="SELECT XML FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE TEMPLATEID=? AND BUSINESSID=?";
 			stmt=dbConn.prepareStatement(getXmlSql);
+			stmt.setInt(1,temp);
+			stmt.setInt(2,bizid);
 			rs = stmt.executeQuery();
 			while(rs.next()){
-				//循环获取xml里面的数据
+				//获取xml里面的数据
 				jsonData=ClobToString(rs.getClob(1));	
 			}
 			//解析 通过查询获取xml，并把存储的json串解成json对象
@@ -79,9 +86,11 @@ public class DMBizDataShare extends BaseRepository {
 			}
 			sb.deleteCharAt(sb.length()-1);
 			sql+=sb;
-			//测试表名待修正
-			sql=sql+" from HAU_DM_B"+bizid+"C_IMPORT where IID IN (select  a.IID from HASYS_DM_IID a,HAU_DM_B"+businessId+"C_POOL b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=" + businessId + " AND  a.IMPORTTIME >to_date('"+StartTime+"','MM/dd/yyyy') and a.IMPORTTIME <to_date('"+ EndTime+"','MM/dd/yyyy'))";
+			sql=sql+" from "+workSheetImport+" where CID IN (select  b.CID from HASYS_DM_IID a,"+workSheetPool+" b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=? AND  a.IMPORTTIME >to_date(?,'MM/dd/yyyy') and a.IMPORTTIME <to_date(?,'MM/dd/yyyy'))";
 			stmt=dbConn.prepareStatement(sql);
+			stmt.setInt(1,bizid);
+			stmt.setString(2,StartTime);
+			stmt.setString(3,EndTime);
 			rs = stmt.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
@@ -102,9 +111,6 @@ public class DMBizDataShare extends BaseRepository {
 		}
 		return dataList;
 	}
-			/*//解析导入模板设置表
-			*/
-		
 	 // CLOB转换成String
     public String ClobToString(Clob sc) throws SQLException, IOException {  
         String reString = "";  
@@ -119,118 +125,66 @@ public class DMBizDataShare extends BaseRepository {
         reString = sb.toString();  
         return reString;  
     }  
-	
-	
-
-	// 2.1将共享的数据填入单号码重拨一份
-	@SuppressWarnings("all")
-	public String confirmShareData(String iId,int businessId,
-			User user, String newId,String cid) {
+	//创建共享和追加共享
+	@SuppressWarnings("resource")
+	public ServiceResultCode addConfirmShareData(int businessId,String importId,User user, String newShareId,String customerId,String shareName,String description) throws Exception{
 		String insertsql = "";
-		PreparedStatement stmt = null;
-		Connection dbConn = null;
-		try {
-			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HAU_DM_B"+businessId+"C_DATAM3 (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newId,iId,cid,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId()) ;
-			stmt = dbConn.prepareStatement(insertsql);
-			stmt.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally{
-			DbUtil.DbCloseConnection(dbConn);
-		}
-		return newId;
-	}
-
-	// 2.2将共享的数据填入单号码重拨共享历史表一份
-	public void confirmShareDataOne(String iId, int bizid, User user, String newId,String cid) {
-		String insertsql = "";
-		PreparedStatement stmt = null;
-		Connection dbConn = null;
-		try {
-			dbConn = this.getDbConnection();
-			insertsql =String.format("INSERT INTO HAU_DM_B"+bizid+"C_DATAM3_HIS (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",bizid,newId,iId,cid,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId());
-			stmt = dbConn.prepareStatement(insertsql);
-			stmt.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally{
-			DbUtil.DbCloseConnection(dbConn);
-		}
-	}
-
-	// 查询当前的业务的数据池
-	public int confirmShareDataTwo(int businessId) {
-		String sql = "";
+		String updatesql="";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		ResultSet rs = null;
-		int s=0;
-		//int a=Integer.parseInt(businessId);
+		//数据池id
+		int poolID=0;
+		//单号码重拨共享表
+		String HASYS_DM_BC_DATAM3="HAU_DM_B"+businessId+"C_DATAM3";
+		//单号码重拨共享历史表
+		String HAU_DM_BC_DATAM3_HIS= "HAU_DM_B"+businessId+"C_DATAM3_HIS";
+		//数据池记录表
+		String HAU_DM_BC_POOL="HAU_DM_B"+businessId+"C_POOL";
+		//数据池操作记录表
+		String HAU_DM_BC_POOL_ORE="HAU_DM_B"+businessId+"C_POOL_ORE";
 		try {
-			dbConn = this.getDbConnection();
-			sql ="SELECT ID FROM HASYS_DM_DATAPOOL WHERE BUSINESSID="+businessId+"";
-			stmt = dbConn.prepareStatement(sql);
-			rs = stmt.executeQuery();
-			while(rs.next()){
-			s = rs.getInt(1);
-			}
+				String sqlPool="";
+				dbConn = this.getDbConnection();
+				//不自动提交数据
+				dbConn.setAutoCommit(false);
+				//查找数据池id ok
+				sqlPool =String.format("SELECT ID FROM HASYS_DM_DATAPOOL WHERE BUSINESSID=%s AND DATAPOOLTYPE=1",businessId); //更改
+				stmt = dbConn.prepareStatement(sqlPool);
+				rs = stmt.executeQuery();
+				while(rs.next()){
+				poolID = rs.getInt(1);
+				}
+				//单号码重拨共享表
+				insertsql =String.format("INSERT INTO "+HASYS_DM_BC_DATAM3+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId()) ;
+				stmt = dbConn.prepareStatement(insertsql);
+				stmt.execute();
+			    //单号码重拨共享历史表
+				insertsql =String.format("INSERT INTO "+HAU_DM_BC_DATAM3_HIS+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId());
+				stmt = dbConn.prepareStatement(insertsql);
+				stmt.execute();
+			    //更改数据池记录表数据
+				updatesql=String.format("UPDATE "+HAU_DM_BC_POOL+" SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s' AND CID='%s'",customerId,poolID,poolID,0,1,importId,customerId);
+	        	stmt = dbConn.prepareStatement(updatesql);
+				stmt.execute();
+				//数据池操作记录表
+				insertsql=String.format("INSERT INTO "+HAU_DM_BC_POOL_ORE+" (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",newShareId,importId,customerId,OperationNameEnum.Sharing,poolID,poolID,0,1,0,user.getId());
+				stmt = dbConn.prepareStatement(insertsql);
+				stmt.execute();
+				//共享批次信息表
+				insertsql = String.format("INSERT INTO HASYS_DM_SID (ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION) VALUES(S_HASYS_DM_SID.NEXTVAL,%s,'%s','%s','%s',sysdate,'%s')",businessId,newShareId,shareName,user.getId(),description);
+				stmt = dbConn.prepareStatement(insertsql);
+				stmt.execute();
+				//无异常提交代码
+				dbConn.commit();
 		} catch (Exception e) {
+			//有异常回滚
+			dbConn.rollback();
 			e.printStackTrace();
+			return ServiceResultCode.INVALID_SESSION;
 		}finally{
 			DbUtil.DbCloseQuery(rs,stmt);
 			DbUtil.DbCloseConnection(dbConn);
-		}
-		return s;
-	}
-
-	// 更改数据池记录表数据
-	public void confirmShareDataThree(String iId,
-			int dataPool, User user,int businessId,String cid) {
-		String updatesql = "";
-		PreparedStatement stmt = null;
-		Connection dbConn=null;
-        try {
-        	dbConn=this.getDbConnection();//sql没问题
-        	updatesql=String.format("UPDATE HAU_DM_B"+businessId+"C_POOL SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s' AND CID='%s'",cid,dataPool,dataPool,0,1,iId,cid);
-        	stmt = dbConn.prepareStatement(updatesql);
-			stmt.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally{
-			DbUtil.DbCloseConnection(dbConn);
-		}
-	}
-	//向数据池操作记录表添加数据
-	public void confirmShareDataFree(String iId,
-			User user, int dataPool, int bizid,String cid,String newId) {
-		String insertsql = "";
-		PreparedStatement stmt = null;
-		Connection dbConn = null;
-		try {
-			dbConn=this.getDbConnection();//sql没问题
-			insertsql=String.format("INSERT INTO HAU_DM_B"+bizid+"C_POOL_ORE (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",newId,iId,cid,OperationNameEnum.Sharing,dataPool,dataPool,0,1,0,user.getId());
-			stmt = dbConn.prepareStatement(insertsql);
-			stmt.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally{
-			DbUtil.DbCloseConnection(dbConn);
-		}
-	}
-	//向共享批次信息表添加数据
-	public ServiceResultCode confirmShareDataFive(int businessId,
-			String batherId, String shareName, String description,User user) {
-		String insertsql = "";
-		PreparedStatement stmt = null;
-		Connection dbConn = null;
-		try {
-			dbConn=this.getDbConnection();
-			insertsql = String.format("INSERT INTO HASYS_DM_SID (ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION) VALUES(S_HASYS_DM_SID.NEXTVAL,%s,'%s','%s','%s',sysdate,'%s')",businessId,batherId,shareName,user.getId(),description);
-			stmt = dbConn.prepareStatement(insertsql);
-			stmt.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 		return ServiceResultCode.SUCCESS;
 	}
