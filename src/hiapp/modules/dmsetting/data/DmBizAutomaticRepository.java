@@ -192,82 +192,82 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	}
 	
 	
-//	public boolean getPresetColumns(List<DMBizAutomaticColumns> listDMBizAutomaticColumns, String bizId) {
-//		Connection dbConn = null;
-//		try {
-//			dbConn = this.getDbConnection();
-//			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
-//			//拼接工作表名称
-//			String szWorkSheetName="HASYS_DM_B"+bizId+"C_PRESETTIME";
-//			//根据预约表名获取工作表id
-//			String workSheetId = this.getWorksheetIdByName(szWorkSheetName);
-//			//根据工作表id获取该工作表下面所有的列信息
-//			workSheet.getColumns(dbConn,workSheetId, listColumns);
-//			for (WorkSheetColumn workSheetColumn : listColumns) {
-//				//剔除掉不需要显示的列信息
-//				if (!workSheetColumn.getColumnName().equals("ID")
-//						&&!workSheetColumn.getColumnName().equals("SOURCEID")
-//						&&!workSheetColumn.getColumnName().equals("IID")
-//						&&!workSheetColumn.getColumnName().equals("CID")
-//						&&!workSheetColumn.getColumnName().equals("MODIFYID")
-//						&&!workSheetColumn.getColumnName().equals("MODIFYLAST")
-//						&&!workSheetColumn.getColumnName().equals("MODIFYUSERID")
-//						&&!workSheetColumn.getColumnName().equals("MODIFYTIME")) {
-//					DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
-//					dmBizAutomaticColumns.setWorksheetName(szWorkSheetName);
-//					dmBizAutomaticColumns.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(workSheetId));
-//					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
-//					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
-//					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
-//				}
-//			}
-//		} catch (Exception e) {
-//			// TODO: handle exception
-//			e.printStackTrace();
-//		} finally {
-//			DbUtil.DbCloseConnection(dbConn);
-//		}
-//		return true;
-//	}
+	public boolean getPresetColumns(List<DMBizAutomaticColumns> listDMBizAutomaticColumns, String bizId) {
+		Connection dbConn = null;
+		try {
+			dbConn = this.getDbConnection();
+			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
+			//拼接工作表名称
+			String szWorkSheetName="HASYS_DM_B"+bizId+"C_PRESETTIME";
+			//根据预约表名获取工作表id
+			String workSheetId = workSheetRepository.getWorksheetIdByName(szWorkSheetName);
+			//根据工作表id获取该工作表下面所有的列信息
+			workSheet.getColumns(dbConn,workSheetId, listColumns);
+			for (WorkSheetColumn workSheetColumn : listColumns) {
+				//剔除掉不需要显示的列信息
+				if (!workSheetColumn.getColumnName().equals("ID")
+						&&!workSheetColumn.getColumnName().equals("SOURCEID")
+						&&!workSheetColumn.getColumnName().equals("IID")
+						&&!workSheetColumn.getColumnName().equals("CID")
+						&&!workSheetColumn.getColumnName().equals("MODIFYID")
+						&&!workSheetColumn.getColumnName().equals("MODIFYLAST")
+						&&!workSheetColumn.getColumnName().equals("MODIFYUSERID")
+						&&!workSheetColumn.getColumnName().equals("MODIFYTIME")) {
+					DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
+					dmBizAutomaticColumns.setWorksheetName(szWorkSheetName);
+					dmBizAutomaticColumns.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(workSheetId));
+					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
+					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+		}
+		return true;
+	}
 	//获取该业务下所有工作表列
 	public List<DMBizAutomaticColumns> getAllBizColumns(String bizId) {
-		List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
-		List<WorkSheet> WorkSheets = new ArrayList<WorkSheet>();
-		String szWorkSheetName1 = "HAU_DM_B"+bizId+"C_IMPORT";
-		String szWorkSheetName2 = "HAU_DM_B"+bizId+"C_RESULT";
-		String szWorkSheetName3 = "HASYS_DM_B"+bizId+"C_PRESETTIME";
-		worksheetAddList(WorkSheets,szWorkSheetName1);
-		worksheetAddList(WorkSheets,szWorkSheetName2);
-		worksheetAddList(WorkSheets,szWorkSheetName3);
-		List<WorkSheetColumn> listWorkSheetColumns = workSheetRepository.getSourceColumnsByWorksheetId(WorkSheets);
-		for (WorkSheetColumn workSheetColumn : listWorkSheetColumns) {
-				DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
-				dmBizAutomaticColumns.setWorksheetName(workSheetColumn.getTableFieldName());
-				dmBizAutomaticColumns.setWorksheetNameCh(workSheetColumn.getTableNameCh());
-				dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
-				dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
-				listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
-		}
-		
-		return listDMBizAutomaticColumns;
+//		List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
+//		List<WorkSheet> WorkSheets = new ArrayList<WorkSheet>();
+//		String szWorkSheetName1 = "HAU_DM_B"+bizId+"C_IMPORT";
+//		String szWorkSheetName2 = "HAU_DM_B"+bizId+"C_RESULT";
+//		String szWorkSheetName3 = "HASYS_DM_B"+bizId+"C_PRESETTIME";
+//		worksheetAddList(WorkSheets,szWorkSheetName1);
+//		worksheetAddList(WorkSheets,szWorkSheetName2);
+//		worksheetAddList(WorkSheets,szWorkSheetName3);
+//		List<WorkSheetColumn> listWorkSheetColumns = workSheetRepository.getSourceColumnsByWorksheetId(WorkSheets);
+//		for (WorkSheetColumn workSheetColumn : listWorkSheetColumns) {
+//				DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
+//				dmBizAutomaticColumns.setWorksheetName(workSheetColumn.getTableFieldName());
+//				dmBizAutomaticColumns.setWorksheetNameCh(workSheetColumn.getTableNameCh());
+//				dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
+//				dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+//				listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+//		}
+//		
+//		return listDMBizAutomaticColumns;
 		//获取导入表列信息
 		
-//		List<DMBizAutomaticColumns> listDMBizAutomaticColumns = this.dmGetBizCustomerColumns(Integer.parseInt(bizId));
-//		List<DMBizAutomaticColumns> listResultColumns = new ArrayList<DMBizAutomaticColumns>();
-//		//获取结果表列信息
-//		this.getResultColumns(listResultColumns,bizId);
-//		for (DMBizAutomaticColumns dmBizAutomaticColumns : listResultColumns) {
-//			if (!dmBizAutomaticColumns.getColumnName().equals("IID")&&
-//					!dmBizAutomaticColumns.getColumnName().equals("CID")&&
-//					!dmBizAutomaticColumns.getColumnName().equals("MODIFYTIME")) {
-//				listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
-//			}
-//		}
-//		List<DMBizAutomaticColumns> listPresetColumns = new ArrayList<DMBizAutomaticColumns>();
-//		//获取预约表列信息
-//		this.getPresetColumns(listPresetColumns,bizId);
-//		listDMBizAutomaticColumns.addAll(listPresetColumns);
-//		return listDMBizAutomaticColumns;
+		List<DMBizAutomaticColumns> listDMBizAutomaticColumns = this.dmGetBizCustomerColumns(Integer.parseInt(bizId));
+		List<DMBizAutomaticColumns> listResultColumns = new ArrayList<DMBizAutomaticColumns>();
+		//获取结果表列信息
+		this.getResultColumns(listResultColumns,bizId);
+		for (DMBizAutomaticColumns dmBizAutomaticColumns : listResultColumns) {
+			if (!dmBizAutomaticColumns.getColumnName().equals("IID")&&
+					!dmBizAutomaticColumns.getColumnName().equals("CID")&&
+					!dmBizAutomaticColumns.getColumnName().equals("MODIFYTIME")) {
+				listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+			}
+		}
+		List<DMBizAutomaticColumns> listPresetColumns = new ArrayList<DMBizAutomaticColumns>();
+		//获取预约表列信息
+		this.getPresetColumns(listPresetColumns,bizId);
+		listDMBizAutomaticColumns.addAll(listPresetColumns);
+		return listDMBizAutomaticColumns;
 	}
 	
 	//获取待选表对象
