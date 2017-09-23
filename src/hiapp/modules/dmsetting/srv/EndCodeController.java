@@ -38,17 +38,12 @@ public class EndCodeController {
 		
 		@RequestMapping(value = "/srv/dm/dmAddBizEndCode.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 		public String dmAddBizEndCode(@RequestParam("bizId") int bizId,
-				@RequestParam("endCodeType") String endCodeType,@RequestParam("endCode") String endCode,
-				@RequestParam("desc") String description) {
+				@RequestParam("mapColmns") String mapColmns) {
 			RecordsetResult recordsetResult = new RecordsetResult();
 			try{
-				DMEndCode dmEndCode =new DMEndCode();
-				dmEndCode.setBizId(bizId);
-				dmEndCode.setEndCodeType(endCodeType);
-				dmEndCode.setEndCode(endCode);
-				dmEndCode.setDesc(description);
+				
 				StringBuffer err=new StringBuffer();
-					if(dmBizEndCode.dmAddBizEndCode(dmEndCode,err))
+					if(dmBizEndCode.dmAddBizEndCode(mapColmns,bizId,err))
 					{
 						recordsetResult.setReturnCode(0);
 						recordsetResult.setReturnMessage("成功");
