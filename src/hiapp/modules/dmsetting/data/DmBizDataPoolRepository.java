@@ -45,8 +45,8 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			{
 				
 			}*/
-			String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,DataPoolDes,PID,AreaType,PoolTopLimit)"+
-			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getpId(),dataPool.getPoolTopLimit());
+			String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,DataPoolDes,PID,AreaType,PoolTopLimit,isDelete)"+
+			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s,0)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getpId(),dataPool.getPoolTopLimit());
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			
@@ -86,6 +86,29 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		return true;
 	}
 	
+	//删除数据池
+	
+		public boolean dmDeleteBizDataPool(int poolId)
+		{
+			PreparedStatement stmt = null;
+			try {
+				dbConn =this.getDbConnection();
+				String szSql = String.format("delete from HASYS_DM_DATAPOOL where ID=%s",poolId);
+				stmt = dbConn.prepareStatement(szSql);
+				stmt.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+				return false;
+			} 
+			finally {
+				DbUtil.DbCloseConnection(dbConn);
+				DbUtil.DbCloseExecute(stmt);
+			}
+			return true;
+		}
+		
+	
+	
 	//创建坐席数据池
 		public boolean dmCreateBizUserDataPool(DMDataPool dataPool,String userId )
 		{
@@ -98,8 +121,8 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					
 					
 					dbConn =this.getDbConnection();
-					String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,PID,AreaType)"+
-					" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0)",dataPool.getBizId(),userids[row],dataPool.getpId());
+					String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,PID,AreaType,isDelete)"+
+					" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0,0)",dataPool.getBizId(),userids[row],dataPool.getpId());
 					stmt = dbConn.prepareStatement(szSql);
 					stmt.executeUpdate();
 					stmt.close();
@@ -135,7 +158,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				{
 					szSql = String.format("select ID,DataPoolName,DataPoolDes,PoolTopLimit,DataPoolType from HASYS_DM_DATAPOOL where ID=%s",poolid);
 				}else {
-					szSql = String.format("select ID,DataPoolName,DataPoolDes,PoolTopLimit,DataPoolType from HASYS_DM_DATAPOOL where DataPoolType=3 and ID in (select DataPoolID from HASYS_DM_PER_MAP_POOL where PermissionID=%s)",poolid);
+					szSql = String.format("select ID,DataPoolName,DataPoolDes,PoolTopLimit,DataPoolType from HASYS_DM_DATAPOOL where DataPoolType=3 and  ID in (select DataPoolID from HASYS_DM_PER_MAP_POOL where PermissionID=%s and DataPoolID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0))",poolid);
 				}
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
@@ -158,7 +181,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			return listDmDataPool;
 		}
 		
-		//获取数据池详细信息
+		//获取业务下所有数据池
 				public List<DMDataPool> dmGetAllBizDataPool(int bizId )
 				{
 					PreparedStatement stmt = null;
@@ -166,7 +189,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					List<DMDataPool> listDmDataPool=new ArrayList<DMDataPool>();
 					try {
 						dbConn =this.getDbConnection();
-						String szSql = String.format("select ID,DataPoolName,PID,DATAPOOLTYPE from HASYS_DM_DATAPOOL where BusinessID=%s",bizId);
+						String szSql = String.format("select ID,DataPoolName,PID,DATAPOOLTYPE from HASYS_DM_DATAPOOL where BusinessID=%s and isDelete=0",bizId);
 						stmt = dbConn.prepareStatement(szSql);
 						rs = stmt.executeQuery();
 						while(rs.next()){
