@@ -130,6 +130,31 @@ public class DataPoolController {
 			}
 			return recordsetResult.toJson();
 	}
+	
+	//删除数据池接口
+		@RequestMapping(value = "srv/dm/dmDeleteBizDataPool.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+		public String dmDeleteBizDataPool(@RequestParam("poolId") int Id) {
+			RecordsetResult recordsetResult = new RecordsetResult();
+			try{
+				
+					if(dmBizDataPool.dmDeleteBizDataPool(Id))
+					{
+						recordsetResult.setReturnCode(0);
+						recordsetResult.setReturnMessage("成功");
+					}else
+					{
+						recordsetResult.setReturnCode(1);
+						recordsetResult.setReturnMessage("失败");
+					}
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					recordsetResult.setReturnCode(1);
+					recordsetResult.setReturnMessage("失败");
+				}
+				return recordsetResult.toJson();
+		}
+	
 	//获取数据池详细信息
 	@RequestMapping(value = "srv/dm/dmGetBizDataPool.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetBizDataPool(@RequestParam("poolId") int poolId) {

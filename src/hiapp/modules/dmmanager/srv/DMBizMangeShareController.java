@@ -57,7 +57,6 @@ public class DMBizMangeShareController {
 			@RequestParam(value = "businessId") String businessID){
 		HttpSession session = request.getSession(false);
 		User userid=(User) session.getAttribute("user");
-		String id = userid.getId();
 		String s = null;
 		Integer bizid = Integer.valueOf(businessID);
 		try {
@@ -154,32 +153,6 @@ public class DMBizMangeShareController {
 		}
 		return s;
 	}
-
-	/* 已作废
-	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	
-	public void selectShareCustomer(HttpServletRequest request,HttpServletResponse response,
-			HttpSession session,
-			@RequestParam(value = "id",required=false) String id,@RequestParam(value = "text",required=false)String text) {
-			String json=null;
-			if(text!=null){
-				List<DataPool> dataPoolList = bizMangeShare.selectShareCustomerById(id,text);
-				json=new Gson().toJson(dataPoolList);
-			}else{
-				RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
-				Permission permission = permissionRepository.getPermission(roleInGroupSet);
-				int permissionId = permission.getId();
-				DataPool  dataPool = bizMangeShare.selectShareCustomer(permissionId);
-				json=new Gson().toJson(dataPool);
-			}
-			try {
-				PrintWriter printWriter = response.getWriter();
-				printWriter.print(json);
-			} catch (IOException e) {
-				
-				e.printStackTrace();
-			}
-		}*/
 	// 将共享数据指定给哪个用户
 	@RequestMapping(value = "/srv/DMBizMangeShareController/addShareCustomerfByUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String addShareCustomerfByUserId(
@@ -229,4 +202,36 @@ public class DMBizMangeShareController {
 		s=result.toJson();
 		return s;
 	}
+	
+	//对指定共享批次数据进行删除
+	public String DeleteShareBatchDataByShareId(
+			@RequestParam(value = "shareID") String shareID,
+			@RequestParam(value = "businessID") String businessID){
+		    String[] shareId = shareID.split(",");
+		    Integer bizId = Integer.valueOf(businessID);
+		    ServiceResultCode serviceResultCode=null;
+		    ServiceResult serviceresult = new ServiceResult();
+		    String returnMessage=null;
+		    try {
+		    	serviceResultCode = bizMangeShare.DeleteShareBatchDataByShareId(shareId,bizId);
+		    	if(serviceResultCode != ServiceResultCode.SUCCESS){
+			    	 serviceresult.setResultCode(serviceResultCode);
+					 serviceresult.setReturnMessage("删除失败"); 
+					 returnMessage=serviceresult.toJson();
+					 return returnMessage;
+			     }else{
+			    	 serviceresult.setReturnCode(0);
+					 serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+					 serviceresult.setReturnMessage("删除成功");
+					 returnMessage=serviceresult.toJson();
+					 return returnMessage;
+					 }
+		    } catch (Exception e) {
+				e.printStackTrace();
+			}
+		return null;
+	}
+	
+	
+	
 }
