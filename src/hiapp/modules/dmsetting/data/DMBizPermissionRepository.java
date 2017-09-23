@@ -231,6 +231,37 @@ public class DMBizPermissionRepository extends BaseRepository {
 		return jsonObject;
 	}
 	
+	
+	//获取该权限所有信息
+	public List<DMBizPermission> getPermission(int permid){
+		//查询所有权限信息
+		List<DMBizPermission> listBizPermissions=new ArrayList<DMBizPermission>();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			dbConn=this.getDbConnection();
+			String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL  where PermissionID="+permid+"";
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				DMBizPermission dmBizPermission=new DMBizPermission();
+				dmBizPermission.setDataPoolId(rs.getInt(1));
+				dmBizPermission.setBizId(rs.getInt(2));
+				dmBizPermission.setPermId(rs.getInt(3));
+				dmBizPermission.setManageItemName(rs.getString(4));
+				listBizPermissions.add(dmBizPermission);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			
+		} 
+		finally {
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		return listBizPermissions;
+	}
+	
+	
 	//提交权限配置
 	@SuppressWarnings("unused")
 	private List<DMDataPool> getAllDataPool()
