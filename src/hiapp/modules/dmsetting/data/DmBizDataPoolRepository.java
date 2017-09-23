@@ -121,8 +121,8 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					
 					
 					dbConn =this.getDbConnection();
-					String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,PID,AreaType,isDelete)"+
-					" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0,0)",dataPool.getBizId(),userids[row],dataPool.getpId());
+					String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,PID,AreaType,isDelete,POOLTOPLIMIT)"+
+					" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0,0,10000)",dataPool.getBizId(),userids[row],dataPool.getpId());
 					stmt = dbConn.prepareStatement(szSql);
 					stmt.executeUpdate();
 					stmt.close();

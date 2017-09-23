@@ -132,7 +132,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 			//查询数据池信息
 			try {
 				
-				String szSql = "select ID,BusinessID,DataPoolName from HASYS_DM_DATAPOOL where Businessid="+dmBusiness.getBizId()+" and DataPoolID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0)" ;
+				String szSql = "select ID,BusinessID,DataPoolName from HASYS_DM_DATAPOOL where Businessid="+dmBusiness.getBizId()+" and ID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0)" ;
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				while(rs.next()){
@@ -152,7 +152,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 			//查询该业务下有多少数据池
 			try {
 				
-				String szSql = "select count(ID) from HASYS_DM_DATAPOOL where BusinessId="+dmBusiness.getBizId()+" and DataPoolID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0)" ;
+				String szSql = "select count(ID) from HASYS_DM_DATAPOOL where BusinessId="+dmBusiness.getBizId()+" and ID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0)" ;
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				while(rs.next()){
