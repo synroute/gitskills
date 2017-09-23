@@ -5,6 +5,8 @@ import hiapp.modules.dmagent.ConfigTypeEnume;
 import hiapp.modules.dmagent.QueryRequest;
 import hiapp.modules.dmagent.QueryTemplate;
 import hiapp.modules.dmagent.TableNameEnume;
+import hiapp.modules.dmsetting.DMDataPool;
+import hiapp.modules.dmsetting.data.DmBizDataPoolRepository;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.system.buinfo.Permission;
 import hiapp.system.buinfo.RoleInGroupSet;
@@ -25,12 +27,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,6 +51,8 @@ public class CustomerRepository extends BaseRepository {
 	private WorkSheetRepository workSheetRepository;
 	@Autowired
 	private DmWorkSheetRepository dmWorkSheetRepository;
+	@Autowired
+	private DmBizDataPoolRepository dmBizDataPoolRepository;
 
 	private final String INPUT_TIME_TEMPLATE = "MM/dd/YYYY HH24:mi:ss";
 	private final String INPUT_TIME_JTEMPLATE = "MM/dd/YYYY HH:mm:ss";
@@ -368,12 +370,12 @@ public class CustomerRepository extends BaseRepository {
 	}
 
 	/**
-	 * 获取筛选模板模板(包括普通筛选和高级筛选)
+	 * 获取筛选模板(包括普通筛选和高级筛选)和列表显示模板（显示客户的哪些字段包含样式）
 	 * 
 	 * @return
 	 * @throws HiAppException
 	 */
-	public String getFilterTemplate(QueryTemplate queryTemplate)
+	public String getTemplate(QueryTemplate queryTemplate)
 			throws HiAppException {
 		String result = null;
 		String bizId = queryTemplate.getBizId();
@@ -443,7 +445,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getFilterTemplate(queryTemplate);
+			String template = getTemplate(queryTemplate);
 			int flag1 = 0;
 			int flag2 = 0;
 			@SuppressWarnings("unchecked")
@@ -608,7 +610,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getFilterTemplate(queryTemplate);
+			String template = getTemplate(queryTemplate);
 
 			sb.append("SELECT ");
 
@@ -809,7 +811,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getFilterTemplate(queryTemplate);
+			String template = getTemplate(queryTemplate);
 
 			sb.append("SELECT * FROM (SELECT ");
 
@@ -1121,7 +1123,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getFilterTemplate(queryTemplate);
+			String template = getTemplate(queryTemplate);
 			int flag1 = 0;
 			int flag2 = 0;
 			@SuppressWarnings("unchecked")
@@ -1298,7 +1300,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.CONTACTPLAN.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getFilterTemplate(queryTemplate);
+			String template = getTemplate(queryTemplate);
 
 			sb.append("SELECT * FROM (SELECT ");
 
@@ -1563,111 +1565,114 @@ public class CustomerRepository extends BaseRepository {
 		return result;
 	}
 
-	// 通过权限id和业务id获取数据池id
-	public Integer getDataPoolIdByPermissionId(int permissionId, String bizId)
-			throws HiAppException {
-		Integer dataPoolId = null;
-		Connection dbConn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		String sql = "SELECT DATAPOOLID FROM HASYS_DM_PER_MAP_POOL WHERE PERMISSIONID = ? AND BUSINESSID = ? AND ITEMNAME = '数据管理'";
-		try {
-			dbConn = this.getDbConnection();
-			stmt = dbConn.prepareStatement(sql);
-			stmt.setInt(1, permissionId);
-			stmt.setString(2, bizId);
-			rs = stmt.executeQuery();
-			if (rs.next()) {
-				dataPoolId = rs.getInt(1);
-			}
-		} catch (SQLException e) {
-			System.out.println(sql);
-			e.printStackTrace();
-			throw new HiAppException(
-					"getDataPoolIdByPermissionId SQLException", 1);
-		} finally {
-			DbUtil.DbCloseQuery(rs, stmt);
-			DbUtil.DbCloseConnection(dbConn);
-		}
-		return dataPoolId;
-	}
-
-	// 获取当前业务下的所有数据池
-	public List<Map<String, Object>> getDataPoolsByBizId(String bizId)
-			throws HiAppException {
-		String sql = "SELECT ID,PID,DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE BUSINESSID = ?";
-		Connection dbConn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		try {
-			dbConn = this.getDbConnection();
-			stmt = dbConn.prepareStatement(sql);
-			stmt.setObject(1, bizId);
-			rs = stmt.executeQuery();
-			while (rs.next()) {
-				Map<String, Object> map = new HashMap<String, Object>();
-				map.put("dataPoolId", rs.getInt(1));
-				map.put("pId", rs.getInt(2));
-				map.put("dataPoolName", rs.getString(3));
-				list.add(map);
-			}
-		} catch (SQLException e) {
-			System.out.println(sql);
-			e.printStackTrace();
-			throw new HiAppException(
-					"getChildrenDataPoolNamesById SQLException", 1);
-		} finally {
-			DbUtil.DbCloseQuery(rs, stmt);
-			DbUtil.DbCloseConnection(dbConn);
-		}
-		return list;
-	}
-
-	// 获取当前数据池和其所有子数据池下的数据池名称
-	public void getAllChildrenDataPoolNames(int dataPoolId,
-			List<Map<String, Object>> dataPools, Set<String> dataPoolNames) {
-
-		for (Map<String, Object> dataPool : dataPools) {
-			int id = (int) dataPool.get("dataPoolId");
-			int pId = (int) dataPool.get("pId");
-			String dataPoolName = (String) dataPool.get("dataPoolName");
-			if (id == dataPoolId) {
-				dataPoolNames.add(dataPoolName);
-			} else if (pId == dataPoolId) {
-				getAllChildrenDataPoolNames(id, dataPools, dataPoolNames);
-			}
-		}
-
-	}
-
-	// 获取当前数据池和其所有子数据池下的坐席id拼接成的字符串
-	public String getUserIdsFromDataPool(int dataPoolId, String bizId,
-			String userId) throws HiAppException {
-
-		List<Map<String, Object>> dataPools = getDataPoolsByBizId(bizId);
-
-		Set<String> dataPoolNames = new HashSet<String>();
-
-		getAllChildrenDataPoolNames(dataPoolId, dataPools, dataPoolNames);
-
-		StringBuffer sb = new StringBuffer();
-		sb.append("(");
-		sb.append(userId);
-		sb.append(",");
-		for (String string : dataPoolNames) {
-			Pattern pattern = Pattern.compile("\\D*(\\d+)\\D*");
-			Matcher matcher = pattern.matcher(string);
-			while (matcher.find()) {
-				String group = matcher.group(1);
-				sb.append(group);
-				sb.append(",");
-			}
-		}
-		sb = new StringBuffer(sb.substring(0, sb.length() - 1));
-		sb.append(")");
-		return sb.toString();
-	}
+	// // 通过权限id和业务id获取数据池id
+	// public Integer getDataPoolIdByPermissionId(int permissionId, String
+	// bizId)
+	// throws HiAppException {
+	// Integer dataPoolId = null;
+	// Connection dbConn = null;
+	// PreparedStatement stmt = null;
+	// ResultSet rs = null;
+	// String sql =
+	// "SELECT DATAPOOLID FROM HASYS_DM_PER_MAP_POOL WHERE PERMISSIONID = ? AND BUSINESSID = ? AND ITEMNAME = '数据管理'";
+	// try {
+	// dbConn = this.getDbConnection();
+	// stmt = dbConn.prepareStatement(sql);
+	// stmt.setInt(1, permissionId);
+	// stmt.setString(2, bizId);
+	// rs = stmt.executeQuery();
+	// if (rs.next()) {
+	// dataPoolId = rs.getInt(1);
+	// }
+	// } catch (SQLException e) {
+	// System.out.println(sql);
+	// e.printStackTrace();
+	// throw new HiAppException(
+	// "getDataPoolIdByPermissionId SQLException", 1);
+	// } finally {
+	// DbUtil.DbCloseQuery(rs, stmt);
+	// DbUtil.DbCloseConnection(dbConn);
+	// }
+	// return dataPoolId;
+	// }
+	//
+	// // 获取当前业务下的所有数据池
+	// public List<Map<String, Object>> getDataPoolsByBizId(String bizId)
+	// throws HiAppException {
+	// String sql =
+	// "SELECT ID,PID,DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE BUSINESSID = ?";
+	// Connection dbConn = null;
+	// PreparedStatement stmt = null;
+	// ResultSet rs = null;
+	// List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+	// try {
+	// dbConn = this.getDbConnection();
+	// stmt = dbConn.prepareStatement(sql);
+	// stmt.setObject(1, bizId);
+	// rs = stmt.executeQuery();
+	// while (rs.next()) {
+	// Map<String, Object> map = new HashMap<String, Object>();
+	// map.put("dataPoolId", rs.getInt(1));
+	// map.put("pId", rs.getInt(2));
+	// map.put("dataPoolName", rs.getString(3));
+	// list.add(map);
+	// }
+	// } catch (SQLException e) {
+	// System.out.println(sql);
+	// e.printStackTrace();
+	// throw new HiAppException(
+	// "getChildrenDataPoolNamesById SQLException", 1);
+	// } finally {
+	// DbUtil.DbCloseQuery(rs, stmt);
+	// DbUtil.DbCloseConnection(dbConn);
+	// }
+	// return list;
+	// }
+	//
+	// // 获取当前数据池和其所有子数据池下的数据池名称
+	// public void getAllChildrenDataPoolNames(int dataPoolId,
+	// List<Map<String, Object>> dataPools, Set<String> dataPoolNames) {
+	//
+	// for (Map<String, Object> dataPool : dataPools) {
+	// int id = (int) dataPool.get("dataPoolId");
+	// int pId = (int) dataPool.get("pId");
+	// String dataPoolName = (String) dataPool.get("dataPoolName");
+	// if (id == dataPoolId) {
+	// dataPoolNames.add(dataPoolName);
+	// } else if (pId == dataPoolId) {
+	// getAllChildrenDataPoolNames(id, dataPools, dataPoolNames);
+	// }
+	// }
+	//
+	// }
+	//
+	// // 获取当前数据池和其所有子数据池下的坐席id拼接成的字符串
+	// public String getUserIdsFromDataPool(int dataPoolId, String bizId,
+	// String userId) throws HiAppException {
+	//
+	// List<Map<String, Object>> dataPools = getDataPoolsByBizId(bizId);
+	//
+	// Set<String> dataPoolNames = new HashSet<String>();
+	//
+	// getAllChildrenDataPoolNames(dataPoolId, dataPools, dataPoolNames);
+	//
+	// StringBuffer sb = new StringBuffer();
+	// sb.append("(");
+	// sb.append(userId);
+	// sb.append(",");
+	// for (String string : dataPoolNames) {
+	// Pattern pattern = Pattern.compile("\\D*(\\d+)\\D*");
+	// Matcher matcher = pattern.matcher(string);
+	// while (matcher.find()) {
+	// String group = matcher.group(1);
+	// sb.append(group);
+	// sb.append(",");
+	// }
+	// }
+	// sb = new StringBuffer(sb.substring(0, sb.length() - 1));
+	// sb.append(")");
+	// return sb.toString();
+	// }
 
 	/**
 	 * 根据条件查询前台页面上“所有客户”模块下符合条件的客户的数量
@@ -1695,12 +1700,33 @@ public class CustomerRepository extends BaseRepository {
 					.getPermission(roleInGroupSet);
 			int permissionId = permission.getId();
 
-			Integer dataPoolId = getDataPoolIdByPermissionId(permissionId,
-					bizId);
+			List<DMDataPool> dmDataPools = dmBizDataPoolRepository
+					.dmGetBizDataPool(permissionId, "权限");
 
-			if (dataPoolId != null) {
-				String userIds = getUserIdsFromDataPool(dataPoolId, bizId,
-						userId);
+			// Integer dataPoolId = getDataPoolIdByPermissionId(permissionId,
+			// bizId);
+
+			if (dmDataPools != null) {
+				StringBuffer stringBuffer = new StringBuffer();
+				stringBuffer.append("(");
+				stringBuffer.append(userId);
+				stringBuffer.append(",");
+				for (DMDataPool dmDataPool : dmDataPools) {
+					String dataPoolName = dmDataPool.getDataPoolName();
+					Pattern pattern = Pattern.compile("\\D*(\\d+)\\D*");
+					Matcher matcher = pattern.matcher(dataPoolName);
+					while (matcher.find()) {
+						String group = matcher.group(1);
+						stringBuffer.append(group);
+						stringBuffer.append(",");
+					}
+				}
+				stringBuffer = new StringBuffer(stringBuffer.substring(0,
+						stringBuffer.length() - 1));
+				stringBuffer.append(")");
+				String userIds = stringBuffer.toString();
+				// String userIds = getUserIdsFromDataPool(dataPoolId, bizId,
+				// userId);
 
 				if (!"()".equals(userIds)) {
 					sb.append("SELECT COUNT(*) ");
@@ -1740,7 +1766,7 @@ public class CustomerRepository extends BaseRepository {
 							.getName());
 					queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST
 							.getName());
-					String template = getFilterTemplate(queryTemplate);
+					String template = getTemplate(queryTemplate);
 
 					@SuppressWarnings("unchecked")
 					List<Map<String, String>> list = new Gson().fromJson(
@@ -1965,7 +1991,7 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setBizId(bizId);
 			queryTemplate.setConfigPage(ConfigPageEnume.ALLCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
-			String template = getFilterTemplate(queryTemplate);
+			String template = getTemplate(queryTemplate);
 
 			RoleInGroupSet roleInGroupSet = userRepository
 					.getRoleInGroupSetByUserId(userId);
@@ -1973,13 +1999,33 @@ public class CustomerRepository extends BaseRepository {
 					.getPermission(roleInGroupSet);
 			int permissionId = permission.getId();
 
-			Integer dataPoolId = getDataPoolIdByPermissionId(permissionId,
-					bizId);
+			List<DMDataPool> dmDataPools = dmBizDataPoolRepository
+					.dmGetBizDataPool(permissionId, "权限");
 
-			if (dataPoolId != null) {
-				String userIds = getUserIdsFromDataPool(dataPoolId, bizId,
-						userId);
+			// Integer dataPoolId = getDataPoolIdByPermissionId(permissionId,
+			// bizId);
 
+			if (dmDataPools != null) {
+				StringBuffer stringBuffer = new StringBuffer();
+				stringBuffer.append("(");
+				stringBuffer.append(userId);
+				stringBuffer.append(",");
+				for (DMDataPool dmDataPool : dmDataPools) {
+					String dataPoolName = dmDataPool.getDataPoolName();
+					Pattern pattern = Pattern.compile("\\D*(\\d+)\\D*");
+					Matcher matcher = pattern.matcher(dataPoolName);
+					while (matcher.find()) {
+						String group = matcher.group(1);
+						stringBuffer.append(group);
+						stringBuffer.append(",");
+					}
+				}
+				stringBuffer = new StringBuffer(stringBuffer.substring(0,
+						stringBuffer.length() - 1));
+				stringBuffer.append(")");
+				String userIds = stringBuffer.toString();
+				// String userIds = getUserIdsFromDataPool(dataPoolId, bizId,
+				// userId);
 				if (!"()".equals(userIds)) {
 					sb.append("SELECT * FROM (SELECT ");
 
