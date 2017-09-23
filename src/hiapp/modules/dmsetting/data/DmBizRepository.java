@@ -33,7 +33,7 @@ public class DmBizRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS ORDER BY BUSINESSID ");
+			szSql = String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS WHERE ISDELETE=0 ORDER BY BUSINESSID ");
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -108,7 +108,7 @@ public class DmBizRepository extends BaseRepository{
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {/////////////////////////////////////////////////////////////////
-			szSql = String.format("INSERT INTO HASYS_DM_BUSINESS (BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID) "+ "VALUES ('%s','%s','%s','%s',%s) ", 
+			szSql = String.format("INSERT INTO HASYS_DM_BUSINESS (BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID,ISDELETE) "+ "VALUES ('%s','%s','%s','%s',%s,0) ", 
 									id,name, description, ownerGroupId,modeId);
 			stmt = dbConn.prepareStatement(szSql);		
 			stmt.execute();				
@@ -119,7 +119,7 @@ public class DmBizRepository extends BaseRepository{
 		}
 		
 		try {//增加数据源池
-			szSql = String.format("INSERT INTO HASYS_DM_DATAPOOL (ID,BUSINESSID,DATAPOOLNAME,DATAPOOLTYPE,DATAPOOLDES,PID,AREATYPE,POOLTOPLIMIT) "+ "VALUES (S_HASYS_DM_DATAPOOL.nextval,'%s','数据源池',1,'数据源池',-1,2,10000000) ", 
+			szSql = String.format("INSERT INTO HASYS_DM_DATAPOOL (ID,BUSINESSID,DATAPOOLNAME,DATAPOOLTYPE,DATAPOOLDES,PID,AREATYPE,POOLTOPLIMIT,ISDELETE) "+ "VALUES (S_HASYS_DM_DATAPOOL.nextval,'%s','数据源池',1,'数据源池',-1,2,10000000,0) ", 
 									id);
 			stmt = dbConn.prepareStatement(szSql);		
 			stmt.execute();				
@@ -201,10 +201,10 @@ public class DmBizRepository extends BaseRepository{
 		} finally{
 			DbUtil.DbCloseConnection(dbConn);
 		}
-		//删除业务表中信息
+//逻辑删除		
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("DELETE FROM HASYS_DM_BUSINESS WHERE BUSINESSID='%s'",bizId);
+			szSql = String.format("UPDATE HASYS_DM_BUSINESS	SET ISDELETE = 1 WHERE BUSINESSID='%s'",bizId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
 		} catch (Exception e) {
@@ -213,17 +213,30 @@ public class DmBizRepository extends BaseRepository{
 		} finally {
 			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseQuery(rs, stmt);
-		}
+		}	
+		//删除业务表中信息
+//		try {
+//			dbConn = this.getDbConnection();
+//			szSql = String.format("DELETE FROM HASYS_DM_BUSINESS WHERE BUSINESSID='%s'",bizId);
+//			stmt = dbConn.prepareStatement(szSql);
+//			stmt.execute();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return  ServiceResultCode.EXECUTE_SQL_FAIL;
+//		} finally {
+//			DbUtil.DbCloseConnection(dbConn);
+//			DbUtil.DbCloseQuery(rs, stmt);
+//		}
 		//同步删除业务相关表中数据
-		this.destroyDMBizInOtherTables(bizId);
+//		this.destroyDMBizInOtherTables(bizId);
 		//删除业务下相关工作表
-		try {
-			dmWorkSheetRepository.destroyWorkSheetAll(bizId,errMessage);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return  ServiceResultCode.EXECUTE_SQL_FAIL;
-		}
+//		try {
+//			dmWorkSheetRepository.destroyWorkSheetAll(bizId,errMessage);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			return  ServiceResultCode.EXECUTE_SQL_FAIL;
+//		}
 		return ServiceResultCode.SUCCESS;
 	}
 
