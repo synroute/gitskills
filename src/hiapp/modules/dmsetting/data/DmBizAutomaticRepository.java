@@ -27,7 +27,7 @@ import hiapp.utils.database.BaseRepository;
 public class DmBizAutomaticRepository extends BaseRepository {
 	
 	@Autowired
-	 private WorkSheet workSheet;
+	private WorkSheet workSheet;
 	@Autowired
 	private WorkSheetRepository workSheetRepository;
 	@Autowired
@@ -90,7 +90,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
 			//根据表名获取worksheetid
 			String szWorkSheetName="HAU_DM_B"+bizId+"C_RESULT";
-			String workSheetId = dmWorkSheetRepository.getWorksheetIdByName(szWorkSheetName);
+			String workSheetId = workSheetRepository.getWorksheetIdByName(szWorkSheetName);
 			//根据worksheetid获取该表下所有列信息
 			workSheet.getColumns(dbConn,workSheetId, listColumns);
 			//将列绑定到列表中
@@ -274,7 +274,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	public void worksheetAddList(List<WorkSheet> workSheet,String worksheetName){
 		WorkSheet WorkSheet = new WorkSheet();
 		WorkSheet.setWorksheetName(worksheetName);
-		WorkSheet.setWorksheetId(dmWorkSheetRepository.getWorksheetIdByName(worksheetName));
+		WorkSheet.setWorksheetId(workSheetRepository.getWorksheetIdByName(worksheetName));
 		WorkSheet.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(WorkSheet.getWorksheetId()));
 		workSheet.add(WorkSheet);
 	}
