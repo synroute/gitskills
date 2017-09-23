@@ -135,7 +135,7 @@ public class DataPoolController {
 	public String dmGetBizDataPool(@RequestParam("poolId") int poolId) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try{
-				List<DMDataPool> listDmDataPool=dmBizDataPool.dmGetBizDataPool(poolId);
+				List<DMDataPool> listDmDataPool=dmBizDataPool.dmGetBizDataPool(poolId,"数据池");
 				recordsetResult.setPage(0);
 				recordsetResult.setTotal(listDmDataPool.size());
 				recordsetResult.setPageSize(listDmDataPool.size());
