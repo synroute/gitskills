@@ -6,7 +6,11 @@ import hiapp.modules.dmmanager.DataPool;
 import hiapp.modules.dmmanager.ShareBatchItemS;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
+import hiapp.system.buinfo.Permission;
+import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
+import hiapp.system.buinfo.data.PermissionRepository;
+import hiapp.system.buinfo.data.UserRepository;
 import hiapp.system.dictionary.Dict;
 import hiapp.system.dictionary.DictItem;
 import hiapp.system.dictionary.dicItemsTreeBranch;
@@ -26,19 +30,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class DMBizMangeShare extends BaseRepository{
-
+	@Autowired
+	private PermissionRepository permissionRepository;
+	@Autowired
+	private UserRepository userRepository;
 	    //根据用户的权限 获取到所有的共享批次数据
-		public List<ShareBatchItem> getUserShareBatch(int permissionId,int businessID) {
+		public List<ShareBatchItem> getUserShareBatch(String id,int businessID) {
 			String sql = "";
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
 			ResultSet rs = null;
 			String  HAUDMBCDATAM3="HAU_DM_B"+businessID+"C_DATAM3";
 			List<ShareBatchItem> shareBatchItem= new ArrayList<ShareBatchItem>();
+			RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(id);
+			Permission permission = permissionRepository.getPermission(roleInGroupSet);
+			int permissionId = permission.getId();
 			try {
 				dbConn = this.getDbConnection();
 				// 查询 共享批次信息表 里面所有共享批次   来自共享批次信息表 a，座席池所属共享批次信息表 b,条件 B.数据池名称=user.getname and a.共享批次id=b.共享批次id                                        HASYS_DM_SID

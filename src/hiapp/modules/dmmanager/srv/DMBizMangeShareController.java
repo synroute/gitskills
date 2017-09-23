@@ -56,14 +56,12 @@ public class DMBizMangeShareController {
 	public String getUserShareBatch(HttpServletRequest request,
 			@RequestParam(value = "businessId") String businessID){
 		HttpSession session = request.getSession(false);
-		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
-		Permission permission = permissionRepository.getPermission(roleInGroupSet);
-		int permissionId = permission.getId();
-		//String workSheetImport=dmWorkSheetRepository.getWorkSheetIdByType(Integer.valueOf(businessID),DMWorkSheetTypeEnum.);
+		User userid=(User) session.getAttribute("user");
+		String id = userid.getId();
 		String s = null;
 		Integer bizid = Integer.valueOf(businessID);
 		try {
-			List<ShareBatchItem> list = bizMangeShare.getUserShareBatch(permissionId,bizid);
+			List<ShareBatchItem> list = bizMangeShare.getUserShareBatch(userid.getId(),bizid);
 			s = new Gson().toJson(list);
 		} catch (Exception e) {
 			e.printStackTrace();
