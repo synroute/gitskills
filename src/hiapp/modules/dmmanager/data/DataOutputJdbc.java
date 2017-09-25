@@ -24,14 +24,12 @@ import java.util.Map;
 import org.springframework.stereotype.Repository;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 
 @Repository
 public class DataOutputJdbc extends BaseRepository{
-	private static final JsonElement JsonNull = null;
 
 
 	/**
@@ -124,6 +122,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
+	@SuppressWarnings({ "resource", "unchecked" })
 	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -189,7 +188,7 @@ public class DataOutputJdbc extends BaseRepository{
 				String asName="a"+h+".";
 				getOutDataSql+="a0.CID="+asName+"CID and ";
 			}
-			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'mm-dd-yyyy') and IMPORTTIME<to_date(?,'mm-dd-yyyy') and BUSINESSID=?)";
+			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)";
 			pst=conn.prepareStatement(getOutDataSql);
 			pst.setString(1,startTime);
 			pst.setString(2, endTime);

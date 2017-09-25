@@ -5,6 +5,8 @@ import hiapp.modules.dmmanager.bean.ImportTemplate;
 import hiapp.modules.dmmanager.bean.WorkSheet;
 import hiapp.modules.dmmanager.bean.WorkSheetColumn;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
+import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
+import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.system.buinfo.Permission;
 import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
@@ -18,7 +20,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +29,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -58,6 +58,8 @@ public class ImportDataController {
 	private GroupRepository groupRepository;
 	@Autowired
 	private PermissionRepository permissionRepository;
+	@Autowired
+	private DmWorkSheetRepository dmWorkSheetRepository;
 	/**
 	 * 获取所有业务
 	 * @param request
@@ -109,11 +111,13 @@ public class ImportDataController {
 	 * @param response
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	@RequestMapping(value="/srv/ImportDataController/getAllTemplateColums.srv")
 	public void getAllTemplateColums (HttpServletRequest request, HttpServletResponse response){
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
+		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
 		String jsonObject=new Gson().toJson(sheetColumnList);
 		try {
@@ -133,11 +137,13 @@ public class ImportDataController {
 	 * @return
 	 * @throws IOException
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes", "deprecation" })
 	@RequestMapping(value="/srv/ImportDataController/ImportExcelCustomerData.srv")
 	public void ImportExceCustomerData(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file) throws IOException{
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
+		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
         String fileName=file.getOriginalFilename();
        try {
@@ -201,15 +207,13 @@ public class ImportDataController {
 	            		
 	            		}
 	            		map.put(sheetColumnList.get(j).getField(),value);
-	            	}else{
-		            	map.put(sheetColumnList.get(j).getField(),"");
-		            }
+	            	}
 	         	
 		            }
 		            dataList.add(map);
 				}
-				
-			String jsonObject=new Gson().toJson(dataList);
+			Map<String,Object> resultMap=dataImportJdbc.createTepporaryImportTable(sheetColumnList, dataList, bizId);
+			String jsonObject=new Gson().toJson(resultMap);
 			PrintWriter printWriter = response.getWriter();
 			printWriter.print(jsonObject);
 			
@@ -217,6 +221,28 @@ public class ImportDataController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	/**
+	 * 获取中间表数据
+	 */
+	@RequestMapping(value="/srv/ImportDataController/getImportExcelData.srv")
+	public  void getImportExcelData(HttpServletRequest request, HttpServletResponse response){
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
+		Integer pageNum=Integer.valueOf(request.getParameter("pageNumber"));
+		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		//获取前台要展示的字段
+		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
+		List<Map<String, Object>> dataList = dataImportJdbc.getImportExcelData(bizId, sheetColumnList, pageNum);
+		String jsonObject=new Gson().toJson(dataList);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	/**
 	 * 获取数据源的数据
@@ -229,6 +255,7 @@ public class ImportDataController {
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
+		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		List<Map<String,Object>> allDataList=new ArrayList<Map<String,Object>>();
 		//获取要展示的列
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
@@ -255,6 +282,7 @@ public class ImportDataController {
 	 * @param response
 	 * @throws IOException 
 	 */
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value="/srv/ImportDataController/saveCustomerDataToDB.srv")
 	public void saveCustomerDataToDB(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		HttpSession session = request.getSession();
@@ -264,6 +292,7 @@ public class ImportDataController {
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
+		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		String operationName=request.getParameter("operationName");
 		WorkSheet workSheet=dataImportJdbc.getWorkSheet(workSheetId);
 		String tableName=workSheet.getName();
