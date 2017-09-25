@@ -79,44 +79,50 @@ public class SingleNumberOutboundDataManage {
 
         // TODO 目前取得就走了，其实可以PEEK遍后比较拨打时间，确定先取那个客户
         shareBatchIdVsCustomerMap = mapPresetDialCustomer.get(bizId);
-        for (ShareBatchItem shareBatchItem : shareBatchItemList) {
-            customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
-            if (null == customerQueue)
-                continue;
+        if (null != shareBatchIdVsCustomerMap) {
+            for (ShareBatchItem shareBatchItem : shareBatchItemList) {
+                customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
+                if (null == customerQueue)
+                    continue;
 
-            shareDataItem = customerQueue.peek();
-            if (null == shareDataItem)
-                continue;
+                shareDataItem = customerQueue.peek();
+                if (null == shareDataItem)
+                    continue;
 
-            if (shareDataItem.getNextDialTime().before(now)) {
-                shareDataItem = customerQueue.poll();
-                break;
+                if (shareDataItem.getNextDialTime().before(now)) {
+                    shareDataItem = customerQueue.poll();
+                    break;
+                }
             }
         }
 
         if (null == shareDataItem) {
             shareBatchIdVsCustomerMap = mapPhaseDialCustomer.get(bizId);
-            for (ShareBatchItem shareBatchItem : shareBatchItemList) {
-                customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
-                if (null == customerQueue)
-                    continue;
+            if (null != shareBatchIdVsCustomerMap) {
+                for (ShareBatchItem shareBatchItem : shareBatchItemList) {
+                    customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
+                    if (null == customerQueue)
+                        continue;
 
-                shareDataItem = customerQueue.poll();
-                if (null != shareDataItem)
-                    break;
+                    shareDataItem = customerQueue.poll();
+                    if (null != shareDataItem)
+                        break;
+                }
             }
         }
 
         if (null == shareDataItem) {
             shareBatchIdVsCustomerMap = mapDialCustomer.get(bizId);
-            for (ShareBatchItem shareBatchItem : shareBatchItemList) {
-                customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
-                if (null == customerQueue)
-                    continue;
+            if (null != shareBatchIdVsCustomerMap) {
+                for (ShareBatchItem shareBatchItem : shareBatchItemList) {
+                    customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
+                    if (null == customerQueue)
+                        continue;
 
-                shareDataItem = customerQueue.poll();
-                if (null != shareDataItem)
-                    break;
+                    shareDataItem = customerQueue.poll();
+                    if (null != shareDataItem)
+                        break;
+                }
             }
         }
 
