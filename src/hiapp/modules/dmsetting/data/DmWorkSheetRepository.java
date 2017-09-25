@@ -210,7 +210,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("坐席使用状态", "USERUSESTATE", "坐席使用状态", WorkSheetDataType.TEXT, 20, false, true);
 			creationInfoWorkSheet.addColumn("是否内存加载", "ISMEMORYLOADIN", "是否内存加载", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改ID", WorkSheetDataType.INT, -1, false, true);
-			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, -1, false, true);
 			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("修改描述", "MODIFYDESC", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
 			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
@@ -245,7 +245,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("坐席使用状态", "USERUSESTATE", "坐席使用状态", WorkSheetDataType.TEXT, 20, false, true);
 			creationInfoWorkSheet.addColumn("是否内存加载", "ISMEMORYLOADIN", "是否内存加载", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改ID", WorkSheetDataType.INT, -1, false, true);
-			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, -1, false, true);
 			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("修改描述", "MODIFYDESC", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
 			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
