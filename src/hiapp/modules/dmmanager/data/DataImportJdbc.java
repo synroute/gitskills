@@ -45,11 +45,9 @@ public class DataImportJdbc extends BaseRepository{
 	 */
 	public List<Business> getBusinessData(int pemissId) throws IOException{
 		List<Business> businessList=new ArrayList<Business>();
-		List<Integer> ornizeIdList=new ArrayList<Integer>();
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
-		
 		try {
 			conn= this.getDbConnection();
 			String getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? and a.itemname ='数据管理'";
@@ -262,6 +260,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
+	@SuppressWarnings({ "resource", "unused", "unchecked", "rawtypes" })
 	public List<Map<String,Object>> getDbData(Integer temPlateId,Integer bizId) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -428,8 +427,8 @@ public class DataImportJdbc extends BaseRepository{
     	Connection conn=null;
 		PreparedStatement pst = null;
 		PreparedStatement pst1 = null;
+		Statement statement= null;
 		ResultSet rs = null;
-		Statement statement=null;
 		List<String> stringList=new ArrayList<String>();
 		List<String> dataTypeList=new ArrayList<String>();
 		List<String> columList=new ArrayList<String>();
@@ -488,13 +487,21 @@ public class DataImportJdbc extends BaseRepository{
 					stringList.add(String.valueOf(rs.getInt(1)));
 				}
 			}
-			//向导入表插数据
+			//数据池记录表里面插数据
+			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+									+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
+			pst=conn.prepareStatement(isnertDataPoolSql);
+			//数据池操作记录表里面插数据
+			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
+										+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
+			pst1=conn.prepareStatement(dataPoolOperationSql);
 			statement=conn.createStatement();
+			//向导入表插数据
 			for (int i = 0; i < isnertData.size(); i++) {
 				String data=(String) isnertData.get(i).get(RepetitionColumn);
 				Boolean ifRepeat=true;
 				for(int h=0;h<stringList.size();h++){
-					if(data.equals(stringList.get(h))){
+					if(data!=null&&data.equals(stringList.get(h))){
 						repeatColumns.add(data);
 						ifRepeat=false;
 						break;
@@ -503,10 +510,7 @@ public class DataImportJdbc extends BaseRepository{
 				if(ifRepeat){
 					String customerBatchId=idfactory.newId("DM_CID");//客户号
 					String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-					//数据池记录表里面插数据
-					String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-											+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
-					pst=conn.prepareStatement(isnertDataPoolSql);
+					
 					pst.setString(1,disBatchId);
 					pst.setString(2, importBatchId);
 					pst.setString(3,customerBatchId);
@@ -516,10 +520,7 @@ public class DataImportJdbc extends BaseRepository{
 					pst.setInt(7, 0);
 					pst.setInt(8, 0);
 					pst.setString(9, userId);
-					//数据池操作记录表里面插数据
-					String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
-												+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
-					pst1=conn.prepareStatement(dataPoolOperationSql);
+				
 					pst1.setString(1,disBatchId);
 					pst1.setString(2, importBatchId);
 					pst1.setString(3,customerBatchId);
@@ -530,7 +531,6 @@ public class DataImportJdbc extends BaseRepository{
 					pst1.setInt(8, 0);
 					pst1.setInt(9, 0);
 					pst1.setString(10, userId);
-					
 					for (int k = 0; k < dataArray.size(); k++) {
 						String excelHeader=dataArray.get(k).getAsJsonObject().get("ExcelHeader").getAsString();
 						if(excelHeader!=null&&!"".equals(excelHeader)){
@@ -556,18 +556,35 @@ public class DataImportJdbc extends BaseRepository{
 					}
 					insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+")";
 					statement.addBatch(insertImportDataSql);
-					pst.executeUpdate();
-					pst1.executeUpdate();
+					pst.addBatch();
+					pst1.addBatch();
 				}
 				
 				
 			}
 			resultMap.put("repeatColumn", repeatColumns);
 			resultMap.put("flag", 1);
+			pst.executeBatch();
+			pst1.executeBatch();
 			statement.executeBatch();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			try {
+				if(pst1!=null){
+					pst1.close();
+				}
+				if(statement!=null){
+					statement.close();
+				}
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			DbUtil.DbCloseConnection(conn);
 		}
     	return resultMap;
     }
@@ -591,15 +608,20 @@ public class DataImportJdbc extends BaseRepository{
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			//获取导入表字段所属类型
 			getDataType(dataTypeList,columList,dataArray,workSheetId,2);
+			//数据池记录表里面插数据
+			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+									+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
+			pst=conn.prepareStatement(isnertDataPoolSql);
+			//数据池操作记录表里面插数据
+			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
+										+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
+			pst1=conn.prepareStatement(dataPoolOperationSql);
 			//向导入表插数据
 			statement=conn.createStatement();
 			for (int i = 0; i < isnertData.size(); i++) {
 				String customerBatchId=idfactory.newId("DM_CID");//客户号
 				String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-				//数据池记录表里面插数据
-				String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-										+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
-				pst=conn.prepareStatement(isnertDataPoolSql);
+				
 				pst.setString(1,disBatchId);
 				pst.setString(2, importBatchId);
 				pst.setString(3,customerBatchId);
@@ -609,10 +631,7 @@ public class DataImportJdbc extends BaseRepository{
 				pst.setInt(7, 0);
 				pst.setInt(8, 0);
 				pst.setString(9, userId);
-				//数据池操作记录表里面插数据
-				String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
-											+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
-				pst1=conn.prepareStatement(dataPoolOperationSql);
+			
 				pst1.setString(1,disBatchId);
 				pst1.setString(2, importBatchId);
 				pst1.setString(3,customerBatchId);
@@ -649,14 +668,31 @@ public class DataImportJdbc extends BaseRepository{
 				}
 				insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+")";
 				statement.addBatch(insertImportDataSql);
-				pst.executeUpdate();
-				pst1.executeUpdate();
+				pst.addBatch();
+				pst1.addBatch();
 			}
+			pst.executeBatch();
+			pst1.executeBatch();
 			statement.executeBatch();
 			resultMap.put("flag", 2);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			try {
+				if(pst1!=null){
+					pst1.close();
+				}
+				if(statement!=null){
+					statement.close();
+				}
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
     }
@@ -704,8 +740,138 @@ public class DataImportJdbc extends BaseRepository{
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
 		}
     	
+    }
+    /**
+     * 创建中间表并保存数据
+     */
+    public  Map<String,Object> createTepporaryImportTable(List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> dataList,Integer bizId){
+    	Connection conn=null;
+		PreparedStatement pst = null;
+		Statement statement=null;
+		ResultSet rs=null;
+		Map<String,Object>  resultMap=new HashMap<String, Object>();
+		String tableName="HAU_DM_B"+bizId+"C_IMPORT_TEMP";
+		try {
+			conn=this.getDbConnection();
+			String selectTable="select table_name from user_tables where table_name=?";
+			pst=conn.prepareStatement(selectTable);
+			pst.setString(1,tableName);
+			rs=pst.executeQuery();
+			String dbTableName=null;
+			while(rs.next()){
+				dbTableName=rs.getString(1);
+			}
+			
+			if(dbTableName==null){
+				//创建临时表
+				String createTableSql="create table "+tableName+"(";
+				for (int i = 0; i < sheetColumnList.size(); i++) {
+					String type=sheetColumnList.get(i).getDataType();
+					String columnName=sheetColumnList.get(i).getField();
+					if("varchar".equals(type.toLowerCase())){
+						createTableSql+=columnName+"  VARCHAR2("+sheetColumnList.get(i).getLength()+"),";
+					}else if("int".equals(type.toLowerCase())){
+						createTableSql+=columnName+"  NUMBER,";
+					}else if("datetime".equals(type.toLowerCase())){
+						createTableSql+=columnName+"  DATE,";
+					}
+				}
+				
+				createTableSql=createTableSql.substring(0, createTableSql.length()-1)+")";
+				pst=conn.prepareStatement(createTableSql);
+				pst.executeUpdate();
+			}
+			
+			//临时表插数据 
+			statement=conn.createStatement();
+			for(int i=0;i<dataList.size();i++){
+				String insertDataSql="insert into "+tableName+"(ID,";
+				String valuesSql=" values(S_HAU_DM_B101C_IMPORT.nextval,";
+				for (int j = 0; j < sheetColumnList.size(); j++) {
+					String columnName=sheetColumnList.get(j).getField();
+					String type=sheetColumnList.get(j).getDataType();
+					if(dataList.get(i).keySet().contains(columnName)){
+						insertDataSql+=columnName+",";
+						if(type.toLowerCase().startsWith("varchar")){
+							valuesSql+="'"+dataList.get(i).get(columnName)+"',";
+						}else if(type.toLowerCase().startsWith("int")){
+							valuesSql+=dataList.get(i).get(columnName)+",";
+						}else if(type.toLowerCase().startsWith("datetime")){
+							valuesSql+="to_date('"+dataList.get(i).get(columnName)+"','yyyy-mm-dd'),";
+						}
+					}
+				}
+				insertDataSql=insertDataSql.substring(0,insertDataSql.length()-1)+")"+valuesSql.substring(0,valuesSql.length()-1)+")";
+				statement.addBatch(insertDataSql);
+			}
+			statement.executeBatch();
+			resultMap.put("result", true);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			resultMap.put("result", false);
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			try {
+				if(statement!=null){
+					statement.close();
+				}
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			DbUtil.DbCloseConnection(conn);
+		}
+    	return resultMap;
+    }
+    /**
+     * 获取导入表数据
+     */
+    public List<Map<String,Object>> getImportExcelData(Integer bizId,List<WorkSheetColumn> sheetColumnList,Integer num){
+    	List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
+    	Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs=null;
+		String tableName="HAU_DM_B"+bizId+"C_IMPORT_TEMP";
+		Integer startNum=(num-1)*10+1;
+		Integer endNum=num*10+1;
+		try {
+			conn=this.getDbConnection();
+			//查询出要展示的数据
+			String getDataSql1="select ";
+			String getDataSql2=" select ";
+			for(int i = 0; i < sheetColumnList.size(); i++) {
+				String column=sheetColumnList.get(i).getField();
+				getDataSql1+=column+",";
+				getDataSql2+=column+",";
+			}
+			getDataSql2="("+getDataSql2+"rownum rn from "+tableName+" where rownum<? order by id desc) a";
+			getDataSql1=getDataSql1.substring(0,getDataSql1.length()-1)+" from"+getDataSql2+" where rn>=?";
+			pst=conn.prepareStatement(getDataSql1);
+			pst.setInt(1, endNum);
+			pst.setInt(2,startNum);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				Map<String,Object> map=new HashMap<String, Object>();
+				for (int i = 0; i < sheetColumnList.size(); i++) {
+					String column=sheetColumnList.get(i).getField();
+					if(rs.getObject(column)!=null&&!"ID".equals(column.toUpperCase())){
+						map.put(column, rs.getObject(column));
+					}
+				}
+				dataList.add(map);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return dataList;
     }
    
     /**
@@ -716,7 +882,8 @@ public class DataImportJdbc extends BaseRepository{
      * @param userId
      * @param customerInfo
      */
-  public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo){
+  @SuppressWarnings({ "unchecked", "unused" })
+public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo){
 	  Connection conn=null;
 	  PreparedStatement pst = null;
 	  String tableName="HAU_DM_B"+bizId+"C_IMPORT";
@@ -738,11 +905,22 @@ public class DataImportJdbc extends BaseRepository{
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
+	}finally{
+		try {
+			if(pst!=null){
+				pst.close();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		DbUtil.DbCloseConnection(conn);
 	}
 	  
   }
    
-  public void insertDataToResultTable(Integer bizId,String sourceID,String importBatchId,String customerId,String userId,String customerInfo){
+  @SuppressWarnings({ "unchecked", "unused" })
+public void insertDataToResultTable(Integer bizId,String sourceID,String importBatchId,String customerId,String userId,String customerInfo){
 	  Connection conn=null;
 	  PreparedStatement pst = null;
 	  String tableName="HAU_DM_B"+bizId+"C_Result";
@@ -763,6 +941,16 @@ public class DataImportJdbc extends BaseRepository{
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
+	}finally{
+		try {
+			if(pst!=null){
+				pst.close();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		DbUtil.DbCloseConnection(conn);
 	}
 	  
   }
