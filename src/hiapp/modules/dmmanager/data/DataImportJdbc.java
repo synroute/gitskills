@@ -380,7 +380,7 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				dataPoolNumber=rs.getInt(1);
 			}
-			if("Excel导入".equals(operationName)){
+			if("Excel".equals(operationName)){
 				resultMap=insertExcelData(jsonData,workSheetId,tableName,isnertData,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
 			}else{
 				resultMap=insertDbData(bizId,jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);

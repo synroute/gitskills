@@ -167,7 +167,7 @@ public class DMBizDataShare extends BaseRepository {
 					stmt = dbConn.prepareStatement(insertsql);
 					stmt.execute();
 				    //更改数据池记录表数据
-					updatesql=String.format("UPDATE "+HAU_DM_BC_POOL+" SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s' AND CID='%s'",customerId,poolID,poolID,0,1,importId,customerId);
+					updatesql=String.format("UPDATE "+HAU_DM_BC_POOL+" SET SOURCEID='%s',CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s' AND CID='%s'",newShareId,customerId,poolID,poolID,0,1,importId,customerId);
 		        	stmt = dbConn.prepareStatement(updatesql);
 					stmt.execute();
 					//数据池操作记录表
