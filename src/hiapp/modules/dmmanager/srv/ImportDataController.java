@@ -229,12 +229,13 @@ public class ImportDataController {
 	public  void getImportExcelData(HttpServletRequest request, HttpServletResponse response){
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
-		Integer pageNum=Integer.valueOf(request.getParameter("pageNumber"));
+		Integer pageNum=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		//获取前台要展示的字段
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-		List<Map<String, Object>> dataList = dataImportJdbc.getImportExcelData(bizId, sheetColumnList, pageNum);
-		String jsonObject=new Gson().toJson(dataList);
+		Map<String,Object> resultMap = dataImportJdbc.getImportExcelData(bizId, sheetColumnList, pageNum,pageSize);
+		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();
 			printWriter.print(jsonObject);
@@ -254,12 +255,15 @@ public class ImportDataController {
 	public void ImportDBCustomerData(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		Integer pageNum=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
 		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		List<Map<String,Object>> allDataList=new ArrayList<Map<String,Object>>();
 		//获取要展示的列
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-		List<Map<String,Object>> dataList=dataImportJdbc.getDbData(temPlateId, bizId);
+		Map<String,Object> resultMap=dataImportJdbc.getDbData(temPlateId, bizId,pageNum,pageSize);
+		List<Map<String,Object>> dataList=(List<Map<String, Object>>) resultMap.get("rows");
 		for (int i = 0; i < dataList.size(); i++) {
 			Map<String,Object> map=new HashMap<String, Object>();
 			for (int j = 0; j < sheetColumnList.size(); j++) {
@@ -271,7 +275,8 @@ public class ImportDataController {
 			}
 			allDataList.add(map);
 		}
-		String jsonObject=new Gson().toJson(allDataList);
+		resultMap.put("rows",allDataList);
+		String jsonObject=new Gson().toJson(resultMap);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
 		

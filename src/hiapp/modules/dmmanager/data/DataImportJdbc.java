@@ -261,14 +261,18 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource", "unused", "unchecked", "rawtypes" })
-	public List<Map<String,Object>> getDbData(Integer temPlateId,Integer bizId) throws IOException{
+	public Map<String,Object> getDbData(Integer temPlateId,Integer bizId,Integer num,Integer pageSize) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String jsonData=null;
 		String getDbDataSql="select ";
+		String getDbDataSql1="select ";
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
+		Map<String,Object> resultMap=new HashMap<String, Object>();
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
 		try {
 			conn= this.getDbConnection();
 			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
@@ -294,12 +298,13 @@ public class DataImportJdbc extends BaseRepository{
 			List<String> newList=new ArrayList<String>(new HashSet(sourceColumns));
 			for (int i = 0; i < newList.size(); i++) {
 				getDbDataSql+=newList.get(i)+",";
+				getDbDataSql1+=newList.get(i)+",";
 			}
-			getDbDataSql=getDbDataSql.substring(0, getDbDataSql.length()-1)+" from "+sourceTableName;
+			getDbDataSql=getDbDataSql.substring(0, getDbDataSql.length()-1)+" from ("+getDbDataSql1+"rownum rn from "+sourceTableName+" where rownum<?) a where rn>=?";
 			pst=conn.prepareStatement(getDbDataSql);
+			pst.setInt(1, endNum);
+			pst.setInt(2,startNum);
 			rs = pst.executeQuery();
-			ResultSetMetaData md = rs.getMetaData();//获得结果集结构信息,元数据 
-			
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int i = 0; i < dataArray.size(); i++) {
@@ -316,6 +321,17 @@ public class DataImportJdbc extends BaseRepository{
 				
 				dataList.add(map);
 			}
+			String  countSql="select count(*) from "+sourceTableName;
+			pst=conn.prepareStatement(countSql);
+			rs=pst.executeQuery();
+			Integer total=null;
+			while(rs.next()){
+				total=rs.getInt(1);
+			}
+			
+			resultMap.put("rows",dataList);
+			resultMap.put("total",total);
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -323,7 +339,7 @@ public class DataImportJdbc extends BaseRepository{
 			DbUtil.DbCloseQuery(rs,pst);
 			DbUtil.DbCloseConnection(conn);
 		}
-		return dataList;
+		return resultMap;
 	}
 	/**
 	 * 保存导入数据
@@ -833,14 +849,15 @@ public class DataImportJdbc extends BaseRepository{
     /**
      * 获取导入表数据
      */
-    public List<Map<String,Object>> getImportExcelData(Integer bizId,List<WorkSheetColumn> sheetColumnList,Integer num){
+    public Map<String,Object> getImportExcelData(Integer bizId,List<WorkSheetColumn> sheetColumnList,Integer num,Integer pageSize){
     	List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
+    	Map<String,Object> resultMap=new HashMap<String, Object>();
     	Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs=null;
 		String tableName="HAU_DM_B"+bizId+"C_IMPORT_TEMP";
-		Integer startNum=(num-1)*10+1;
-		Integer endNum=num*10+1;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
 		try {
 			conn=this.getDbConnection();
 			//查询出要展示的数据
@@ -867,11 +884,21 @@ public class DataImportJdbc extends BaseRepository{
 				}
 				dataList.add(map);
 			}
+			
+			String  countSql="select count(*) from "+tableName;
+			pst=conn.prepareStatement(countSql);
+			rs=pst.executeQuery();
+			Integer total=null;
+			while(rs.next()){
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows",dataList);
+			resultMap.put("total",total);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	return dataList;
+    	return resultMap;
     }
    
     /**
