@@ -105,7 +105,7 @@ public class DMBizMangeShare extends BaseRepository{
 					String HAUDMBCDATAM3="HAU_DM_B"+bizid+"C_DATAM3";
 					try {
 						dbConn = this.getDbConnection();
-						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B,(SELECT DATAPOOLTYPE from HASYS_DM_DATAPOOL where BUSINESSID=?) C WHERE C.DATAPOOLTYPE=? AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'mm/dd/yyyy') AND A.CREATETIME < to_date(?,'mm/dd/yyyy') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME";
+						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B,(SELECT DATAPOOLTYPE from HASYS_DM_DATAPOOL where BUSINESSID=?) C WHERE C.DATAPOOLTYPE=? AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME";
 						stmt = dbConn.prepareStatement(sql);
 						stmt.setInt(1,bizid);
 						stmt.setInt(2,permissionId);
@@ -165,7 +165,7 @@ public class DMBizMangeShare extends BaseRepository{
 			sb.deleteCharAt(sb.length()-1);
 			try {
 				dbConn=this.getDbConnection();
-				sql = "UPDATE HASYS_DM_SID SET CREATEUSERID=?,STARTTIME=to_date(?,'yyyy-MM-dd HH:mm:ss'),ENDTIME=to_date(?,'yyyy-MM-dd HH:mm:ss') WHERE SHAREID in ('"+sb+"')";
+				sql = "UPDATE HASYS_DM_SID SET CREATEUSERID=?,STARTTIME=to_date(?,'yyyy-MM-dd hh24:mi:ss'),ENDTIME=to_date(?,'yyyy-MM-dd hh24:mi:ss') WHERE SHAREID in ('"+sb+"')";
 				stmt = dbConn.prepareStatement(sql);
 				stmt.setString(1,user.getId()); 
 				stmt.setString(2,startTime);
@@ -346,11 +346,10 @@ public class DMBizMangeShare extends BaseRepository{
 			String HAU_DM_BC_POOL_ORE="HAU_DM_B"+businessID+"C_POOL_ORE";
 			PreparedStatement stmt = null;
 	        Connection dbConn=null;
+	        try {
+	        	dbConn=this.getDbConnection();
 	        for (int i = 0; i < shareId.length; i++) {
 			shareid = shareId[i];
-			}
-			try {
-				dbConn=this.getDbConnection();
 				//不自动提交数据
 				dbConn.setAutoCommit(false);
 				//删除共享批次信息表里面的数据
@@ -379,6 +378,7 @@ public class DMBizMangeShare extends BaseRepository{
 				stmt.execute();
 				//无异常提交代码
 				dbConn.commit();
+	        }
 			} catch (Exception e) {
 				//有异常回滚
 				dbConn.rollback();

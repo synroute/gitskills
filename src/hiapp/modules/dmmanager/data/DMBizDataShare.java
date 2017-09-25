@@ -32,6 +32,7 @@ import java.util.Map;
 
 
 
+
 /*import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;*/
 import org.springframework.stereotype.Repository;
@@ -86,11 +87,9 @@ public class DMBizDataShare extends BaseRepository {
 			}
 			sb.deleteCharAt(sb.length()-1);
 			sql+=sb;
-			sql=sql+" from "+workSheetImport+" where CID IN (select  b.CID from HASYS_DM_IID a,"+workSheetPool+" b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=? AND  a.IMPORTTIME >to_date(?,'MM/dd/yyyy') and a.IMPORTTIME <to_date(?,'MM/dd/yyyy'))";
+			sql=sql+" from "+workSheetImport+" where CID IN (select  b.CID from HASYS_DM_IID a,"+workSheetPool+" b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=? AND  a.IMPORTTIME >to_date('"+StartTime+"','yyyy-MM-dd hh24:mi:ss') and a.IMPORTTIME <to_date('"+EndTime+"','yyyy-MM-dd hh24:mi:ss'))";
 			stmt=dbConn.prepareStatement(sql);
 			stmt.setInt(1,bizid);
-			stmt.setString(2,StartTime);
-			stmt.setString(3,EndTime);
 			rs = stmt.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
@@ -127,12 +126,14 @@ public class DMBizDataShare extends BaseRepository {
     }  
 	//创建共享和追加共享
 	@SuppressWarnings("resource")
-	public ServiceResultCode addConfirmShareData(int businessId,String importId,User user, String newShareId,String customerId,String shareName,String description) throws Exception{
+	public ServiceResultCode addConfirmShareData(int businessId,String[] importIds,User user, String newShareId,String[] customerIds,String shareName,String description) throws Exception{
 		String insertsql = "";
 		String updatesql="";
+		String sqlPool="";
 		PreparedStatement stmt = null;
 		Connection dbConn = null;
 		ResultSet rs = null;
+		
 		//数据池id
 		int poolID=0;
 		//单号码重拨共享表
@@ -144,34 +145,36 @@ public class DMBizDataShare extends BaseRepository {
 		//数据池操作记录表
 		String HAU_DM_BC_POOL_ORE="HAU_DM_B"+businessId+"C_POOL_ORE";
 		try {
-				String sqlPool="";
 				dbConn = this.getDbConnection();
-				//不自动提交数据
-				dbConn.setAutoCommit(false);
-				//查找数据池id ok
-				sqlPool =String.format("SELECT ID FROM HASYS_DM_DATAPOOL WHERE BUSINESSID=%s AND DATAPOOLTYPE=1",businessId); //更改
-				stmt = dbConn.prepareStatement(sqlPool);
-				rs = stmt.executeQuery();
-				while(rs.next()){
-				poolID = rs.getInt(1);
+				for (int i = 0; i < customerIds.length; i++) {
+					String importId = importIds[i];
+					String customerId=customerIds[i];
+					//不自动提交数据
+					dbConn.setAutoCommit(false);
+					//查找数据池id ok
+					sqlPool =String.format("SELECT ID FROM HASYS_DM_DATAPOOL WHERE BUSINESSID=%s AND DATAPOOLTYPE=1",businessId); //更改
+					stmt = dbConn.prepareStatement(sqlPool);
+					rs = stmt.executeQuery();
+					while(rs.next()){
+					poolID = rs.getInt(1);
+					}
+					//单号码重拨共享表
+					insertsql =String.format("INSERT INTO "+HASYS_DM_BC_DATAM3+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId()) ;
+					stmt = dbConn.prepareStatement(insertsql);
+					stmt.execute();
+				    //单号码重拨共享历史表
+					insertsql =String.format("INSERT INTO "+HAU_DM_BC_DATAM3_HIS+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId());
+					stmt = dbConn.prepareStatement(insertsql);
+					stmt.execute();
+				    //更改数据池记录表数据
+					updatesql=String.format("UPDATE "+HAU_DM_BC_POOL+" SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s' AND CID='%s'",customerId,poolID,poolID,0,1,importId,customerId);
+		        	stmt = dbConn.prepareStatement(updatesql);
+					stmt.execute();
+					//数据池操作记录表
+					insertsql=String.format("INSERT INTO "+HAU_DM_BC_POOL_ORE+" (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",newShareId,importId,customerId,OperationNameEnum.Sharing,poolID,poolID,0,1,0,user.getId());
+					stmt = dbConn.prepareStatement(insertsql);
+					stmt.execute();
 				}
-				//单号码重拨共享表
-				insertsql =String.format("INSERT INTO "+HASYS_DM_BC_DATAM3+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId()) ;
-				stmt = dbConn.prepareStatement(insertsql);
-				stmt.execute();
-			    //单号码重拨共享历史表
-				insertsql =String.format("INSERT INTO "+HAU_DM_BC_DATAM3_HIS+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId());
-				stmt = dbConn.prepareStatement(insertsql);
-				stmt.execute();
-			    //更改数据池记录表数据
-				updatesql=String.format("UPDATE "+HAU_DM_BC_POOL+" SET CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s' AND CID='%s'",customerId,poolID,poolID,0,1,importId,customerId);
-	        	stmt = dbConn.prepareStatement(updatesql);
-				stmt.execute();
-				//数据池操作记录表
-				insertsql=String.format("INSERT INTO "+HAU_DM_BC_POOL_ORE+" (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",newShareId,importId,customerId,OperationNameEnum.Sharing,poolID,poolID,0,1,0,user.getId());
-				stmt = dbConn.prepareStatement(insertsql);
-				stmt.execute();
-				//共享批次信息表
 				insertsql = String.format("INSERT INTO HASYS_DM_SID (ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION) VALUES(S_HASYS_DM_SID.NEXTVAL,%s,'%s','%s','%s',sysdate,'%s')",businessId,newShareId,shareName,user.getId(),description);
 				stmt = dbConn.prepareStatement(insertsql);
 				stmt.execute();

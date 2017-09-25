@@ -51,7 +51,7 @@ public class DMBizMangeShareController {
 	private PermissionRepository permissionRepository;
     @Autowired
     private DmWorkSheetRepository dmWorkSheetRepository;
-	// 根据userid的权限 获取到所有业务下共享批次客户数据
+	// 根据userid的权限和业务id 获取到所有业务下共享批次客户数据
 	@RequestMapping(value = "/srv/DMBizMangeShareController/getUserShareBatch.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String getUserShareBatch(HttpServletRequest request,
 			@RequestParam(value = "businessId") String businessID){
@@ -204,6 +204,7 @@ public class DMBizMangeShareController {
 	}
 	
 	//对指定共享批次数据进行删除
+	@RequestMapping(value = "/srv/DMBizMangeShareController/DeleteShareBatchDataByShareId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String DeleteShareBatchDataByShareId(
 			@RequestParam(value = "shareID") String shareID,
 			@RequestParam(value = "businessID") String businessID){

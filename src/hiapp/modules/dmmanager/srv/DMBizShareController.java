@@ -92,15 +92,11 @@ public class DMBizShareController {
 		ServiceResultCode serviceResultCode=null;
 		String newShareId = idFactory.newId("DM_SID");
 		int bizid=Integer.parseInt(businessId);
-		String[] ary = importId.split(",");
+		String[] iId = importId.split(",");
 		String[] customerid=Cid.split(",");
 		String returnMessage=null;
 		try {
-			for (int j = 0; j < customerid.length; j++) {
-				 String iId = ary[j];
-				 String customerId=customerid[j];
-				 serviceResultCode=dMBizDataShare.addConfirmShareData(bizid,iId, user,newShareId,customerId, shareName, description);
-			}
+				 serviceResultCode=dMBizDataShare.addConfirmShareData(bizid,iId, user,newShareId,customerid, shareName, description);
 			if(serviceResultCode != ServiceResultCode.SUCCESS){
 		    	 serviceresult.setResultCode(serviceResultCode);
 				 serviceresult.setReturnMessage("共享失败"); 
@@ -132,16 +128,12 @@ public class DMBizShareController {
 		ServiceResult serviceresult = new ServiceResult();
 		ServiceResultCode serviceResultCode=null;
 		int bizid=Integer.parseInt(businessId);
-		String[] ary = importId.split(",");
+		String[] importid = importId.split(",");
 		String[] customerid=Cid.split(",");
 		String returnMessage=null;
 		try {
 			for (int j = 0; j < customerid.length; j++) {
-				 String iId = ary[j];
-				 iId.toString();
-				 String customerId=customerid[j];
-				 customerId.toString();
-				 serviceResultCode=dMBizDataShare.addConfirmShareData(bizid,iId, user,newShareId,customerId, shareName, description);
+				 serviceResultCode=dMBizDataShare.addConfirmShareData(bizid,importid, user,newShareId,customerid, shareName, description);
 			}
 			if(serviceResultCode != ServiceResultCode.SUCCESS){
 		    	 serviceresult.setResultCode(serviceResultCode);
