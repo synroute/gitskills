@@ -132,9 +132,7 @@ public class DMBizShareController {
 		String[] customerid=Cid.split(",");
 		String returnMessage=null;
 		try {
-			for (int j = 0; j < customerid.length; j++) {
 				 serviceResultCode=dMBizDataShare.addConfirmShareData(bizid,importid, user,newShareId,customerid, shareName, description);
-			}
 			if(serviceResultCode != ServiceResultCode.SUCCESS){
 		    	 serviceresult.setResultCode(serviceResultCode);
 				 serviceresult.setReturnMessage("共享失败"); 
