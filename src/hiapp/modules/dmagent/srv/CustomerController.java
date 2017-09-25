@@ -5,18 +5,14 @@ import hiapp.modules.dmagent.QueryTemplate;
 import hiapp.modules.dmagent.TableNameEnume;
 import hiapp.modules.dmagent.data.CustomerRepository;
 import hiapp.system.buinfo.User;
-import hiapp.system.dictionary.DictItem;
-import hiapp.system.dictionary.data.DictRepository;
 import hiapp.system.dictionary.srv.DictionaryConfigurationController;
 import hiapp.utils.base.HiAppException;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
@@ -31,8 +27,6 @@ import com.google.gson.Gson;
 public class CustomerController {
 	@Autowired
 	private CustomerRepository customerRepository;
-	@Autowired
-	private DictRepository dictRepository;
 	@Autowired
 	private DictionaryConfigurationController dictionaryConfigurationController;
 
@@ -51,52 +45,6 @@ public class CustomerController {
 		return result;
 	}
 
-	/*// 根据字典id和字典级别id获取字典文本
-	@RequestMapping(value = "/srv/agent/getItemsByDictIdAndLevel.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public List<String> getItemsByDictIdAndLevel(int dicId, int level) {
-		// 拿数据
-		List<DictItem> listDictItem = new ArrayList<DictItem>();
-		dictRepository.getDicItemsByDicId(String.valueOf(dicId), listDictItem);
-		ArrayList<String> arrayList = new ArrayList<String>();
-		// 参数不合理
-		if (level < 0 || level > 4) {
-			return arrayList;
-		}
-		// 当字典级别为1
-		Set<Integer> set = new HashSet<Integer>();
-
-		for (DictItem dictItem : listDictItem) {
-			if (dictItem.getItemParent() == -1) {
-				arrayList.add(dictItem.getItemText());
-				set.add(dictItem.getItemId());
-			}
-		}
-		if (1 == level) {
-			return arrayList;
-		}
-		// 字典级别为其他
-		int count = 2;
-		while (count <= level) {
-			arrayList = new ArrayList<String>();
-			Set<Integer> newSet = new HashSet<Integer>();
-			for (DictItem dictItem : listDictItem) {
-				for (int pId : set) {
-					if (dictItem.getItemParent() == pId) {
-						arrayList.add(dictItem.getItemText());
-						newSet.add(dictItem.getItemId());
-					}
-				}
-			}
-			set = newSet;
-			if (count == level) {
-				return arrayList;
-			}
-			count++;
-		}
-		return new ArrayList<String>();
-	}
-*/
-	
 
 	/**
 	 * 获取配置筛选模板时需要使用的待选列
@@ -265,42 +213,7 @@ public class CustomerController {
 		return getFilterTemplate(queryTemplate);
 	}
 
-	/**
-	 * 讲数据注入模板
-	 * 
-	 * @return
-	 */
-	/*
-	 * @SuppressWarnings("rawtypes") public String dataToListPattern1(Map[][]
-	 * data) { return
-	 * "<table width=100% height=100% cellpadding=0 cellspacing=0>" +
-	 * "<tr height=18px>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[0][0].get("fontColor") + "'>" + data[0][0].get("value") + "</th>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[0][1].get("fontColor") + "'>" + data[0][1].get("value") + "</th>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[0][2].get("fontColor") + "'>" + data[0][2].get("value") + "</th>" +
-	 * "</tr>"
-	 * 
-	 * + "<tr height=18px>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[1][0].get("fontColor") + "'>" + data[1][0].get("value") + "</th>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[1][1].get("fontColor") + "'>" + data[1][1].get("value") + "</th>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[1][2].get("fontColor") + "'>" + data[1][2].get("value") + "</th>" +
-	 * "</tr>"
-	 * 
-	 * + "<tr height=18px>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[2][0].get("fontColor") + "'>" + data[2][0].get("value") + "</th>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[2][1].get("fontColor") + "'>" + data[2][1].get("value") + "</th>" +
-	 * "<th width=118px align=left style='font-size:8px;color: " +
-	 * data[2][2].get("fontColor") + "'>" + data[2][2].get("value") + "</th>" +
-	 * "</tr>" + "</table>"; }
-	 */
+	
 	/**
 	 * 该方法处理客户列表的显示，用于将数据匹配显示模板，匹配一个客户的信息
 	 * 
@@ -371,7 +284,7 @@ public class CustomerController {
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<Map<String, String>> listToHtml(
 			List<List<Map<String, Object>>> queryData) {
 		List<Map<String, String>> result = new ArrayList<Map<String, String>>();

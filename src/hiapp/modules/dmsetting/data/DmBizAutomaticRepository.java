@@ -1,5 +1,12 @@
 package hiapp.modules.dmsetting.data;
 
+import hiapp.modules.dmsetting.result.DMBizAutomaticColumns;
+import hiapp.system.worksheet.bean.WorkSheet;
+import hiapp.system.worksheet.bean.WorkSheetColumn;
+import hiapp.system.worksheet.data.WorkSheetRepository;
+import hiapp.utils.DbUtil;
+import hiapp.utils.database.BaseRepository;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,15 +21,6 @@ import org.springframework.stereotype.Repository;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-
-import hiapp.modules.dmsetting.DMWorkSheet;
-import hiapp.modules.dmsetting.result.*;
-import hiapp.system.worksheet.bean.WorkSheet;
-import hiapp.system.worksheet.bean.WorkSheetColumn;
-import hiapp.system.worksheet.data.WorkSheetRepository;
-import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
-import hiapp.utils.DbUtil;
-import hiapp.utils.database.BaseRepository;
 @Repository
 public class DmBizAutomaticRepository extends BaseRepository {
 	
