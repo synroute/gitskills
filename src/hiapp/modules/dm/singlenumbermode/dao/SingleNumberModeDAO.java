@@ -206,13 +206,14 @@ public class SingleNumberModeDAO extends BaseRepository {
         return true;
     }
 
-    // 从已加载复位成未加载状态
-    public Boolean resetLoadedFlag(int bizId) {
+    // 更新客户共享状态
+    public Boolean updateCustomerShareState(int bizId, List<String> shareBatchIdList, String state) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM3", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
-        sqlBuilder.append(" SET ISMEMORYLOADIN = ").append(0);
+        sqlBuilder.append(" SET STATE = ").append(state);
+        sqlBuilder.append(" WHERE SHAREID IN (").append(stringListToCommaSplitString(shareBatchIdList)).append(")");
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -537,14 +538,14 @@ public class SingleNumberModeDAO extends BaseRepository {
         return true;
     }
 
-    public ServiceResultCode updateShareBatchState(List<String> shareBatchIds, String state) {
+    public ServiceResultCode updateShareBatchState(int bizId, List<String> shareBatchIds, String state) {
         String sql = "";
         PreparedStatement stmt = null;
         Connection dbConn = null;
         try {
             dbConn=this.getDbConnection();
-            sql=String.format("UPDATE HASYS_DM_SID SET STATE ='%s' WHERE SHAREID IN (%s)",
-                                        state, stringListToCommaSplitString(shareBatchIds));
+            sql=String.format("UPDATE HASYS_DM_SID SET STATE ='%s' WHERE BUSINESSID = %d SHAREID IN (%s)",
+                                        state, bizId, stringListToCommaSplitString(shareBatchIds));
             stmt = dbConn.prepareStatement(sql);
             stmt.execute();
         } catch (Exception e) {

@@ -24,7 +24,7 @@ public class DMDAO extends BaseRepository {
     /*
      *  所有业务的共享批次
      */
-    public Boolean getCurDayShareBatchItemsByState(List<ShareBatchStateEnum> shareBatchStateList, /*OUT*/List<ShareBatchItem> shareBatchItems) {
+    public Boolean getActiveShareBatchItems(List<ShareBatchStateEnum> shareBatchStateList, /*OUT*/List<ShareBatchItem> shareBatchItems) {
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -46,7 +46,7 @@ public class DMDAO extends BaseRepository {
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
                                         "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
-            sqlBuilder.append(" STATE IN (").append(shareBatchStatelistToCommaSplitString(shareBatchStateList)).append(")");
+            sqlBuilder.append(" STATE ='").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
 
             System.out.println(sqlBuilder.toString());
 
@@ -81,7 +81,7 @@ public class DMDAO extends BaseRepository {
     /*
      *  取得当天启用 且未处理的共享批次, 处理后续启用的共享批次
      */
-    public Boolean getCurDayUsingShareBatchItems( /*OUT*/List<ShareBatchItem> shareBatchItems) {
+    public Boolean getNeedActiveShareBatchItems( /*OUT*/List<ShareBatchItem> shareBatchItems) {
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -104,8 +104,8 @@ public class DMDAO extends BaseRepository {
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
                     "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
-            sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
-            sqlBuilder.append(" AND trunc(CREATETIME) = trunc(sysdate)");
+            sqlBuilder.append(" STARTTIME <= ").append("TO_DATE('").append(getCurDaySqlString()).append("','yyyy/mm/dd')");
+            sqlBuilder.append(" AND STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             ResultSet rs = stmt.executeQuery();
@@ -135,7 +135,7 @@ public class DMDAO extends BaseRepository {
         return null;
     }
 
-    public  Boolean activateCurDayShareBatchByStartTime() {
+    public  Boolean activateShareBatchByStartTime() {
 
         /*
         int id;
@@ -186,7 +186,7 @@ public class DMDAO extends BaseRepository {
     }
 
     // 获取并标记 过期的共享批次
-    public  Boolean expireCurDayShareBatchByEndTime(/*OUT*//*List<String> expiredShareBatchIds*/) {
+    public  Boolean expireShareBatchsByEndTime(/*OUT*//*List<String> expiredShareBatchIds*/) {
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
