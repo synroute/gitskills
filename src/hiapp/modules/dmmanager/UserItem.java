@@ -1,9 +1,40 @@
 package hiapp.modules.dmmanager;
 
-import hiapp.utils.serviceresult.TreeBranch;
+import java.util.List;
 
-public class UserItem extends TreeBranch{
+public class UserItem {
 	private int dicId; 
+	private int itemId; 
+	private String itemText;
+	private String text;
+	private String id;
+	private String state;
+	private List<UserItem> children;
+
+	public List<UserItem> getChildren() {
+		return children;
+	}
+	public void setChildren(List<UserItem> children) {
+		this.children = children;
+	}
+	public String getState() {
+		return state;
+	}
+	public void setState(String state) {
+		this.state = state;
+	}
+	public String getText() {
+		return text;
+	}
+	public void setText(String text) {
+		this.text = text;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
 	public int getDicId() {
 		return dicId;
 	}
@@ -22,6 +53,5 @@ public class UserItem extends TreeBranch{
 	public void setItemText(String itemText) {
 		this.itemText = itemText;
 	}
-	private int itemId; 
-	private String itemText; 
+ 
 }

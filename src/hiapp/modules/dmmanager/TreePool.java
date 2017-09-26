@@ -3,6 +3,29 @@ package hiapp.modules.dmmanager;
 public class TreePool {
 
 	private Integer id;
+	private String DataPoolName;
+	private Integer Pid;
+	private Integer groupId;
+	private String groupName;
+	private String userName;
+	public Integer getGroupId() {
+		return groupId;
+	}
+	public void setGroupId(Integer groupId) {
+		this.groupId = groupId;
+	}
+	public String getGroupName() {
+		return groupName;
+	}
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
 	public Integer getId() {
 		return id;
 	}
@@ -21,6 +44,5 @@ public class TreePool {
 	public void setPid(Integer pid) {
 		Pid = pid;
 	}
-	private String DataPoolName;
-	private Integer Pid;
+
 }

@@ -237,15 +237,16 @@ public class DMBizMangeShare extends BaseRepository{
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
 			int datapoolid=Integer.valueOf(uid);
-			StringBuilder sb=new StringBuilder();
+			//auto
 			Integer bizid = Integer.valueOf(businessID);
 			try {
+				dbConn=this.getDbConnection();
 				for (int i = 0; i < shareID.length; i++) {
 					String shareid = shareID[i];
-					sb.append(shareid);
-					sb.deleteCharAt(sb.length()-1);
-					dbConn=this.getDbConnection();
-					insertsql=String.format("INSERT INTO HASYS_DM_SIDUSERPOOl (ID,BUSINESSID,SHAREID,DATAPOOLNAME,DATAPOOLID) VALUES (S_HASYS_DM_SIDUSERPOOl.NEXTVAL,%s,'%s','%s',%s)",bizid,sb,DataPoolName,datapoolid);
+					if(shareid==null&&"".equals(shareid)){
+						continue;
+					}
+					insertsql=String.format("INSERT INTO HASYS_DM_SIDUSERPOOl (ID,BUSINESSID,SHAREID,DATAPOOLNAME,DATAPOOLID) VALUES (S_HASYS_DM_SIDUSERPOOl.NEXTVAL,%s,'%s','%s',%s)",bizid,shareid,DataPoolName,datapoolid);
 					stmt = dbConn.prepareStatement(insertsql);
 				}
 				stmt.execute();
@@ -257,23 +258,31 @@ public class DMBizMangeShare extends BaseRepository{
 		}
 
 		//根据业务id查询所有数据池名称及其子父
-		public void getUserPoolTree(int permissionId, List<TreePool> treePool,String businessID) {
+		public void getUserPoolTree(int permissionId, TreePool tree,Integer businessID) {
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
 			ResultSet rs = null;
 			Integer biz = Integer.valueOf(businessID);
 			try {
 				dbConn=this.getDbConnection();
-				String sql="SELECT A.ID,A.DATAPOOLNAME,A.PID from HASYS_DM_DATAPOOL A where A.BUSINESSID=?";
+				String sql="select a.id,a.datapoolname,a.pid,c.groupid,c.groupname,d.username "+
+							"from HASYS_DM_DATAPOOL a "+
+							"left join BU_MAP_USERORGROLE b on a.datapoolname = b.userid "+
+							"left join BU_INF_GROUP c on b.groupid = c.groupid "+
+							"left join BU_INF_USER d on d.userid = b.userid "+
+							"where a.businessid = 25 and a.id ="+
+							"(select p.datapoolid from HASYS_DM_PER_MAP_POOL  p where p.businessid=? and p.permissionid=? and p.itemname='数据管理')";
 				stmt = dbConn.prepareStatement(sql);
 				stmt.setInt(1, biz);
+				stmt.setInt(2,permissionId);
 				rs = stmt.executeQuery();
 				while (rs.next()) {
-					TreePool tree=new TreePool();
 					tree.setId(rs.getInt(1));
 					tree.setDataPoolName(rs.getString(2));
 					tree.setPid(rs.getInt(3));
-					treePool.add(tree);
+					tree.setGroupId(rs.getInt(4));
+					tree.setGroupName(rs.getString(5));
+					tree.setUserName(rs.getString(6));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -283,50 +292,82 @@ public class DMBizMangeShare extends BaseRepository{
 			}
 			}
 		
-		public List<UserItem> getUserPoolTreeByPermissionID(int permissionId,
-				List<TreePool> treePool) {
+		
+		public  List<TreePool> getChildrenTreePoolByPid(Integer bizId,Integer pid){
+			List<TreePool> treePools=new ArrayList<TreePool>();
+			Connection conn = null;
+			PreparedStatement pst= null;
+			ResultSet rs=null;
 			try {
-				List<UserItem> listDictItem=new ArrayList<UserItem>();
-				for (int i = 0; i < treePool.size(); i++) {
-					TreePool pool = treePool.get(i);
-					if(pool.getPid()==-1){
-						UserItem userItem=new UserItem();
-						userItem.setId(Integer.toString(pool.getId()));
-						userItem.setText(pool.getDataPoolName());
-						userItem.setState("");
-						userItem.setDicId(pool.getId());
-						userItem.setItemText(pool.getDataPoolName());
-						userItem.setItemId(pool.getPid());
-						listDictItem.add(userItem);
-						addChildren(userItem,treePool,permissionId);
-					}
+				conn=this.getDbConnection();
+				String sql="select a.id,a.datapoolname,a.pid,d.username from HASYS_DM_DATAPOOL a "+
+						   "left join BU_MAP_USERORGROLE b on a.datapoolname = b.userid "+
+						   "left join BU_INF_USER d on d.userid = b.userid "+
+						   "where a.businessid=? and a.pid=?";
+				pst=conn.prepareStatement(sql);
+				pst.setInt(1,bizId);
+				pst.setInt(2,pid);
+				rs=pst.executeQuery();
+				while(rs.next()){
+					TreePool tree=new TreePool();
+					tree.setId(rs.getInt(1));
+					tree.setDataPoolName(rs.getString(2));
+					tree.setPid(rs.getInt(3));
+					tree.setUserName(rs.getString(4));
+					treePools.add(tree);
 				}
-				return listDictItem;
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return treePools;
+		}
+		
+		public UserItem getUserPoolTreeByPermissionID(Integer bizId,
+				TreePool pool) {
+				UserItem userItem=new UserItem();
+				List<UserItem> userItemList=new ArrayList<UserItem>();
+				UserItem userItem1=new UserItem();
+			try {
+					userItem.setId(Integer.toString(pool.getId()));
+					userItem.setText(pool.getGroupId()+" "+pool.getGroupName());
+					userItem.setState("");
+					userItem.setDicId(pool.getId());
+					userItem.setItemText(pool.getDataPoolName());
+					userItem.setItemId(pool.getPid());
+					
+					userItem1.setId(Integer.toString(pool.getId()));
+					userItem1.setText(pool.getDataPoolName()+" "+pool.getUserName());
+					userItem1.setState("");
+					userItem1.setDicId(pool.getId());
+					userItem1.setItemText(pool.getDataPoolName());
+					userItem1.setItemId(pool.getPid());
+					userItemList.add(userItem1);
+					userItem.setChildren(userItemList);
+					addChildren(userItem1,bizId);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			return null;
+			return userItem;
 		}
 		//递归
-		public static boolean addChildren(UserItem userTreeBranch,
-				List<TreePool> treePool,Integer permissionId) {
-			    TreeSet<TreeNode> listChildrenBranchs = userTreeBranch.getChildren();
-			for (int ii = 0; ii < treePool.size(); ii++) {
-				TreePool TreePoolBranch = treePool.get(ii);
-				if (TreePoolBranch.getPid()== userTreeBranch.getDicId()) {
+		public void addChildren(UserItem userTreeBranch,Integer bizId) {
+			    List<UserItem> listChildrenBranchs = userTreeBranch.getChildren();
+			    Integer pid=Integer.valueOf(userTreeBranch.getId());
+			    List<TreePool>  treePoolList=getChildrenTreePoolByPid(bizId,pid);
+			    for (int ii = 0; ii < treePoolList.size(); ii++) {
+					TreePool TreePoolBranch = treePoolList.get(ii);
 					UserItem treeBranch = new UserItem();
-					treeBranch.setId(Integer.toString(TreePoolBranch.getId()));
-					treeBranch.setText(TreePoolBranch.getDataPoolName());
+					treeBranch.setId(String.valueOf(TreePoolBranch.getId()));
+					treeBranch.setText(TreePoolBranch.getDataPoolName()+" "+TreePoolBranch.getUserName());
 					treeBranch.setState("");
 					treeBranch.setDicId(TreePoolBranch.getId());
 					treeBranch.setItemText(TreePoolBranch.getDataPoolName());
 					treeBranch.setItemId(TreePoolBranch.getPid());
 					listChildrenBranchs.add(treeBranch);
-					addChildren(treeBranch,treePool,permissionId);
+					addChildren(treeBranch,bizId);
 				}
 			}
-			return true;
-		}
 		@SuppressWarnings("resource")
 		public ServiceResultCode DeleteShareBatchDataByShareId(String[] shareId,int businessID) throws Exception {
 			String deSidSql="";
@@ -365,11 +406,11 @@ public class DMBizMangeShare extends BaseRepository{
 				stmt = dbConn.prepareStatement(deDataM3HisSql);
 				stmt.execute();
 				//更改数据池记录表数据
-				dePoolSql=String.format("DELETE FROM "+HAU_DM_BC_POOL+" WHERE SHAREID='%s'",shareid);
+				dePoolSql=String.format("DELETE FROM "+HAU_DM_BC_POOL+" WHERE SourceID='%s'",shareid);
 				stmt = dbConn.prepareStatement(dePoolSql);
 				stmt.execute();
 				//数据池操作记录表
-				dePoolOreSql=String.format("DELETE FROM "+HAU_DM_BC_POOL_ORE+" WHERE SHAREID='%s'",shareid);
+				dePoolOreSql=String.format("DELETE FROM "+HAU_DM_BC_POOL_ORE+" WHERE SourceID='%s'",shareid);
 				stmt = dbConn.prepareStatement(dePoolOreSql);
 				stmt.execute();
 				//座席池所属共享批次信息表Hasys_DM_SIDUserPool
@@ -393,6 +434,30 @@ public class DMBizMangeShare extends BaseRepository{
 		}	
 		
 		
+		public List<String> getSidUserPool(Integer bizId,String userId){
+			PreparedStatement pst = null;
+	        Connection conn=null;
+			ResultSet rs=null;
+			List<String> dataList=new ArrayList<String>();
+			try {
+				conn=this.getDbConnection();
+				String  sql="select ShareID from Hasys_DM_SIDUserPool where BusinessID=? and DataPoolName=?";
+				pst=conn.prepareStatement(sql);
+				pst.setInt(1,bizId);
+				pst.setString(2,userId);
+				rs=pst.executeQuery();
+				while(rs.next()){
+					dataList.add(rs.getString(1));
+				}
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return dataList;
+			
+		}
 		
 		
 		

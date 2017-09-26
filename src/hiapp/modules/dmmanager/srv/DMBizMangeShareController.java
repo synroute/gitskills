@@ -168,10 +168,10 @@ public class DMBizMangeShareController {
 		StringBuilder sb=new StringBuilder();
 		try {
 			for (int i = 0; i < userId.length; i++) {
-				uId = userId[i];
-				sb.append(uId);
-				sb.deleteCharAt(sb.length()-1);
-				DataPoolName = bizMangeShare.addShareCustomerfByUserId(businessID,uId);
+				if(userId[i]==null||"".equals(userId[i])){
+					continue;
+				}
+				DataPoolName = bizMangeShare.addShareCustomerfByUserId(businessID,userId[i]);
 				bizMangeShare.addShareCustomerfByUserIds(uId, shareId,
 						businessID, DataPoolName);
 			}
@@ -187,24 +187,30 @@ public class DMBizMangeShareController {
 	}
 	//页面一加载 查询所有能被共享的用户
 	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String TreeViewByUserId(HttpSession session,
-			@RequestParam(value = "BusinessID") String businessID
+	public void TreeViewByUserId(HttpSession session,HttpServletResponse response,
+			@RequestParam(value = "BusinessID") Integer businessID
 			){
 		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
 		String s=null;
 		TreeDataResult result = new TreeDataResult();
-		List<TreePool> treePool=new ArrayList<TreePool>();
+		TreePool treePool=new TreePool();
 		bizMangeShare.getUserPoolTree(permissionId,treePool,businessID);
-		List<UserItem> list=bizMangeShare.getUserPoolTreeByPermissionID(permissionId,treePool);
-		result.getData().addAll(list);
-		s=result.toJson();
-		return s;
+		UserItem userItem=bizMangeShare.getUserPoolTreeByPermissionID(businessID,treePool);
+		String gson=new Gson().toJson(userItem);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(gson);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	//对指定共享批次数据进行删除
-	@RequestMapping(value = "/srv/DMBizMangeShareController/DeleteShareBatchDataByShareId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value = "/srv/DMBizMangeShareController/DeleteShareBatchDataByShareId.srv",produces = "application/json;charset=utf-8")
 	public String DeleteShareBatchDataByShareId(
 			@RequestParam(value = "shareID") String shareID,
 			@RequestParam(value = "businessID") String businessID){
