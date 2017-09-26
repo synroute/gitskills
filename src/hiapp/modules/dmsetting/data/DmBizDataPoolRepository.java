@@ -91,8 +91,24 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		public boolean dmDeleteBizDataPool(int poolId)
 		{
 			PreparedStatement stmt = null;
+			ResultSet rs = null;
 			try {
 				dbConn =this.getDbConnection();
+				String selecttype=String.format("select DataPoolType from HASYS_DM_DATAPOOL where ID=%s",poolId);
+				stmt = dbConn.prepareStatement(selecttype);
+				rs = stmt.executeQuery();
+				int type=0;
+				while(rs.next()){
+					type=rs.getInt(1);
+				}
+				stmt.close();
+				if(type==3)
+				{
+					String deleteslq=String.format("delect from Hasys_DM_SIDUserPool where DataPoolID=%s",poolId);
+					stmt = dbConn.prepareStatement(deleteslq);
+					stmt.executeUpdate();
+					stmt.close();
+				}
 				String szSql = String.format("delete from HASYS_DM_DATAPOOL where ID=%s",poolId);
 				stmt = dbConn.prepareStatement(szSql);
 				stmt.executeUpdate();

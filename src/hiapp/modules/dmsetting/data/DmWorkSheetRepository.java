@@ -152,7 +152,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
 		creationInfoWorkSheet.setDescription(szWorkSheetDescription);
 		creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
-		creationInfoWorkSheet.addColumn("分配批次ID", "DID", "分配批次号", WorkSheetDataType.TEXT, 50, false, true);
+		creationInfoWorkSheet.addColumn("来源编号", "SOURCEID", "来源编号", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("上次所在数据池ID", "DATAPOOlIDLAST", "上次所在数据池ID", WorkSheetDataType.INT, -1, false, true);
@@ -177,7 +177,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
 			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
 			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
-			creationInfoWorkSheet.addColumn("分配批次ID", "DID", "分配批次号", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("来源编号", "SOURCEID", "来源编号", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("本次操作", "OPERATIONNAME", "本次操作", WorkSheetDataType.TEXT, 50, false, true);
