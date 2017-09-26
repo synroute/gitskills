@@ -2,6 +2,7 @@ package hiapp.modules.dm.dao;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMBusiness;
@@ -122,18 +123,6 @@ public class DMDAO extends BaseRepository {
         Connection dbConn = null;
         PreparedStatement stmt = null;
 
-        /*
-        int id;
-        int bizId;
-        String shareBatchId;
-        String shareBatchName;
-        int  createUserId;
-        Date createTime;
-        String description;
-        ShareBatchStateEnum	state;
-        Date StartTime;
-        Date EndTime;
-        */
         try {
             dbConn = this.getDbConnection();
 
@@ -173,25 +162,6 @@ public class DMDAO extends BaseRepository {
 
     public  Boolean activateShareBatchByStartTime() {
 
-        /*
-        int id;
-        int bizId;
-        String shareBatchId;
-        String shareBatchName;
-        int  createUserId;
-        Date createTime;
-        String description;
-        ShareBatchStateEnum	state;
-        Date StartTime;
-        Date EndTime;
-
-        ENABLE("enable"), //启用
-        ACTIVE("active"), //激活 系统设置
-        PAUSE("pause"),
-        STOP("stop"),
-        EXPIRED("expired"); // 过期 系统设置
-        */
-
         Connection dbConn = null;
         PreparedStatement stmt = null;
         try {
@@ -215,10 +185,7 @@ public class DMDAO extends BaseRepository {
             DbUtil.DbCloseConnection(dbConn);
         }
 
-
-
         return true;
-
     }
 
     // 获取并标记 过期的共享批次
@@ -265,42 +232,65 @@ public class DMDAO extends BaseRepository {
         return true;
     }
 
-    public List<ShareBatchItem> getShareBatchItems(List<String> ShareBatchIds) {
-        return null;
-    }
-
-    public Boolean insertDMResult(int bizId) {
-
-        //需更新  modifyLast 标记
-
-        int id = 0;
-        String sourceID = ""; //来源编号是指分配编号或共享编号
-        String importBatchID = ""; //客户导入批次ID
-        String customerID = ""; //客户ID
-        int modifyID = 0; //
-        String 	modifyUserID = "";
-        Date modifyTime = null;
-        Boolean	modifyLast = false;
-        String 	dialType = ""; // 拨打类型 拨打提交；修改提交
-        Date 	dialTime = null; //
-        String 	customerCallId = ""; // 呼叫流水号
+    /**
+     *
+     * @param bizId
+     * @param sourceId  :  来源编号是指分配编号或共享编号
+     * @param importBatchId
+     * @param customerId
+     * @param modifyId
+     * @param modifyUserId
+     * @param dialType  :  拨打类型 拨打提交；修改提交
+     * @param dialTime
+     * @param customerCallId  :  呼叫流水号
+     * @return
+     */
+    public Boolean insertDMResult(int bizId, String sourceId, String importBatchId, String customerId, int modifyId,
+                                  String modifyUserId, String dialType, String dialTime, String customerCallId) {
 
         String tableName = String.format("HAU_DM_B%dC_Result", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
-        sqlBuilder.append(" (ID, SourceID, IID, CID, ModifyId, ModifyUserId, ModifyTime, ModifyLast, DialType, " +
-                                "DialTime, CustomerCallId) VALUES ( ");
-        sqlBuilder.append("'").append(id).append("',");
-        sqlBuilder.append("'").append(sourceID).append("',");
-        sqlBuilder.append("'").append(importBatchID).append("',");
-        sqlBuilder.append("'").append(customerID).append("',");
-        sqlBuilder.append("'").append(modifyID).append("',");
-        sqlBuilder.append("'").append(modifyUserID).append("',");
-        sqlBuilder.append("'").append(modifyTime).append("',");
-        sqlBuilder.append("'").append(modifyLast).append("',");
+        sqlBuilder.append(" (ID, SOURCEID, IID, CID, MODIFYID, MODIFYUSERID, MODIFYTIME, MODIFYLAST, DIALTYPE, " +
+                                "DIALTIME, CUSTOMERCALLID) VALUES ( ");
+        sqlBuilder.append("'").append("S_" + tableName + ".nextval").append("',");
+        sqlBuilder.append("'").append(sourceId).append("',");
+        sqlBuilder.append("'").append(importBatchId).append("',");
+        sqlBuilder.append("'").append(customerId).append("',");
+        sqlBuilder.append(modifyId).append(",");
+        sqlBuilder.append("'").append(modifyUserId).append("',");
+        sqlBuilder.append("sysdate").append(",");
+        sqlBuilder.append("1").append(","); // MODIFYLAST
         sqlBuilder.append("'").append(dialType).append("',");
         sqlBuilder.append("'").append(dialTime).append("',");
-        sqlBuilder.append("'").append(customerCallId).append("',");
+        sqlBuilder.append("'").append(customerCallId).append("'");
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    public Boolean updateDMResult(int bizId, String shareBatchId, String importBatchId, String customerId) {
+
+        String tableName = String.format("HAU_DM_B%dC_Result", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET MODIFYLAST = ").append("0");
+        sqlBuilder.append(" WHERE BUSINESSID = ").append(bizId);
+        sqlBuilder.append(" SOURCEID = ").append(shareBatchId);
+        sqlBuilder.append(" CID = ").append(customerId);
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -324,8 +314,8 @@ public class DMDAO extends BaseRepository {
         String presetTimeTableName = String.format("HASYS_DM_B%dC_PresetTime", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO" + presetTimeTableName);
-        sqlBuilder.append(" (ID, SourceID, IID, CID, PresetTime, State, Comment, ModifyId, ModifyUserId, ModifyTime, " +
-                                      "ModifyDesc，ModifyLast, PhoneType) VALUES ( ");
+        sqlBuilder.append(" (ID, SOURCEID, IID, CID, PRESETTIME, STATE, COMMENT, MODIFYID, MODIFYUSERID, MODIFYTIME, " +
+                                      "MODIFYDESC，MODIFYLAST, PHONETYPE) VALUES ( ");
 
         sqlBuilder.append("'").append("S_" + presetTimeTableName + ".nextval").append("',");
         sqlBuilder.append("'").append(presetItem.getSourceId()).append("',");
@@ -336,9 +326,9 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append("'").append(presetItem.getComment()).append("',");
         sqlBuilder.append("'").append(presetItem.getModifyId()).append("',");
         sqlBuilder.append("'").append(presetItem.getModifyUserId()).append("',");
-        sqlBuilder.append("'").append(presetItem.getModifyTime()).append("',");
+        sqlBuilder.append("sysdate").append(",");
         sqlBuilder.append("'").append(presetItem.getModifyDesc()).append("',");
-        sqlBuilder.append("'").append(presetItem.getModifyLast()).append("',");
+        sqlBuilder.append("1").append("',");
         sqlBuilder.append("'").append(presetItem.getPhoneType());
 
         Connection dbConn = null;
@@ -359,27 +349,14 @@ public class DMDAO extends BaseRepository {
     }
 
     public Boolean updatePresetState(int bizId, String shareBatchId, String customerId, String newState) {
-//        private int id = 0;				//ID
-//        private String sourceId;	//来源编号，指分配编号或共享编号
-//        private String importId;	//导入批次ID
-//        private String customerId;	//客户号
-//        private java.sql.Date presetTime;	//预约时间
-//        private String state;		//预约状态
-//        private String comment;		//预约备注
-//        private int modifyId;		//修改ID
-//        private int modifyLast;		//是否为最后一次修改，0：否。1：是
-//        private int modifyUserId;	//修改用户ID
-//        private java.sql.Date modifyTime;	//修改时间
-//        private String modifyDesc;	//修改描述
-//        private String phoneType;	//号码类型  枚举
 
         String presetTimeTableName = String.format("HASYS_DM_B%dC_PresetTime", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + presetTimeTableName);
-        sqlBuilder.append(" Set State = ").append(newState);
-        sqlBuilder.append(" ModifyLast = ").append("0");
-        sqlBuilder.append(" WHERE BusinessID = ").append(bizId);
-        sqlBuilder.append(" SourceID = ").append(shareBatchId);
+        sqlBuilder.append(" SET STATE = ").append(newState);
+        sqlBuilder.append(" MODIFYLAST = ").append("0");
+        sqlBuilder.append(" WHERE BUSINESSID = ").append(bizId);
+        sqlBuilder.append(" SOURCEID = ").append(shareBatchId);
         sqlBuilder.append(" CID = ").append(customerId);
 
         Connection dbConn = null;

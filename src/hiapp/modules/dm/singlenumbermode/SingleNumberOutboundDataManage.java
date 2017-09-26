@@ -137,10 +137,12 @@ public class SingleNumberOutboundDataManage {
     public String submitOutboundResult(String userId, int bizId, String importBatchId, String shareBatchId, String customerId,
                                        String resultCodeType, String resultCode, Date presetTime, String resultData, String customerInfo) {
 
-        // 客户原信息变更、拨打信息、结果信息
+        String dialType = "xxx";
+        String customerCallId = "xxx";
+        String dialTime = new Date().toString();
 
         Map<String, SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
-        SingleNumberModeShareCustomerItem customerItem = map.get(importBatchId + customerId);
+        SingleNumberModeShareCustomerItem originCustomerItem = map.get(importBatchId + customerId);
 
         EndCodeRedialStrategy endCodeRedialStrategy = mapBizIdVsEndCodeRedialStrategy.get(bizId);
         if (null == endCodeRedialStrategy) {
@@ -149,11 +151,13 @@ public class SingleNumberOutboundDataManage {
         }
 
         // 经过 Outbound 策略处理器
-        procEndcode(userId, customerItem, endCodeRedialStrategy, resultCodeType, resultCode, presetTime, resultData);
+        procEndcode(userId, originCustomerItem, endCodeRedialStrategy, resultCodeType, resultCode, presetTime, resultData);
 
         // 插入结果表
-        //dmDAO.insertDMResult();
-        dataImportJdbc.insertDataToResultTable(bizId, shareBatchId, importBatchId, customerId, userId, resultData);
+        //dataImportJdbc.insertDataToResultTable(bizId, shareBatchId, importBatchId, customerId, userId, resultData);
+        dmDAO.insertDMResult(bizId, shareBatchId, importBatchId, customerId, originCustomerItem.getModifyId() + 1,
+                            userId, dialType, dialTime, customerCallId);
+        dmDAO.updateDMResult(bizId, shareBatchId, importBatchId, customerId); // MODIFYLAST 0
 
         // 插入导入客户表
         dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo);
@@ -631,29 +635,6 @@ public class SingleNumberOutboundDataManage {
         return date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth() && date1.getDay() == date2.getDay();
     }
 
-
-/*    private void removeCustomerFromPool(SingleNumberModeShareCustomerItem originCustomerItem ) {
-        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
-        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
-        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(originCustomerItem.getState())) {
-            shareBatchIdVsCustomerMap = mapPhaseDialCustomer.get(originCustomerItem.getBizId());
-            queue = shareBatchIdVsCustomerMap.get(originCustomerItem.getShareBatchId());
-        }
-
-        else if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(originCustomerItem.getState())) {
-            shareBatchIdVsCustomerMap = mapPresetDialCustomer.get(originCustomerItem.getBizId());
-            queue = shareBatchIdVsCustomerMap.get(originCustomerItem.getShareBatchId());
-        }
-
-        else {
-            shareBatchIdVsCustomerMap = mapDialCustomer.get(originCustomerItem.getBizId());
-            queue = shareBatchIdVsCustomerMap.get(originCustomerItem.getShareBatchId());
-        }
-
-        queue.remove(originCustomerItem);
-
-        removeBizIdVsCustomerMap(originCustomerItem.getBizId(), originCustomerItem);
-    }*/
 
     private void addCustomerToPool(SingleNumberModeShareCustomerItem newCustomerItem) {
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;

@@ -57,7 +57,7 @@ public class SingleNumberModeController {
         return result.toJson();
     }
 
-    @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, produces="application/json")
+    @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
 
         // 客户原信息变更、拨打信息、结果信息

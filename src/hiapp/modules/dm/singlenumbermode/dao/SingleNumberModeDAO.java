@@ -397,7 +397,7 @@ public class SingleNumberModeDAO extends BaseRepository {
         sqlBuilder.append(" (ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, MODIFYUSERID, MODIFYTIME, MODIFYDESC, " +
                 "CUSTOMERCALLID, LASTDIALTIME, USERUSESTATE, ISMEMORYLOADIN, NEXTDIALTIME, CURREDIALSTAGECOUNT, " +
                 "THISDAYDIALEDCOUNT, LOSTCALLFIRSTDAY, LOSTCALLCURDAY, LOSTCALLTOTALCOUNT) VALUES ( ");
-        sqlBuilder.append("'").append(item.getId()).append("',");
+        sqlBuilder.append("'").append("S_" + tableName + ".nextval").append("',");
         sqlBuilder.append("'").append(item.getBizId()).append("',");
         sqlBuilder.append("'").append(item.getShareBatchId()).append("',");
         sqlBuilder.append("'").append(item.getImportBatchId()).append("',");
