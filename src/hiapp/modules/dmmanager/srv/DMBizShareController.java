@@ -3,10 +3,8 @@ package hiapp.modules.dmmanager.srv;
 import hiapp.modules.dmmanager.bean.WorkSheetColumn;
 import hiapp.modules.dmmanager.data.DMBizDataShare;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
-import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.system.buinfo.User;
-import hiapp.system.worksheet.data.WorkSheetRepository;
 import hiapp.utils.idfactory.IdFactory;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -32,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 
 //数据共享类
-@RestController
+@Controller
 public class DMBizShareController {
     @Autowired
 	private DMBizDataShare dMBizDataShare;
@@ -44,14 +42,16 @@ public class DMBizShareController {
     private DmWorkSheetRepository dmWorkSheetRepository;
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
 	@RequestMapping(value="/srv/DataShareController/getNotShareDataByTime.srv")
-	public void getNotShareDataByTime(@RequestParam(value="StartTime") String StartTime,
-			                            @RequestParam(value="EndTime") String EndTime,
-			                            @RequestParam(value="BusinessID") String BusinessId,
+	public void getNotShareDataByTime(@RequestParam(value="startTime") String StartTime,
+			                            @RequestParam(value="endTime") String EndTime,
+			                            @RequestParam(value="businessID") String BusinessId,
 			                            @RequestParam(value="templateId") String templateId,
 			                            @RequestParam(value="sourceType" )String sourceType,
-			                            HttpServletResponse response
+			                            HttpServletResponse response,HttpServletRequest request
 			                            ){
 		List<Map<String,Object>> dataList=null;
+		Integer page=Integer.valueOf(request.getParameter("page"));
+		Integer rows=Integer.valueOf(request.getParameter("rows"));
 		List<Map<String,Object>> allDataList=new ArrayList<Map<String,Object>>();
 		try {
 			//此接口不通 待修改
@@ -59,7 +59,8 @@ public class DMBizShareController {
 			String workSheetId=dataImportJdbc.getWookSeetId(Integer.valueOf(BusinessId));
 			//获取要展示的列
 			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-			dataList = dMBizDataShare.getNotShareDataByTimes(StartTime,EndTime,BusinessId,templateId,sourceType);
+			Map<String,Object> resultMap = dMBizDataShare.getNotShareDataByTimes(StartTime,EndTime,BusinessId,templateId,sourceType,page,rows);
+			dataList=(List<Map<String, Object>>) resultMap.get("rows");
 			for (int i = 0; i < dataList.size(); i++) {
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int j = 0; j < sheetColumnList.size(); j++) {
@@ -71,7 +72,8 @@ public class DMBizShareController {
 				}
 				allDataList.add(map);
 			}
-		    String jsonObject=new Gson().toJson(allDataList);
+			resultMap.put("rows",allDataList);
+		    String jsonObject=new Gson().toJson(resultMap);
 			PrintWriter printWriter = response.getWriter();
 			printWriter.print(jsonObject);
 		} catch (Exception e) {

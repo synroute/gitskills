@@ -1,12 +1,10 @@
 package hiapp.modules.dmmanager.srv;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
-import hiapp.modules.dmmanager.DataPool;
 import hiapp.modules.dmmanager.ShareBatchItemS;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
-import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.system.buinfo.Permission;
 import hiapp.system.buinfo.RoleInGroupSet;
@@ -14,16 +12,14 @@ import hiapp.system.buinfo.User;
 import hiapp.system.buinfo.data.GroupRepository;
 import hiapp.system.buinfo.data.PermissionRepository;
 import hiapp.system.buinfo.data.UserRepository;
-import hiapp.system.dictionary.Dict;
-import hiapp.system.dictionary.dictTreeBranch;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
-import hiapp.utils.serviceresult.TreeDataResult;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
@@ -79,12 +74,14 @@ public class DMBizMangeShareController {
 		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
+		Integer page=Integer.valueOf(request.getParameter("page"));
+		Integer rows=Integer.valueOf(request.getParameter("rows"));
 		String json = null;
 		try {
 			List<ShareBatchItemS> shareBatchItem = new ArrayList<ShareBatchItemS>();
-			List<ShareBatchItemS> list = bizMangeShare.getUserShareBatchByTime(
-					businessID, startTime, endTime,shareBatchItem,permissionId);
-			json = new Gson().toJson(list);
+			Map<String,Object> resultMap = bizMangeShare.getUserShareBatchByTime(
+					businessID, startTime, endTime,shareBatchItem,permissionId,page,rows);
+			json = new Gson().toJson(resultMap);
 
 		} catch (Exception e) {
 			e.printStackTrace();

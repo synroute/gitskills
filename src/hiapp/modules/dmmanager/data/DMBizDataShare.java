@@ -1,10 +1,6 @@
 package hiapp.modules.dmmanager.data;
 
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
-import hiapp.modules.dmmanager.AreaCurEnum;
-import hiapp.modules.dmmanager.AreaLastEnum;
-import hiapp.modules.dmmanager.ImportBatchMassage;
-import hiapp.modules.dmmanager.IsRecoverEnum;
 import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.system.buinfo.User;
 import hiapp.utils.DbUtil;
@@ -20,10 +16,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 
 
@@ -46,8 +42,8 @@ public class DMBizDataShare extends BaseRepository {
 
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
 	@SuppressWarnings("resource")
-	public List<Map<String, Object>> getNotShareDataByTimes(
-			String StartTime,String EndTime,String businessId, String templateId,String sourceType) {
+	public Map<String,Object>  getNotShareDataByTimes(
+			String StartTime,String EndTime,String businessId, String templateId,String sourceType,Integer num,Integer pageSize) {
 		String getXmlSql = "";
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -57,6 +53,9 @@ public class DMBizDataShare extends BaseRepository {
 		String flag=null;
 		Integer bizid = Integer.valueOf(businessId);
 		Integer temp  =Integer.valueOf(templateId);
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<String, Object>();
 		String workSheetImport="HAU_DM_B"+businessId+"C_IMPORT";
 		String workSheetPool="HAU_DM_B"+businessId+"C_POOL";
 		if(sourceType.equals("Excel")){
@@ -81,15 +80,21 @@ public class DMBizDataShare extends BaseRepository {
 			//从对象中获取列名数组json集合
 			dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			String sql="select iid,";
-			StringBuilder sb = new StringBuilder();
+			String sql1="select iid,";
 			for (int i = 0; i < dataArray.size(); i++) {
-				sb.append(dataArray.get(i).getAsJsonObject().get(flag).getAsString()+",");
+				String column=dataArray.get(i).getAsJsonObject().get(flag).getAsString();
+				if(!"iid".equals(column.toLowerCase())){
+					sql+=dataArray.get(i).getAsJsonObject().get(flag).getAsString()+",";
+					sql1+=dataArray.get(i).getAsJsonObject().get(flag).getAsString()+",";
+				}
+				
 			}
-			sb.deleteCharAt(sb.length()-1);
-			sql+=sb;
-			sql=sql+" from "+workSheetImport+" where CID IN (select  b.CID from HASYS_DM_IID a,"+workSheetPool+" b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=? AND  a.IMPORTTIME >to_date('"+StartTime+"','yyyy-MM-dd hh24:mi:ss') and a.IMPORTTIME <to_date('"+EndTime+"','yyyy-MM-dd hh24:mi:ss'))";
+			sql=sql.substring(0,sql.length()-1);
+			sql=sql+" from ("+sql1+"rownum rn"+" from "+workSheetImport+" where CID IN (select  b.CID from HASYS_DM_IID a,"+workSheetPool+" b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=? AND  a.IMPORTTIME >to_date('"+StartTime+"','yyyy-MM-dd hh24:mi:ss') and a.IMPORTTIME <to_date('"+EndTime+"','yyyy-MM-dd hh24:mi:ss')) and rownum<?) a where rn>=?";
 			stmt=dbConn.prepareStatement(sql);
 			stmt.setInt(1,bizid);
+			stmt.setInt(2,endNum);
+			stmt.setInt(3,startNum);
 			rs = stmt.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
@@ -102,13 +107,23 @@ public class DMBizDataShare extends BaseRepository {
 				}
 				dataList.add(map);
 			}
+			String countSql="select count(*) from "+workSheetImport+" where CID IN (select  b.CID from HASYS_DM_IID a,"+workSheetPool+" b where a.IID=b.IID AND b.AREACUR=0 AND a.BUSINESSID=? AND  a.IMPORTTIME >to_date('"+StartTime+"','yyyy-MM-dd hh24:mi:ss') and a.IMPORTTIME <to_date('"+EndTime+"','yyyy-MM-dd hh24:mi:ss'))";
+			stmt=dbConn.prepareStatement(countSql);
+			stmt.setInt(1,bizid);
+			rs=stmt.executeQuery();
+			Integer total=null;
+			while(rs.next()){
+				total=rs.getInt(1);
+			}
+			resultMap.put("total", total);
+			resultMap.put("rows",dataList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}finally{
 			DbUtil.DbCloseQuery(rs,stmt);
 			DbUtil.DbCloseConnection(dbConn);
 		}
-		return dataList;
+		return resultMap;
 	}
 	 // CLOB转换成String
     public String ClobToString(Clob sc) throws SQLException, IOException {  
