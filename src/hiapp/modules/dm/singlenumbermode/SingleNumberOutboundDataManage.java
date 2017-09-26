@@ -46,25 +46,27 @@ public class SingleNumberOutboundDataManage {
         initialize();
     }
 
-    DBConnectionPool dbConnectionPool;
-
-    // BizID <==> EndCodeRedialStrategy
-    Map<Integer, EndCodeRedialStrategy> mapBizIdVsEndCodeRedialStrategy;
-
+    // 客户共享池
     // BizID <==> {ShareBatchID <==> PriorityBlockingQueue<SingleNumberModeShareCustomerItem>}
     Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPresetDialCustomer;
     Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPhaseDialCustomer;
     Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapDialCustomer;
 
+    // 客户数据桩， 用于拨打结果处理
     // BizID <==> {ImportID + CustomerID <==> SingleNumberModeShareCustomerItem}
-    Map<Integer, Map<String,SingleNumberModeShareCustomerItem>>  mapBizIdVsCustomer;
+    Map<Integer, Map<String, SingleNumberModeShareCustomerItem>> mapBizIdVsCustomer;
 
-    Timer     dailyTimer;
+    // 重拨策略
+    // BizID <==> EndCodeRedialStrategy
+    Map<Integer, EndCodeRedialStrategy> mapBizIdVsEndCodeRedialStrategy;
+
+    DBConnectionPool dbConnectionPool;
+    Timer dailyTimer;
     TimerTask dailyTimerTask;
 
 
     public synchronized SingleNumberModeShareCustomerItem extractNextOutboundCustomer(
-                                                            String userId, int bizId) {
+            String userId, int bizId) {
         System.out.println(userId + "。。。" + bizId);
 
         Date now = new Date();
@@ -72,7 +74,7 @@ public class SingleNumberOutboundDataManage {
         SingleNumberModeShareCustomerItem shareDataItem = null;
 
         // 根据userID，获取有权限访问的shareBatchIds
-        List<ShareBatchItem>  shareBatchItemList = dmBizMangeShare.getUserShareBatch(userId, bizId);
+        List<ShareBatchItem> shareBatchItemList = dmBizMangeShare.getUserShareBatch(userId, bizId);
 
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = null;
@@ -137,10 +139,14 @@ public class SingleNumberOutboundDataManage {
 
         // 客户原信息变更、拨打信息、结果信息
 
-        Map<String,SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
+        Map<String, SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
         SingleNumberModeShareCustomerItem customerItem = map.get(importBatchId + customerId);
 
-        EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(bizId);
+        EndCodeRedialStrategy endCodeRedialStrategy = mapBizIdVsEndCodeRedialStrategy.get(bizId);
+        if (null == endCodeRedialStrategy) {
+            endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(bizId);
+            mapBizIdVsEndCodeRedialStrategy.put(bizId, endCodeRedialStrategy);
+        }
 
         // 经过 Outbound 策略处理器
         procEndcode(userId, customerItem, endCodeRedialStrategy, resultCodeType, resultCode, presetTime, resultData);
@@ -157,7 +163,7 @@ public class SingleNumberOutboundDataManage {
 
     /*
      * 重新初始化处理不适合，举例说明：系统运行中，进行启用共享批次操作，会导致获取外呼客户的功能暂停一段时间。
-     * 不需要传入 共享批次信息，通过 启用状态 和 创建日期 获取
+     *
      */
     public String startShareBatch(int bizId, List<String> shareBatchIds) {
 
@@ -200,12 +206,12 @@ public class SingleNumberOutboundDataManage {
         // 获取ACTIVE状态的 shareBatchIds
 
 
+        List<ShareBatchItem> shareBatchItemList = new ArrayList<ShareBatchItem>();
+        dmDAO.getActiveShareBatchItems(shareBatchIds, shareBatchItemList);
 
-
-
+        loadCustomersAppend(bizId, shareBatchItemList);
         return "";
     }
-
 
     public void initialize() {
 
@@ -247,10 +253,10 @@ public class SingleNumberOutboundDataManage {
         setDailyRoutine();
 
         mapPresetDialCustomer = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
-        mapPhaseDialCustomer  = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
+        mapPhaseDialCustomer = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
         mapDialCustomer = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
 
-        mapBizIdVsCustomer = new HashMap<Integer, Map<String,SingleNumberModeShareCustomerItem>>();
+        mapBizIdVsCustomer = new HashMap<Integer, Map<String, SingleNumberModeShareCustomerItem>>();
 
         //singleNumberModeDAO.resetLoadedFlag();
 
@@ -273,11 +279,8 @@ public class SingleNumberOutboundDataManage {
 
         dmDAO.activateShareBatchByStartTime();
 
-
-        List< ShareBatchStateEnum > shareBatchStateList = new ArrayList<ShareBatchStateEnum>();
-        shareBatchStateList.add(ShareBatchStateEnum.ACTIVE);
         List<ShareBatchItem> shareBatchItems = new ArrayList<ShareBatchItem>();
-        Boolean result = dmDAO.getActiveShareBatchItems(shareBatchStateList, shareBatchItems);
+        Boolean result = dmDAO.getAllActiveShareBatchItems(shareBatchItems);
         return shareBatchItems;
     }
 
@@ -296,6 +299,8 @@ public class SingleNumberOutboundDataManage {
     //
     private void loadCustomersDaily(List<ShareBatchItem> shareBatchItems) {
 
+        Date now = new Date();
+
         // 根据BizId, 归类共享客户数据
         Map<Integer, List<ShareBatchItem>> mapBizIdVsShareBatchItem = new HashMap<Integer, List<ShareBatchItem>>();
         for (ShareBatchItem shareBatchItem : shareBatchItems) {
@@ -307,7 +312,6 @@ public class SingleNumberOutboundDataManage {
             shareBatchItemList.add(shareBatchItem);
         }
 
-
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.CREATED);
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.APPENDED);
@@ -318,13 +322,11 @@ public class SingleNumberOutboundDataManage {
         shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
         shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
 
-        List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList3 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
-        shareCustomerStateList3.add(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL);
-
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
             int bizId = entry.getKey();
             List<ShareBatchItem> givenBizShareBatchItems = entry.getValue();
+
 
             shareDataItems.clear();
 
@@ -336,23 +338,25 @@ public class SingleNumberOutboundDataManage {
             // TODO 如果保留<当日未接通重拨次数>，需要判断是否移出候选池（per endcode）
             {
                 List<SingleNumberModeShareCustomerItem> shareDataItems2 = new ArrayList<SingleNumberModeShareCustomerItem>();
-                singleNumberModeDAO.getXXX(bizId, givenBizShareBatchItems, shareCustomerStateList3, shareDataItems2);
+                singleNumberModeDAO.getCurrentLostCallStateCustomers(bizId, givenBizShareBatchItems, shareDataItems2);
             }
 
             // TODO 成批从DB取数据
             Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
-                                            bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
+                    bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
 
             // TODO 可以改成批从DB取数据, 根据nextDialTime
             result = singleNumberModeDAO.getGivenBizShareDataItemsByStateAndNextDialTime(
-                                            bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
+                    bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
 
             // 记录客户共享状态为 SingleNumberModeShareCustomerStateEnum.APPENDED 的客户信息
             // 后续需要更改状态为 SingleNumberModeShareCustomerStateEnum.CREATED
-            // TODO   ===>
             List<String> appendedStateCustomerIdList = new ArrayList<String>();
+
             for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
-                addCustomerToPool(customerItem);
+
+                if (needJoinCustomerPool(bizId, customerItem))
+                    addCustomerToPool(customerItem);
 
                 if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
                     appendedStateCustomerIdList.add(customerItem.getShareBatchId());
@@ -399,30 +403,12 @@ public class SingleNumberOutboundDataManage {
 
             // TODO 成批从DB取数据
             Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
-                                    bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
+                    bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
 
             // TODO 成批从DB取数据, 根据nextDialTime
             result = singleNumberModeDAO.getGivenBizShareDataItemsByStateAndNextDialTime(
-                                    bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
+                    bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
         }
-
-        for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
-            addCustomerToPool(customerItem);
-        }
-    }
-
-    // TODO 处理追加客户的情形
-    private void loadCustomersAppend(int bizId, List<ShareBatchItem> shareBatchItems) {
-        System.out.println("bizId : " + bizId);
-
-        List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
-        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.APPENDED);
-
-        List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
-
-        // TODO 成批从DB取数据
-        Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
-                bizId, shareBatchItems, shareCustomerStateList, shareDataItems);
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
             addCustomerToPool(customerItem);
@@ -430,7 +416,7 @@ public class SingleNumberOutboundDataManage {
     }
 
     //匿名Comparator实现
-    private static Comparator<SingleNumberModeShareCustomerItem> nextDialTimeComparator = new Comparator<SingleNumberModeShareCustomerItem>(){
+    private static Comparator<SingleNumberModeShareCustomerItem> nextDialTimeComparator = new Comparator<SingleNumberModeShareCustomerItem>() {
 
         @Override
         public int compare(SingleNumberModeShareCustomerItem c1, SingleNumberModeShareCustomerItem c2) {
@@ -439,7 +425,7 @@ public class SingleNumberOutboundDataManage {
     };
 
     //匿名Comparator实现
-    private static Comparator<SingleNumberModeShareCustomerItem> shareBatchBeginTimeComparator = new Comparator<SingleNumberModeShareCustomerItem>(){
+    private static Comparator<SingleNumberModeShareCustomerItem> shareBatchBeginTimeComparator = new Comparator<SingleNumberModeShareCustomerItem>() {
 
         @Override
         public int compare(SingleNumberModeShareCustomerItem c1, SingleNumberModeShareCustomerItem c2) {
@@ -480,21 +466,21 @@ public class SingleNumberOutboundDataManage {
     }
 
     private void insertBizIdVsCustomerMap(int bizId, SingleNumberModeShareCustomerItem customerItem) {
-        Map<String,SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
+        Map<String, SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
         if (null == map) {
-            map = new HashMap<String,SingleNumberModeShareCustomerItem>();
+            map = new HashMap<String, SingleNumberModeShareCustomerItem>();
             mapBizIdVsCustomer.put(bizId, map);
         }
 
-        map.put(customerItem.getImportBatchId()+customerItem.getCustomerId(), customerItem);
+        map.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
     }
 
     private void removeBizIdVsCustomerMap(int bizId, SingleNumberModeShareCustomerItem customerItem) {
-        Map<String,SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
+        Map<String, SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
         if (null == map)
             return;
 
-        map.remove(customerItem.getImportBatchId()+customerItem.getCustomerId(), customerItem);
+        map.remove(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
     }
 
     private void reviseCustomerInfo() {
@@ -566,7 +552,7 @@ public class SingleNumberOutboundDataManage {
             // 更新共享状态表  nextDialTime  curRedialStageCount
             // 到达最后阶段，直接跳转状态
             item.setCurRedialStageCount(originCustomerItem.getCurRedialStageCount() + 1);
-            if ( item.getCurRedialStageCount() >= endCodeRedialStrategy.getStageLimit()) {
+            if (item.getCurRedialStageCount() >= endCodeRedialStrategy.getStageLimit()) {
                 item.setState(SingleNumberModeShareCustomerStateEnum.getFromString(
                         endCodeRedialStrategy.getStageExceedNextStateName()));
             } else {
@@ -625,7 +611,7 @@ public class SingleNumberOutboundDataManage {
         String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
 
         EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB = new Gson().fromJson(jsonEndCodeRedialStrategy,
-                                                                              EndCodeRedialStrategyFromDB.class);
+                EndCodeRedialStrategyFromDB.class);
 
         return EndCodeRedialStrategy.getInstance(endCodeRedialStrategyFromDB);
     }
@@ -714,6 +700,55 @@ public class SingleNumberOutboundDataManage {
         queue.put(newCustomerItem);
 
         insertBizIdVsCustomerMap(newCustomerItem.getBizId(), newCustomerItem);
+    }
+
+    // 用于过滤 当日重拨已满的客户
+    Boolean needJoinCustomerPool(int bizId, SingleNumberModeShareCustomerItem customerItem) {
+
+        if (!SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL.equals(customerItem.getState()))
+            return true;
+
+        Date now = new Date();
+        if (!isSameDay(customerItem.getLostCallCurDay(), now))
+            return true;
+
+        EndCodeRedialStrategy endCodeRedialStrategy = mapBizIdVsEndCodeRedialStrategy.get(bizId);
+        if (null == endCodeRedialStrategy) {
+            endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(bizId);
+            mapBizIdVsEndCodeRedialStrategy.put(bizId, endCodeRedialStrategy);
+        }
+
+        RedialState redialState = endCodeRedialStrategy.getNextRedialState(customerItem.getEndCodeType(), customerItem.getEndCode());
+
+        int curDayLostCallRedialCountLimit = 0;
+        if (isSameDay(customerItem.getLostCallFirstDay(), now)) {
+            curDayLostCallRedialCountLimit = redialState.getLoopRedialFirstDialDayDialCountLimitNum();
+        } else {
+            curDayLostCallRedialCountLimit = redialState.getLoopRedialPerdayCountLimitNum();
+        }
+
+        if (customerItem.getLostCallCurDayCount() < curDayLostCallRedialCountLimit)
+            return true;
+
+        return false;
+    }
+
+    // 处理追加客户的情形
+    private void loadCustomersAppend(int bizId, List<ShareBatchItem> shareBatchItems) {
+        System.out.println("bizId : " + bizId);
+
+        List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
+        shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.APPENDED);
+
+        List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
+
+        // TODO 成批从DB取数据
+        Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
+                bizId, shareBatchItems, shareCustomerStateList, shareDataItems);
+
+        for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
+            addCustomerToPool(customerItem);
+        }
     }
 
 }

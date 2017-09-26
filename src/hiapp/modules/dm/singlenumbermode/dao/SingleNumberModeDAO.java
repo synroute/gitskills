@@ -464,9 +464,8 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     // 中间重启时，去除当天未接通次数满的项
-    public Boolean getXXX(int bizId,
-                          List<ShareBatchItem> ShareBatchItems,
-                          List<SingleNumberModeShareCustomerStateEnum> shareDataStateList,
+    public Boolean getCurrentLostCallStateCustomers(int bizId,
+                                                    List<ShareBatchItem> ShareBatchItems,
                           /*OUT*/ List<SingleNumberModeShareCustomerItem> shareCustomerItems) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM3", bizId);
@@ -492,7 +491,7 @@ public class SingleNumberModeDAO extends BaseRepository {
                     "LOSTCALLTOTALCOUNT FROM " + tableName);
             sqlBuilder.append(" WHERE ");
             sqlBuilder.append(" SHAREID IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
-            sqlBuilder.append(" AND STATE IN (").append(shareBatchStatelistToCommaSplitString(shareDataStateList)).append(")");
+            sqlBuilder.append(" AND STATE = '").append(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL.getName()).append("'");
             sqlBuilder.append(" AND THISDAYDIALEDCOUNT > 0");
             sqlBuilder.append(" AND trunc(LOSTCALLCURDAY) = trunc(sysdate)");
 

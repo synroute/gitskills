@@ -24,21 +24,10 @@ public class DMDAO extends BaseRepository {
     /*
      *  所有业务的共享批次
      */
-    public Boolean getActiveShareBatchItems(List<ShareBatchStateEnum> shareBatchStateList, /*OUT*/List<ShareBatchItem> shareBatchItems) {
+    public Boolean getAllActiveShareBatchItems(/*OUT*/List<ShareBatchItem> shareBatchItems) {
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
-
-        int id;
-        int bizId;
-        String shareBatchId;
-        String shareBatchName;
-        int  createUserId;
-        Date createTime;
-        String description;
-        ShareBatchStateEnum	state;
-        Date StartTime;
-        Date EndTime;
 
         try {
             dbConn = this.getDbConnection();
@@ -47,6 +36,53 @@ public class DMDAO extends BaseRepository {
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
                                         "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
             sqlBuilder.append(" STATE ='").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
+
+            System.out.println(sqlBuilder.toString());
+
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ShareBatchItem item = new ShareBatchItem();
+                item.setId(rs.getInt(1));
+                item.setBizId(rs.getInt(2));
+                item.setShareBatchId(rs.getString(3));
+                item.setShareBatchName(rs.getString(4));
+                item.setCreateUserId(rs.getString(5));
+                item.setCreateTime(rs.getTime(6));
+                item.setDescription(rs.getString(7));
+                item.setState(ShareBatchStateEnum.getFromString(rs.getString(8)) );
+                item.setStartTime(rs.getDate(9));
+                item.setEndTime(rs.getDate(10));
+                shareBatchItems.add(item);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    /**
+     *
+     */
+    public Boolean getActiveShareBatchItems(List<String> shareBatchIdList, /*OUT*/List<ShareBatchItem> shareBatchItems) {
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            dbConn = this.getDbConnection();
+
+            //
+            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
+                    "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
+            sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
+            sqlBuilder.append(" SHAREID IN (").append(stringListToCommaSplitString(shareBatchIdList)).append(")");
 
             System.out.println(sqlBuilder.toString());
 
@@ -400,6 +436,17 @@ public class DMDAO extends BaseRepository {
         curDay.set(Calendar.MILLISECOND, 0);
         String strCurDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH);
         return strCurDay;
+    }
+
+    private String stringListToCommaSplitString(List<String> stringList) {
+        StringBuilder sb = new StringBuilder();
+        for (int indx = 0; indx < stringList.size(); indx++) {
+            sb.append("'").append(stringList.get(indx)).append("'");
+            if (indx < (stringList.size() - 1))
+                sb.append(",");
+        }
+
+        return sb.toString();
     }
 
 }
