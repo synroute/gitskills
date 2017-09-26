@@ -241,6 +241,18 @@ public class DMBizMangeShare extends BaseRepository{
 			Integer bizid = Integer.valueOf(businessID);
 			try {
 				dbConn=this.getDbConnection();
+				String deleteSql="delete from HASYS_DM_SIDUSERPOOl where SHAREID in(";
+				for (int i = 0; i < shareID.length; i++) {
+					String shareid = shareID[i];
+					if(shareid==null&&"".equals(shareid)){
+						continue;
+					}
+					deleteSql+="'"+shareid+"',";
+				}
+				deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
+				stmt = dbConn.prepareStatement(deleteSql);
+				stmt.executeUpdate();
+				
 				for (int i = 0; i < shareID.length; i++) {
 					String shareid = shareID[i];
 					if(shareid==null&&"".equals(shareid)){

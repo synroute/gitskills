@@ -162,17 +162,15 @@ public class DMBizMangeShareController {
 		ServiceResult serviceresult = new ServiceResult();
 		String p = null;
 		String DataPoolName = null;
-		String uId = null;
 		String[] shareId = shareID.split(",");
 		String[] userId=userID.split(",");
-		StringBuilder sb=new StringBuilder();
 		try {
 			for (int i = 0; i < userId.length; i++) {
 				if(userId[i]==null||"".equals(userId[i])){
 					continue;
 				}
 				DataPoolName = bizMangeShare.addShareCustomerfByUserId(businessID,userId[i]);
-				bizMangeShare.addShareCustomerfByUserIds(uId, shareId,
+				bizMangeShare.addShareCustomerfByUserIds(userId[i], shareId,
 						businessID, DataPoolName);
 			}
 			serviceresult.setReturnMessage("指定共享成功");
