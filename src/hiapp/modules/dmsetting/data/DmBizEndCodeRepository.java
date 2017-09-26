@@ -258,7 +258,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			
 		} 
 		finally {
-			DbUtil.DbCloseConnection(conn);
+			
 			DbUtil.DbCloseExecute(stmt);
 		}
 		
@@ -313,7 +313,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			for(int i=0;i<jsonArry_endChild.size();i++)
 			{
 				JsonObject jsonObject_endcode=jsonArry_endChild.get(i).getAsJsonObject();
-				if (jsonObject_endcode.get(dmEndCode.getEndCodeType()).getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get(dmEndCode.getEndCode()).getAsString().equals(dmEndCode.getEndCode())) {
+				if (jsonObject_endcode.get("endCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("endCode").getAsString().equals(dmEndCode.getEndCode())) {
 					jsonArray.remove(i);
 				}
 			}
