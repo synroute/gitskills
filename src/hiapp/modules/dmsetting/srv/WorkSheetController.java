@@ -93,9 +93,9 @@ public class WorkSheetController {
 	}
 	
 	@RequestMapping(value = "/srv/dm/dmNewBizWorkSheetColumn.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmNewBizWorkSheetColumn(
+	public String dmNewBizWorkSheetColumn(@RequestParam("worksheetId") String worksheetId,
 			@RequestParam("columns") String columns) {
-		String worksheetId = "";
+		
 		String fixedColumn = "";
 		String columnName = "";
 		String columnNameCh = "";
@@ -109,7 +109,7 @@ public class WorkSheetController {
 		JsonArray jsonArray = jsonParser.parse(columns).getAsJsonArray();
 		for (int i = 0; i < jsonArray.size(); i++) {
 			JsonObject jsonObject = (JsonObject) jsonArray.get(i);
-			worksheetId = jsonObject.get("worksheetId").getAsString();
+			
 			fixedColumn = jsonObject.get("fixedColumn").getAsString();
 			columnName = jsonObject.get("columnName").getAsString();
 			columnNameCh = jsonObject.get("columnNameCh").getAsString();
