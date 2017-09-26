@@ -191,8 +191,6 @@ public class DMBizMangeShareController {
 		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
-		String s=null;
-		TreeDataResult result = new TreeDataResult();
 		TreePool treePool=new TreePool();
 		bizMangeShare.getUserPoolTree(permissionId,treePool,businessID);
 		UserItem userItem=bizMangeShare.getUserPoolTreeByPermissionID(businessID,treePool);
