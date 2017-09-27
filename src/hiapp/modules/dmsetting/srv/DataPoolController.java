@@ -56,14 +56,15 @@ public class DataPoolController {
 			dmDataPool.setDataPoolName(DataPoolName);
 			dmDataPool.setDataPoolDesc(DataPoolDes);
 			dmDataPool.setPoolTopLimit(PoolTopLimit);
-				if(dmBizDataPool.dmCreateBizDataPool(dmDataPool))
+			StringBuffer err=new StringBuffer();
+				if(dmBizDataPool.dmCreateBizDataPool(dmDataPool,err))
 				{
 					recordsetResult.setReturnCode(dmDataPool.getPoolId());
 					recordsetResult.setReturnMessage("成功");
 				}else
 				{
 					recordsetResult.setReturnCode(1);
-					recordsetResult.setReturnMessage("失败");
+					recordsetResult.setReturnMessage(err.toString());
 				}
 				
 			} catch (Exception e) {

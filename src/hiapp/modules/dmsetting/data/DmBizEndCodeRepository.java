@@ -51,8 +51,13 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			for(int i=0;i<jsonArray.size();i++)
 			{
 				JsonObject jsonObject=jsonArray.get(i).getAsJsonObject();
+				String desc="";
 				//插入结束码表信息
-				String szSql = String.format("INSERT INTO HASYS_DM_BIZENDCODE (BusinessId,CodeType,Code,Description) values("+bizId+",'"+jsonObject.get("endCodeType").getAsString()+"','"+jsonObject.get("endCode").getAsString()+"','"+jsonObject.get("desc").getAsString()+"')");
+				if(jsonObject.has("desc"))
+				{
+					desc=jsonObject.get("desc").getAsString();
+				}
+				String szSql = String.format("INSERT INTO HASYS_DM_BIZENDCODE (BusinessId,CodeType,Code,Description) values("+bizId+",'"+jsonObject.get("endCodeType").getAsString()+"','"+jsonObject.get("endCode").getAsString()+"','"+desc+"')");
 				stmt = conn.prepareStatement(szSql);
 				stmt.executeUpdate();
 				StringBuffer errMessage=new StringBuffer();
@@ -314,7 +319,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			{
 				JsonObject jsonObject_endcode=jsonArry_endChild.get(i).getAsJsonObject();
 				if (jsonObject_endcode.get("endCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("endCode").getAsString().equals(dmEndCode.getEndCode())) {
-					jsonArray.remove(i);
+					jsonArry_endChild.remove(i);
 				}
 			}
 			

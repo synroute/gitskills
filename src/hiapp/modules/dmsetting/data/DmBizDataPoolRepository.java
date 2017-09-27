@@ -35,7 +35,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 	@Autowired
 	private UgrRepository ugrRepository;
 	//创建普通数据池
-	public boolean dmCreateBizDataPool(DMDataPool dataPool )
+	public boolean dmCreateBizDataPool(DMDataPool dataPool,StringBuffer err)
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -45,6 +45,22 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			{
 				
 			}*/
+			
+			//判断是否有活动的共享批次
+			String selectsql=String.format("select count(*) from HASYS_DM_DATAPOOL where DataPoolName='"+dataPool.getDataPoolName()+"' and BusinessID="+dataPool.getBizId()+"");
+			stmt = dbConn.prepareStatement(selectsql);
+			rs = stmt.executeQuery();
+			int count=0;
+			while(rs.next())
+			{
+				count=rs.getInt(1);
+			}
+			if (count>0) {
+				
+				err.append("数据池名称重复！");
+				return false;
+			}
+			
 			String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,DataPoolDes,PID,AreaType,PoolTopLimit,isDelete)"+
 			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s,0)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getpId(),dataPool.getPoolTopLimit());
 			stmt = dbConn.prepareStatement(szSql);
