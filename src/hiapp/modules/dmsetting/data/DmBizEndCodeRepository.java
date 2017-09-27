@@ -18,6 +18,7 @@ import com.google.gson.JsonParser;
 
 import hiapp.modules.dmsetting.DMEndCode;
 import hiapp.system.dictionary.Dict;
+import hiapp.system.dictionary.dictTreeBranch;
 import hiapp.system.dictionary.data.DictRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
@@ -62,16 +63,46 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				stmt.executeUpdate();
 				StringBuffer errMessage=new StringBuffer();
 				//创建字典表
-				
-				Integer CLASSID=dictManager.getClassIdByName("");
-				
-				dictManager.newDictionaryClass(CLASSID.toString(), bizId+jsonObject.get("endCodeType").getAsString(), "", errMessage);
-				Dict dict=new Dict();
-				dict.setClassId(CLASSID);
-				dict.setClassName(jsonObject.get("endCodeType").getAsString());
-				dict.setName(jsonObject.get("endCode").getAsString());
-				
-				dictManager.newDictionay(dict);
+				List<dictTreeBranch> listDictTreeBranch=new ArrayList<dictTreeBranch>();
+			    dictManager.getDictionaryClassBySearchKey("数据管理结束码",listDictTreeBranch);
+			    if(listDictTreeBranch.size()==0)
+			    {
+			    	String dictionary=String.format("select CLASSID from (select CLASSID from HASYS_DIC_CLASS order by CLASSID desc)  WHERE ROWNUM <=1");
+					stmt = conn.prepareStatement(dictionary);
+					rs = stmt.executeQuery();
+					Integer CLASSID=0;
+					while(rs.next())
+					{
+						CLASSID=rs.getInt("CLASSID");
+					}
+					CLASSID=CLASSID+1;
+					dictManager.newDictionaryClass(CLASSID.toString(), "数据管理结束码", "", errMessage);
+			    }
+				List<Dict> list=new ArrayList<Dict>();
+				dictManager.queryDictionary(bizId+jsonObject.get("endCodeType").getAsString(),list);
+				if(list.size()==0)
+				{
+					Integer CLASSID=dictManager.getClassIdByName("数据管理结束码");
+					
+					Dict dict=new Dict();
+					dict.setClassId(CLASSID);
+					dict.setDescription(bizId+jsonObject.get("endCodeType").getAsString());
+					dict.setLevelCount(2);
+					dict.setName(bizId+jsonObject.get("endCodeType").getAsString());
+					dictManager.newDictionay(dict);
+					dictManager.queryDictionary(jsonObject.get("endCodeType").getAsString(),list);
+				}
+				String itemIdsql="select ITEMID from (select ITEMID from HASYS_DIC_ITEM order by ITEMID desc) WHERE ROWNUM <=1";
+				stmt = conn.prepareStatement(itemIdsql);
+				rs = stmt.executeQuery();
+				Integer itemId=0;
+				while(rs.next())
+				{
+					itemId=rs.getInt(1);
+				}
+				Integer dicid=list.get(0).getId();
+				dictManager.insertItemsText(
+						dicid.toString(), itemId.toString(), jsonObject.get("endCodeType").getAsString(),"-1");
 				add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),jsonObject.get("desc").getAsString());
 			}
 		} catch (SQLException e) {

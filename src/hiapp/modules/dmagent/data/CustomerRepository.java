@@ -525,12 +525,12 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" ");
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr());
 
-			sb.append(" INNER JOIN ");
+			sb.append(" LEFT JOIN (select * from ");
 
 			sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 			sb.append(bizId);
 			sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
-			sb.append(" ");
+			sb.append(" where HAU_DM_B908C_RESULT.SOURCEID='"+queryRequest.getSourceId()+"') ");
 			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 
 			sb.append(" ON ");
@@ -588,11 +588,6 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" = ");
 			sb.append("'"+queryRequest.getCID()+"'");
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
-					+ "SOURCEID");
-			sb.append(" = ");
-			sb.append("'"+queryRequest.getSourceId()+"'");
 
 
 			System.out
