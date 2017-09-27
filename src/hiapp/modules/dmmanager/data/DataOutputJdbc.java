@@ -122,7 +122,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	@SuppressWarnings({ "resource", "unchecked" })
+	@SuppressWarnings({ "resource", "unchecked", "unused", "rawtypes" })
 	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;

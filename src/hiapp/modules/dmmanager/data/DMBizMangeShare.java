@@ -99,17 +99,15 @@ public class DMBizMangeShare extends BaseRepository{
 					Map<String,Object> resultMap=new HashMap<String, Object>();
 					try {
 						dbConn = this.getDbConnection();
-						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B,(SELECT DATAPOOLTYPE from HASYS_DM_DATAPOOL where BUSINESSID=?) C WHERE C.DATAPOOLTYPE=? AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY A.CREATETIME";
+						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY A.CREATETIME";
 						sql1="SELECT DISTINCT ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION,STATE,STARTTIME,ENDTIME,ABC from (";
 						sql=sql1+sql+") m where rn>=?";
 						stmt = dbConn.prepareStatement(sql);
-						stmt.setInt(1,bizid);
-						stmt.setInt(2,permissionId);
-						stmt.setString(3,startTime);
-						stmt.setString(4,endTime);
-						stmt.setInt(5,bizid);
-						stmt.setInt(6,endNum);
-						stmt.setInt(7,startNum);
+						stmt.setString(1,startTime);
+						stmt.setString(2,endTime);
+						stmt.setInt(3,bizid);
+						stmt.setInt(4,endNum);
+						stmt.setInt(5,startNum);
 						rs = stmt.executeQuery();
 						while (rs.next()) {
 							ShareBatchItemS shareBatchItems = new ShareBatchItemS();
@@ -142,13 +140,11 @@ public class DMBizMangeShare extends BaseRepository{
 							shareBatchItem.add(shareBatchItems);
 						}
 						
-						String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B,(SELECT DATAPOOLTYPE from HASYS_DM_DATAPOOL where BUSINESSID=?) C WHERE C.DATAPOOLTYPE=? AND A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME)";
+						String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B where  A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME)";
 						stmt=dbConn.prepareStatement(getCountSql);
-						stmt.setInt(1,bizid);
-						stmt.setInt(2,permissionId);
-						stmt.setString(3,startTime);
-						stmt.setString(4,endTime);
-						stmt.setInt(5,bizid);
+						stmt.setString(1,startTime);
+						stmt.setString(2,endTime);
+						stmt.setInt(3,bizid);
 						rs=stmt.executeQuery();
 						Integer total=null;
 						while(rs.next()){
