@@ -2,7 +2,6 @@ package hiapp.modules.dmmanager.data;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
-import hiapp.modules.dmmanager.DataPool;
 import hiapp.modules.dmmanager.ShareBatchItemS;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
@@ -11,29 +10,18 @@ import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
 import hiapp.system.buinfo.data.PermissionRepository;
 import hiapp.system.buinfo.data.UserRepository;
-import hiapp.system.dictionary.Dict;
-import hiapp.system.dictionary.DictItem;
-import hiapp.system.dictionary.dicItemsTreeBranch;
-import hiapp.system.dictionary.dictTreeBranch;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
-import hiapp.utils.serviceresult.TreeNode;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -307,11 +295,12 @@ public class DMBizMangeShare extends BaseRepository{
 							"left join BU_MAP_USERORGROLE b on a.datapoolname = b.userid "+
 							"left join BU_INF_GROUP c on b.groupid = c.groupid "+
 							"left join BU_INF_USER d on d.userid = b.userid "+
-							"where a.businessid = 25 and a.id ="+
-							"(select p.datapoolid from HASYS_DM_PER_MAP_POOL  p where p.businessid=? and p.permissionid=? and p.itemname='数据管理')";
+							"where a.businessid = ? and a.id ="+
+							"(select p.datapoolid from HASYS_DM_PER_MAP_POOL  p where p.businessid=? and p.permissionid=? and p.datapoolid is not null)";
 				stmt = dbConn.prepareStatement(sql);
 				stmt.setInt(1, biz);
-				stmt.setInt(2,permissionId);
+				stmt.setInt(2, biz);
+				stmt.setInt(3,permissionId);
 				rs = stmt.executeQuery();
 				while (rs.next()) {
 					tree.setId(rs.getInt(1));

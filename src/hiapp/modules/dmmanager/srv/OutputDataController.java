@@ -3,7 +3,6 @@ package hiapp.modules.dmmanager.srv;
 
 
 import hiapp.modules.dmmanager.bean.ExcelUtils;
-import hiapp.modules.dmmanager.bean.ImportQueryCondition;
 import hiapp.modules.dmmanager.bean.OutputFirstRow;
 import hiapp.modules.dmmanager.data.DataOutputJdbc;
 import hiapp.modules.dmsetting.DMBizExportTemplate;
@@ -16,6 +15,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 
 
 
@@ -86,6 +86,7 @@ public class OutputDataController{
 	 * @param queryCondition
 	 * @throws IOException
 	 */
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value="/srv/DataShareController/GetOutputExcelData.srv")
 	public void getOutputExcelCustomerData(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
