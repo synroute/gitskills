@@ -289,8 +289,8 @@ public class DMBizMangeShare extends BaseRepository{
 							"left join BU_MAP_USERORGROLE b on a.datapoolname = b.userid "+
 							"left join BU_INF_GROUP c on b.groupid = c.groupid "+
 							"left join BU_INF_USER d on d.userid = b.userid "+
-							"where a.businessid = ? and a.id ="+
-							"(select p.datapoolid from HASYS_DM_PER_MAP_POOL  p where p.businessid=? and p.permissionid=? and p.datapoolid is not null)";
+							"where a.businessid = ? and a.datapooltype=3 and a.pid ="+
+							"(select p.datapoolid from HASYS_DM_PER_MAP_POOL  p where p.businessid=? and p.permissionid=? and p.datapoolid is not null) and rownum=1";
 				stmt = dbConn.prepareStatement(sql);
 				stmt.setInt(1, biz);
 				stmt.setInt(2, biz);
@@ -346,25 +346,25 @@ public class DMBizMangeShare extends BaseRepository{
 		public UserItem getUserPoolTreeByPermissionID(Integer bizId,
 				TreePool pool) {
 				UserItem userItem=new UserItem();
-				List<UserItem> userItemList=new ArrayList<UserItem>();
-				UserItem userItem1=new UserItem();
+				/*List<UserItem> userItemList=new ArrayList<UserItem>();
+				UserItem userItem1=new UserItem();*/
 			try {
-					userItem.setId(Integer.toString(pool.getId()));
+					userItem.setId(Integer.toString(pool.getPid()));
 					userItem.setText(pool.getGroupId()+" "+pool.getGroupName());
 					userItem.setState("");
 					userItem.setDicId(pool.getId());
 					userItem.setItemText(pool.getDataPoolName());
 					userItem.setItemId(pool.getPid());
 					
-					userItem1.setId(Integer.toString(pool.getId()));
+				/*	userItem1.setId(Integer.toString(pool.getPid()));
 					userItem1.setText(pool.getDataPoolName()+" "+pool.getUserName());
 					userItem1.setState("");
 					userItem1.setDicId(pool.getId());
 					userItem1.setItemText(pool.getDataPoolName());
 					userItem1.setItemId(pool.getPid());
 					userItemList.add(userItem1);
-					userItem.setChildren(userItemList);
-					addChildren(userItem1,bizId);
+					userItem.setChildren(userItemList);*/
+					addChildren(userItem,bizId);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -372,7 +372,7 @@ public class DMBizMangeShare extends BaseRepository{
 		}
 		//递归
 		public void addChildren(UserItem userTreeBranch,Integer bizId) {
-			    List<UserItem> listChildrenBranchs = userTreeBranch.getChildren();
+			    List<UserItem> listChildrenBranchs = new ArrayList<UserItem>();
 			    Integer pid=Integer.valueOf(userTreeBranch.getId());
 			    List<TreePool>  treePoolList=getChildrenTreePoolByPid(bizId,pid);
 			    for (int ii = 0; ii < treePoolList.size(); ii++) {
@@ -384,9 +384,14 @@ public class DMBizMangeShare extends BaseRepository{
 					treeBranch.setDicId(TreePoolBranch.getId());
 					treeBranch.setItemText(TreePoolBranch.getDataPoolName());
 					treeBranch.setItemId(TreePoolBranch.getPid());
-					listChildrenBranchs.add(treeBranch);
+					if(treeBranch.getId()==null){
+						continue;
+					}
 					addChildren(treeBranch,bizId);
+					listChildrenBranchs.add(treeBranch);
+					
 				}
+			    userTreeBranch.setChildren(listChildrenBranchs);
 			}
 		@SuppressWarnings("resource")
 		public ServiceResultCode DeleteShareBatchDataByShareId(String[] shareId,int businessID) throws Exception {
