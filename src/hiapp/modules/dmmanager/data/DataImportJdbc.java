@@ -439,7 +439,8 @@ public class DataImportJdbc extends BaseRepository{
      * @param bizId
      * @param uId
      */
-    public Map<String,Object> insertExcelData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,Integer bizId,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+    @SuppressWarnings("resource")
+	public Map<String,Object> insertExcelData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,Integer bizId,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
     	Connection conn=null;
 		PreparedStatement pst = null;
 		PreparedStatement pst1 = null;
@@ -452,6 +453,8 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> repeatColumns=new ArrayList<String>();//重复字段的集合
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
+		String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
+		String deleteTempSql="delete from "+tempTableName+" where tempId in(";
 		try {
 			conn=this.getDbConnection();
 	    	//解析JSON RepetitionExcludeType
@@ -526,7 +529,7 @@ public class DataImportJdbc extends BaseRepository{
 				if(ifRepeat){
 					String customerBatchId=idfactory.newId("DM_CID");//客户号
 					String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-					
+					deleteTempSql+=isnertData.get(i).get("tempId")+",";
 					pst.setString(1,disBatchId);
 					pst.setString(2, importBatchId);
 					pst.setString(3,customerBatchId);
@@ -578,11 +581,15 @@ public class DataImportJdbc extends BaseRepository{
 				
 				
 			}
-			resultMap.put("repeatColumn", repeatColumns);
-			resultMap.put("flag", 1);
+		
 			pst.executeBatch();
 			pst1.executeBatch();
 			statement.executeBatch();
+			deleteTempSql=deleteTempSql.substring(0,deleteTempSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteTempSql);
+			pst.executeUpdate();
+			resultMap.put("repeatColumn", repeatColumns);
+			resultMap.put("flag", 1);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -607,7 +614,8 @@ public class DataImportJdbc extends BaseRepository{
     /**
      * 将数据库来源数据插入到导入表中
      */
-    public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+    @SuppressWarnings("resource")
+	public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
     	Connection conn=null;
 		Statement statement=null;
 		PreparedStatement pst = null;
@@ -618,6 +626,8 @@ public class DataImportJdbc extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
+		String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
+		String deleteTempSql="delete from "+tempTableName+" where tempId in(";
 		try {
 			conn=this.getDbConnection();
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
@@ -637,6 +647,7 @@ public class DataImportJdbc extends BaseRepository{
 			for (int i = 0; i < isnertData.size(); i++) {
 				String customerBatchId=idfactory.newId("DM_CID");//客户号
 				String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
+				deleteTempSql+=isnertData.get(i).get("tempId")+",";
 				
 				pst.setString(1,disBatchId);
 				pst.setString(2, importBatchId);
@@ -690,6 +701,9 @@ public class DataImportJdbc extends BaseRepository{
 			pst.executeBatch();
 			pst1.executeBatch();
 			statement.executeBatch();
+			deleteTempSql=deleteTempSql.substring(0,deleteTempSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteTempSql);
+			pst.executeUpdate();
 			resultMap.put("flag", 2);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -765,13 +779,14 @@ public class DataImportJdbc extends BaseRepository{
     /**
      * 创建中间表并保存数据
      */
-    public  Map<String,Object> createTepporaryImportTable(List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> dataList,Integer bizId){
+    @SuppressWarnings("resource")
+	public  Map<String,Object> createTepporaryImportTable(List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> dataList,Integer bizId,String userId){
     	Connection conn=null;
 		PreparedStatement pst = null;
 		Statement statement=null;
 		ResultSet rs=null;
 		Map<String,Object>  resultMap=new HashMap<String, Object>();
-		String tableName="HAU_DM_B"+bizId+"C_IMPORT_TEMP";
+		String tableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
 		try {
 			conn=this.getDbConnection();
 			String selectTable="select table_name from user_tables where table_name=?";
@@ -785,7 +800,7 @@ public class DataImportJdbc extends BaseRepository{
 			
 			if(dbTableName==null){
 				//创建临时表
-				String createTableSql="create table "+tableName+"(";
+				String createTableSql="create table "+tableName+"(TEMPID NUMBER,";
 				for (int i = 0; i < sheetColumnList.size(); i++) {
 					String type=sheetColumnList.get(i).getDataType();
 					String columnName=sheetColumnList.get(i).getField();
@@ -802,11 +817,14 @@ public class DataImportJdbc extends BaseRepository{
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
 			}
-			
+			//删除临时表数据
+			String deleteSql="delete from "+tableName;
+			pst=conn.prepareStatement(deleteSql);
+			pst.executeUpdate();
 			//临时表插数据 
 			statement=conn.createStatement();
 			for(int i=0;i<dataList.size();i++){
-				String insertDataSql="insert into "+tableName+"(ID,";
+				String insertDataSql="insert into "+tableName+"(TEMPID,";
 				String valuesSql=" values(S_HAU_DM_B101C_IMPORT.nextval,";
 				for (int j = 0; j < sheetColumnList.size(); j++) {
 					String columnName=sheetColumnList.get(j).getField();
@@ -849,26 +867,26 @@ public class DataImportJdbc extends BaseRepository{
     /**
      * 获取导入表数据
      */
-    public Map<String,Object> getImportExcelData(Integer bizId,List<WorkSheetColumn> sheetColumnList,Integer num,Integer pageSize){
+    public Map<String,Object> getImportExcelData(Integer bizId,List<WorkSheetColumn> sheetColumnList,Integer num,Integer pageSize,String userId){
     	List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
     	Map<String,Object> resultMap=new HashMap<String, Object>();
     	Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs=null;
-		String tableName="HAU_DM_B"+bizId+"C_IMPORT_TEMP";
+		String tableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
 		Integer startNum=(num-1)*pageSize+1;
 		Integer endNum=num*pageSize+1;
 		try {
 			conn=this.getDbConnection();
 			//查询出要展示的数据
-			String getDataSql1="select ";
-			String getDataSql2=" select ";
+			String getDataSql1="select tempId,";
+			String getDataSql2=" select tempId,";
 			for(int i = 0; i < sheetColumnList.size(); i++) {
 				String column=sheetColumnList.get(i).getField();
 				getDataSql1+=column+",";
 				getDataSql2+=column+",";
 			}
-			getDataSql2="("+getDataSql2+"rownum rn from "+tableName+" where rownum<? order by id desc) a";
+			getDataSql2="("+getDataSql2+"rownum rn from "+tableName+" where rownum<?) a";
 			getDataSql1=getDataSql1.substring(0,getDataSql1.length()-1)+" from"+getDataSql2+" where rn>=?";
 			pst=conn.prepareStatement(getDataSql1);
 			pst.setInt(1, endNum);
@@ -879,6 +897,7 @@ public class DataImportJdbc extends BaseRepository{
 				for (int i = 0; i < sheetColumnList.size(); i++) {
 					String column=sheetColumnList.get(i).getField();
 					if(rs.getObject(column)!=null&&!"ID".equals(column.toUpperCase())){
+						map.put("tempId",rs.getObject("tempId"));
 						map.put(column, rs.getObject(column));
 					}
 				}

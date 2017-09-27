@@ -143,6 +143,9 @@ public class ImportDataController {
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
 		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
         String fileName=file.getOriginalFilename();
@@ -212,7 +215,7 @@ public class ImportDataController {
 		            }
 		            dataList.add(map);
 				}
-			Map<String,Object> resultMap=dataImportJdbc.createTepporaryImportTable(sheetColumnList, dataList, bizId);
+			Map<String,Object> resultMap=dataImportJdbc.createTepporaryImportTable(sheetColumnList, dataList, bizId,userId);
 			String jsonObject=new Gson().toJson(resultMap);
 			PrintWriter printWriter = response.getWriter();
 			printWriter.print(jsonObject);
@@ -231,10 +234,13 @@ public class ImportDataController {
 		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
 		Integer pageNum=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
 		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		//获取前台要展示的字段
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-		Map<String,Object> resultMap = dataImportJdbc.getImportExcelData(bizId, sheetColumnList, pageNum,pageSize);
+		Map<String,Object> resultMap = dataImportJdbc.getImportExcelData(bizId, sheetColumnList, pageNum,pageSize,userId);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();

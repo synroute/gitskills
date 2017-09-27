@@ -155,21 +155,15 @@ public class DMBizMangeShareController {
 	public String addShareCustomerfByUserId(
 			@RequestParam(value = "UserId") String userID,
 			@RequestParam(value = "ShareID") String shareID,
-			@RequestParam(value = "BusinessID") String businessID) {
+			@RequestParam(value = "BusinessID") String businessID,String dataPoolName) {
 		ServiceResult serviceresult = new ServiceResult();
 		String p = null;
-		String DataPoolName = null;
 		String[] shareId = shareID.split(",");
 		String[] userId=userID.split(",");
+		String[] poolName=dataPoolName.split(",");
 		try {
-			for (int i = 0; i < userId.length; i++) {
-				if(userId[i]==null||"".equals(userId[i])){
-					continue;
-				}
-				DataPoolName = bizMangeShare.addShareCustomerfByUserId(businessID,userId[i]);
-				bizMangeShare.addShareCustomerfByUserIds(userId[i], shareId,
-						businessID, DataPoolName);
-			}
+				bizMangeShare.addShareCustomerfByUserIds(userId, shareId,
+						businessID, poolName);
 			serviceresult.setReturnMessage("指定共享成功");
 			p = serviceresult.toJson();
 			return p;

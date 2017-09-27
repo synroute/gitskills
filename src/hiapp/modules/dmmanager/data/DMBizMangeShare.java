@@ -18,6 +18,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,6 +79,9 @@ public class DMBizMangeShare extends BaseRepository{
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs,stmt);
+				DbUtil.DbCloseConnection(dbConn);
 			}
 			return shareBatchItem;
 		}
@@ -180,6 +184,17 @@ public class DMBizMangeShare extends BaseRepository{
 				stmt.execute();
 			} catch (Exception e) {
 				e.printStackTrace();
+			}finally{
+				try {
+					if(stmt!=null){
+						stmt.close();
+					}
+					
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				DbUtil.DbCloseConnection(dbConn);
 			}
 			return ServiceResultCode.SUCCESS;
 		}
@@ -209,43 +224,28 @@ public class DMBizMangeShare extends BaseRepository{
 				stmt.execute();
 			} catch (Exception e) {
 				e.printStackTrace();
+			}finally{
+				try {
+					if(stmt!=null){
+						stmt.close();
+					}
+					
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				DbUtil.DbCloseConnection(dbConn);
 			}
 			return ServiceResultCode.SUCCESS;
 		}
-        //通过业务id 和用户id获取所在数据池的id
-		public String addShareCustomerfByUserId(
-				String businessID, String s) {
-			String sql = "";
-			PreparedStatement stmt = null;
-			Connection dbConn = null;
-			ResultSet rs = null;
-			String DataPoolName = null;
-			int bizID=Integer.valueOf(businessID);
-			try {
-				dbConn=this.getDbConnection();
-				sql=String.format("SELECT DATAPOOLNAME FROM HASYS_DM_DATAPOOL WHERE ID='%s' AND BUSINESSID=%s",s,bizID);
-				stmt = dbConn.prepareStatement(sql);
-				rs = stmt.executeQuery();
-				while (rs.next()) {
-				DataPoolName = rs.getString(1);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}finally{
-				DbUtil.DbCloseQuery(rs,stmt);
-				DbUtil.DbCloseConnection(dbConn);
-			}
-			return DataPoolName;
-		}
         // 将 获得共享数据的用户  填入 座席池所属共享批次信息表
-		public void addShareCustomerfByUserIds(String uid, String[] shareID,
-				String businessID, String DataPoolName) {
-			String insertsql = "";
+		public void addShareCustomerfByUserIds(String[] uid, String[] shareID,
+				String businessID, String[] dataPoolName) {
 			PreparedStatement stmt = null;
+			Statement sta=null;
 			Connection dbConn = null;
-			int datapoolid=Integer.valueOf(uid);
 			//auto
-			Integer bizid = Integer.valueOf(businessID);
+			Integer bizId = Integer.valueOf(businessID);
 			try {
 				dbConn=this.getDbConnection();
 				String deleteSql="delete from HASYS_DM_SIDUSERPOOl where SHAREID in(";
@@ -256,22 +256,40 @@ public class DMBizMangeShare extends BaseRepository{
 					}
 					deleteSql+="'"+shareid+"',";
 				}
-				deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
+				deleteSql=deleteSql.substring(0,deleteSql.length()-1)+") AND BUSINESSID=?";
 				stmt = dbConn.prepareStatement(deleteSql);
+				stmt.setInt(1,bizId);
 				stmt.executeUpdate();
-				
+				sta=dbConn.createStatement();
 				for (int i = 0; i < shareID.length; i++) {
 					String shareid = shareID[i];
 					if(shareid==null&&"".equals(shareid)){
 						continue;
 					}
-					insertsql=String.format("INSERT INTO HASYS_DM_SIDUSERPOOl (ID,BUSINESSID,SHAREID,DATAPOOLNAME,DATAPOOLID) VALUES (S_HASYS_DM_SIDUSERPOOl.NEXTVAL,%s,'%s','%s',%s)",bizid,shareid,DataPoolName,datapoolid);
-					stmt = dbConn.prepareStatement(insertsql);
+					for(int j=0;j<uid.length;j++){
+						if(uid[j]==null&&"".equals(uid[j])){
+							continue;
+						}
+						String insertsql =String.format("INSERT INTO HASYS_DM_SIDUSERPOOl (ID,BUSINESSID,SHAREID,DATAPOOLNAME,DATAPOOLID) VALUES (S_HASYS_DM_SIDUSERPOOl.NEXTVAL,%s,'%s','%s',%s)",bizId,shareid,dataPoolName[j],uid[j]);
+						sta.addBatch(insertsql);
+					}
+					
 				}
-				stmt.execute();
+				sta.executeBatch();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}finally{
+					try {
+					if(sta!=null){
+						sta.close();
+					}
+					if(stmt!=null){
+						stmt.close();
+					}
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				DbUtil.DbCloseConnection(dbConn);
 			}	
 		}
@@ -320,7 +338,7 @@ public class DMBizMangeShare extends BaseRepository{
 			ResultSet rs=null;
 			try {
 				conn=this.getDbConnection();
-				String sql="select a.id,a.datapoolname,a.pid,d.username from HASYS_DM_DATAPOOL a "+
+				String sql="select distinct a.id,a.datapoolname,a.pid,d.username from HASYS_DM_DATAPOOL a "+
 						   "left join BU_MAP_USERORGROLE b on a.datapoolname = b.userid "+
 						   "left join BU_INF_USER d on d.userid = b.userid "+
 						   "where a.businessid=? and a.pid=?";
@@ -339,6 +357,9 @@ public class DMBizMangeShare extends BaseRepository{
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs,pst);
+				DbUtil.DbCloseConnection(conn);
 			}
 			return treePools;
 		}
@@ -346,8 +367,6 @@ public class DMBizMangeShare extends BaseRepository{
 		public UserItem getUserPoolTreeByPermissionID(Integer bizId,
 				TreePool pool) {
 				UserItem userItem=new UserItem();
-				/*List<UserItem> userItemList=new ArrayList<UserItem>();
-				UserItem userItem1=new UserItem();*/
 			try {
 					userItem.setId(Integer.toString(pool.getPid()));
 					userItem.setText(pool.getGroupId()+" "+pool.getGroupName());
@@ -355,15 +374,6 @@ public class DMBizMangeShare extends BaseRepository{
 					userItem.setDicId(pool.getId());
 					userItem.setItemText(pool.getDataPoolName());
 					userItem.setItemId(pool.getPid());
-					
-				/*	userItem1.setId(Integer.toString(pool.getPid()));
-					userItem1.setText(pool.getDataPoolName()+" "+pool.getUserName());
-					userItem1.setState("");
-					userItem1.setDicId(pool.getId());
-					userItem1.setItemText(pool.getDataPoolName());
-					userItem1.setItemId(pool.getPid());
-					userItemList.add(userItem1);
-					userItem.setChildren(userItemList);*/
 					addChildren(userItem,bizId);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -452,8 +462,8 @@ public class DMBizMangeShare extends BaseRepository{
 				return ServiceResultCode.INVALID_SESSION;
 			}
 			finally {
-				DbUtil.DbCloseConnection(dbConn);
 				DbUtil.DbCloseExecute(stmt);
+				DbUtil.DbCloseConnection(dbConn);
 			}
 			return ServiceResultCode.SUCCESS;
 		}	
@@ -478,6 +488,9 @@ public class DMBizMangeShare extends BaseRepository{
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs,pst);
+				DbUtil.DbCloseConnection(conn);
 			}
 			
 			return dataList;
