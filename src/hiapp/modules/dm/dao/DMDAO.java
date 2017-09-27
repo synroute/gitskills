@@ -170,7 +170,7 @@ public class DMDAO extends BaseRepository {
             // 激活共享批次
             StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
             sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
-            sqlBuilder.append(" WHERE STARTTIME <= ").append("TO_DATE('").append(getCurDaySqlString()).append("','yyyy/mm/dd')");
+            sqlBuilder.append(" WHERE STARTTIME <= ").append("TO_DATE('").append(getCurDaySqlString()).append("','yyyy-mm-dd hh24:mi:ss')");
             sqlBuilder.append(" AND STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
 
             System.out.println(sqlBuilder.toString());
@@ -407,11 +407,12 @@ public class DMDAO extends BaseRepository {
         Calendar curDay = Calendar.getInstance();
         curDay.setTime(new Date());
         curDay.add(Calendar.DAY_OF_MONTH, 0);
-        curDay.set(Calendar.HOUR_OF_DAY, 0);
-        curDay.set(Calendar.MINUTE, 0);
-        curDay.set(Calendar.SECOND, 0);
+        curDay.set(Calendar.HOUR_OF_DAY, 23);
+        curDay.set(Calendar.MINUTE, 59);
+        curDay.set(Calendar.SECOND, 59);
         curDay.set(Calendar.MILLISECOND, 0);
-        String strCurDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH);
+        String strCurDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH)
+                + " " + curDay.get(Calendar.HOUR_OF_DAY) + ":" + curDay.get(Calendar.MINUTE) + ":" + curDay.get(Calendar.SECOND);
         return strCurDay;
     }
 

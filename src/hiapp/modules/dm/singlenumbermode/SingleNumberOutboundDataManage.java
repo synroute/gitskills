@@ -65,16 +65,19 @@ public class SingleNumberOutboundDataManage {
     TimerTask dailyTimerTask;
 
 
-    public synchronized SingleNumberModeShareCustomerItem extractNextOutboundCustomer(
-            String userId, int bizId) {
-        System.out.println(userId + "。。。" + bizId);
-
+    /**
+     * 获取下个外呼客户
+     * @param userId
+     * @param bizId
+     * @return
+     */
+    public synchronized SingleNumberModeShareCustomerItem extractNextOutboundCustomer(String userId, int bizId) {
         Date now = new Date();
 
         SingleNumberModeShareCustomerItem shareDataItem = null;
 
         // 根据userID，获取有权限访问的shareBatchIds
-        List<ShareBatchItem> shareBatchItemList = dmBizMangeShare.getUserShareBatch(userId, bizId);
+        List<String> shareBatchIdList = dmBizMangeShare.getSidUserPool(bizId, userId);
 
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = null;
@@ -82,8 +85,8 @@ public class SingleNumberOutboundDataManage {
         // TODO 目前取得就走了，其实可以PEEK遍后比较拨打时间，确定先取那个客户
         shareBatchIdVsCustomerMap = mapPresetDialCustomer.get(bizId);
         if (null != shareBatchIdVsCustomerMap) {
-            for (ShareBatchItem shareBatchItem : shareBatchItemList) {
-                customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
+            for (String shareBatchId : shareBatchIdList) {
+                customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
                 if (null == customerQueue)
                     continue;
 
@@ -101,8 +104,8 @@ public class SingleNumberOutboundDataManage {
         if (null == shareDataItem) {
             shareBatchIdVsCustomerMap = mapPhaseDialCustomer.get(bizId);
             if (null != shareBatchIdVsCustomerMap) {
-                for (ShareBatchItem shareBatchItem : shareBatchItemList) {
-                    customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
+                for (String shareBatchId : shareBatchIdList) {
+                    customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
                     if (null == customerQueue)
                         continue;
 
@@ -116,8 +119,8 @@ public class SingleNumberOutboundDataManage {
         if (null == shareDataItem) {
             shareBatchIdVsCustomerMap = mapDialCustomer.get(bizId);
             if (null != shareBatchIdVsCustomerMap) {
-                for (ShareBatchItem shareBatchItem : shareBatchItemList) {
-                    customerQueue = shareBatchIdVsCustomerMap.get(shareBatchItem.getShareBatchId());
+                for (String shareBatchId : shareBatchIdList) {
+                    customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
                     if (null == customerQueue)
                         continue;
 
