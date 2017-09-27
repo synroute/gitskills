@@ -381,7 +381,7 @@ public class CustomerController {
 				count += list.size();
 			} catch (HiAppException e) {
 				e.printStackTrace();
-				result.put("result", 1);
+				result.put("total", 1);
 				result.put("reason", e.getMessage());
 				return result;
 			}
@@ -393,13 +393,13 @@ public class CustomerController {
 			list.addAll(list1);
 		} catch (Exception e) {
 			e.printStackTrace();
-			result.put("result", 1);
+			result.put("total", 1);
 			result.put("reason", e.getMessage());
 			return result;
 		}
 
-		result.put("data", listToHtml(list));
-		result.put("result", 0);
+		result.put("rows", listToHtml(list));
+		result.put("total", 0);
 		result.put("pageSize", pageSize);
 		result.put("pageNum", pageNum);
 		result.put("recordCount", count);

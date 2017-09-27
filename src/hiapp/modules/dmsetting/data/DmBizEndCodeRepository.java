@@ -79,18 +79,18 @@ public class DmBizEndCodeRepository extends BaseRepository {
 					dictManager.newDictionaryClass(CLASSID.toString(), "数据管理结束码", "", errMessage);
 			    }
 				List<Dict> list=new ArrayList<Dict>();
-				dictManager.queryDictionary(bizId+jsonObject.get("endCodeType").getAsString(),list);
+				dictManager.queryDictionary("业务"+bizId+"结束码",list);
 				if(list.size()==0)
 				{
 					Integer CLASSID=dictManager.getClassIdByName("数据管理结束码");
 					
 					Dict dict=new Dict();
 					dict.setClassId(CLASSID);
-					dict.setDescription(bizId+jsonObject.get("endCodeType").getAsString());
+					dict.setDescription("业务"+bizId+"结束码");
 					dict.setLevelCount(2);
-					dict.setName(bizId+jsonObject.get("endCodeType").getAsString());
+					dict.setName("业务"+bizId+"结束码");
 					dictManager.newDictionay(dict);
-					dictManager.queryDictionary(jsonObject.get("endCodeType").getAsString(),list);
+					dictManager.queryDictionary("业务"+bizId+"结束码",list);
 				}
 				String itemIdsql="select ITEMID from (select ITEMID from HASYS_DIC_ITEM order by ITEMID desc) WHERE ROWNUM <=1";
 				stmt = conn.prepareStatement(itemIdsql);
@@ -101,8 +101,33 @@ public class DmBizEndCodeRepository extends BaseRepository {
 					itemId=rs.getInt(1);
 				}
 				Integer dicid=list.get(0).getId();
-				dictManager.insertItemsText(
-						dicid.toString(), itemId.toString(), jsonObject.get("endCodeType").getAsString(),"-1");
+				stmt.close();
+				String psql="select ITEMID from HASYS_DIC_ITEM where ITEMTEXT='"+jsonObject.get("endCodeType").getAsString()+"'";
+				stmt = conn.prepareStatement(psql);
+				rs = stmt.executeQuery();
+				String pid="";
+				while(rs.next())
+				{
+					pid=rs.getString(1);
+				}
+				if(pid.equals(""))
+				{
+					itemId=itemId+1;
+					dictManager.insertItemsText(
+							dicid.toString(), itemId.toString(), jsonObject.get("endCodeType").getAsString(),"-1");
+					
+					Integer itemIds=itemId+2;
+					dictManager.insertItemsText(
+							dicid.toString(), itemIds.toString(), jsonObject.get("endCode").getAsString(),itemId.toString());
+				}else{
+					itemId=itemId+1;
+					dictManager.insertItemsText(
+							dicid.toString(), itemId.toString(), jsonObject.get("endCode").getAsString(),pid);
+				}
+				
+				
+				
+				
 				add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),jsonObject.get("desc").getAsString());
 			}
 		} catch (SQLException e) {
