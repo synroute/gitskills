@@ -51,7 +51,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		
 		try {
 			dbConn =this.getDbConnection();
-			String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL where DataPoolID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0 and DataPoolType!=3)  order by businessid desc";
+			String szSql = "select DataPoolID,BusinessID,PermissionID,ItemName from HASYS_DM_PER_MAP_POOL where (DataPoolID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0 and DataPoolType!=3) or DATAPOOLID is null)  order by businessid desc";
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
@@ -210,6 +210,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 			for(int col=0;col<listBizPermissionsiz.size();col++)
 			{
 				DMBizPermission dmBizPermission=listBizPermissionsiz.get(col);
+				
 				if(perm.getId()==dmBizPermission.getPermId())
 				{
 					if(dmBizPermission.getManageItemName()!=null)
@@ -272,7 +273,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		//查询数据池信息
 				try {
 					dbConn =this.getDbConnection();
-					String szSql = "select ID,BusinessID,DataPoolName from HASYS_DM_DATAPOOL and DataPoolID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0 and DataPoolType!=3)" ;
+					String szSql = "select ID,BusinessID,DataPoolName from HASYS_DM_DATAPOOL where ID in (select Id from  HASYS_DM_DATAPOOL where isDelete=0 and DataPoolType!=3)" ;
 					stmt = dbConn.prepareStatement(szSql);
 					rs = stmt.executeQuery();
 					while(rs.next()){
