@@ -92,7 +92,7 @@ public class CustomerRepository extends BaseRepository {
 				if ("0".equals(workSheetColumn.getFixedColumn())) {
 					Map<String, Object> map = new HashMap<String, Object>();
 					map.put("COLUMNNAME",
-							TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+							TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 									+ workSheetColumn.getColumnName());
 					map.put("COLUMNNAMECH", workSheetColumn.getColumnNameCh());
 					map.put("COLUMNDESCRIPTION", workSheetColumn.getColumnDes());
@@ -123,7 +123,7 @@ public class CustomerRepository extends BaseRepository {
 				if ("0".equals(workSheetColumn.getFixedColumn())) {
 					Map<String, Object> map = new HashMap<String, Object>();
 					map.put("COLUMNNAME",
-							TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+							TableNameEnume.PRESETTABLENAME.getAbbr() + "."
 									+ workSheetColumn.getColumnName());
 					map.put("COLUMNNAMECH", workSheetColumn.getColumnNameCh());
 					map.put("COLUMNDESCRIPTION", workSheetColumn.getColumnDes());

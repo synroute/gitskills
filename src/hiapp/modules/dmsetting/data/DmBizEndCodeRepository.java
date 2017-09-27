@@ -62,15 +62,9 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				stmt.executeUpdate();
 				StringBuffer errMessage=new StringBuffer();
 				//创建字典表
-				String dictionary=String.format("select CLASSID from (select CLASSID from HASYS_DIC_CLASS order by CLASSID desc)  WHERE ROWNUM <=1");
-				stmt = conn.prepareStatement(dictionary);
-				rs = stmt.executeQuery();
-				Integer CLASSID=0;
-				while(rs.next())
-				{
-					CLASSID=rs.getInt("CLASSID");
-				}
-				CLASSID=CLASSID+1;
+				
+				Integer CLASSID=dictManager.getClassIdByName("");
+				
 				dictManager.newDictionaryClass(CLASSID.toString(), bizId+jsonObject.get("endCodeType").getAsString(), "", errMessage);
 				Dict dict=new Dict();
 				dict.setClassId(CLASSID);
