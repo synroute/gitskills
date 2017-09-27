@@ -67,31 +67,40 @@ public class SingleNumberModeController {
         HttpSession session = request.getSession();
         User user=(User) session.getAttribute("user");
 
-        Map<String, String> map = new Gson().fromJson(requestBody, Map.class);
-        String strBizId = map.get("bizId");
-        String resultCodeType = map.get("resultCodeType");
-        String resultCode = map.get("resultCode");
-        String importBatchId = map.get("importBatchId");
-        String shareBatchId = map.get("shareBatchId");
-        String customerId = map.get("customerId");
-        String resultData = map.get("resultData");
-        String customerInfo = map.get("customerInfo");
+        Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
+        String strBizId = (String) map.get("bizId");
+        String resultCodeType = (String)map.get("resultCodeType");
+        String resultCode = (String)map.get("resultCode");
+        String importBatchId = (String)map.get("importBatchId");
+        String shareBatchId = (String)map.get("shareBatchId");
+        String customerId = (String)map.get("customerId");
+        String strPresetTime = (String) map.get("presetTime");
+        Map<String, String> resultData = (Map<String, String>)map.get("resultData");
+        Map<String, String> customerInfo = (Map<String, String>)map.get("customerInfo");
+
+        String jsonResultData=new Gson().toJson(resultData);
+        String jsonCustomerInfo=new Gson().toJson(customerInfo);
+        System.out.println(jsonResultData);
+        System.out.println(jsonCustomerInfo);
+
 
         ServiceResult serviceresult = new ServiceResult();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date presetTime = null;
-        try {
-            presetTime = sdf.parse(map.get("presetTime"));
-        } catch (ParseException e) {
-            e.printStackTrace();
-            serviceresult.setResultCode(ServiceResultCode.INVALID_PARAM);
-            serviceresult.setReturnMessage("preset time invalid");
-            return serviceresult.toJson();
+        if (null != strPresetTime) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                presetTime = sdf.parse(strPresetTime);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                serviceresult.setResultCode(ServiceResultCode.INVALID_PARAM);
+                serviceresult.setReturnMessage("preset time invalid");
+                return serviceresult.toJson();
+            }
         }
 
-        singleNumberOutboundDataManage.submitOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId, shareBatchId, customerId,
-                resultCodeType, resultCode, presetTime , resultData, customerInfo);
+        singleNumberOutboundDataManage.submitOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId,
+                shareBatchId, customerId, resultCodeType, resultCode, presetTime , jsonResultData, jsonCustomerInfo);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();

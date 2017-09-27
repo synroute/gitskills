@@ -265,6 +265,8 @@ public class SingleNumberOutboundDataManage {
 
         mapBizIdVsCustomer = new HashMap<Integer, Map<String, SingleNumberModeShareCustomerItem>>();
 
+        mapBizIdVsEndCodeRedialStrategy = new HashMap<Integer, EndCodeRedialStrategy>();
+
         //singleNumberModeDAO.resetLoadedFlag();
 
         List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
