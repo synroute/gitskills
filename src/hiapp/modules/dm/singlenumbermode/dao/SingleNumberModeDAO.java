@@ -543,7 +543,7 @@ public class SingleNumberModeDAO extends BaseRepository {
         Connection dbConn = null;
         try {
             dbConn=this.getDbConnection();
-            sql=String.format("UPDATE HASYS_DM_SID SET STATE ='%s' WHERE BUSINESSID = %d SHAREID IN (%s)",
+            sql=String.format("UPDATE HASYS_DM_SID SET STATE ='%s' WHERE BUSINESSID = %d AND SHAREID IN (%s)",
                                         state, bizId, stringListToCommaSplitString(shareBatchIds));
             stmt = dbConn.prepareStatement(sql);
             stmt.execute();
