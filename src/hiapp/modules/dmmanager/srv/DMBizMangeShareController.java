@@ -176,15 +176,18 @@ public class DMBizMangeShareController {
 	}
 	//页面一加载 查询所有能被共享的用户
 	@RequestMapping(value = "/srv/DMBizMangeShareController/selectShareCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public void TreeViewByUserId(HttpSession session,HttpServletResponse response,
+	public void TreeViewByUserId(HttpSession session,HttpServletResponse response,HttpServletRequest request,
 			@RequestParam(value = "BusinessID") Integer businessID
 			){
 		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
+		String shareId=request.getParameter("shareId");
+		String[] arrShareId=shareId.split(",");
 		TreePool treePool=new TreePool();
 		bizMangeShare.getUserPoolTree(permissionId,treePool,businessID);
-		UserItem userItem=bizMangeShare.getUserPoolTreeByPermissionID(businessID,treePool);
+		List<Integer> dataPoolIdList=bizMangeShare.getDataPoolIds(businessID, arrShareId[0]);
+		UserItem userItem=bizMangeShare.getUserPoolTreeByPermissionID(businessID,treePool,dataPoolIdList);
 		String gson=new Gson().toJson(userItem);
 		try {
 			PrintWriter printWriter = response.getWriter();

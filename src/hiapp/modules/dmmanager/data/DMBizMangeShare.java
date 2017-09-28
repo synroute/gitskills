@@ -101,7 +101,7 @@ public class DMBizMangeShare extends BaseRepository{
 					Map<String,Object> resultMap=new HashMap<String, Object>();
 					try {
 						dbConn = this.getDbConnection();
-						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,to_char(A.CREATETIME,'yyyy-mm-dd') CREATETIME,A.DESCRIPTION,A.STATE,to_char(A.STARTTIME,'yyyy-mm-dd') STARTTIME,to_char(A.ENDTIME,'yyyy-mm-dd') ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY CREATETIME";
+						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,to_char(A.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,A.DESCRIPTION,A.STATE,to_char(A.STARTTIME,'yyyy-mm-dd hh24:mi:ss') STARTTIME,to_char(A.ENDTIME,'yyyy-mm-dd hh24:mi:ss') ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY CREATETIME";
 						sql1="SELECT DISTINCT ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION,STATE,STARTTIME,ENDTIME,ABC from (";
 						sql=sql1+sql+") m where rn>=?";
 						stmt = dbConn.prepareStatement(sql);
@@ -365,7 +365,7 @@ public class DMBizMangeShare extends BaseRepository{
 		}
 		
 		public UserItem getUserPoolTreeByPermissionID(Integer bizId,
-				TreePool pool) {
+				TreePool pool,List<Integer> dataPoolIdList) {
 				UserItem userItem=new UserItem();
 			try {
 					userItem.setId(Integer.toString(pool.getPid()));
@@ -374,14 +374,14 @@ public class DMBizMangeShare extends BaseRepository{
 					userItem.setDicId(pool.getId());
 					userItem.setItemText(pool.getDataPoolName());
 					userItem.setItemId(pool.getPid());
-					addChildren(userItem,bizId);
+					addChildren(userItem,bizId,dataPoolIdList);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			return userItem;
 		}
 		//递归
-		public void addChildren(UserItem userTreeBranch,Integer bizId) {
+		public void addChildren(UserItem userTreeBranch,Integer bizId,List<Integer> dataPoolIdList) {
 			    List<UserItem> listChildrenBranchs = new ArrayList<UserItem>();
 			    Integer pid=Integer.valueOf(userTreeBranch.getId());
 			    List<TreePool>  treePoolList=getChildrenTreePoolByPid(bizId,pid);
@@ -397,12 +397,47 @@ public class DMBizMangeShare extends BaseRepository{
 					if(treeBranch.getId()==null){
 						continue;
 					}
-					addChildren(treeBranch,bizId);
+					if(dataPoolIdList.contains(TreePoolBranch.getId())){
+						treeBranch.setChecked(true);
+					}else{
+						treeBranch.setChecked(false);
+					}
+					addChildren(treeBranch,bizId,dataPoolIdList);
 					listChildrenBranchs.add(treeBranch);
 					
 				}
 			    userTreeBranch.setChildren(listChildrenBranchs);
 			}
+		/**
+		 * 获取数据池ID集合
+		 * @param bizId
+		 * @param shareId
+		 * @return
+		 */
+		public List<Integer> getDataPoolIds(Integer bizId,String shareId){
+			Connection conn = null;
+			PreparedStatement pst= null;
+			ResultSet rs=null;
+			List<Integer> dataPoolIdList=new ArrayList<Integer>();
+			try {
+				conn=this.getDbConnection();
+				String sql="select DATAPOOLID from Hasys_DM_SIDUserPool where BUSINESSID=? and SHAREID=?";
+				pst=conn.prepareStatement(sql);
+				pst.setInt(1,bizId);
+				pst.setString(2,shareId);
+				rs=pst.executeQuery();
+				while(rs.next()){
+					dataPoolIdList.add(rs.getInt(1));
+				}
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return dataPoolIdList;
+		}
+		
+		
 		@SuppressWarnings("resource")
 		public ServiceResultCode DeleteShareBatchDataByShareId(String[] shareId,int businessID) throws Exception {
 			String deSidSql="";

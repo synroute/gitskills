@@ -9,7 +9,14 @@ public class UserItem {
 	private String text;
 	private String id;
 	private String state;
+	private Boolean checked;
 	private List<UserItem> children;
+	public Boolean getChecked() {
+		return checked;
+	}
+	public void setChecked(Boolean checked) {
+		this.checked = checked;
+	}
 
 	public List<UserItem> getChildren() {
 		return children;
