@@ -3,6 +3,7 @@ package hiapp.modules.dmmanager.srv;
 import hiapp.modules.dmmanager.bean.WorkSheetColumn;
 import hiapp.modules.dmmanager.data.DMBizDataShare;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
+import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.system.buinfo.User;
 import hiapp.utils.idfactory.IdFactory;
@@ -24,8 +25,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 
@@ -55,8 +54,7 @@ public class DMBizShareController {
 		List<Map<String,Object>> allDataList=new ArrayList<Map<String,Object>>();
 		try {
 			//此接口不通 待修改
-			//String workSheetId=dmWorkSheetRepository.getWorkSheetIdByType(Integer.valueOf(BusinessId),DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
-			String workSheetId=dataImportJdbc.getWookSeetId(Integer.valueOf(BusinessId));
+			String workSheetId=dmWorkSheetRepository.getWorkSheetIdByType(Integer.valueOf(BusinessId),DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 			//获取要展示的列
 			List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
 			Map<String,Object> resultMap = dMBizDataShare.getNotShareDataByTimes(StartTime,EndTime,BusinessId,templateId,sourceType,page,rows);

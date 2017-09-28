@@ -116,8 +116,7 @@ public class ImportDataController {
 	public void getAllTemplateColums (HttpServletRequest request, HttpServletResponse response){
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
-		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
-		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
 		String jsonObject=new Gson().toJson(sheetColumnList);
 		try {
@@ -142,11 +141,10 @@ public class ImportDataController {
 	public void ImportExceCustomerData(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file) throws IOException{
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
-		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
-		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
         String fileName=file.getOriginalFilename();
        try {
@@ -231,13 +229,12 @@ public class ImportDataController {
 	@RequestMapping(value="/srv/ImportDataController/getImportExcelData.srv")
 	public  void getImportExcelData(HttpServletRequest request, HttpServletResponse response){
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
-		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
 		Integer pageNum=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
-		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		//获取前台要展示的字段
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
 		Map<String,Object> resultMap = dataImportJdbc.getImportExcelData(bizId, sheetColumnList, pageNum,pageSize,userId);
@@ -263,8 +260,7 @@ public class ImportDataController {
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		Integer pageNum=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
-		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
-		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		List<Map<String,Object>> allDataList=new ArrayList<Map<String,Object>>();
 		//获取要展示的列
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
@@ -302,8 +298,7 @@ public class ImportDataController {
 		String importData=request.getParameter("importData");
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
-		String workSheetId=dataImportJdbc.getWookSeetId(bizId);
-		//String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		String operationName=request.getParameter("operationName");
 		WorkSheet workSheet=dataImportJdbc.getWorkSheet(workSheetId);
 		String tableName=workSheet.getName();
