@@ -184,28 +184,9 @@ public class SingleNumberOutboundDataManage {
     }
 
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
-        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
-        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
-        shareBatchIdVsCustomerMap = mapPresetDialCustomer.get(bizId);
-        for (String shareBatchId : shareBatchIds) {
-            queue = shareBatchIdVsCustomerMap.remove(shareBatchId);
-            SingleNumberModeShareCustomerItem customerItem = queue.poll();
-            removeBizIdVsCustomerMap(customerItem.getBizId(), customerItem);
-        }
-
-        shareBatchIdVsCustomerMap = mapPhaseDialCustomer.get(bizId);
-        for (String shareBatchId : shareBatchIds) {
-            queue = shareBatchIdVsCustomerMap.remove(shareBatchId);
-            SingleNumberModeShareCustomerItem customerItem = queue.poll();
-            removeBizIdVsCustomerMap(customerItem.getBizId(), customerItem);
-        }
-
-        shareBatchIdVsCustomerMap = mapDialCustomer.get(bizId);
-        for (String shareBatchId : shareBatchIds) {
-            queue = shareBatchIdVsCustomerMap.remove(shareBatchId);
-            SingleNumberModeShareCustomerItem customerItem = queue.poll();
-            removeBizIdVsCustomerMap(customerItem.getBizId(), customerItem);
-        }
+        removeFromCustomerPool(bizId, shareBatchIds, mapPresetDialCustomer);
+        removeFromCustomerPool(bizId, shareBatchIds, mapPhaseDialCustomer);
+        removeFromCustomerPool(bizId, shareBatchIds, mapDialCustomer);
     }
 
     public String appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
@@ -490,10 +471,8 @@ public class SingleNumberOutboundDataManage {
             return;
 
         map.remove(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
-    }
-
-    private void reviseCustomerInfo() {
-        // TODO
+        if (map.isEmpty())
+            mapBizIdVsCustomer.remove(bizId);
     }
 
     private void procEndcode(String userId, SingleNumberModeShareCustomerItem originCustomerItem,
@@ -734,6 +713,25 @@ public class SingleNumberOutboundDataManage {
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
             addCustomerToPool(customerItem);
+        }
+    }
+
+    private void removeFromCustomerPool(int bizId, List<String> shareBatchIds,
+                                        Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> customerPool)  {
+        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
+        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
+        shareBatchIdVsCustomerMap = customerPool.get(bizId);
+        if (null != shareBatchIdVsCustomerMap) {
+            for (String shareBatchId : shareBatchIds) {
+                queue = shareBatchIdVsCustomerMap.remove(shareBatchId);
+                while (!queue.isEmpty()) {
+                    SingleNumberModeShareCustomerItem customerItem = queue.poll();
+                    removeBizIdVsCustomerMap(customerItem.getBizId(), customerItem);
+                }
+            }
+
+            if (shareBatchIdVsCustomerMap.isEmpty())
+                customerPool.remove(bizId);
         }
     }
 

@@ -107,14 +107,14 @@ public class SingleNumberModeController {
     }
 
     @RequestMapping(value="/srv/dm/startShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    public String startShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String jsonShareBatchIds) {
+    public String startShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
 
         ServiceResult serviceresult = new ServiceResult();
 
         //List<String> shareBatchIds = new Gson().fromJson(jsonShareBatchIds, List.class);
         List<String> shareBatchIds = new ArrayList<String>();
 
-        String[] arrayShareBatchId = jsonShareBatchIds.split(",");
+        String[] arrayShareBatchId = strShareBatchIds.split(",");
         for (String shareBatchId : arrayShareBatchId)
             shareBatchIds.add(shareBatchId);
 
@@ -129,7 +129,12 @@ public class SingleNumberModeController {
 
         ServiceResult serviceresult = new ServiceResult();
 
-        List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
+//        List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
+        List<String> shareBatchIds = new ArrayList<String>();
+
+        String[] arrayShareBatchId = strShareBatchIds.split(",");
+        for (String shareBatchId : arrayShareBatchId)
+            shareBatchIds.add(shareBatchId);
 
         singleNumberOutboundDataManage.stopShareBatch(bizId, shareBatchIds);
 

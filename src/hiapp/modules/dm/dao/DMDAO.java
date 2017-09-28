@@ -159,7 +159,7 @@ public class DMDAO extends BaseRepository {
             DbUtil.DbCloseConnection(dbConn);
         }
 
-        return null;
+        return true;
     }
 
     public  Boolean activateShareBatchByStartTime() {
