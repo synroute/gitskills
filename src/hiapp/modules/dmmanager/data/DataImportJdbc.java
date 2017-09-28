@@ -15,7 +15,6 @@ import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -590,9 +589,11 @@ public class DataImportJdbc extends BaseRepository{
 			pst.executeUpdate();
 			resultMap.put("repeatColumn", repeatColumns);
 			resultMap.put("flag", 1);
+			resultMap.put("result",true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			resultMap.put("result",false);
 		}finally{
 			DbUtil.DbCloseQuery(rs,pst);
 			try {
@@ -705,9 +706,11 @@ public class DataImportJdbc extends BaseRepository{
 			pst=conn.prepareStatement(deleteTempSql);
 			pst.executeUpdate();
 			resultMap.put("flag", 2);
+			resultMap.put("result",true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			resultMap.put("result",false);
 		}finally{
 			DbUtil.DbCloseQuery(rs,pst);
 			try {

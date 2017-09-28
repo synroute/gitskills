@@ -121,7 +121,7 @@ public class DMBizShareController {
 	public String addConfirmShareDataByShareId(HttpServletRequest request,
 			@RequestParam(value="businessId") String businessId,
 			@RequestParam(value="importId") String importId,
-			@RequestParam(value="shareName") String shareName,
+			@RequestParam(value="appendName") String appendName,
 			@RequestParam(value="description") String description,
 			@RequestParam(value="shareid") String newShareId,
 			@RequestParam(value="CID") String Cid){
@@ -134,7 +134,7 @@ public class DMBizShareController {
 		String[] customerid=Cid.split(",");
 		String returnMessage=null;
 		try {
-				 serviceResultCode=dMBizDataShare.addConfirmShareData(bizid,importid, user,newShareId,customerid, shareName, description);
+				 serviceResultCode=dMBizDataShare.appendShareData(bizid,importid, user,newShareId,customerid, appendName, description);
 			if(serviceResultCode != ServiceResultCode.SUCCESS){
 		    	 serviceresult.setResultCode(serviceResultCode);
 				 serviceresult.setReturnMessage("共享失败"); 

@@ -5,6 +5,7 @@ import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.system.buinfo.User;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
+import hiapp.utils.idfactory.IdFactory;
 import hiapp.utils.serviceresult.ServiceResultCode;
 
 import java.io.BufferedReader;
@@ -29,6 +30,10 @@ import java.util.Map;
 
 
 
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
 /*import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;*/
 import org.springframework.stereotype.Repository;
@@ -39,7 +44,8 @@ import com.google.gson.JsonParser;
 //数据共享db
 @Repository
 public class DMBizDataShare extends BaseRepository {
-
+	@Autowired
+	private IdFactory idFactiory;
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
 	@SuppressWarnings("resource")
 	public Map<String,Object>  getNotShareDataByTimes(
@@ -161,18 +167,18 @@ public class DMBizDataShare extends BaseRepository {
 		String HAU_DM_BC_POOL_ORE="HAU_DM_B"+businessId+"C_POOL_ORE";
 		try {
 				dbConn = this.getDbConnection();
+				//查找数据池id ok
+				sqlPool =String.format("SELECT ID FROM HASYS_DM_DATAPOOL WHERE BUSINESSID=%s AND DATAPOOLTYPE=1",businessId); //更改
+				stmt = dbConn.prepareStatement(sqlPool);
+				rs = stmt.executeQuery();
+				while(rs.next()){
+				poolID = rs.getInt(1);
+				}
 				for (int i = 0; i < customerIds.length; i++) {
 					String importId = importIds[i];
 					String customerId=customerIds[i];
 					//不自动提交数据
 					dbConn.setAutoCommit(false);
-					//查找数据池id ok
-					sqlPool =String.format("SELECT ID FROM HASYS_DM_DATAPOOL WHERE BUSINESSID=%s AND DATAPOOLTYPE=1",businessId); //更改
-					stmt = dbConn.prepareStatement(sqlPool);
-					rs = stmt.executeQuery();
-					while(rs.next()){
-					poolID = rs.getInt(1);
-					}
 					//单号码重拨共享表
 					insertsql =String.format("INSERT INTO "+HASYS_DM_BC_DATAM3+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.CREATED,0,user.getId()) ;
 					stmt = dbConn.prepareStatement(insertsql);
@@ -182,7 +188,7 @@ public class DMBizDataShare extends BaseRepository {
 					stmt = dbConn.prepareStatement(insertsql);
 					stmt.execute();
 				    //更改数据池记录表数据
-					updatesql=String.format("UPDATE "+HAU_DM_BC_POOL+" SET SOURCEID='%s',CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s WHERE IID='%s' AND CID='%s'",newShareId,customerId,poolID,poolID,0,1,importId,customerId);
+					updatesql=String.format("UPDATE "+HAU_DM_BC_POOL+" SET SOURCEID='%s',CID='%s',DATAPOOLIDLAST=%s,DATAPOOLIDCUR=%s,AREALAST=%s,AREACUR=%s,MODIFYTIME=sysdate WHERE IID='%s' AND CID='%s'",newShareId,customerId,poolID,poolID,0,1,importId,customerId);
 		        	stmt = dbConn.prepareStatement(updatesql);
 					stmt.execute();
 					//数据池操作记录表
@@ -203,6 +209,67 @@ public class DMBizDataShare extends BaseRepository {
 		}finally{
 			DbUtil.DbCloseQuery(rs,stmt);
 			DbUtil.DbCloseConnection(dbConn);
+		}
+		return ServiceResultCode.SUCCESS;
+	}
+	
+	
+	public  ServiceResultCode  appendShareData(int businessId,String[] importIds,User user, String newShareId,String[] customerIds,String appendName,String description){
+		PreparedStatement pst = null;
+		Connection conn = null;
+		ResultSet rs = null;
+		//单号码重拨共享表
+		String HAU_DM_BC_DATAM3="HAU_DM_B"+businessId+"C_DATAM3";
+		//单号码重拨共享历史表
+		String HAU_DM_BC_DATAM3_HIS= "HAU_DM_B"+businessId+"C_DATAM3_HIS";
+		//数据池记录表
+		String HAU_DM_BC_POOL="HAU_DM_B"+businessId+"C_POOL";
+		//数据池操作记录表
+		String HAU_DM_BC_POOL_ORE="HAU_DM_B"+businessId+"C_POOL_ORE";
+		String appendId=idFactiory.newId("DM_AID");
+		String insertSql="";
+		String updateSql="";
+		try {
+			conn=this.getDbConnection();
+			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
+			pst=conn.prepareStatement(getDataSourceSql);
+			pst.setInt(1,businessId);
+			rs=pst.executeQuery();
+			Integer dataPoolNumber=null;
+			while(rs.next()){
+				dataPoolNumber=rs.getInt(1);
+			}
+			//不自动提交数据
+			
+			for (int i = 0; i < customerIds.length; i++) {
+				conn.setAutoCommit(false);
+				String customerId=customerIds[i];
+				String importId=importIds[i];
+				//单号码重拨共享表
+				insertSql =String.format("INSERT INTO "+HAU_DM_BC_DATAM3+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.APPENDED,0,user.getId()) ;
+				pst=conn.prepareStatement(insertSql);
+				pst.execute();
+				//单号码重拨共享历史表
+				insertSql =String.format("INSERT INTO "+HAU_DM_BC_DATAM3_HIS+" (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) VALUES(S_HASYS_DM_B1C_DATAM3_HIS.NEXTVAL,%s,'%s','%s','%s','%s',%s,'%s',sysdate)",businessId,newShareId,importId,customerId,SingleNumberModeShareCustomerStateEnum.APPENDED,0,user.getId());
+				pst = conn.prepareStatement(insertSql);
+				pst.execute();
+			    //更改数据池记录表数据
+				updateSql=String.format("UPDATE "+HAU_DM_BC_POOL+" SET SOURCEID='%s',AREALAST=%s,AREACUR=%s,MODIFYTIME=sysdate WHERE IID='%s' AND CID='%s'",newShareId,0,1,importId,customerId);
+	        	pst = conn.prepareStatement(updateSql);
+				pst.execute();
+				//数据池操作记录表
+				insertSql=String.format("INSERT INTO "+HAU_DM_BC_POOL_ORE+" (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR,AREALAST,AREACUR,ISRECOVER,MODIFYUSERID,MODIFYTIME) VALUES (S_HAU_DM_B1C_POOL_ORE.NEXTVAL,'%s','%s','%s','%s',%s,%s,%s,%s,%s,'%s',sysdate)",newShareId,importId,customerId,OperationNameEnum.Sharing,dataPoolNumber,dataPoolNumber,0,1,0,user.getId());
+				pst = conn.prepareStatement(insertSql);
+				pst.execute();
+			}
+			insertSql = String.format("INSERT INTO HASYS_DM_AID (ID,BUSINESSID,SHAREID,AdditionalID,AdditionalName,CreatUserID,CreateTime,Description,State) VALUES(S_HASYS_DM_SID.NEXTVAL,%s,'%s','%s','%s','%s',sysdate,'%s','%s')",businessId,newShareId,appendId,appendName,user.getId(),description,"入库成功");
+			pst=conn.prepareStatement(insertSql);
+			pst.execute();
+			conn.commit();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return ServiceResultCode.INVALID_SESSION;
 		}
 		return ServiceResultCode.SUCCESS;
 	}

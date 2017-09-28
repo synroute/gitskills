@@ -45,35 +45,21 @@ public class ShareBatchItemS {
 	        this.createUserId = createUserId;
 	    }
 
-	    public Date getCreateTime() {
-	        return createTime;
-	    }
 
-	    public void setCreateTime(Date createTime) {
-	        this.createTime = createTime;
-	    }
+	    public String getCreateTime() {
+			return createTime;
+		}
 
-	    public String getDescription() {
+		public void setCreateTime(String createTime) {
+			this.createTime = createTime;
+		}
+
+		public String getDescription() {
 	        return description;
 	    }
 
 	    public void setDescription(String description) {
 	        this.description = description;
-	    }
-	    public Date getStartTime() {
-	        return StartTime;
-	    }
-
-	    public void setStartTime(Date startTime) {
-	        StartTime = startTime;
-	    }
-
-	    public Date getEndTime() {
-	        return EndTime;
-	    }
-
-	    public void setEndTime(Date endTime) {
-	        EndTime = endTime;
 	    }
 
 	    int id;
@@ -81,7 +67,7 @@ public class ShareBatchItemS {
 	    String shareBatchId;
 	    String shareBatchName;
 	    String  createUserId;
-	    Date createTime;
+	    String createTime;
 	    String description;
 	    public String getState() {
 			return state;
@@ -91,9 +77,25 @@ public class ShareBatchItemS {
 			this.state = state;
 		}
 
+		public String getStartTime() {
+			return StartTime;
+		}
+
+		public void setStartTime(String startTime) {
+			StartTime = startTime;
+		}
+
+		public String getEndTime() {
+			return EndTime;
+		}
+
+		public void setEndTime(String endTime) {
+			EndTime = endTime;
+		}
+
 		String	state;
-	    Date StartTime;
-	    Date EndTime;
+	    String StartTime;
+	    String EndTime;
 	    int abc;
 		public int getAbc() {
 			return abc;
