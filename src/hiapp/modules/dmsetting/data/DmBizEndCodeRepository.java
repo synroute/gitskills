@@ -128,7 +128,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				
 				
 				
-				add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),jsonObject.get("desc").getAsString());
+				add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

@@ -530,7 +530,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
 			sb.append(bizId);
 			sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
-			sb.append(" where HAU_DM_B908C_RESULT.SOURCEID='"+queryRequest.getSourceId()+"') ");
+			sb.append(" where HAU_DM_B"+bizId+"C_RESULT.SOURCEID='"+queryRequest.getSourceId()+"') ");
 			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
 
 			sb.append(" ON ");
