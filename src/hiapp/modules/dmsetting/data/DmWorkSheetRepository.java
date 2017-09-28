@@ -501,7 +501,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {
-			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s' LENGTH="+columnLength+" where worksheetid='%s' and columnname='%s' ",
+			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s',LENGTH="+columnLength+" where worksheetid='%s' and columnname='%s' ",
 					columnNameCh,columnDes,worksheetId,columnName);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();

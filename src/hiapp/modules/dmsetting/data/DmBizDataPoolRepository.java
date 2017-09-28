@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntToDoubleFunction;
 
 import javax.swing.Spring;
 
@@ -41,10 +42,11 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		ResultSet rs = null;
 		try {
 			dbConn =this.getDbConnection();
-			/*if(dataPool.getPoolTopLimit())
+			int poolTopLimit=0;
+			if(dataPool.getPoolTopLimit()!=0)
 			{
-				
-			}*/
+				poolTopLimit=dataPool.getPoolTopLimit();
+			}
 			
 			//判断是否有活动的共享批次
 			String selectsql=String.format("select count(*) from HASYS_DM_DATAPOOL where DataPoolName='"+dataPool.getDataPoolName()+"' and BusinessID="+dataPool.getBizId()+"");
@@ -61,8 +63,23 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				return false;
 			}
 			
+			String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where PID="+dataPool.getpId()+" and BusinessID="+dataPool.getBizId()+"");
+			stmt = dbConn.prepareStatement(poolsql);
+			rs = stmt.executeQuery();
+			int poolLimit=0;
+			while(rs.next())
+			{
+				poolLimit+=rs.getInt(1);
+			}
+			if (count>0) {
+				
+				err.append("数据池名称重复！");
+				return false;
+			}
+			
+			
 			String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,DataPoolDes,PID,AreaType,PoolTopLimit,isDelete)"+
-			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s,0)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getpId(),dataPool.getPoolTopLimit());
+			" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',2,'%s',%s,0,%s,0)",dataPool.getBizId(),dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getpId(),poolTopLimit);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			
