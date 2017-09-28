@@ -44,9 +44,31 @@ public class TemplateImportController {
 			}
 			return recordsetResult.toJson();
 
+	}
+	@RequestMapping(value = "srv/dm/dmGetBizImportTemplates.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String getTemplates(@RequestParam("bizId") int bizId,@RequestParam("templateId") int templateId) {
+		RecordsetResult recordsetResult = new RecordsetResult();
+		try{
+			List<DMBizImportTemplate> listDmBizImportTemplate=new ArrayList<DMBizImportTemplate>();
+			listDmBizImportTemplate=dmBizTemplateImport.getTemplates(bizId,templateId);
+				recordsetResult.setPage(0);
+				recordsetResult.setTotal(listDmBizImportTemplate.size());
+				recordsetResult.setPageSize(listDmBizImportTemplate.size());
+				recordsetResult.setRows(listDmBizImportTemplate);
+				
+				recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
+			} catch (Exception e) {
+				e.printStackTrace();
+				recordsetResult.setReturnCode(1);
+				recordsetResult.setReturnMessage("失败");
+			}
+			return recordsetResult.toJson();
+
 		
 		
 	}
+	
+	
 	
 	@RequestMapping(value = "srv/dm/dmCreateCustomerImportTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmCreateCustomerImportTemplate(@RequestParam("bizId") int bizId,@RequestParam("templateId") int templateId,

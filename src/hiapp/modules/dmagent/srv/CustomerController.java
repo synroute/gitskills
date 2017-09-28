@@ -225,51 +225,51 @@ public class CustomerController {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		String result = "<table width=376px height=50px cellpadding=0 cellspacing=0>"
 				+ "<tr>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[0][0].get("fontColor")
 				+ ";background:"+data[0][0].get("bgColor")+"'>"
 				+ data[0][0].get("value")
 				+ "</th>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[0][1].get("fontColor")
 				+ ";background:"+data[0][1].get("bgColor")+"'>"
 				+ data[0][1].get("value")
 				+ "</th>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[0][2].get("fontColor")
 				+ ";background:"+data[0][2].get("bgColor")+"'>"
 				+ data[0][2].get("value")
 				+ "</th>"
 				+ "</tr>"
 				+ "<tr>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[1][0].get("fontColor")
 				+ ";background:"+data[1][0].get("bgColor")+"'>"
 				+ data[1][0].get("value")
 				+ "</th>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[1][1].get("fontColor")
 				+ ";background:"+data[1][1].get("bgColor")+"'>"
 				+ data[1][1].get("value")
 				+ "</th>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[1][2].get("fontColor")
 				+ ";background:"+data[1][2].get("bgColor")+"'>"
 				+ data[1][2].get("value")
 				+ "</th>"
 				+ "</tr>"
 				+ "<tr>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[2][0].get("fontColor")
 				+ ";background:"+data[2][0].get("bgColor")+"'>"
 				+ data[2][0].get("value")
 				+ "</th>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[2][1].get("fontColor")
 				+ ";background:"+data[2][1].get("bgColor")+"'>"
 				+ data[2][1].get("value")
 				+ "</th>"
-				+ "<th width=118px align=left style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
 				+ data[2][2].get("fontColor")
 				+ ";background:"+data[2][2].get("bgColor")+"'>"
 				+ data[2][2].get("value")

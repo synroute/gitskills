@@ -71,6 +71,42 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		
 		return listDmBizImportTemplate;
 	}
+	
+	
+	//获取单个导入模板接口详细信息
+		public   List<DMBizImportTemplate> getTemplates(int bizId,int templateid){
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			List<DMBizImportTemplate> listDmBizImportTemplate=new ArrayList<DMBizImportTemplate>();
+			try {
+				dbConn =this.getDbConnection();
+				String szSql = "SELECT TemplateID,Name,Description,IsDefault,SourceType FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE BusinessId="+bizId+" and TemplateID="+templateid+" ";
+				stmt = dbConn.prepareStatement(szSql);
+				
+				rs = stmt.executeQuery();
+				while(rs.next()){
+					DMBizImportTemplate dmBizImportTemplate=new DMBizImportTemplate();
+					dmBizImportTemplate.setBizId(bizId);
+					dmBizImportTemplate.setTemplateId(rs.getInt(1));
+					dmBizImportTemplate.setTemplateName(rs.getString(2));
+					dmBizImportTemplate.setDesc(rs.getString(3));
+					dmBizImportTemplate.setIsDefault(rs.getInt(4));
+					dmBizImportTemplate.setDataSourceType(rs.getString(5));
+					listDmBizImportTemplate.add(dmBizImportTemplate);
+				}
+						
+			} catch (SQLException e) {
+				
+				e.printStackTrace();
+				
+			} finally {
+				DbUtil.DbCloseConnection(dbConn);
+				DbUtil.DbCloseExecute(stmt);
+			}
+			
+			return listDmBizImportTemplate;
+		}
+	
 	//新增客户信息导入模板接口
 	public   boolean dmCreateCustomerImportTemplate(DMBizImportTemplate dmBizImportTemplate,StringBuffer errMessage){
 		PreparedStatement stmt = null;
