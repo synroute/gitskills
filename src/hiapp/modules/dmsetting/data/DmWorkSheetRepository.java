@@ -457,7 +457,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 	}
 	//修改工作表列中文名称
 	public ServiceResultCode modifyColumnNameCh(String worksheetId, String columnName,
-			String columnNameCh,String columnDes, StringBuffer errMessage) {
+			String columnNameCh,String columnDes,String columnLength, StringBuffer errMessage) {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -481,7 +481,27 @@ public class DmWorkSheetRepository extends BaseRepository {
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {
-			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s' where worksheetid='%s' and columnname='%s' ",
+			String sql="select NAME from HASYS_WORKSHEET where ID='"+worksheetId+"'";
+			stmt = dbConn.prepareStatement(sql);
+			rs = stmt.executeQuery();
+			String workname="";
+			if (rs.next()) {
+				workname=rs.getString(1);
+			}
+			stmt.close();
+			szSql=String.format("alter table "+workname+" modify("+columnName+" varchar2("+columnLength+"))");
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			errMessage.append("数据库文本长度不能设置为"+columnLength);
+			return ServiceResultCode.INVALID_PARAM;
+		} finally {
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		try {
+			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s' LENGTH="+columnLength+" where worksheetid='%s' and columnname='%s' ",
 					columnNameCh,columnDes,worksheetId,columnName);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();

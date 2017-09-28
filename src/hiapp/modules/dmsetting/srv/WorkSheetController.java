@@ -81,7 +81,7 @@ public class WorkSheetController {
 			@RequestParam("columnDes") String columnDes) {
 		ServiceResult serviceresult = new ServiceResult();
 		StringBuffer errMessage = new StringBuffer();
-		ServiceResultCode serviceResultCode = dmWorkSheetRepository.modifyColumnNameCh(worksheetId,columnName,columnNameCh,columnDes,errMessage);
+		ServiceResultCode serviceResultCode = dmWorkSheetRepository.modifyColumnNameCh(worksheetId,columnName,columnNameCh,columnDes,columnLength,errMessage);
 		if (serviceResultCode != ServiceResultCode.SUCCESS) {
 			serviceresult.setResultCode(serviceResultCode);
 			serviceresult.setReturnMessage(errMessage.toString());
