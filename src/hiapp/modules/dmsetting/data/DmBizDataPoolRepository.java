@@ -62,7 +62,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				err.append("数据池名称重复！");
 				return false;
 			}
-			
+			stmt.close();
 			String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where PID="+dataPool.getpId()+" and BusinessID="+dataPool.getBizId()+"");
 			stmt = dbConn.prepareStatement(poolsql);
 			rs = stmt.executeQuery();
@@ -71,9 +71,20 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			{
 				poolLimit+=rs.getInt(1);
 			}
-			if (count>0) {
+			stmt.close();
+			String poolpid=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where ID="+dataPool.getpId()+" and BusinessID="+dataPool.getBizId()+"");
+			stmt = dbConn.prepareStatement(poolpid);
+			rs = stmt.executeQuery();
+			
+			int poolPid=0;
+			while(rs.next())
+			{
+				poolPid=rs.getInt(1);
+			}
+			stmt.close();
+			if (poolLimit>poolPid) {
 				
-				err.append("数据池名称重复！");
+				err.append("数据池上限已超过！");
 				return false;
 			}
 			
@@ -100,11 +111,40 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		return true;
 	}
 	//修改数据池
-	public boolean dmModifyBizDataPool(DMDataPool dataPool )
+	public boolean dmModifyBizDataPool(DMDataPool dataPool,StringBuffer err)
 	{
 		PreparedStatement stmt = null;
+		ResultSet rs = null;
 		try {
 			dbConn =this.getDbConnection();
+			
+			String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where PID=(select ID from HASYS_DM_DATAPOOL where ID="+dataPool.getPoolId()+") and BusinessID="+dataPool.getBizId()+"");
+			stmt = dbConn.prepareStatement(poolsql);
+			rs = stmt.executeQuery();
+			int poolLimit=0;
+			while(rs.next())
+			{
+				poolLimit+=rs.getInt(1);
+			}
+			stmt.close();
+			String poolpid=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where ID=(select PID from HASYS_DM_DATAPOOL where ID="+dataPool.getPoolId()+") and BusinessID="+dataPool.getBizId()+"");
+			stmt = dbConn.prepareStatement(poolpid);
+			rs = stmt.executeQuery();
+			
+			int poolPid=0;
+			while(rs.next())
+			{
+				poolPid=rs.getInt(1);
+			}
+			stmt.close();
+			if (poolLimit>poolPid) {
+				
+				err.append("数据池上限已超过！");
+				return false;
+			}
+			
+			
+			
 			String szSql = String.format("update HASYS_DM_DATAPOOL set DataPoolName='%s',DataPoolDes='%s',PoolTopLimit='%s' where ID=%s",dataPool.getDataPoolName(),dataPool.getDataPoolDesc(),dataPool.getPoolTopLimit(),dataPool.getPoolId());
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.executeUpdate();

@@ -113,15 +113,15 @@ public class DataPoolController {
 			dmDataPool.setDataPoolName(DataPoolName);
 			dmDataPool.setDataPoolDesc(DataPoolDes);
 			dmDataPool.setPoolTopLimit(PoolTopLimit);
-			
-				if(dmBizDataPool.dmModifyBizDataPool(dmDataPool))
+			StringBuffer err=new StringBuffer();
+				if(dmBizDataPool.dmModifyBizDataPool(dmDataPool,err))
 				{
 					recordsetResult.setReturnCode(0);
 					recordsetResult.setReturnMessage("成功");
 				}else
 				{
 					recordsetResult.setReturnCode(1);
-					recordsetResult.setReturnMessage("失败");
+					recordsetResult.setReturnMessage(err.toString());
 				}
 				
 			} catch (Exception e) {

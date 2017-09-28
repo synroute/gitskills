@@ -323,6 +323,27 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					}
 					return true;
 				}
-				
-		
+				//创建自动生成页面配置信息
+				public boolean dmCreateAutomaticConfig(int sourceId,String pageName,JsonArray jsonArray) {
+					 
+					Connection dbConn = null;
+					
+					PreparedStatement stmt = null;	
+					ResultSet rs = null;	
+					try {
+						dbConn = this.getDbConnection();
+						
+						String szSql =String.format("") ;
+						stmt = dbConn.prepareStatement(szSql);
+						stmt.execute();
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+						return false;
+					} finally{
+						DbUtil.DbCloseConnection(dbConn);
+						DbUtil.DbCloseQuery(rs, stmt);
+					}
+					return true;
+				}
 }
