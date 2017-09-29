@@ -66,10 +66,10 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where PID="+dataPool.getpId()+" and BusinessID="+dataPool.getBizId()+"");
 			stmt = dbConn.prepareStatement(poolsql);
 			rs = stmt.executeQuery();
-			int poolLimit=0;
+			
 			while(rs.next())
 			{
-				poolLimit+=rs.getInt(1);
+				poolTopLimit+=rs.getInt(1);
 			}
 			stmt.close();
 			String poolpid=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where ID="+dataPool.getpId()+" and BusinessID="+dataPool.getBizId()+"");
@@ -82,7 +82,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				poolPid=rs.getInt(1);
 			}
 			stmt.close();
-			if (poolLimit>poolPid) {
+			if (poolTopLimit>poolPid) {
 				
 				err.append("数据池上限已超过！");
 				return false;
