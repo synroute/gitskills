@@ -361,7 +361,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						
 						stmt = dbConn.prepareStatement(szSql);
 						rs = stmt.executeQuery();
-						if (rs.next()) {
+						while (rs.next()) {
 							DMBizAutomaticConfig dmBizAutomaticConfig=new DMBizAutomaticConfig();
 							dmBizAutomaticConfig.setId(rs.getString(1));
 							dmBizAutomaticConfig.setSourceId(rs.getString(2));
