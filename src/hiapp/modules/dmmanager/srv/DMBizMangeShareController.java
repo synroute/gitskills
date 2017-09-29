@@ -201,10 +201,9 @@ public class DMBizMangeShareController {
 	
 	//对指定共享批次数据进行删除
 	@RequestMapping(value = "/srv/DMBizMangeShareController/DeleteShareBatchDataByShareId.srv",produces = "application/json;charset=utf-8")
-	public String DeleteShareBatchDataByShareId(
-			@RequestParam(value = "shareID") String shareID,
-			@RequestParam(value = "businessID") String businessID){
-		    String[] shareId = shareID.split(",");
+	public String DeleteShareBatchDataByShareId(String shareIds,
+			@RequestParam(value = "businessId") String businessID){
+		    String[] shareId = shareIds.split(",");
 		    Integer bizId = Integer.valueOf(businessID);
 		    ServiceResultCode serviceResultCode=null;
 		    ServiceResult serviceresult = new ServiceResult();
