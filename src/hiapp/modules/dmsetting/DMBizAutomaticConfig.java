@@ -15,7 +15,7 @@ public class DMBizAutomaticConfig {
 	private String state;
 	private String displayType;
 	private String createTime;
-	private int pageId;
+	private String pageId;
 	private int isDelete;
 	public String getId() {
 		return id;
@@ -77,16 +77,17 @@ public class DMBizAutomaticConfig {
 	public void setCreateTime(String createTime) {
 		this.createTime = createTime;
 	}
-	public int getPageId() {
-		return pageId;
-	}
-	public void setPageId(int pageId) {
-		this.pageId = pageId;
-	}
+	
 	public int getIsDelete() {
 		return isDelete;
 	}
 	public void setIsDelete(int isDelete) {
 		this.isDelete = isDelete;
+	}
+	public String getPageId() {
+		return pageId;
+	}
+	public void setPageId(String pageId) {
+		this.pageId = pageId;
 	}
 }

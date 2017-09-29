@@ -314,7 +314,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,BUSINESSID,PAGENAME,PAGEURL,PAGEPARAMETER) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s','%s') ", bizId,pageName,pageUrl,pageParameter) ;
+						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,SOURCEID,PAGENAME,PAGEURL,PAGEPARAMETER) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s','%s') ", bizId,pageName,pageUrl,pageParameter) ;
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();
 						
@@ -377,7 +377,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 							dmBizAutomaticConfig.setState(rs.getString(8));
 							dmBizAutomaticConfig.setIsDelete(rs.getInt(9));
 							dmBizAutomaticConfig.setDisplayType(rs.getString(10));
-							dmBizAutomaticConfig.setPageId(rs.getInt(11));
+							dmBizAutomaticConfig.setPageId(rs.getString(11));
 							dmBizAutomaticConfig.setCreateTime(rs.getString(12));
 							listDMBizAutomaticConfig.add(dmBizAutomaticConfig);
 						}
