@@ -80,9 +80,10 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			    }
 				List<Dict> list=new ArrayList<Dict>();
 				dictManager.queryDictionary("业务"+bizId+"结束码",list);
+				Integer CLASSID=dictManager.getClassIdByName("数据管理结束码");
 				if(list.size()==0)
 				{
-					Integer CLASSID=dictManager.getClassIdByName("数据管理结束码");
+					
 					
 					Dict dict=new Dict();
 					dict.setClassId(CLASSID);
@@ -102,7 +103,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				}
 				Integer dicid=list.get(0).getId();
 				stmt.close();
-				String psql="select ITEMID from HASYS_DIC_ITEM where ITEMTEXT='"+jsonObject.get("endCodeType").getAsString()+"'";
+				String psql="select ITEMID from HASYS_DIC_ITEM where ITEMTEXT='"+jsonObject.get("endCodeType").getAsString()+"' and dicid="+dicid+"";
 				stmt = conn.prepareStatement(psql);
 				rs = stmt.executeQuery();
 				String pid="";
