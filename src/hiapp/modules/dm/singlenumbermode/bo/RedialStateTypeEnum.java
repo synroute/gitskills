@@ -24,4 +24,21 @@ public enum RedialStateTypeEnum {
 
     private String name;
 
+    static public RedialStateTypeEnum getFromString(String name) {
+        if (RedialStateTypeEnum.REDIAL_STATE_LOSTCALL.getName().equals(name))
+            return RedialStateTypeEnum.REDIAL_STATE_LOSTCALL;
+
+        if (RedialStateTypeEnum.REDIAL_STATE_PHASE.getName().equals(name))
+            return RedialStateTypeEnum.REDIAL_STATE_PHASE;
+
+        if (RedialStateTypeEnum.REDIAL_STATE_PRESET.getName().equals(name))
+            return RedialStateTypeEnum.REDIAL_STATE_PRESET;
+
+        if (RedialStateTypeEnum.REDIAL_STATE_FINISHED.getName().equals(name))
+            return RedialStateTypeEnum.REDIAL_STATE_FINISHED;
+
+        return null;
+    }
+
+
 }

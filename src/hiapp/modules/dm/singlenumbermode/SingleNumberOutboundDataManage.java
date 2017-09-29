@@ -144,6 +144,9 @@ public class SingleNumberOutboundDataManage {
         String customerCallId = "xxx";
         String dialTime = new Date().toString();
 
+        resultCodeType = "结束码类型9091";
+        resultCode = "结束码9091";
+
         Map<String, SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
         SingleNumberModeShareCustomerItem originCustomerItem = map.get(importBatchId + customerId);
 
@@ -192,8 +195,6 @@ public class SingleNumberOutboundDataManage {
     public String appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
 
         // 获取ACTIVE状态的 shareBatchIds
-
-
         List<ShareBatchItem> shareBatchItemList = new ArrayList<ShareBatchItem>();
         dmDAO.getActiveShareBatchItems(shareBatchIds, shareBatchItemList);
 
@@ -479,7 +480,7 @@ public class SingleNumberOutboundDataManage {
                              EndCodeRedialStrategy endCodeRedialStrategy,
                              String resultCodeType, String resultCode, Date presetTime, String resultData) {
 
-        Date today = new Date();
+        Date now = new Date();
 
         RedialState newRedialState = endCodeRedialStrategy.getNextRedialState(resultCodeType, resultCode);
         RedialStateTypeEnum redialStateType = newRedialState.getStateTypeEnum();
@@ -491,8 +492,9 @@ public class SingleNumberOutboundDataManage {
         item.setEndCodeType(resultCodeType);
         item.setEndCode(resultCode);
         item.setModifyUserId(userId);
-        item.setModifyTime(today);
+        item.setModifyTime(now);
         item.setModifyId(originCustomerItem.getModifyId() + 1);
+        item.setLastDailTime(now);  //TODO
 
         if (RedialStateTypeEnum.REDIAL_STATE_FINISHED.equals(redialStateType)) {
             item.setState(SingleNumberModeShareCustomerStateEnum.FINISHED);
@@ -524,13 +526,13 @@ public class SingleNumberOutboundDataManage {
             presetItem.setModifyId(item.getModifyId());
             presetItem.setModifyLast(1);            // TODO 更新原来记录未0
             presetItem.setModifyUserId(userId);
-            presetItem.setModifyTime(today);
+            presetItem.setModifyTime(now);
             presetItem.setModifyDesc("xxx");
             presetItem.setPhoneType("xxx");
             dmDAO.insertPresetItem(originCustomerItem.getBizId(), presetItem);
 
             // 不要移出候选池，预约在今天
-            if (isSameDay(today, presetTime)) {
+            if (isSameDay(now, presetTime)) {
                 addCustomerToPool(item);
             }
 
@@ -560,8 +562,8 @@ public class SingleNumberOutboundDataManage {
             // 每天未接通数到达限定值，移出候选池。每天处理时重新移回候选池。
             if (0 == originCustomerItem.getLostCallTotalCount()) {
                 // 第一次发生未接通 的情形
-                item.setLostCallFirstDay(today);
-                originCustomerItem.setLostCallFirstDay(today);  // 必须设置，为了保持后续一致
+                item.setLostCallFirstDay(now);
+                originCustomerItem.setLostCallFirstDay(now);  // 必须设置，为了保持后续一致
             }
 
             item.setLostCallTotalCount(originCustomerItem.getLostCallTotalCount() + 1);
@@ -571,7 +573,7 @@ public class SingleNumberOutboundDataManage {
                         newRedialState.getLoopRedialCountExceedNextState()));
             } else {
                 int todayLoopRedialCountLimit = newRedialState.getLoopRedialPerdayCountLimitNum();
-                if (isSameDay(today, originCustomerItem.getLostCallFirstDay())) {
+                if (isSameDay(now, originCustomerItem.getLostCallFirstDay())) {
                     todayLoopRedialCountLimit = newRedialState.getLoopRedialFirstDialDayDialCountLimitNum();
                 }
 
@@ -711,9 +713,20 @@ public class SingleNumberOutboundDataManage {
         Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
                 bizId, shareBatchItems, shareCustomerStateList, shareDataItems);
 
+        // 记录客户共享状态为 SingleNumberModeShareCustomerStateEnum.APPENDED 的客户信息
+        // 后续需要更改状态为 SingleNumberModeShareCustomerStateEnum.CREATED
+        List<String> appendedStateCustomerIdList = new ArrayList<String>();
+
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
             addCustomerToPool(customerItem);
+
+            if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
+                appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+            }
         }
+
+        singleNumberModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
+                SingleNumberModeShareCustomerStateEnum.CREATED.getName());
     }
 
     private void removeFromCustomerPool(int bizId, List<String> shareBatchIds,

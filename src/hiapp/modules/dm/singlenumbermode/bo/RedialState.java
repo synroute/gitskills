@@ -19,7 +19,7 @@ public class RedialState {
     }
 
     public RedialStateTypeEnum getStateTypeEnum() {
-        return RedialStateTypeEnum.valueOf(stateType);
+        return RedialStateTypeEnum.getFromString(stateType);
     }
 
     public String getStateType() { return stateType; }
