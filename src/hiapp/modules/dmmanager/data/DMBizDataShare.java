@@ -1,5 +1,6 @@
 package hiapp.modules.dmmanager.data;
 
+import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.system.buinfo.User;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 /*import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;*/
@@ -46,6 +48,8 @@ import com.google.gson.JsonParser;
 public class DMBizDataShare extends BaseRepository {
 	@Autowired
 	private IdFactory idFactiory;
+	@Autowired
+	private SingleNumberOutboundDataManage singleNumberOutboundDataManage;
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
 	@SuppressWarnings("resource")
 	public Map<String,Object>  getNotShareDataByTimes(
@@ -227,6 +231,8 @@ public class DMBizDataShare extends BaseRepository {
 		//数据池操作记录表
 		String HAU_DM_BC_POOL_ORE="HAU_DM_B"+businessId+"C_POOL_ORE";
 		String appendId=idFactiory.newId("DM_AID");
+		List<String> shareIds=new ArrayList<String>();
+		shareIds.add(appendId);
 		String insertSql="";
 		String updateSql="";
 		try {
@@ -266,6 +272,7 @@ public class DMBizDataShare extends BaseRepository {
 			pst=conn.prepareStatement(insertSql);
 			pst.execute();
 			conn.commit();
+			singleNumberOutboundDataManage.appendCustomersToShareBatch(businessId, shareIds);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
