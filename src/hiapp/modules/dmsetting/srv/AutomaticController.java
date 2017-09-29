@@ -11,9 +11,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import hiapp.modules.dmsetting.result.*;
+import hiapp.modules.dmsetting.DMBizAutomaticConfig;
 import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.data.DmBizAutomaticRepository;
 import hiapp.system.worksheet.bean.WorkSheet;
@@ -151,4 +154,51 @@ public class AutomaticController {
 		
 		return serviceresult.toJson();
 	}
+	
+	
+	@RequestMapping(value = "srv/dm/dmGetAutomaticConfig.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmGetAutomaticConfig(@RequestParam("sourceId") int sourceId,@RequestParam("sourceModular") String sourceModular,
+			@RequestParam("pageName") String pageName) {
+		RecordsetResult recordsetResult = new RecordsetResult();
+		try {
+			List<DMBizAutomaticConfig> listDMBizAutomaticConfig=new ArrayList<DMBizAutomaticConfig>();
+			listDMBizAutomaticConfig= dmBizAutomatic.dmGetAutomaticConfig(sourceId,sourceModular,pageName);
+			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
+			recordsetResult.setPage(0);
+			recordsetResult.setTotal(listDMBizAutomaticConfig.size());
+			recordsetResult.setPageSize(listDMBizAutomaticConfig.size());
+			recordsetResult.setRows(listDMBizAutomaticConfig);
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return recordsetResult.toJson();
+		
+	}
+	
+	@RequestMapping(value = "srv/dm/dmCreateAutomaticConfig.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmCreateAutomaticConfig(@RequestParam("mapColumn") String mapColumn) {
+		
+		ServiceResult serviceresult = new ServiceResult();
+		JsonArray jsonArray= new JsonParser().parse(mapColumn).getAsJsonArray();
+		for(int i =0;i<jsonArray.size();i++)
+		{
+			JsonObject jsonObject=jsonArray.get(i).getAsJsonObject();
+			int sourceId=jsonObject.get("sourceId").getAsInt();
+			String sourceModular=jsonObject.get("sourceModular").getAsString();
+			String pageName=jsonObject.get("pageName").getAsString();
+			String panleName=jsonObject.get("panleName").getAsString();
+			JsonArray jsonArray2=new JsonParser().parse(jsonObject.get("column").getAsString()).getAsJsonArray();
+			if(dmBizAutomatic.dmCreateAutomaticConfig(sourceId,sourceModular,pageName,panleName,jsonArray2))
+			{
+				serviceresult.setReturnCode(0);
+				serviceresult.setReturnMessage("成功");
+			}else {
+				serviceresult.setReturnCode(0);
+				serviceresult.setReturnMessage("失败");
+			}
+		}
+		return serviceresult.toJson();
+	}
+	
+	
 }

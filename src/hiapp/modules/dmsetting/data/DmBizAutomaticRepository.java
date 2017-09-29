@@ -1,5 +1,6 @@
 package hiapp.modules.dmsetting.data;
 
+import hiapp.modules.dmsetting.DMBizAutomaticConfig;
 import hiapp.modules.dmsetting.result.DMBizAutomaticColumns;
 import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.system.worksheet.bean.WorkSheetColumn;
@@ -278,28 +279,28 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	}
 	
 	//根据业务号获取url
-		public String dmGetAutomaticPageUrl(int bizId) {
-			 
-			Connection dbConn = null;
-			String url="";
-			PreparedStatement stmt = null;	
-			ResultSet rs = null;	
-			try {
-				dbConn = this.getDbConnection();
-				String szSql =String.format("select pageurl from HASYS_DM_PAGE_MAP_PER where BUSINESSID='%s' ", bizId) ;
-				stmt = dbConn.prepareStatement(szSql);
-				rs = stmt.executeQuery();
-				if (rs.next()) {
-					url=rs.getString(1);
+			public String dmGetAutomaticPageUrl(int bizId) {
+				 
+				Connection dbConn = null;
+				String url="";
+				PreparedStatement stmt = null;	
+				ResultSet rs = null;	
+				try {
+					dbConn = this.getDbConnection();
+					String szSql =String.format("select pageurl from HASYS_DM_PAGE_MAP_PER where BUSINESSID='%s' ", bizId) ;
+					stmt = dbConn.prepareStatement(szSql);
+					rs = stmt.executeQuery();
+					if (rs.next()) {
+						url=rs.getString(1);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally{
+					DbUtil.DbCloseConnection(dbConn);
+					DbUtil.DbCloseQuery(rs, stmt);
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally{
-				DbUtil.DbCloseConnection(dbConn);
-				DbUtil.DbCloseQuery(rs, stmt);
+				return url;
 			}
-			return url;
-		}
 	
 		//根据业务号获取url
 				public boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl) {
@@ -324,7 +325,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					return true;
 				}
 				//创建自动生成页面配置信息
-				public boolean dmCreateAutomaticConfig(int sourceId,String pageName,JsonArray jsonArray) {
+				public boolean dmCreateAutomaticConfig(int sourceId,String sourceModular,String pageName,String panleName,JsonArray jsonArray) {
 					 
 					Connection dbConn = null;
 					
@@ -332,8 +333,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						
-						String szSql =String.format("") ;
+						String szSql =String.format("insert into HASYS_DM_AUTOMATICCONFIG values(S_HASYS_DM_AUTOMATICCONFIG.nextval,'"+sourceId+"','"+sourceModular+"','"+pageName+"','"+panleName+"','"+jsonArray.toString()+"')") ;
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();
 						
@@ -346,4 +346,39 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					}
 					return true;
 				}
+				
+				
+				//根据业务号获取面板配置信息
+				public List<DMBizAutomaticConfig> dmGetAutomaticConfig(int sourceId,String sourceModular,String pageName) {
+					List<DMBizAutomaticConfig> listDMBizAutomaticConfig=new ArrayList<DMBizAutomaticConfig>();
+					Connection dbConn = null;
+					String url="";
+					PreparedStatement stmt = null;	
+					ResultSet rs = null;	
+					try {
+						dbConn = this.getDbConnection();
+						String szSql =String.format("select ID,SourceID,SOURCEMODULAR,PAGENAME,PANLENAME,CONFIG from HASYS_DM_AUTOMATICCONFIG where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s'",sourceId,sourceModular,pageName) ;
+						
+						stmt = dbConn.prepareStatement(szSql);
+						rs = stmt.executeQuery();
+						if (rs.next()) {
+							DMBizAutomaticConfig dmBizAutomaticConfig=new DMBizAutomaticConfig();
+							dmBizAutomaticConfig.setId(rs.getString(1));
+							dmBizAutomaticConfig.setSourceId(rs.getString(2));
+							dmBizAutomaticConfig.setSourceModulear(rs.getString(3));
+							dmBizAutomaticConfig.setPageName(rs.getString(4));
+							dmBizAutomaticConfig.setPanleName(rs.getString(5));
+							dmBizAutomaticConfig.setConfig(rs.getString(6));
+							listDMBizAutomaticConfig.add(dmBizAutomaticConfig);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally{
+						DbUtil.DbCloseConnection(dbConn);
+						DbUtil.DbCloseQuery(rs, stmt);
+					}
+					return listDMBizAutomaticConfig;
+				}
+				
+				
 }
