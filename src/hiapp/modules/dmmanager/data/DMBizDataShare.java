@@ -232,7 +232,7 @@ public class DMBizDataShare extends BaseRepository {
 		String HAU_DM_BC_POOL_ORE="HAU_DM_B"+businessId+"C_POOL_ORE";
 		String appendId=idFactiory.newId("DM_AID");
 		List<String> shareIds=new ArrayList<String>();
-		shareIds.add(appendId);
+		shareIds.add(newShareId);
 		String insertSql="";
 		String updateSql="";
 		try {
