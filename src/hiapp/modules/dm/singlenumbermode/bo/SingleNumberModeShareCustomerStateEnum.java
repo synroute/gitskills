@@ -20,28 +20,28 @@ public enum SingleNumberModeShareCustomerStateEnum {
     private String name;
 
     static public SingleNumberModeShareCustomerStateEnum getFromString(String columnValue) {
-        if (SingleNumberModeShareCustomerStateEnum.CREATED.equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.CREATED.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.CREATED;
 
-        if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.APPENDED.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.APPENDED;
 
-        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL;
 
-        if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.PRESET_DIAL;
 
-        if (SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL.equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL;
 
-        if (SingleNumberModeShareCustomerStateEnum.FINISHED.equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.FINISHED.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.FINISHED;
 
-        if (SingleNumberModeShareCustomerStateEnum.CREATED.equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.CREATED.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.CREATED;
 
-        if (SingleNumberModeShareCustomerStateEnum.REVERT.equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.REVERT.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.REVERT;
 
         return null;

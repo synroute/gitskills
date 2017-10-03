@@ -190,11 +190,11 @@ public class SingleNumberModeShareCustomerItem {
         this.lostCallFirstDay = lostCallFirstDay;
     }
 
-    public Boolean getIsLoaded() {
+    public Integer getIsLoaded() {
         return isLoaded;
     }
 
-    public void setIsLoaded(Boolean loaded) {
+    public void setIsLoaded(Integer loaded) {
         isLoaded = loaded;
     }
 
@@ -217,7 +217,7 @@ public class SingleNumberModeShareCustomerItem {
     int lostCallCurDayCount;   //当天未接通次数
     int   curRedialStageCount; //仅用于阶段拨打
     Boolean userUseState; //是否已经被坐席人员抽取
-    Boolean isLoaded;   //是否已经加载到内存
+    int isLoaded;   //是否已经加载到内存
     Date  lostCallFirstDay; //第一次未接通日期
     Date  lostCallCurDay; //当前未接通日期
     int   lostCallTotalCount; //未接通总次数

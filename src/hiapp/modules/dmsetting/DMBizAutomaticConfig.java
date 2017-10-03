@@ -11,6 +11,12 @@ public class DMBizAutomaticConfig {
 	private String pageName;
 	private String panleName;
 	private String config;
+	private String creater;
+	private String state;
+	private String displayType;
+	private String createTime;
+	private String pageId;
+	private int isDelete;
 	public String getId() {
 		return id;
 	}
@@ -46,5 +52,42 @@ public class DMBizAutomaticConfig {
 	}
 	public void setConfig(String config) {
 		this.config = config;
+	}
+	public String getCreater() {
+		return creater;
+	}
+	public void setCreater(String creater) {
+		this.creater = creater;
+	}
+	public String getState() {
+		return state;
+	}
+	public void setState(String state) {
+		this.state = state;
+	}
+	public String getDisplayType() {
+		return displayType;
+	}
+	public void setDisplayType(String displayType) {
+		this.displayType = displayType;
+	}
+	public String getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+	
+	public int getIsDelete() {
+		return isDelete;
+	}
+	public void setIsDelete(int isDelete) {
+		this.isDelete = isDelete;
+	}
+	public String getPageId() {
+		return pageId;
+	}
+	public void setPageId(String pageId) {
+		this.pageId = pageId;
 	}
 }

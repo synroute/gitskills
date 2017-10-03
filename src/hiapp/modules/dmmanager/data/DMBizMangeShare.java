@@ -101,7 +101,7 @@ public class DMBizMangeShare extends BaseRepository{
 					Map<String,Object> resultMap=new HashMap<String, Object>();
 					try {
 						dbConn = this.getDbConnection();
-						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,to_char(A.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,A.DESCRIPTION,A.STATE,to_char(A.STARTTIME,'yyyy-mm-dd hh24:mi:ss') STARTTIME,to_char(A.ENDTIME,'yyyy-mm-dd hh24:mi:ss') ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY CREATETIME";
+						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,to_char(A.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,A.DESCRIPTION,A.STATE,to_char(A.STARTTIME,'yyyy-mm-dd') STARTTIME,to_char(A.ENDTIME,'yyyy-mm-dd') ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B WHERE A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY CREATETIME";
 						sql1="SELECT DISTINCT ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION,STATE,STARTTIME,ENDTIME,ABC from (";
 						sql=sql1+sql+") m where rn>=?";
 						stmt = dbConn.prepareStatement(sql);
@@ -176,7 +176,7 @@ public class DMBizMangeShare extends BaseRepository{
 			sb.deleteCharAt(sb.length()-1);
 			try {
 				dbConn=this.getDbConnection();
-				sql = "UPDATE HASYS_DM_SID SET CREATEUSERID=?,STARTTIME=to_date(?,'yyyy-MM-dd hh24:mi:ss'),ENDTIME=to_date(?,'yyyy-MM-dd hh24:mi:ss') WHERE SHAREID in ('"+sb+"')";
+				sql = "UPDATE HASYS_DM_SID SET CREATEUSERID=?,STARTTIME=to_date(?,'yyyy-mm-dd'),ENDTIME=to_date(?,'yyyy-mm-dd') WHERE SHAREID in ('"+sb+"')";
 				stmt = dbConn.prepareStatement(sql);
 				stmt.setString(1,user.getId()); 
 				stmt.setString(2,startTime);

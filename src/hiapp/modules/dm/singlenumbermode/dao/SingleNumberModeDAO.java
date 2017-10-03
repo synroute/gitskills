@@ -6,6 +6,7 @@ import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
+import hiapp.modules.dm.util.SQLUtil;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -44,8 +45,8 @@ public class SingleNumberModeDAO extends BaseRepository {
                     "MODIFYUSERID, MODIFYTIME, MODIFYDESC, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, LASTDIALTIME, " +
                     "NEXTDIALTIME, THISDAYDIALEDCOUNT, CURREDIALSTAGECOUNT, USERUSESTATE, LOSTCALLFIRSTDAY, LOSTCALLCURDAY, " +
                     "LOSTCALLTOTALCOUNT FROM " + tableName);
-            sqlBuilder.append(" WHERE SHAREID IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
-            sqlBuilder.append(" AND STATE IN (").append(shareBatchStatelistToCommaSplitString(shareDataStateList)).append(")");
+            sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
+            sqlBuilder.append(" AND STATE IN (").append(SQLUtil.shareBatchStatelistToSqlString(shareDataStateList)).append(")");
 
             System.out.println("==>  " + sqlBuilder.toString());
 
@@ -128,8 +129,8 @@ public class SingleNumberModeDAO extends BaseRepository {
                     "MODIFYUSERID, MODIFYTIME, MODIFYDESC, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, LASTDIALTIME, " +
                     "NEXTDIALTIME, THISDAYDIALEDCOUNT, CURREDIALSTAGECOUNT, USERUSESTATE, LOSTCALLFIRSTDAY, LOSTCALLCURDAY, " +
                     "LOSTCALLTOTALCOUNT FROM " + tableName);
-            sqlBuilder.append(" WHERE SHAREID IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
-            sqlBuilder.append(" AND STATE IN (").append(shareBatchStatelistToCommaSplitString(shareDataStateList)).append(")");
+            sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
+            sqlBuilder.append(" AND STATE IN (").append(SQLUtil.shareBatchStatelistToSqlString(shareDataStateList)).append(")");
             sqlBuilder.append(" AND NEXTDIALTIME < ").append("TO_DATA(").append(curDay).append(",'yyyy-MM-dd')");
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
@@ -212,8 +213,8 @@ public class SingleNumberModeDAO extends BaseRepository {
         String tableName = String.format("HAU_DM_B%dC_DATAM3", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
-        sqlBuilder.append(" SET STATE = ").append(state);
-        sqlBuilder.append(" WHERE SHAREID IN (").append(stringListToCommaSplitString(shareBatchIdList)).append(")");
+        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state));
+        sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIdList)).append(")");
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -395,30 +396,33 @@ public class SingleNumberModeDAO extends BaseRepository {
 
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
         sqlBuilder.append(" (ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, MODIFYUSERID, MODIFYTIME, MODIFYDESC, " +
-                "CUSTOMERCALLID, LASTDIALTIME, USERUSESTATE, ISMEMORYLOADIN, NEXTDIALTIME, CURREDIALSTAGECOUNT, " +
+                "CUSTOMERCALLID, ENDCODETYPE, ENDCODE, LASTDIALTIME, USERUSESTATE, ISMEMORYLOADIN, NEXTDIALTIME, CURREDIALSTAGECOUNT, " +
                 "THISDAYDIALEDCOUNT, LOSTCALLFIRSTDAY, LOSTCALLCURDAY, LOSTCALLTOTALCOUNT) VALUES ( ");
-        sqlBuilder.append("'").append("S_" + tableName + ".nextval").append("',");
-        sqlBuilder.append("'").append(item.getBizId()).append("',");
-        sqlBuilder.append("'").append(item.getShareBatchId()).append("',");
-        sqlBuilder.append("'").append(item.getImportBatchId()).append("',");
-        sqlBuilder.append("'").append(item.getCustomerId()).append("',");
-        sqlBuilder.append("'").append(item.getState().getName()).append("',");
-        sqlBuilder.append("'").append(item.getModifyId()).append("',");
-        sqlBuilder.append("'").append(item.getModifyUserId()).append("',");
-        sqlBuilder.append("'").append(item.getModifyTime()).append("',");
-        sqlBuilder.append("'").append(item.getModifyDesc()).append("',");
-        sqlBuilder.append("'").append(item.getCustomerCallId()).append("',");
-        sqlBuilder.append("'").append(item.getEndCodeType()).append("',");
-        sqlBuilder.append("'").append(item.getEndCode()).append("',");
-        sqlBuilder.append("'").append(item.getLastDailTime()).append("',");
-        sqlBuilder.append("'").append(item.getUserUseState()).append("',");
-        sqlBuilder.append("'").append(item.getIsLoaded()).append("',");
-        sqlBuilder.append("'").append(item.getNextDialTime()).append("',");
-        sqlBuilder.append("'").append(item.getCurRedialStageCount()).append("',");
-        sqlBuilder.append("'").append(item.getLostCallCurDayCount()).append("',");
-        sqlBuilder.append("'").append(item.getLostCallFirstDay()).append("',");
-        sqlBuilder.append("'").append(item.getLostCallCurDay()).append("',");
-        sqlBuilder.append("'").append(item.getLostCallTotalCount());
+        sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getBizId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getShareBatchId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getImportBatchId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCustomerId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getState().getName())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyUserId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyTime())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyDesc())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCustomerCallId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getEndCodeType())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getEndCode())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getLastDailTime())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getUserUseState())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getIsLoaded())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getNextDialTime())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCurRedialStageCount())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getLostCallCurDayCount())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getLostCallFirstDay())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getLostCallCurDay())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getLostCallTotalCount()));
+        sqlBuilder.append(")");
+
+        System.out.println(sqlBuilder.toString());
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -490,7 +494,7 @@ public class SingleNumberModeDAO extends BaseRepository {
                     "NEXTDIALTIME, THISDAYDIALEDCOUNT, CURREDIALSTAGECOUNT, USERUSESTATE, LOSTCALLFIRSTDAY, LOSTCALLCURDAY, " +
                     "LOSTCALLTOTALCOUNT FROM " + tableName);
             sqlBuilder.append(" WHERE ");
-            sqlBuilder.append(" SHAREID IN (").append(shareBatchItemlistToCommaSplitString(ShareBatchItems)).append(")");
+            sqlBuilder.append(" SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND STATE = '").append(SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL.getName()).append("'");
             sqlBuilder.append(" AND THISDAYDIALEDCOUNT > 0");
             sqlBuilder.append(" AND trunc(LOSTCALLCURDAY) = trunc(sysdate)");
@@ -544,7 +548,7 @@ public class SingleNumberModeDAO extends BaseRepository {
         try {
             dbConn=this.getDbConnection();
             sql=String.format("UPDATE HASYS_DM_SID SET STATE ='%s' WHERE BUSINESSID = %d AND SHAREID IN (%s)",
-                                        state, bizId, stringListToCommaSplitString(shareBatchIds));
+                                        state, bizId, SQLUtil.stringListToSqlString(shareBatchIds));
             stmt = dbConn.prepareStatement(sql);
             stmt.execute();
         } catch (Exception e) {
@@ -553,51 +557,4 @@ public class SingleNumberModeDAO extends BaseRepository {
         return ServiceResultCode.SUCCESS;
     }
 
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private String shareBatchStatelistToCommaSplitString(List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList) {
-        StringBuilder sb = new StringBuilder();
-        for (int indx = 0; indx < shareCustomerStateList.size(); indx++) {
-            SingleNumberModeShareCustomerStateEnum state = shareCustomerStateList.get(indx);
-            sb.append("'").append(state.getName()).append("'");
-            if (indx < (shareCustomerStateList.size() - 1))
-                sb.append(",");
-        }
-        return sb.toString();
-    }
-
-    private String shareBatchItemlistToCommaSplitString(List<ShareBatchItem> shareBatchItems) {
-        StringBuilder sb = new StringBuilder();
-        for (int indx = 0; indx < shareBatchItems.size(); indx++) {
-            ShareBatchItem item = shareBatchItems.get(indx);
-            sb.append("'").append(item.getShareBatchId()).append("'");
-            if (indx < (shareBatchItems.size() - 1))
-                sb.append(",");
-        }
-        return sb.toString();
-    }
-
-    private String integerListToCommaSplitString(List<Integer> integerList) {
-        StringBuilder sb = new StringBuilder();
-        for (int indx = 0; indx < integerList.size(); indx++) {
-            sb.append(integerList.get(indx));
-            if (indx < (integerList.size() - 1))
-                sb.append(",");
-        }
-
-        return sb.toString();
-    }
-
-    private String stringListToCommaSplitString(List<String> stringList) {
-        StringBuilder sb = new StringBuilder();
-        for (int indx = 0; indx < stringList.size(); indx++) {
-            sb.append("'").append(stringList.get(indx)).append("'");
-            if (indx < (stringList.size() - 1))
-                sb.append(",");
-        }
-
-        return sb.toString();
-    }
 }

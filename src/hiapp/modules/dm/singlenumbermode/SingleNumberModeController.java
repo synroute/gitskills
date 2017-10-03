@@ -129,7 +129,7 @@ public class SingleNumberModeController {
 
         ServiceResult serviceresult = new ServiceResult();
 
-//        List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
+        //List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
         List<String> shareBatchIds = new ArrayList<String>();
 
         String[] arrayShareBatchId = strShareBatchIds.split(",");
@@ -147,7 +147,12 @@ public class SingleNumberModeController {
 
         ServiceResult serviceresult = new ServiceResult();
 
-        List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
+        //List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
+        List<String> shareBatchIds = new ArrayList<String>();
+
+        String[] arrayShareBatchId = strShareBatchIds.split(",");
+        for (String shareBatchId : arrayShareBatchId)
+            shareBatchIds.add(shareBatchId);
 
         singleNumberOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
 

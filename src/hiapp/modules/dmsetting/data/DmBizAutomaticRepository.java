@@ -12,7 +12,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -279,19 +281,20 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	}
 	
 	//根据业务号获取url
-			public String dmGetAutomaticPageUrl(int bizId) {
-				 
+			public Map<String,String> dmGetAutomaticPageUrl(int sourceId,String sourceModular,String pageName) {
+				Map<String,String> map=new HashMap<String, String>(); 
 				Connection dbConn = null;
 				String url="";
-				PreparedStatement stmt = null;	
+				PreparedStatement stmt = null;
 				ResultSet rs = null;	
 				try {
 					dbConn = this.getDbConnection();
-					String szSql =String.format("select pageurl from HASYS_DM_PAGE_MAP_PER where BUSINESSID='%s' ", bizId) ;
+					String szSql =String.format("select pageurl,PAGEPARAMETER from HASYS_DM_PAGE_MAP_PER where SOURCEID=%s and SOURCEMODULAR='%s' and PageName='%s'", sourceId,sourceModular,pageName) ;
 					stmt = dbConn.prepareStatement(szSql);
 					rs = stmt.executeQuery();
 					if (rs.next()) {
-						url=rs.getString(1);
+						map.put("pageUrl", rs.getString(1));
+						map.put("pageParameter", rs.getString(2));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -299,11 +302,11 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					DbUtil.DbCloseConnection(dbConn);
 					DbUtil.DbCloseQuery(rs, stmt);
 				}
-				return url;
+				return map;
 			}
 	
 		//根据业务号获取url
-				public boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl) {
+				public boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl,String pageParameter) {
 					 
 					Connection dbConn = null;
 					String url="";
@@ -311,7 +314,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,BUSINESSID,PAGENAME,PAGEURL) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s') ", bizId,pageName,pageUrl) ;
+						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,SOURCEID,PAGENAME,PAGEURL,PAGEPARAMETER) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s','%s') ", bizId,pageName,pageUrl,pageParameter) ;
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();
 						
@@ -325,7 +328,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					return true;
 				}
 				//创建自动生成页面配置信息
-				public boolean dmCreateAutomaticConfig(int sourceId,String sourceModular,String pageName,String panleName,JsonArray jsonArray) {
+				public boolean dmCreateAutomaticConfig(int sourceId,String sourceModular,String pageName,String panleName,JsonArray jsonArray,String state,String displayType,String userId,int isDelete,String pageId) {
 					 
 					Connection dbConn = null;
 					
@@ -333,7 +336,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						String szSql =String.format("insert into HASYS_DM_AUTOMATICCONFIG values(S_HASYS_DM_AUTOMATICCONFIG.nextval,'"+sourceId+"','"+sourceModular+"','"+pageName+"','"+panleName+"','"+jsonArray.toString()+"')") ;
+						String szSql =String.format("insert into HASYS_DM_AUTOMATICCONFIG(ID,SourceID,SourceModular,PageName,PanleName,Config,CREATER,STATE,ISDELETE,DISPLAYTYPE,PAGEID,CREATETIME) "
+								+ "values(S_HASYS_DM_AUTOMATICCONFIG.nextval,'"+sourceId+"','"+sourceModular+"','"+pageName+"','"+panleName+"','"+jsonArray.toString()+"','"+userId+"','"+state+"',"+isDelete+",'"+displayType+"','"+pageId+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())+ "','yyyy-mm-dd hh24:mi:ss'))") ;
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();
 						
@@ -357,7 +361,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						String szSql =String.format("select ID,SourceID,SOURCEMODULAR,PAGENAME,PANLENAME,CONFIG from HASYS_DM_AUTOMATICCONFIG where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s'",sourceId,sourceModular,pageName) ;
+						String szSql =String.format("select ID,SourceID,SOURCEMODULAR,PAGENAME,PANLENAME,CONFIG,CREATER,STATE,ISDELETE,DISPLAYTYPE,PAGEID,CREATETIME from HASYS_DM_AUTOMATICCONFIG where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s'",sourceId,sourceModular,pageName) ;
 						
 						stmt = dbConn.prepareStatement(szSql);
 						rs = stmt.executeQuery();
@@ -369,6 +373,12 @@ public class DmBizAutomaticRepository extends BaseRepository {
 							dmBizAutomaticConfig.setPageName(rs.getString(4));
 							dmBizAutomaticConfig.setPanleName(rs.getString(5));
 							dmBizAutomaticConfig.setConfig(rs.getString(6));
+							dmBizAutomaticConfig.setCreater(rs.getString(7));
+							dmBizAutomaticConfig.setState(rs.getString(8));
+							dmBizAutomaticConfig.setIsDelete(rs.getInt(9));
+							dmBizAutomaticConfig.setDisplayType(rs.getString(10));
+							dmBizAutomaticConfig.setPageId(rs.getString(11));
+							dmBizAutomaticConfig.setCreateTime(rs.getString(12));
 							listDMBizAutomaticConfig.add(dmBizAutomaticConfig);
 						}
 					} catch (Exception e) {

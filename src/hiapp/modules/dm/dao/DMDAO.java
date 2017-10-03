@@ -2,19 +2,14 @@ package hiapp.modules.dm.dao;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dmsetting.DMBizPresetItem;
-import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.RowSet;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -83,7 +78,7 @@ public class DMDAO extends BaseRepository {
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
                     "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
             sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
-            sqlBuilder.append(" SHAREID IN (").append(stringListToCommaSplitString(shareBatchIdList)).append(")");
+            sqlBuilder.append(" AND SHAREID IN (").append(stringListToCommaSplitString(shareBatchIdList)).append(")");
 
             System.out.println(sqlBuilder.toString());
 
@@ -172,7 +167,7 @@ public class DMDAO extends BaseRepository {
             // 激活共享批次
             StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
             sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
-            sqlBuilder.append(" WHERE STARTTIME <= ").append("TO_DATE('").append(getCurDaySqlString()).append("','yyyy-mm-dd hh24:mi:ss')");
+            sqlBuilder.append(" WHERE STARTTIME <= ").append("TO_DATE('").append(getNextDaySqlString()).append("','yyyy-mm-dd')");
             sqlBuilder.append(" AND STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
 
             System.out.println(sqlBuilder.toString());
@@ -217,7 +212,7 @@ public class DMDAO extends BaseRepository {
             sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.EXPIRED.getName()).append("'");
             sqlBuilder.append(" WHERE (STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
             sqlBuilder.append(" OR STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
-            sqlBuilder.append(") AND ENDTIME < ").append("TO_DATE('").append(getNextDaySqlString()).append("','yyyy/mm/dd')");
+            sqlBuilder.append(") AND ENDTIME < ").append("TO_DATE('").append(getCurDayStartSqlString()).append("','yyyy/mm/dd')");
 
             System.out.println(sqlBuilder.toString());
 
@@ -405,7 +400,20 @@ public class DMDAO extends BaseRepository {
         return strNextDay;
     }
 
-    public String getCurDaySqlString() {
+    public String getCurDayStartSqlString() {
+        Calendar curDay = Calendar.getInstance();
+        curDay.setTime(new Date());
+        curDay.add(Calendar.DAY_OF_MONTH, 0);
+        curDay.set(Calendar.HOUR_OF_DAY, 0);
+        curDay.set(Calendar.MINUTE, 0);
+        curDay.set(Calendar.SECOND, 0);
+        curDay.set(Calendar.MILLISECOND, 0);
+        String strCurDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH)
+                + " " + curDay.get(Calendar.HOUR_OF_DAY) + ":" + curDay.get(Calendar.MINUTE) + ":" + curDay.get(Calendar.SECOND);
+        return strCurDay;
+    }
+
+    public String getCurDayEndSqlString() {
         Calendar curDay = Calendar.getInstance();
         curDay.setTime(new Date());
         curDay.add(Calendar.DAY_OF_MONTH, 0);

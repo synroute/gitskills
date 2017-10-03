@@ -103,7 +103,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				}
 				Integer dicid=list.get(0).getId();
 				stmt.close();
-				String psql="select ITEMID from HASYS_DIC_ITEM where ITEMTEXT='"+jsonObject.get("endCodeType").getAsString()+"' and dicid="+dicid+"";
+				String psql="select ITEMID from HASYS_DIC_ITEM where ITEMTEXT='"+jsonObject.get("endCodeType").getAsString()+"' and dicid="+dicid+" and ITEMPARENT=-1";
 				stmt = conn.prepareStatement(psql);
 				rs = stmt.executeQuery();
 				String pid="";
@@ -176,11 +176,11 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			stmt.executeUpdate();
 			stmt.close();
 			//修改字段表信息
-			String updatecode=String.format("update HASYS_DIC_INDEX set NAME='"+dmEndCode.getEndCode()+"' where NAME='"+code_old+"' and classid=(select classid from HASYS_DIC_CLASS where classname='"+dmEndCode.getBizId()+dmEndCode.getEndCodeType()+"')");
+			String updatecode=String.format("update HASYS_DIC_ITEM set ITEMTEXT='"+dmEndCode.getEndCodeType()+"' where ITEMTEXT='"+codetype_old+"' and ITEMPARENT=-1  and DICID=(select ID from HASYS_DIC_INDEX where NAME='业务"+dmEndCode.getBizId()+"结束码')");
 			stmt = conn.prepareStatement(updatecode);
 			stmt.executeUpdate();
 			stmt.close();
-			String updateDictionary=String.format("update HASYS_DIC_CLASS set CLASSNAME='"+dmEndCode.getBizId()+dmEndCode.getEndCodeType()+"' where CLASSNAME='"+dmEndCode.getBizId()+dmEndCode.getEndCodeType()+"'");
+			String updateDictionary=String.format("update HASYS_DIC_ITEM set ITEMTEXT='"+dmEndCode.getEndCode()+"' where ITEMTEXT='"+code_old+"' and ITEMPARENT!=-1  and DICID=(select ID from HASYS_DIC_INDEX where NAME='业务"+dmEndCode.getBizId()+"结束码')");
 			stmt = conn.prepareStatement(updateDictionary);
 			stmt.executeUpdate();
 			modift(dmEndCode.getBizId(), dmEndCode.getEndCodeType(), dmEndCode.getEndCode(),codetype_old,code_old);
@@ -208,7 +208,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		String xml="";
 		try {
 			conn =this.getDbConnection();
-			String szSql = String.format("select xml from HASYS_DM_BIZADDSETTING where BusinessID="+bizid+"");
+			String szSql = String.format("select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizid+"");
 			stmt = conn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next())
@@ -220,7 +220,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			xml.replaceAll(codetype_old, EndCodeType);
 			xml.replaceAll(code_old, EndCode);
 			
-		    String updatesql = "update HASYS_DM_BIZADDSETTING set XML='"+xml+"' where BusinessId="+bizid+"";
+		    String updatesql = "update HASYS_DM_BIZOUTBOUNDSETTING set XML='"+xml+"' where BusinessId="+bizid+"";
 		    stmt = conn.prepareStatement(updatesql);
 		    int i=stmt.executeUpdate();
 		            
@@ -349,7 +349,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			stmt.executeUpdate();
 			stmt.close();
 			//删除字段表信息
-			String updatecode=String.format("delete HASYS_DIC_INDEX  where NAME='"+dmEndCode.getEndCode()+"' and classid=(select classid from HASYS_DIC_CLASS where classname='"+dmEndCode.getBizId()+dmEndCode.getEndCodeType()+"')");
+			String updatecode=String.format("delete HASYS_DIC_INDEX  where ITEMTEXT='"+dmEndCode.getEndCode()+"' and ITEMPARENT!=-1  and DICID=(select ID from HASYS_DIC_INDEX where NAME='业务"+dmEndCode.getBizId()+"结束码')");
 			stmt = conn.prepareStatement(updatecode);
 			stmt.executeUpdate();
 			
