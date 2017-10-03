@@ -160,32 +160,32 @@ public class CustomerController {
 		}
 
 		StringBuffer sb = new StringBuffer();
-		sb.append("<form id='gjSearch' class='gjSearch' class='easyui-form'>");
+		sb.append("<form id='gjSearch' class='easyui-form'>");
 		for (Map<String, Object> map : list) {
-			sb.append("<div style='margin:20px;float:left;width:200px'>");
+			sb.append("<div style='margin:20px;float:left;'>");
 			String columnName = (String) map.get("columnName");
 			String columnNameCH = (String) map.get("columnNameCH");
 			String controlType = (String) map.get("controlType");
 			String dataType = (String) map.get("dataType");
-			sb.append("<div>" + columnNameCH + ":</div>");
+			sb.append("<label>" + columnNameCH + ":</label>");
 			if ("文本框".equals(controlType)) {
 				sb.append("<input class='easyui-textbox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' style='width:250px'" + columnNameCH + ":''>");
+						+ "' style='width:250px'>");
 			} else if ("日期时间框".equals(controlType)) {
 				sb.append("<input class='easyui-datetimebox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' labelPosition='left' style='width:250px'>");
+						+ "' style='width:250px'>");
 			} else if ("下拉框".equals(controlType)) {
 				sb.append("<select class='easyui-combobox' name='param' columnName='"
 						+ columnName
 						+ "' dataType='"
 						+ dataType
-						+ "' style='width:250px'");
+						+ "' style='width:250px'>");
 				String dictId = (String) map.get("dictId");
 				String dictLevel = (String) map.get("dictLevel");
 				List<String> itemsText = dictionaryConfigurationController.getItemsByDictIdAndLevel(
