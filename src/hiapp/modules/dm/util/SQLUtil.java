@@ -1,6 +1,7 @@
 package hiapp.modules.dm.util;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
+import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 
 import java.util.Calendar;
@@ -23,6 +24,12 @@ public class SQLUtil {
         } else if (obj instanceof Date) {
             Calendar curTime = Calendar.getInstance();
             curTime.setTime((Date)obj);
+            String strCurTime = curTime.get(Calendar.YEAR) + "/" + (curTime.get(Calendar.MONTH)+1) + "/" + curTime.get(Calendar.DAY_OF_MONTH)
+                    + " " + curTime.get(Calendar.HOUR_OF_DAY) + ":" + curTime.get(Calendar.MINUTE) + ":" + curTime.get(Calendar.SECOND);
+
+            return "TO_DATE('" + strCurTime + "', 'yyyy-mm-dd hh24:mi:ss')";
+        } else if (obj instanceof Calendar) {
+            Calendar curTime = (Calendar)obj;
             String strCurTime = curTime.get(Calendar.YEAR) + "/" + (curTime.get(Calendar.MONTH)+1) + "/" + curTime.get(Calendar.DAY_OF_MONTH)
                     + " " + curTime.get(Calendar.HOUR_OF_DAY) + ":" + curTime.get(Calendar.MINUTE) + ":" + curTime.get(Calendar.SECOND);
 
@@ -54,7 +61,7 @@ public class SQLUtil {
         return sb.toString();
     }
 
-    public static String shareBatchStatelistToSqlString(List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList) {
+    public static String shareStatelistToSqlString(List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList) {
         StringBuilder sb = new StringBuilder();
         for (int indx = 0; indx < shareCustomerStateList.size(); indx++) {
             SingleNumberModeShareCustomerStateEnum state = shareCustomerStateList.get(indx);
@@ -75,4 +82,17 @@ public class SQLUtil {
         }
         return sb.toString();
     }
+
+    public static String shareBatchStatelistToCommaSplitString(List<ShareBatchStateEnum> shareBatchStateList) {
+        StringBuilder sb = new StringBuilder();
+        for (int indx = 0; indx < shareBatchStateList.size(); indx++ ) {
+            ShareBatchStateEnum state = shareBatchStateList.get(indx);
+            sb.append("'").append(state.getName()).append("'");
+            if (indx < (shareBatchStateList.size()-1))
+                sb.append(",");
+        }
+
+        return sb.toString();
+    }
+
 }

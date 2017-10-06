@@ -46,15 +46,28 @@ public class SingleNumberOutboundDataManage {
         initialize();
     }
 
+    Long timeSlotSpan = 1000*60L; // 60 seconds
+    Long timeoutThreshold = 30 * timeSlotSpan; //
+
     // 客户共享池
     // BizID <==> {ShareBatchID <==> PriorityBlockingQueue<SingleNumberModeShareCustomerItem>}
-    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPresetDialCustomer;
-    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPhaseDialCustomer;
-    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapDialCustomer;
+    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPresetDialCustomerSharePool;
+    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPhaseDialCustomerSharePool;
+    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapDialCustomerSharePool;
 
-    // 客户数据桩， 用于拨打结果处理
-    // BizID <==> {ImportID + CustomerID <==> SingleNumberModeShareCustomerItem}
-    Map<Integer, Map<String, SingleNumberModeShareCustomerItem>> mapBizIdVsCustomer;
+    // 等待拨打结果的客户池，坐席人员维度
+    // UserID <==> {BizID + ImportID + CustomerID <==> SingleNumberModeShareCustomerItem}
+    Map<String, Map<String, SingleNumberModeShareCustomerItem>> mapWaitResultCustomerPool;
+
+    // 等待拨打结果的客户池，等超时的维度，放入分钟SLOT里
+    // 分钟Slot <==> {BizId + ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
+    Map<Long, Map<String, SingleNumberModeShareCustomerItem>> mapWaitTimeOutCustomerPool;
+
+    // 等待拨打结果的客户池，共享批次维度，用于标注已经停止批次
+    // BizId + ShareBatchId <==> {ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
+    Map<String, Map<String, SingleNumberModeShareCustomerItem>> mapWaitStopCustomerPool;
+
+    Long earliestTimeSlot;
 
     // 重拨策略
     // BizID <==> EndCodeRedialStrategy
@@ -63,6 +76,9 @@ public class SingleNumberOutboundDataManage {
     DBConnectionPool dbConnectionPool;
     Timer dailyTimer;
     TimerTask dailyTimerTask;
+
+    Timer timeoutTimer;
+    TimerTask timeoutTimerTask;
 
 
     /**
@@ -83,7 +99,7 @@ public class SingleNumberOutboundDataManage {
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = null;
 
         // TODO 目前取得就走了，其实可以PEEK遍后比较拨打时间，确定先取那个客户
-        shareBatchIdVsCustomerMap = mapPresetDialCustomer.get(bizId);
+        shareBatchIdVsCustomerMap = mapPresetDialCustomerSharePool.get(bizId);
         if (null != shareBatchIdVsCustomerMap) {
             for (String shareBatchId : shareBatchIdList) {
                 customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
@@ -102,7 +118,7 @@ public class SingleNumberOutboundDataManage {
         }
 
         if (null == shareDataItem) {
-            shareBatchIdVsCustomerMap = mapPhaseDialCustomer.get(bizId);
+            shareBatchIdVsCustomerMap = mapPhaseDialCustomerSharePool.get(bizId);
             if (null != shareBatchIdVsCustomerMap) {
                 for (String shareBatchId : shareBatchIdList) {
                     customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
@@ -117,7 +133,7 @@ public class SingleNumberOutboundDataManage {
         }
 
         if (null == shareDataItem) {
-            shareBatchIdVsCustomerMap = mapDialCustomer.get(bizId);
+            shareBatchIdVsCustomerMap = mapDialCustomerSharePool.get(bizId);
             if (null != shareBatchIdVsCustomerMap) {
                 for (String shareBatchId : shareBatchIdList) {
                     customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
@@ -131,8 +147,16 @@ public class SingleNumberOutboundDataManage {
             }
         }
 
-        if (null != shareDataItem)
-            singleNumberModeDAO.setUserUseState(bizId, shareDataItem.getShareBatchId(), shareDataItem.getCustomerId());
+        if (null != shareDataItem) {
+            //userUseState 弃用
+            //singleNumberModeDAO.setUserUseState(bizId, shareDataItem.getShareBatchId(), shareDataItem.getCustomerId());
+
+            shareDataItem.setExtractTime(now);
+            shareDataItem.setUserId(userId);
+
+            // 放入 客户等待池
+            addWaitCustomer(userId, bizId, shareDataItem);
+        }
 
         return shareDataItem;
     }
@@ -144,11 +168,10 @@ public class SingleNumberOutboundDataManage {
         String customerCallId = "xxx";
         String dialTime = new Date().toString();
 
-        resultCodeType = "结束码类型9091";
-        resultCode = "结束码9091";
+        resultCodeType = "结束码类型9092";
+        resultCode = "结束码9092";
 
-        Map<String, SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
-        SingleNumberModeShareCustomerItem originCustomerItem = map.get(importBatchId + customerId);
+        SingleNumberModeShareCustomerItem originCustomerItem = removeWaitCustomer(userId, bizId, importBatchId, customerId);
 
         EndCodeRedialStrategy endCodeRedialStrategy = mapBizIdVsEndCodeRedialStrategy.get(bizId);
         if (null == endCodeRedialStrategy) {
@@ -187,9 +210,11 @@ public class SingleNumberOutboundDataManage {
     }
 
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
-        removeFromCustomerPool(bizId, shareBatchIds, mapPresetDialCustomer);
-        removeFromCustomerPool(bizId, shareBatchIds, mapPhaseDialCustomer);
-        removeFromCustomerPool(bizId, shareBatchIds, mapDialCustomer);
+        removeFromCustomerSharePool(bizId, shareBatchIds, mapPresetDialCustomerSharePool);
+        removeFromCustomerSharePool(bizId, shareBatchIds, mapPhaseDialCustomerSharePool);
+        removeFromCustomerSharePool(bizId, shareBatchIds, mapDialCustomerSharePool);
+
+        markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }
 
     public String appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
@@ -200,6 +225,27 @@ public class SingleNumberOutboundDataManage {
 
         loadCustomersAppend(bizId, shareBatchItemList);
         return "";
+    }
+
+    // 用户登录通知
+    public void onLogin(String userId) {
+        Map<String, SingleNumberModeShareCustomerItem> mapUserWaitResultPool = mapWaitResultCustomerPool.remove(userId);
+        if (null == mapUserWaitResultPool)
+            return;
+
+        for (SingleNumberModeShareCustomerItem customerItem : mapUserWaitResultPool.values()) {
+            // 放回客户共享池
+            if (!customerItem.getInvalid()) {
+                addCustomerToSharePool(customerItem);
+            }
+
+            Long timeSlot = customerItem.getExtractTime().getTime()/timeSlotSpan;
+            removeWaitTimeOutCustomer(customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId(), timeSlot);
+
+            removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                    customerItem.getCustomerId());
+        }
+
     }
 
     public void initialize() {
@@ -240,14 +286,20 @@ public class SingleNumberOutboundDataManage {
 
 
         setDailyRoutine();
+        setTimeOutRoutine(timeSlotSpan);
 
-        mapPresetDialCustomer = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
-        mapPhaseDialCustomer = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
-        mapDialCustomer = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
+        mapPresetDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
+        mapPhaseDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
+        mapDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
 
-        mapBizIdVsCustomer = new HashMap<Integer, Map<String, SingleNumberModeShareCustomerItem>>();
+        mapWaitResultCustomerPool = new HashMap<String, Map<String, SingleNumberModeShareCustomerItem>>();
+        mapWaitTimeOutCustomerPool = new HashMap<Long, Map<String, SingleNumberModeShareCustomerItem>>();
+        mapWaitStopCustomerPool = new HashMap<String, Map<String, SingleNumberModeShareCustomerItem>>();
 
         mapBizIdVsEndCodeRedialStrategy = new HashMap<Integer, EndCodeRedialStrategy>();
+
+        Date now = new Date();
+        earliestTimeSlot = now.getTime()/timeSlotSpan;
 
         //singleNumberModeDAO.resetLoadedFlag();
 
@@ -261,9 +313,9 @@ public class SingleNumberOutboundDataManage {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private List<ShareBatchItem> shareBatchDailyProc() {
-        mapPresetDialCustomer.clear();
-        mapPhaseDialCustomer.clear();
-        mapDialCustomer.clear();
+        mapPresetDialCustomerSharePool.clear();
+        mapPhaseDialCustomerSharePool.clear();
+        mapDialCustomerSharePool.clear();
 
         //List<String> expiredShareBatchIds = new ArrayList<String>();
         dmDAO.expireShareBatchsByEndTime(/*expiredShareBatchIds*/);
@@ -347,7 +399,7 @@ public class SingleNumberOutboundDataManage {
             for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
 
                 if (needJoinCustomerPool(bizId, customerItem))
-                    addCustomerToPool(customerItem);
+                    addCustomerToSharePool(customerItem);
 
                 if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
                     appendedStateCustomerIdList.add(customerItem.getShareBatchId());
@@ -402,7 +454,7 @@ public class SingleNumberOutboundDataManage {
         }
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
-            addCustomerToPool(customerItem);
+            addCustomerToSharePool(customerItem);
         }
     }
 
@@ -452,28 +504,106 @@ public class SingleNumberOutboundDataManage {
         calendar.set(Calendar.MINUTE, 0);      // 控制分
         calendar.set(Calendar.SECOND, 0);      // 控制秒
 
-
         dailyTimer.scheduleAtFixedRate(dailyTimerTask, calendar.getTime(), 1000 * 60 * 60 * 24);
     }
 
-    private void insertBizIdVsCustomerMap(int bizId, SingleNumberModeShareCustomerItem customerItem) {
-        Map<String, SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
-        if (null == map) {
-            map = new HashMap<String, SingleNumberModeShareCustomerItem>();
-            mapBizIdVsCustomer.put(bizId, map);
-        }
+    private void setTimeOutRoutine(Long timeSlotSpan) {
+        timeoutTimer = new Timer();
+        timeoutTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+            Date now =  new Date();
+            Long curTimeSlot = now.getTime()/timeSlotSpan;
+            Long timeoutTimeSlot = curTimeSlot - timeoutThreshold/timeSlotSpan;
 
-        map.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+            while (earliestTimeSlot < timeoutTimeSlot) {
+                Map<String, SingleNumberModeShareCustomerItem> mapTimeSlotWaitTimeOutPool;
+                mapTimeSlotWaitTimeOutPool =  mapWaitTimeOutCustomerPool.get(earliestTimeSlot);
+
+                for (SingleNumberModeShareCustomerItem customerItem : mapTimeSlotWaitTimeOutPool.values()) {
+                    // 放回客户共享池
+                    if (!customerItem.getInvalid()) {
+                        addCustomerToSharePool(customerItem);
+                    }
+
+                    removeWaitResultCustome(customerItem.getUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+
+                    removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                            customerItem.getCustomerId());
+                }
+            }
+            }
+        };
+
+        dailyTimer.scheduleAtFixedRate(timeoutTimerTask, timeSlotSpan, timeSlotSpan);
     }
 
-    private void removeBizIdVsCustomerMap(int bizId, SingleNumberModeShareCustomerItem customerItem) {
-        Map<String, SingleNumberModeShareCustomerItem> map = mapBizIdVsCustomer.get(bizId);
-        if (null == map)
-            return;
+    private void addWaitCustomer(String userId, int bizId, SingleNumberModeShareCustomerItem customerItem) {
+        Map<String, SingleNumberModeShareCustomerItem> mapWaitResultPool = mapWaitResultCustomerPool.get(userId);
+        if (null == mapWaitResultPool) {
+            mapWaitResultPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
+            mapWaitResultCustomerPool.put(userId, mapWaitResultPool);
+        }
+        mapWaitResultPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
-        map.remove(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
-        if (map.isEmpty())
-            mapBizIdVsCustomer.remove(bizId);
+        Long timeSlot = customerItem.getExtractTime().getTime()/timeSlotSpan;
+        Map<String, SingleNumberModeShareCustomerItem> mapWaitTimeOutPool = mapWaitTimeOutCustomerPool.get(timeSlot);
+        if (null == mapWaitTimeOutPool) {
+            mapWaitTimeOutPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
+            mapWaitTimeOutCustomerPool.put(timeSlot, mapWaitTimeOutPool);
+        }
+        mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+
+        Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + customerItem.getShareBatchId());
+        if (null == mapWaitStopPool) {
+            mapWaitStopPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
+            mapWaitStopCustomerPool.put(bizId + customerItem.getShareBatchId(), mapWaitStopPool);
+        }
+        mapWaitStopPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+    }
+
+    private SingleNumberModeShareCustomerItem removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
+
+        SingleNumberModeShareCustomerItem customerItem = removeWaitResultCustome(userId, bizId, importBatchId, customerId);
+        if (null == customerItem)
+            return customerItem;
+
+        Long timeSlot = customerItem.getExtractTime().getTime()/timeSlotSpan;
+        removeWaitTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
+
+        removeWaitStopCustomer(bizId, customerItem.getShareBatchId(), importBatchId, customerId);
+
+        return customerItem;
+    }
+
+    private SingleNumberModeShareCustomerItem removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
+        SingleNumberModeShareCustomerItem customerItem = null;
+
+        Map<String, SingleNumberModeShareCustomerItem> mapWaitResultPool = mapWaitResultCustomerPool.get(userId);
+        if (null != mapWaitResultPool) {
+            customerItem = mapWaitResultPool.remove(bizId + importBatchId + customerId);
+            if (mapWaitResultPool.isEmpty())
+                mapWaitResultCustomerPool.remove(userId);
+        }
+        return customerItem;
+    }
+
+    private void removeWaitTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
+        Map<String, SingleNumberModeShareCustomerItem> mapWaitTimeOutPool = mapWaitTimeOutCustomerPool.get(timeSlot);
+        if (null != mapWaitTimeOutPool) {
+            mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
+            if (mapWaitTimeOutPool.isEmpty())
+                mapWaitTimeOutCustomerPool.remove(timeSlot);
+        }
+    }
+
+    private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
+        Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + shareBatchId);
+        if (null != mapWaitStopPool) {
+            mapWaitStopPool.remove(importBatchId + customerId);
+            if (mapWaitStopPool.isEmpty())
+                mapWaitStopCustomerPool.remove(bizId + shareBatchId);
+        }
     }
 
     private void procEndcode(String userId, SingleNumberModeShareCustomerItem originCustomerItem,
@@ -533,7 +663,7 @@ public class SingleNumberOutboundDataManage {
 
             // 不要移出候选池，预约在今天
             if (isSameDay(now, presetTime)) {
-                addCustomerToPool(item);
+                addCustomerToSharePool(item);
             }
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_PHASE.equals(redialStateType)) {
@@ -579,7 +709,7 @@ public class SingleNumberOutboundDataManage {
 
                 if (item.getLostCallCurDayCount() < todayLoopRedialCountLimit) {
                     //不要移出候选池，还需要继续拨打
-                    addCustomerToPool(item);
+                    addCustomerToSharePool(item);
                 }
             }
 
@@ -594,7 +724,6 @@ public class SingleNumberOutboundDataManage {
             dmDAO.updatePresetState(item.getBizId(), item.getShareBatchId(), item.getCustomerId(), DMPresetStateEnum.FinishPreset.getStateName());
         }
 
-        removeBizIdVsCustomerMap(originCustomerItem.getBizId(), originCustomerItem);
     }
 
     EndCodeRedialStrategy getEndCodeRedialStrategyByBizId(int bizId) {
@@ -622,14 +751,14 @@ public class SingleNumberOutboundDataManage {
     }
 
 
-    private void addCustomerToPool(SingleNumberModeShareCustomerItem newCustomerItem) {
+    private void addCustomerToSharePool(SingleNumberModeShareCustomerItem newCustomerItem) {
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
         if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(newCustomerItem.getState())) {
-            shareBatchIdVsCustomerMap = mapPhaseDialCustomer.get(newCustomerItem.getBizId());
+            shareBatchIdVsCustomerMap = mapPhaseDialCustomerSharePool.get(newCustomerItem.getBizId());
             if (null == shareBatchIdVsCustomerMap) {
                 shareBatchIdVsCustomerMap = new HashMap<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
-                mapPhaseDialCustomer.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
+                mapPhaseDialCustomerSharePool.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
             }
 
             queue = shareBatchIdVsCustomerMap.get(newCustomerItem.getShareBatchId());
@@ -638,10 +767,10 @@ public class SingleNumberOutboundDataManage {
                 shareBatchIdVsCustomerMap.put(newCustomerItem.getShareBatchId(), queue);
             }
         } else if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(newCustomerItem.getState())) {
-            shareBatchIdVsCustomerMap = mapPresetDialCustomer.get(newCustomerItem.getBizId());
+            shareBatchIdVsCustomerMap = mapPresetDialCustomerSharePool.get(newCustomerItem.getBizId());
             if (null == shareBatchIdVsCustomerMap) {
                 shareBatchIdVsCustomerMap = new HashMap<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
-                mapPresetDialCustomer.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
+                mapPresetDialCustomerSharePool.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
             }
 
 
@@ -651,10 +780,10 @@ public class SingleNumberOutboundDataManage {
                 shareBatchIdVsCustomerMap.put(newCustomerItem.getShareBatchId(), queue);
             }
         } else {
-            shareBatchIdVsCustomerMap = mapDialCustomer.get(newCustomerItem.getBizId());
+            shareBatchIdVsCustomerMap = mapDialCustomerSharePool.get(newCustomerItem.getBizId());
             if (null == shareBatchIdVsCustomerMap) {
                 shareBatchIdVsCustomerMap = new HashMap<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
-                mapDialCustomer.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
+                mapDialCustomerSharePool.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
             }
 
             queue = shareBatchIdVsCustomerMap.get(newCustomerItem.getShareBatchId());
@@ -666,7 +795,6 @@ public class SingleNumberOutboundDataManage {
 
         queue.put(newCustomerItem);
 
-        insertBizIdVsCustomerMap(newCustomerItem.getBizId(), newCustomerItem);
     }
 
     // 用于过滤 当日重拨已满的客户
@@ -718,7 +846,7 @@ public class SingleNumberOutboundDataManage {
         List<String> appendedStateCustomerIdList = new ArrayList<String>();
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
-            addCustomerToPool(customerItem);
+            addCustomerToSharePool(customerItem);
 
             if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
                 appendedStateCustomerIdList.add(customerItem.getShareBatchId());
@@ -729,22 +857,28 @@ public class SingleNumberOutboundDataManage {
                 SingleNumberModeShareCustomerStateEnum.CREATED.getName());
     }
 
-    private void removeFromCustomerPool(int bizId, List<String> shareBatchIds,
-                                        Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> customerPool)  {
+    private void removeFromCustomerSharePool(int bizId, List<String> shareBatchIds,
+                                             Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> customerPool)  {
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
         shareBatchIdVsCustomerMap = customerPool.get(bizId);
         if (null != shareBatchIdVsCustomerMap) {
             for (String shareBatchId : shareBatchIds) {
                 queue = shareBatchIdVsCustomerMap.remove(shareBatchId);
-                while (!queue.isEmpty()) {
-                    SingleNumberModeShareCustomerItem customerItem = queue.poll();
-                    removeBizIdVsCustomerMap(customerItem.getBizId(), customerItem);
-                }
             }
 
             if (shareBatchIdVsCustomerMap.isEmpty())
                 customerPool.remove(bizId);
+        }
+    }
+
+    private void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
+        for (String shareBatchId : shareBatchIds) {
+            Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool;
+            mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + shareBatchId);
+            for (SingleNumberModeShareCustomerItem item : mapWaitStopPool.values()) {
+                item.setInvalid();
+            }
         }
     }
 

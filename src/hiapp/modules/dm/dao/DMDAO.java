@@ -2,6 +2,8 @@ package hiapp.modules.dm.dao;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
+import hiapp.modules.dm.util.SQLUtil;
+import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
@@ -78,7 +80,7 @@ public class DMDAO extends BaseRepository {
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
                     "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
             sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
-            sqlBuilder.append(" AND SHAREID IN (").append(stringListToCommaSplitString(shareBatchIdList)).append(")");
+            sqlBuilder.append(" AND SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIdList)).append(")");
 
             System.out.println(sqlBuilder.toString());
 
@@ -124,8 +126,8 @@ public class DMDAO extends BaseRepository {
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
                     "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
-            sqlBuilder.append(" STARTTIME <= ").append("TO_DATE('").append(getNextDaySqlString()).append("','yyyy/mm/dd')");
-            sqlBuilder.append(" AND STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
+            sqlBuilder.append(" STARTTIME <= ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
+            sqlBuilder.append(" AND STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ENABLE.getName()));
 
             System.out.println(sqlBuilder.toString());
 
@@ -166,9 +168,9 @@ public class DMDAO extends BaseRepository {
 
             // 激活共享批次
             StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
-            sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
-            sqlBuilder.append(" WHERE STARTTIME <= ").append("TO_DATE('").append(getNextDaySqlString()).append("','yyyy-mm-dd')");
-            sqlBuilder.append(" AND STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
+            sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ACTIVE.getName()));
+            sqlBuilder.append(" WHERE STARTTIME <= ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
+            sqlBuilder.append(" AND STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ENABLE.getName()));
 
             System.out.println(sqlBuilder.toString());
 
@@ -209,10 +211,10 @@ public class DMDAO extends BaseRepository {
 
             // 过期处理..共享批次
             sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
-            sqlBuilder.append(" STATE = '").append(ShareBatchStateEnum.EXPIRED.getName()).append("'");
-            sqlBuilder.append(" WHERE (STATE = '").append(ShareBatchStateEnum.ENABLE.getName()).append("'");
-            sqlBuilder.append(" OR STATE = '").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
-            sqlBuilder.append(") AND ENDTIME < ").append("TO_DATE('").append(getCurDayStartSqlString()).append("','yyyy/mm/dd')");
+            sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.EXPIRED.getName()));
+            sqlBuilder.append(" WHERE (STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ENABLE.getName()));
+            sqlBuilder.append(" OR STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ACTIVE.getName()));
+            sqlBuilder.append(") AND ENDTIME < ").append(SQLUtil.getSqlString(DateUtil.getCurDayStartSqlString()));
 
             System.out.println(sqlBuilder.toString());
 
@@ -250,17 +252,18 @@ public class DMDAO extends BaseRepository {
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
         sqlBuilder.append(" (ID, SOURCEID, IID, CID, MODIFYID, MODIFYUSERID, MODIFYTIME, MODIFYLAST, DIALTYPE, " +
                                 "DIALTIME, CUSTOMERCALLID) VALUES ( ");
-        sqlBuilder.append("'").append("S_" + tableName + ".nextval").append("',");
-        sqlBuilder.append("'").append(sourceId).append("',");
-        sqlBuilder.append("'").append(importBatchId).append("',");
-        sqlBuilder.append("'").append(customerId).append("',");
-        sqlBuilder.append(modifyId).append(",");
-        sqlBuilder.append("'").append(modifyUserId).append("',");
+        sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(sourceId)).append(",");;
+        sqlBuilder.append(SQLUtil.getSqlString(importBatchId)).append(",");;
+        sqlBuilder.append(SQLUtil.getSqlString(customerId)).append(",");;
+        sqlBuilder.append(SQLUtil.getSqlString(modifyId)).append(",");;
+        sqlBuilder.append(SQLUtil.getSqlString(modifyUserId)).append(",");;
         sqlBuilder.append("sysdate").append(",");
         sqlBuilder.append("1").append(","); // MODIFYLAST
-        sqlBuilder.append("'").append(dialType).append("',");
-        sqlBuilder.append("'").append(dialTime).append("',");
-        sqlBuilder.append("'").append(customerCallId).append("'");
+        sqlBuilder.append(SQLUtil.getSqlString(dialType)).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(dialTime)).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(customerCallId));
+        sqlBuilder.append(")");
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -285,9 +288,9 @@ public class DMDAO extends BaseRepository {
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
         sqlBuilder.append(" SET MODIFYLAST = ").append("0");
-        sqlBuilder.append(" WHERE BUSINESSID = ").append(bizId);
-        sqlBuilder.append(" SOURCEID = ").append(shareBatchId);
-        sqlBuilder.append(" CID = ").append(customerId);
+        sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
+        sqlBuilder.append(" AND SOURCEID = ").append(SQLUtil.getSqlString(shareBatchId));
+        sqlBuilder.append(" AND CID = ").append(SQLUtil.getSqlString(customerId));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -314,19 +317,20 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append(" (ID, SOURCEID, IID, CID, PRESETTIME, STATE, COMMENT, MODIFYID, MODIFYUSERID, MODIFYTIME, " +
                                       "MODIFYDESC，MODIFYLAST, PHONETYPE) VALUES ( ");
 
-        sqlBuilder.append("'").append("S_" + presetTimeTableName + ".nextval").append("',");
-        sqlBuilder.append("'").append(presetItem.getSourceId()).append("',");
-        sqlBuilder.append("'").append(presetItem.getImportId()).append("',");
-        sqlBuilder.append("'").append(presetItem.getCustomerId()).append("',");
-        sqlBuilder.append("'").append(presetItem.getPresetTime()).append("',");
-        sqlBuilder.append("'").append(presetItem.getState()).append("',");
-        sqlBuilder.append("'").append(presetItem.getComment()).append("',");
-        sqlBuilder.append("'").append(presetItem.getModifyId()).append("',");
-        sqlBuilder.append("'").append(presetItem.getModifyUserId()).append("',");
+        sqlBuilder.append("S_" + presetTimeTableName + ".NEXTVAL").append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getSourceId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getImportId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getCustomerId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getPresetTime())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getState())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getComment())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getModifyId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getModifyUserId())).append(",");
         sqlBuilder.append("sysdate").append(",");
-        sqlBuilder.append("'").append(presetItem.getModifyDesc()).append("',");
-        sqlBuilder.append("1").append("',");
-        sqlBuilder.append("'").append(presetItem.getPhoneType());
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getModifyDesc())).append(",");
+        sqlBuilder.append("1").append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(presetItem.getPhoneType()));
+        sqlBuilder.append(")");
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -350,11 +354,11 @@ public class DMDAO extends BaseRepository {
         String presetTimeTableName = String.format("HASYS_DM_B%dC_PresetTime", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + presetTimeTableName);
-        sqlBuilder.append(" SET STATE = ").append(newState);
-        sqlBuilder.append(" MODIFYLAST = ").append("0");
-        sqlBuilder.append(" WHERE BUSINESSID = ").append(bizId);
-        sqlBuilder.append(" SOURCEID = ").append(shareBatchId);
-        sqlBuilder.append(" CID = ").append(customerId);
+        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(newState));
+        sqlBuilder.append(" MODIFYLAST = 0");
+        sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
+        sqlBuilder.append(" SOURCEID = ").append(SQLUtil.getSqlString(shareBatchId));
+        sqlBuilder.append(" CID = ").append(SQLUtil.getSqlString(customerId));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -373,69 +377,6 @@ public class DMDAO extends BaseRepository {
         return true;
     }
 
-
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private String shareBatchStatelistToCommaSplitString(List<ShareBatchStateEnum> shareBatchStateList) {
-        StringBuilder sb = new StringBuilder();
-        for (int indx = 0; indx < shareBatchStateList.size(); indx++ ) {
-            ShareBatchStateEnum state = shareBatchStateList.get(indx);
-            sb.append("'").append(state.getName()).append("'");
-            if (indx < (shareBatchStateList.size()-1))
-                sb.append(",");
-        }
-
-        return sb.toString();
-    }
-
-    public String getNextDaySqlString() {
-        Calendar curDay = Calendar.getInstance();
-        curDay.setTime(new Date());
-        curDay.add(Calendar.DAY_OF_MONTH, 1);
-        curDay.set(Calendar.HOUR_OF_DAY, 0);
-        curDay.set(Calendar.MINUTE, 0);
-        curDay.set(Calendar.SECOND, 0);
-        curDay.set(Calendar.MILLISECOND, 0);
-        String strNextDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH);
-        return strNextDay;
-    }
-
-    public String getCurDayStartSqlString() {
-        Calendar curDay = Calendar.getInstance();
-        curDay.setTime(new Date());
-        curDay.add(Calendar.DAY_OF_MONTH, 0);
-        curDay.set(Calendar.HOUR_OF_DAY, 0);
-        curDay.set(Calendar.MINUTE, 0);
-        curDay.set(Calendar.SECOND, 0);
-        curDay.set(Calendar.MILLISECOND, 0);
-        String strCurDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH)
-                + " " + curDay.get(Calendar.HOUR_OF_DAY) + ":" + curDay.get(Calendar.MINUTE) + ":" + curDay.get(Calendar.SECOND);
-        return strCurDay;
-    }
-
-    public String getCurDayEndSqlString() {
-        Calendar curDay = Calendar.getInstance();
-        curDay.setTime(new Date());
-        curDay.add(Calendar.DAY_OF_MONTH, 0);
-        curDay.set(Calendar.HOUR_OF_DAY, 23);
-        curDay.set(Calendar.MINUTE, 59);
-        curDay.set(Calendar.SECOND, 59);
-        curDay.set(Calendar.MILLISECOND, 0);
-        String strCurDay = curDay.get(Calendar.YEAR) + "/" + (curDay.get(Calendar.MONTH)+1) + "/" + curDay.get(Calendar.DAY_OF_MONTH)
-                + " " + curDay.get(Calendar.HOUR_OF_DAY) + ":" + curDay.get(Calendar.MINUTE) + ":" + curDay.get(Calendar.SECOND);
-        return strCurDay;
-    }
-
-    private String stringListToCommaSplitString(List<String> stringList) {
-        StringBuilder sb = new StringBuilder();
-        for (int indx = 0; indx < stringList.size(); indx++) {
-            sb.append("'").append(stringList.get(indx)).append("'");
-            if (indx < (stringList.size() - 1))
-                sb.append(",");
-        }
-
-        return sb.toString();
-    }
 
 }
 

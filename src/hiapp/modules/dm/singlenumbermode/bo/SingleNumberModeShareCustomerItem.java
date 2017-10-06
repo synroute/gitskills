@@ -174,11 +174,11 @@ public class SingleNumberModeShareCustomerItem {
         this.modifyUserId = modifyUserId;
     }
 
-    public Boolean getUserUseState() {
+    public String getUserUseState() {
         return userUseState;
     }
 
-    public void setUserUseState(Boolean userUseState) {
+    public void setUserUseState(String userUseState) {
         this.userUseState = userUseState;
     }
 
@@ -196,6 +196,26 @@ public class SingleNumberModeShareCustomerItem {
 
     public void setIsLoaded(Integer loaded) {
         isLoaded = loaded;
+    }
+
+    public void setInvalid() { invalid = true; }
+
+    public Boolean getInvalid() { return null == invalid ? false : invalid; }
+
+    public Date getExtractTime() {
+        return extractTime;
+    }
+
+    public void setExtractTime(Date extractTime) {
+        this.extractTime = extractTime;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
 
@@ -216,7 +236,7 @@ public class SingleNumberModeShareCustomerItem {
     Date   nextDialTime;    //下次拨打时间
     int lostCallCurDayCount;   //当天未接通次数
     int   curRedialStageCount; //仅用于阶段拨打
-    Boolean userUseState; //是否已经被坐席人员抽取
+    String userUseState;       //是否已经被坐席人员抽取  使用中 使用完毕
     int isLoaded;   //是否已经加载到内存
     Date  lostCallFirstDay; //第一次未接通日期
     Date  lostCallCurDay; //当前未接通日期
@@ -224,4 +244,7 @@ public class SingleNumberModeShareCustomerItem {
 
     // 非本表字段
     Date shareBatchStartTime;  //用于优先级控制
+    String userId;    // 抽取该客户的坐席人员
+    Date extractTime; // 用于记录抽取时间
+    Boolean invalid = false;
 }
