@@ -45,7 +45,6 @@ public class CustomerController {
 		return result;
 	}
 
-
 	/**
 	 * 获取配置筛选模板时需要使用的待选列
 	 * 
@@ -55,8 +54,7 @@ public class CustomerController {
 	 * @throws SQLException
 	 */
 	@RequestMapping(value = "/srv/agent/getSourceColumn.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public Map<String, Object> getSourceColumn(String bizId,
-			String configPage) {
+	public Map<String, Object> getSourceColumn(String bizId, String configPage) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> candidadeColumn = null;
 
@@ -121,8 +119,7 @@ public class CustomerController {
 
 		try {
 			list = new Gson().fromJson(
-					customerRepository.getTemplate(queryTemplate),
-					List.class);
+					customerRepository.getTemplate(queryTemplate), List.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
@@ -134,7 +131,7 @@ public class CustomerController {
 		result.put("result", 0);
 		return result;
 	}
-	
+
 	/**
 	 * 获取HTML格式的高级筛选模板
 	 * 
@@ -150,8 +147,7 @@ public class CustomerController {
 
 		try {
 			list = new Gson().fromJson(
-					customerRepository.getTemplate(queryTemplate),
-					List.class);
+					customerRepository.getTemplate(queryTemplate), List.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("result", 1);
@@ -188,8 +184,9 @@ public class CustomerController {
 						+ "' style='width:250px'>");
 				String dictId = (String) map.get("dictId");
 				String dictLevel = (String) map.get("dictLevel");
-				List<String> itemsText = dictionaryConfigurationController.getItemsByDictIdAndLevel(
-						Integer.parseInt(dictId), Integer.parseInt(dictLevel));
+				List<String> itemsText = dictionaryConfigurationController
+						.getItemsByDictIdAndLevel(Integer.parseInt(dictId),
+								Integer.parseInt(dictLevel));
 				for (String string : itemsText) {
 					sb.append("<option>" + string + "</option>");
 				}
@@ -213,7 +210,6 @@ public class CustomerController {
 		return getFilterTemplate(queryTemplate);
 	}
 
-	
 	/**
 	 * 该方法处理客户列表的显示，用于将数据匹配显示模板，匹配一个客户的信息
 	 * 
@@ -224,56 +220,74 @@ public class CustomerController {
 			Map<String, String> addMap) {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		String result = "<table width=376px height=50px cellpadding=0 cellspacing=0>"
-				+ "<tr>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<tr>" + "<th style='width:33.3%;font-size:14px;color:"
 				+ data[0][0].get("fontColor")
-				+ ";background:"+data[0][0].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[0][0].get("value")
+				+ "</p>"
 				+ "</th>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;color:"
 				+ data[0][1].get("fontColor")
-				+ ";background:"+data[0][1].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[0][1].get("value")
+				+ "</p>"
 				+ "</th>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;color:"
 				+ data[0][2].get("fontColor")
-				+ ";background:"+data[0][2].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[0][2].get("value")
+				+ "</p>"
 				+ "</th>"
 				+ "</tr>"
 				+ "<tr>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;color:"
 				+ data[1][0].get("fontColor")
-				+ ";background:"+data[1][0].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[1][0].get("value")
-				+ "</th>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "</p>"
+				+ "<th style='width:33.3%;font-size:14px;color:"
 				+ data[1][1].get("fontColor")
-				+ ";background:"+data[1][1].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[1][1].get("value")
+				+ "</p>"
 				+ "</th>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;color:"
 				+ data[1][2].get("fontColor")
-				+ ";background:"+data[1][2].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[1][2].get("value")
+				+ "</p>"
 				+ "</th>"
 				+ "</tr>"
 				+ "<tr>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;color:"
 				+ data[2][0].get("fontColor")
-				+ ";background:"+data[2][0].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[2][0].get("value")
+				+ "</p>"
 				+ "</th>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;color:"
 				+ data[2][1].get("fontColor")
-				+ ";background:"+data[2][1].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[2][1].get("value")
+				+ "</p>"
 				+ "</th>"
-				+ "<th style='width:33.3%;font-size:14px;text-align:left;display: inline-block;height: 20px;color: "
+				+ "<th style='width:33.3%;font-size:14px;color:"
 				+ data[2][2].get("fontColor")
-				+ ";background:"+data[2][2].get("bgColor")+"'>"
+				+ ";text-align:left;display: inline-block;height: 20px;'>"
+				+ "<p style='background:;line-height:20px;border-radius:20px;margin-top: 1px;'>"
 				+ data[2][2].get("value")
-				+ "</th>" + "</tr>" + "</table>";
+				+ "</p>"
+				+ "</th>"
+				+ "</tr>"
+				+ "</table>";
 		hashMap.put("compose", result);
 		hashMap.putAll(addMap);
 		return hashMap;
@@ -361,7 +375,7 @@ public class CustomerController {
 
 		int pageSize = queryRequest.getPageSize();
 		int pageNum = queryRequest.getPageNum();
-		
+
 		int count = 0;
 		try {
 			count = customerRepository.queryMyCustomersCount(queryRequest,
@@ -372,7 +386,7 @@ public class CustomerController {
 			result.put("reason", e.getMessage());
 			return result;
 		}
-		
+
 		if (queryRequest.hasQueryNext()) {
 			pageNum = 1;
 			try {
@@ -386,7 +400,6 @@ public class CustomerController {
 				return result;
 			}
 		}
-
 
 		try {
 			list1 = customerRepository.queryMyCustomers(queryRequest, userId);
@@ -411,6 +424,7 @@ public class CustomerController {
 
 	/**
 	 * 根据条件查询前台页面上“联系计划”模块下符合条件的客户
+	 * 
 	 * @param queryRequest
 	 * @return
 	 */
