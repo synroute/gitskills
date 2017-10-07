@@ -170,10 +170,9 @@ public class SingleNumberOutboundDataManage {
         String customerCallId = "xxx";
         Date dialTime = new Date();
 
-        presetTime = DateUtil.getNextXDay(5);
-
-        resultCodeType = "EndType-LostCall";
-        resultCode = "未接通拨打";
+        //presetTime = DateUtil.getNextXDay(5);
+        //resultCodeType = "EndType-LostCall";
+        //resultCode = "未接通拨打";
 
         SingleNumberModeShareCustomerItem originCustomerItem = removeWaitCustomer(userId, bizId, importBatchId, customerId);
 
