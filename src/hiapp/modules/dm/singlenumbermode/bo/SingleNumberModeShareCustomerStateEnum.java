@@ -3,7 +3,7 @@ package hiapp.modules.dm.singlenumbermode.bo;
 public enum SingleNumberModeShareCustomerStateEnum {
     CREATED("CREATED"),
     APPENDED("APPENDED"),
-    WAIT_NEXT_PHASE_DAIL("WAIT_NEXT_PHASE_DAIL"),   //等待下阶段拨打状态，有下次拨打时间
+    WAIT_NEXT_STAGE_DAIL("WAIT_NEXT_STAGE_DAIL"),   //等待下阶段拨打状态，有下次拨打时间
     PRESET_DIAL("PRESET_DIAL"),   // 预约拨打状态，有下次拨打时间
     LOSTCALL_WAIT_REDIAL("LOSTCALL_WAIT_REDIAL"),   //未接通，等待重拨状态，没有下次拨打时间，通过拨打次数控制
     FINISHED("FINISHED"),
@@ -26,8 +26,8 @@ public enum SingleNumberModeShareCustomerStateEnum {
         if (SingleNumberModeShareCustomerStateEnum.APPENDED.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.APPENDED;
 
-        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.getName().equals(columnValue))
-           return SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL;
+        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL.getName().equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL;
 
         if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.PRESET_DIAL;

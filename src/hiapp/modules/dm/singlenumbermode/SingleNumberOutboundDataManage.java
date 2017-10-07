@@ -52,7 +52,7 @@ public class SingleNumberOutboundDataManage {
     // 客户共享池
     // BizID <==> {ShareBatchID <==> PriorityBlockingQueue<SingleNumberModeShareCustomerItem>}
     Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPresetDialCustomerSharePool;
-    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPhaseDialCustomerSharePool;
+    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapStageDialCustomerSharePool;
     Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapDialCustomerSharePool;
 
     // 等待拨打结果的客户池，坐席人员维度
@@ -118,7 +118,7 @@ public class SingleNumberOutboundDataManage {
         }
 
         if (null == shareDataItem) {
-            shareBatchIdVsCustomerMap = mapPhaseDialCustomerSharePool.get(bizId);
+            shareBatchIdVsCustomerMap = mapStageDialCustomerSharePool.get(bizId);
             if (null != shareBatchIdVsCustomerMap) {
                 for (String shareBatchId : shareBatchIdList) {
                     customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
@@ -211,7 +211,7 @@ public class SingleNumberOutboundDataManage {
 
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
         removeFromCustomerSharePool(bizId, shareBatchIds, mapPresetDialCustomerSharePool);
-        removeFromCustomerSharePool(bizId, shareBatchIds, mapPhaseDialCustomerSharePool);
+        removeFromCustomerSharePool(bizId, shareBatchIds, mapStageDialCustomerSharePool);
         removeFromCustomerSharePool(bizId, shareBatchIds, mapDialCustomerSharePool);
 
         markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
@@ -289,7 +289,7 @@ public class SingleNumberOutboundDataManage {
         setTimeOutRoutine(timeSlotSpan);
 
         mapPresetDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
-        mapPhaseDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
+        mapStageDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
         mapDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
 
         mapWaitResultCustomerPool = new HashMap<String, Map<String, SingleNumberModeShareCustomerItem>>();
@@ -314,7 +314,7 @@ public class SingleNumberOutboundDataManage {
 
     private List<ShareBatchItem> shareBatchDailyProc() {
         mapPresetDialCustomerSharePool.clear();
-        mapPhaseDialCustomerSharePool.clear();
+        mapStageDialCustomerSharePool.clear();
         mapDialCustomerSharePool.clear();
 
         //List<String> expiredShareBatchIds = new ArrayList<String>();
@@ -362,7 +362,7 @@ public class SingleNumberOutboundDataManage {
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.REVERT);
 
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList2 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
-        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
+        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL);
         shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
 
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
@@ -432,7 +432,7 @@ public class SingleNumberOutboundDataManage {
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.REVERT);
 
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList2 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
-        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
+        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL);
         shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
 
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
@@ -667,7 +667,7 @@ public class SingleNumberOutboundDataManage {
             }
 
         } else if (RedialStateTypeEnum.REDIAL_STATE_PHASE.equals(redialStateType)) {
-            item.setState(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL);
+            item.setState(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL);
 
             // 更新共享状态表  nextDialTime  curRedialStageCount
             // 到达最后阶段，直接跳转状态
@@ -754,11 +754,11 @@ public class SingleNumberOutboundDataManage {
     private void addCustomerToSharePool(SingleNumberModeShareCustomerItem newCustomerItem) {
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
-        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_PHASE_DAIL.equals(newCustomerItem.getState())) {
-            shareBatchIdVsCustomerMap = mapPhaseDialCustomerSharePool.get(newCustomerItem.getBizId());
+        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL.equals(newCustomerItem.getState())) {
+            shareBatchIdVsCustomerMap = mapStageDialCustomerSharePool.get(newCustomerItem.getBizId());
             if (null == shareBatchIdVsCustomerMap) {
                 shareBatchIdVsCustomerMap = new HashMap<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
-                mapPhaseDialCustomerSharePool.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
+                mapStageDialCustomerSharePool.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
             }
 
             queue = shareBatchIdVsCustomerMap.get(newCustomerItem.getShareBatchId());
