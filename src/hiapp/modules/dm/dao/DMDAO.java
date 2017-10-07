@@ -284,7 +284,7 @@ public class DMDAO extends BaseRepository {
         return true;
     }
 
-    public Boolean updateDMResult(int bizId, String shareBatchId, String importBatchId, String customerId) {
+    public Boolean updateDMResult(int bizId, String shareBatchId, String importBatchId, String customerId, int modifyId) {
 
         String tableName = String.format("HAU_DM_B%dC_Result", bizId);
 
@@ -293,6 +293,7 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append(" WHERE IID = ").append(SQLUtil.getSqlString(importBatchId));
         sqlBuilder.append(" AND SOURCEID = ").append(SQLUtil.getSqlString(shareBatchId));
         sqlBuilder.append(" AND CID = ").append(SQLUtil.getSqlString(customerId));
+        sqlBuilder.append(" AND MODIFYID = ").append(SQLUtil.getSqlString(modifyId));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -313,11 +314,11 @@ public class DMDAO extends BaseRepository {
 
     public Boolean insertPresetItem(int bizId, DMBizPresetItem presetItem) {
 
-        String presetTimeTableName = String.format("HASYS_DM_B%dC_PresetTime", bizId);
+        String presetTimeTableName = String.format("HASYS_DM_B%dC_PRESETTIME", bizId);
 
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO" + presetTimeTableName);
-        sqlBuilder.append(" (ID, SOURCEID, IID, CID, PRESETTIME, STATE, COMMENT, MODIFYID, MODIFYUSERID, MODIFYTIME, " +
-                                      "MODIFYDESC，MODIFYLAST, PHONETYPE) VALUES ( ");
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + presetTimeTableName);
+        sqlBuilder.append(" (ID, SOURCEID, IID, CID, PRESETTIME, STATE, PRESETCOMMENT, MODIFYID, MODIFYUSERID, " +
+                            "MODIFYTIME, MODIFYDESC, MODIFYLAST, PHONETYPE) VALUES ( ");
 
         sqlBuilder.append("S_" + presetTimeTableName + ".NEXTVAL").append(",");
         sqlBuilder.append(SQLUtil.getSqlString(presetItem.getSourceId())).append(",");
@@ -333,6 +334,8 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append("1").append(",");
         sqlBuilder.append(SQLUtil.getSqlString(presetItem.getPhoneType()));
         sqlBuilder.append(")");
+
+        System.out.println(sqlBuilder.toString());
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -351,16 +354,17 @@ public class DMDAO extends BaseRepository {
         return true;
     }
 
-    public Boolean updatePresetState(int bizId, String shareBatchId, String customerId, String newState) {
+    public Boolean updatePresetState(int bizId, String shareBatchId, String importBatchId, String customerId, int modifyId, String newState) {
 
-        String presetTimeTableName = String.format("HASYS_DM_B%dC_PresetTime", bizId);
+        String presetTimeTableName = String.format("HASYS_DM_B%dC_PRESETTIME", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + presetTimeTableName);
         sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(newState));
-        sqlBuilder.append(" MODIFYLAST = 0");
-        sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
-        sqlBuilder.append(" SOURCEID = ").append(SQLUtil.getSqlString(shareBatchId));
-        sqlBuilder.append(" CID = ").append(SQLUtil.getSqlString(customerId));
+        sqlBuilder.append("  MODIFYLAST = 0");
+        sqlBuilder.append(" WHERE IID = ").append(SQLUtil.getSqlString(importBatchId));
+        sqlBuilder.append("  SOURCEID = ").append(SQLUtil.getSqlString(shareBatchId));
+        sqlBuilder.append("  CID = ").append(SQLUtil.getSqlString(customerId));
+        sqlBuilder.append("  MODIFYID = ").append(SQLUtil.getSqlString(modifyId));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;

@@ -6,13 +6,13 @@ public enum RedialStateTypeEnum {
     REDIAL_STATE_FINISHED("结束"), //"redial_state_finished"),
 
     //阶段重拨
-    REDIAL_STATE_PHASE("阶段重拨"), //"redial_state_phase"),
+    REDIAL_STATE_STAGE("阶段重拨"), //"redial_state_stage"),
 
     //预约
     REDIAL_STATE_PRESET("预约"), //redial_state_preset"),
 
     //未接通重拨
-    REDIAL_STATE_LOSTCALL("未接通循环外拨"); //"redial_state_lostcall");
+    REDIAL_STATE_LOSTCALL("未接通循环拨打"); //"redial_state_lostcall");
 
     private RedialStateTypeEnum(String name) {
         this.name = name;
@@ -28,8 +28,8 @@ public enum RedialStateTypeEnum {
         if (RedialStateTypeEnum.REDIAL_STATE_LOSTCALL.getName().equals(name))
             return RedialStateTypeEnum.REDIAL_STATE_LOSTCALL;
 
-        if (RedialStateTypeEnum.REDIAL_STATE_PHASE.getName().equals(name))
-            return RedialStateTypeEnum.REDIAL_STATE_PHASE;
+        if (RedialStateTypeEnum.REDIAL_STATE_STAGE.getName().equals(name))
+            return RedialStateTypeEnum.REDIAL_STATE_STAGE;
 
         if (RedialStateTypeEnum.REDIAL_STATE_PRESET.getName().equals(name))
             return RedialStateTypeEnum.REDIAL_STATE_PRESET;

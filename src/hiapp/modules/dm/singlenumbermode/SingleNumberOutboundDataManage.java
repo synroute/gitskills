@@ -170,8 +170,10 @@ public class SingleNumberOutboundDataManage {
         String customerCallId = "xxx";
         Date dialTime = new Date();
 
-        resultCodeType = "EndType-Finish";
-        resultCode = "结案";
+        presetTime = DateUtil.getNextXDay(5);
+
+        resultCodeType = "EndType-LostCall";
+        resultCode = "未接通拨打";
 
         SingleNumberModeShareCustomerItem originCustomerItem = removeWaitCustomer(userId, bizId, importBatchId, customerId);
 
@@ -186,9 +188,9 @@ public class SingleNumberOutboundDataManage {
 
         // 插入结果表
         //dataImportJdbc.insertDataToResultTable(bizId, shareBatchId, importBatchId, customerId, userId, resultData);
-        dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId() + 1,
-                            userId, dialType, dialTime, customerCallId);
-        dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId); // MODIFYLAST 0
+        dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
+        dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
+                          originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId);
 
         // 插入导入客户表
         dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo);
@@ -329,7 +331,7 @@ public class SingleNumberOutboundDataManage {
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.REVERT);
 
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList2 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
-        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL);
+        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DIAL);
         shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
 
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
@@ -392,7 +394,7 @@ public class SingleNumberOutboundDataManage {
         shareCustomerStateList.add(SingleNumberModeShareCustomerStateEnum.REVERT);
 
         List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList2 = new ArrayList<SingleNumberModeShareCustomerStateEnum>();
-        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL);
+        shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DIAL);
         shareCustomerStateList2.add(SingleNumberModeShareCustomerStateEnum.PRESET_DIAL);
 
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
@@ -565,6 +567,7 @@ public class SingleNumberOutboundDataManage {
         SingleNumberModeShareCustomerItem item = new SingleNumberModeShareCustomerItem();
         item.setBizId(originCustomerItem.getBizId());
         item.setShareBatchId(originCustomerItem.getShareBatchId());
+        item.setImportBatchId(originCustomerItem.getImportBatchId());
         item.setCustomerId(originCustomerItem.getCustomerId());
         item.setEndCodeType(resultCodeType);
         item.setEndCode(resultCode);
@@ -572,6 +575,7 @@ public class SingleNumberOutboundDataManage {
         item.setModifyTime(now);
         item.setModifyId(originCustomerItem.getModifyId() + 1);
         item.setLastDialTime(now);  //TODO
+        item.setShareBatchStartTime(originCustomerItem.getShareBatchStartTime());
 
         if (RedialStateTypeEnum.REDIAL_STATE_FINISHED.equals(redialStateType)) {
             item.setState(SingleNumberModeShareCustomerStateEnum.FINISHED);
@@ -601,7 +605,7 @@ public class SingleNumberOutboundDataManage {
             presetItem.setState(DMPresetStateEnum.InUse.getStateName());
             presetItem.setComment("xxx");
             presetItem.setModifyId(item.getModifyId());
-            presetItem.setModifyLast(1);            // TODO 更新原来记录未0
+            presetItem.setModifyLast(1);
             presetItem.setModifyUserId(userId);
             presetItem.setModifyTime(now);
             presetItem.setModifyDesc("xxx");
@@ -613,8 +617,8 @@ public class SingleNumberOutboundDataManage {
                 addCustomerToSharePool(item);
             }
 
-        } else if (RedialStateTypeEnum.REDIAL_STATE_PHASE.equals(redialStateType)) {
-            item.setState(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL);
+        } else if (RedialStateTypeEnum.REDIAL_STATE_STAGE.equals(redialStateType)) {
+            item.setState(SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DIAL);
 
             // 更新共享状态表  nextDialTime  curRedialStageCount
             // 到达最后阶段，直接跳转状态
@@ -668,7 +672,9 @@ public class SingleNumberOutboundDataManage {
 
         //若是当前是预约拨打，更新 预约状态 @ 预约表
         if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(originCustomerItem.getState())) {
-            dmDAO.updatePresetState(item.getBizId(), item.getShareBatchId(), item.getCustomerId(), DMPresetStateEnum.FinishPreset.getStateName());
+            dmDAO.updatePresetState(item.getBizId(), item.getShareBatchId(), item.getImportBatchId(),
+                    item.getCustomerId(), originCustomerItem.getModifyId(),
+                    DMPresetStateEnum.FinishPreset.getStateName());
         }
 
     }
@@ -685,7 +691,7 @@ public class SingleNumberOutboundDataManage {
     private void addCustomerToSharePool(SingleNumberModeShareCustomerItem newCustomerItem) {
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
-        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DAIL.equals(newCustomerItem.getState())) {
+        if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DIAL.equals(newCustomerItem.getState())) {
             shareBatchIdVsCustomerMap = mapStageDialCustomerSharePool.get(newCustomerItem.getBizId());
             if (null == shareBatchIdVsCustomerMap) {
                 shareBatchIdVsCustomerMap = new HashMap<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();

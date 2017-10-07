@@ -234,9 +234,6 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     public Boolean updateCustomerShareStateToFinish(SingleNumberModeShareCustomerItem item) {
-        // endCodeType endCode
-        // lastDialTime  nextDialTime
-
         String tableName = String.format("HAU_DM_B%dC_DATAM3", item.getBizId());
 
         //
@@ -277,15 +274,13 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     public Boolean updateCustomerShareStateToPreset(SingleNumberModeShareCustomerItem item) {
-        // endCodeType endCode
-        // lastDialTime  nextDialTime
         String tableName = String.format("HAU_DM_B%dC_DATAM3", item.getBizId());
 
         //
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
         sqlBuilder.append(" SET ");
         sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(item.getState().getName()));
-        sqlBuilder.append(" ENDCODETYPE = ").append(SQLUtil.getSqlString(item.getEndCodeType()));
+        sqlBuilder.append(", ENDCODETYPE = ").append(SQLUtil.getSqlString(item.getEndCodeType()));
         sqlBuilder.append(", ENDCODE = ").append(SQLUtil.getSqlString(item.getEndCode()));
         sqlBuilder.append(", MODIFYID = ").append(SQLUtil.getSqlString(item.getModifyId()));
         sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
@@ -296,6 +291,9 @@ public class SingleNumberModeDAO extends BaseRepository {
         sqlBuilder.append(", NEXTDIALTIME = ").append(SQLUtil.getSqlString(item.getNextDialTime()));
         sqlBuilder.append(", USERUSESTATE = ").append(SQLUtil.getSqlString(item.getUserUseState()));
         sqlBuilder.append(", ISMEMORYLOADIN = ").append(SQLUtil.getSqlString(item.getIsLoaded()));
+        sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(item.getBizId()));
+        sqlBuilder.append("  AND IID = ").append(SQLUtil.getSqlString(item.getImportBatchId()));
+        sqlBuilder.append("  AND CID = ").append(SQLUtil.getSqlString(item.getCustomerId()));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -315,15 +313,13 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     public Boolean updateCustomerShareStateToStage(SingleNumberModeShareCustomerItem item) {
-        // endCodeType endCode
-        // lastDialTime  nextDialTime
         String tableName = String.format("HAU_DM_B%dC_DATAM3", item.getBizId());
 
         //
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
         sqlBuilder.append(" SET ");
         sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(item.getState().getName()));
-        sqlBuilder.append(" ENDCODETYPE = ").append(SQLUtil.getSqlString(item.getEndCodeType()));
+        sqlBuilder.append(", ENDCODETYPE = ").append(SQLUtil.getSqlString(item.getEndCodeType()));
         sqlBuilder.append(", ENDCODE = ").append(SQLUtil.getSqlString(item.getEndCode()));
         sqlBuilder.append(", MODIFYID = ").append(SQLUtil.getSqlString(item.getModifyId()));
         sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
@@ -334,13 +330,18 @@ public class SingleNumberModeDAO extends BaseRepository {
         sqlBuilder.append(", USERUSESTATE = ").append(SQLUtil.getSqlString(item.getUserUseState()));
         sqlBuilder.append(", ISMEMORYLOADIN = ").append(SQLUtil.getSqlString(item.getIsLoaded()));
         sqlBuilder.append(", CURREDIALSTAGECOUNT = ").append(SQLUtil.getSqlString(item.getCurRedialStageCount()));
+        sqlBuilder.append(", NEXTDIALTIME = ").append(SQLUtil.getSqlString(item.getNextDialTime()));
+        sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(item.getBizId()));
+        sqlBuilder.append("  AND IID = ").append(SQLUtil.getSqlString(item.getImportBatchId()));
+        sqlBuilder.append("  AND CID = ").append(SQLUtil.getSqlString(item.getCustomerId()));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
         try {
             dbConn = this.getDbConnection();
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
-            stmt.executeUpdate();
+            int rowNum = stmt.executeUpdate();
+            System.out.println(rowNum);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -353,15 +354,13 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     public Boolean updateCustomerShareStateToLostCall(SingleNumberModeShareCustomerItem item) {
-        // endCodeType endCode
-        // lastDialTime  nextDialTime
         String tableName = String.format("HAU_DM_B%dC_DATAM3", item.getBizId());
 
         //
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
         sqlBuilder.append(" SET ");
         sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(item.getState().getName()));
-        sqlBuilder.append(" ENDCODETYPE = ").append(SQLUtil.getSqlString(item.getEndCodeType()));
+        sqlBuilder.append(", ENDCODETYPE = ").append(SQLUtil.getSqlString(item.getEndCodeType()));
         sqlBuilder.append(", ENDCODE = ").append(SQLUtil.getSqlString(item.getEndCode()));
         sqlBuilder.append(", MODIFYID = ").append(SQLUtil.getSqlString(item.getModifyId()));
         sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
@@ -371,11 +370,13 @@ public class SingleNumberModeDAO extends BaseRepository {
         sqlBuilder.append(", LASTDIALTIME = ").append(SQLUtil.getSqlString(item.getLastDialTime()));
         sqlBuilder.append(", USERUSESTATE = ").append(SQLUtil.getSqlString(item.getUserUseState()));
         sqlBuilder.append(", ISMEMORYLOADIN = ").append(SQLUtil.getSqlString(item.getIsLoaded()));
-
         sqlBuilder.append(", THISDAYDIALEDCOUNT = ").append(SQLUtil.getSqlString(item.getLostCallCurDayCount()));
         sqlBuilder.append(", LOSTCALLFIRSTDAY = ").append(SQLUtil.getSqlString(item.getLossCallFirstDay()));
         sqlBuilder.append(", LOSTCALLCURDAY = ").append(SQLUtil.getSqlString(item.getLostCallCurDay()));
         sqlBuilder.append(", LOSTCALLTOTALCOUNT = ").append(SQLUtil.getSqlString(item.getLostCallTotalCount()));
+        sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(item.getBizId()));
+        sqlBuilder.append("  AND IID = ").append(SQLUtil.getSqlString(item.getImportBatchId()));
+        sqlBuilder.append("  AND CID = ").append(SQLUtil.getSqlString(item.getCustomerId()));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
