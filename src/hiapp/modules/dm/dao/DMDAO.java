@@ -115,7 +115,7 @@ public class DMDAO extends BaseRepository {
     /*
      *  取得当天启用 且未处理的共享批次, 处理后续启用的共享批次
      */
-    public Boolean getNeedActiveShareBatchItems( /*OUT*/List<ShareBatchItem> shareBatchItems) {
+    public Boolean getCurDayNeedActiveShareBatchItems( /*OUT*/List<ShareBatchItem> shareBatchItems) {
 
         Connection dbConn = null;
         PreparedStatement stmt = null;

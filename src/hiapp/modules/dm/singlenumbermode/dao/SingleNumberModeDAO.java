@@ -466,6 +466,7 @@ public class SingleNumberModeDAO extends BaseRepository {
         return true;
     }
 
+    // 已经弃用
     // 中间重启时，去除当天未接通次数满的项
     public Boolean getCurrentLostCallStateCustomers(int bizId,
                                                     List<ShareBatchItem> ShareBatchItems,

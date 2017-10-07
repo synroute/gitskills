@@ -7,6 +7,7 @@ import hiapp.modules.dm.singlenumbermode.bo.*;
 import hiapp.modules.dm.singlenumbermode.dao.SingleNumberModeDAO;
 import hiapp.modules.dm.dao.DMDAO;
 
+import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
@@ -200,7 +201,7 @@ public class SingleNumberOutboundDataManage {
      */
     public String startShareBatch(int bizId, List<String> shareBatchIds) {
 
-        // TODO 设置共享批次状态
+        // 设置共享批次状态
         singleNumberModeDAO.updateShareBatchState(bizId, shareBatchIds, ShareBatchStateEnum.ENABLE.getName());
 
         List<ShareBatchItem> shareBatchItems = shareBatchIncrementalProc();
@@ -248,43 +249,10 @@ public class SingleNumberOutboundDataManage {
 
     }
 
-    public void initialize() {
 
-        /*EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB = new EndCodeRedialStrategyFromDB();
-        RedialState redialState = new RedialState();
-        redialState.setDescription("description");
-        redialState.setLoopRedialCountExceedNextState("loopRedialCountExceedNextStateName");
-        redialState.setLoopRedialDialCount("9");
-        redialState.setLoopRedialFirstDialDayDialCountLimit("2");
-        redialState.setLoopRedialPerdayCountLimit("3");
-        redialState.setName("statename");
-        redialState.setStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
-        redialState.setStageRedialDelayDays("20");
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        endCodeRedialStrategyFromDB.addRedialState(redialState);
-        endCodeRedialStrategyFromDB.addRedialState(redialState);
-        endCodeRedialStrategyFromDB.addEndCodeRedialStrategyItem();
-
-        String jsonObject=new Gson().toJson(endCodeRedialStrategyFromDB);
-        System.out.println(jsonObject);
-
-        EndCodeRedialStrategyFromDB tmp00 = new Gson().fromJson(jsonObject,
-                EndCodeRedialStrategyFromDB.class);*/
-
-        //EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
-
-        /*String tmp = "{\"bizId\":11,\"importBatchId\":77\" }";
-        Map<String, String> map = new Gson().fromJson(tmp, Map.class);
-        String strBizId = map.get("bizId");
-        String resultCodeType = map.get("resultCodeType");
-        String resultCode = map.get("resultCode");
-        String importBatchId = map.get("importBatchId");
-        String shareBatchId = map.get("shareBatchId");
-        String customerId = map.get("customerId");
-        String resultData = map.get("resultData");
-        String customerInfo = map.get("customerInfo");*/
-
-
+    private void initialize() {
         setDailyRoutine();
         setTimeOutRoutine(timeSlotSpan);
 
@@ -306,11 +274,9 @@ public class SingleNumberOutboundDataManage {
         List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
         loadCustomersDaily(shareBatchItems);
 
-//        SingleNumberModeShareCustomerItem item2 = extractNextOutboundCustomer("800", 800);
-//        System.out.println("===");
+        System.out.println("SingleNumber Outbound InitComplete ...");
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private List<ShareBatchItem> shareBatchDailyProc() {
         mapPresetDialCustomerSharePool.clear();
@@ -332,7 +298,7 @@ public class SingleNumberOutboundDataManage {
         dmDAO.expireShareBatchsByEndTime(/*expiredShareBatchIds*/);
 
         List<ShareBatchItem> shareBatchItems = new ArrayList<ShareBatchItem>();
-        dmDAO.getNeedActiveShareBatchItems(shareBatchItems);
+        dmDAO.getCurDayNeedActiveShareBatchItems(shareBatchItems);
 
         dmDAO.activateShareBatchByStartTime();
 
@@ -367,37 +333,30 @@ public class SingleNumberOutboundDataManage {
 
         List<SingleNumberModeShareCustomerItem> shareDataItems = new ArrayList<SingleNumberModeShareCustomerItem>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
+
+            shareDataItems.clear();
+
             int bizId = entry.getKey();
             List<ShareBatchItem> givenBizShareBatchItems = entry.getValue();
 
 
-            shareDataItems.clear();
-
-            System.out.println("bizId " + bizId + "... ");
-
-            // TODO 根据未接通拨打日期，决定是否清零<当日未接通重拨次数>
+            // 根据未接通拨打日期，决定是否清零<当日未接通重拨次数>
             singleNumberModeDAO.clearPreviousDayLostCallCount(bizId);
 
-            // TODO 如果保留<当日未接通重拨次数>，需要判断是否移出候选池（per endcode）
-            {
-                List<SingleNumberModeShareCustomerItem> shareDataItems2 = new ArrayList<SingleNumberModeShareCustomerItem>();
-                singleNumberModeDAO.getCurrentLostCallStateCustomers(bizId, givenBizShareBatchItems, shareDataItems2);
-            }
-
-            // TODO 成批从DB取数据
+            // 成批从DB取数据
             Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
                     bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
 
-            // TODO 可以改成批从DB取数据, 根据nextDialTime
+            // 成批从DB取数据, 根据nextDialTime
             result = singleNumberModeDAO.getGivenBizShareDataItemsByStateAndNextDialTime(
                     bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
 
-            // 记录客户共享状态为 SingleNumberModeShareCustomerStateEnum.APPENDED 的客户信息
+
+            // 收集客户共享状态为 SingleNumberModeShareCustomerStateEnum.APPENDED 的客户信息
             // 后续需要更改状态为 SingleNumberModeShareCustomerStateEnum.CREATED
             List<String> appendedStateCustomerIdList = new ArrayList<String>();
 
             for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
-
                 if (needJoinCustomerPool(bizId, customerItem))
                     addCustomerToSharePool(customerItem);
 
@@ -442,13 +401,11 @@ public class SingleNumberOutboundDataManage {
             int bizId = entry.getKey();
             List<ShareBatchItem> givenBizShareBatchItems = entry.getValue();
 
-            System.out.println("key= " + bizId + "...");
-
-            // TODO 成批从DB取数据
+            // 成批从DB取数据
             Boolean result = singleNumberModeDAO.getGivenBizShareDataItemsByState(
                     bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
 
-            // TODO 成批从DB取数据, 根据nextDialTime
+            // 成批从DB取数据, 根据nextDialTime
             result = singleNumberModeDAO.getGivenBizShareDataItemsByStateAndNextDialTime(
                     bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
         }
@@ -483,17 +440,6 @@ public class SingleNumberOutboundDataManage {
             public void run() {
                 List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
                 loadCustomersDaily(shareBatchItems);
-
-                /*
-                // 移除过期的共享批次
-                PriorityBlockingQueue<SingleNumberModeShareCustomerItem> presetDialPriorityQueue;
-                PriorityBlockingQueue<SingleNumberModeShareCustomerItem> phaseDialPriorityQueue;
-                PriorityBlockingQueue<SingleNumberModeShareCustomerItem> dialPriorityQueue;
-
-                for (presetDialPriorityQueue.) {
-
-                }
-                */
             }
         };
 
@@ -662,7 +608,7 @@ public class SingleNumberOutboundDataManage {
             dmDAO.insertPresetItem(originCustomerItem.getBizId(), presetItem);
 
             // 不要移出候选池，预约在今天
-            if (isSameDay(now, presetTime)) {
+            if (DateUtil.isSameDay(now, presetTime)) {
                 addCustomerToSharePool(item);
             }
 
@@ -676,7 +622,7 @@ public class SingleNumberOutboundDataManage {
                 item.setState(SingleNumberModeShareCustomerStateEnum.getFromString(
                         endCodeRedialStrategy.getStageExceedNextStateName()));
             } else {
-                item.setNextDialTime(getNextXDay(newRedialState.getStageRedialDelayDaysNum()));
+                item.setNextDialTime(DateUtil.getNextXDay(newRedialState.getStageRedialDelayDaysNum()));
             }
 
             singleNumberModeDAO.updateCustomerShareStateToStage(item);
@@ -703,7 +649,7 @@ public class SingleNumberOutboundDataManage {
                         newRedialState.getLoopRedialCountExceedNextState()));
             } else {
                 int todayLoopRedialCountLimit = newRedialState.getLoopRedialPerdayCountLimitNum();
-                if (isSameDay(now, originCustomerItem.getLostCallFirstDay())) {
+                if (DateUtil.isSameDay(now, originCustomerItem.getLostCallFirstDay())) {
                     todayLoopRedialCountLimit = newRedialState.getLoopRedialFirstDialDayDialCountLimitNum();
                 }
 
@@ -726,7 +672,7 @@ public class SingleNumberOutboundDataManage {
 
     }
 
-    EndCodeRedialStrategy getEndCodeRedialStrategyByBizId(int bizId) {
+    private EndCodeRedialStrategy getEndCodeRedialStrategyByBizId(int bizId) {
         String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
 
         EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB = new Gson().fromJson(jsonEndCodeRedialStrategy,
@@ -734,22 +680,6 @@ public class SingleNumberOutboundDataManage {
 
         return EndCodeRedialStrategy.getInstance(endCodeRedialStrategyFromDB);
     }
-
-    public Date getNextXDay(int deltaDayNum) {
-        Calendar curDay = Calendar.getInstance();
-        curDay.setTime(new Date());
-        curDay.add(Calendar.DAY_OF_MONTH, deltaDayNum);
-        curDay.set(Calendar.HOUR_OF_DAY, 0);
-        curDay.set(Calendar.MINUTE, 0);
-        curDay.set(Calendar.SECOND, 0);
-        curDay.set(Calendar.MILLISECOND, 0);
-        return curDay.getTime();
-    }
-
-    public Boolean isSameDay(Date date1, Date date2) {
-        return date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth() && date1.getDay() == date2.getDay();
-    }
-
 
     private void addCustomerToSharePool(SingleNumberModeShareCustomerItem newCustomerItem) {
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
@@ -795,6 +725,9 @@ public class SingleNumberOutboundDataManage {
 
         queue.put(newCustomerItem);
 
+        System.out.println("add customer: bizId[" + newCustomerItem.getBizId()
+                + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
+                + "] CID[" + newCustomerItem.getCustomerId() + "]");
     }
 
     // 用于过滤 当日重拨已满的客户
@@ -804,7 +737,7 @@ public class SingleNumberOutboundDataManage {
             return true;
 
         Date now = new Date();
-        if (!isSameDay(customerItem.getLostCallCurDay(), now))
+        if (!DateUtil.isSameDay(customerItem.getLostCallCurDay(), now))
             return true;
 
         EndCodeRedialStrategy endCodeRedialStrategy = mapBizIdVsEndCodeRedialStrategy.get(bizId);
@@ -816,7 +749,7 @@ public class SingleNumberOutboundDataManage {
         RedialState redialState = endCodeRedialStrategy.getNextRedialState(customerItem.getEndCodeType(), customerItem.getEndCode());
 
         int curDayLostCallRedialCountLimit = 0;
-        if (isSameDay(customerItem.getLostCallFirstDay(), now)) {
+        if (DateUtil.isSameDay(customerItem.getLostCallFirstDay(), now)) {
             curDayLostCallRedialCountLimit = redialState.getLoopRedialFirstDialDayDialCountLimitNum();
         } else {
             curDayLostCallRedialCountLimit = redialState.getLoopRedialPerdayCountLimitNum();
@@ -889,3 +822,36 @@ public class SingleNumberOutboundDataManage {
 
 }
 
+        /*EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB = new EndCodeRedialStrategyFromDB();
+        RedialState redialState = new RedialState();
+        redialState.setDescription("description");
+        redialState.setLoopRedialCountExceedNextState("loopRedialCountExceedNextStateName");
+        redialState.setLoopRedialDialCount("9");
+        redialState.setLoopRedialFirstDialDayDialCountLimit("2");
+        redialState.setLoopRedialPerdayCountLimit("3");
+        redialState.setName("statename");
+        redialState.setStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
+        redialState.setStageRedialDelayDays("20");
+
+        endCodeRedialStrategyFromDB.addRedialState(redialState);
+        endCodeRedialStrategyFromDB.addRedialState(redialState);
+        endCodeRedialStrategyFromDB.addEndCodeRedialStrategyItem();
+
+        String jsonObject=new Gson().toJson(endCodeRedialStrategyFromDB);
+        System.out.println(jsonObject);
+
+        EndCodeRedialStrategyFromDB tmp00 = new Gson().fromJson(jsonObject,
+                EndCodeRedialStrategyFromDB.class);*/
+
+        //EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
+
+        /*String tmp = "{\"bizId\":11,\"importBatchId\":77\" }";
+        Map<String, String> map = new Gson().fromJson(tmp, Map.class);
+        String strBizId = map.get("bizId");
+        String resultCodeType = map.get("resultCodeType");
+        String resultCode = map.get("resultCode");
+        String importBatchId = map.get("importBatchId");
+        String shareBatchId = map.get("shareBatchId");
+        String customerId = map.get("customerId");
+        String resultData = map.get("resultData");
+        String customerInfo = map.get("customerInfo");*/
