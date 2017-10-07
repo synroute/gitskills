@@ -4,9 +4,11 @@ import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class SQLUtil {
 
@@ -22,17 +24,13 @@ public class SQLUtil {
             return obj.toString();
 
         } else if (obj instanceof Date) {
-            Calendar curTime = Calendar.getInstance();
-            curTime.setTime((Date)obj);
-            String strCurTime = curTime.get(Calendar.YEAR) + "/" + (curTime.get(Calendar.MONTH)+1) + "/" + curTime.get(Calendar.DAY_OF_MONTH)
-                    + " " + curTime.get(Calendar.HOUR_OF_DAY) + ":" + curTime.get(Calendar.MINUTE) + ":" + curTime.get(Calendar.SECOND);
-
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
+            String strCurTime = format.format((Date)obj);
             return "TO_DATE('" + strCurTime + "', 'yyyy-mm-dd hh24:mi:ss')";
         } else if (obj instanceof Calendar) {
             Calendar curTime = (Calendar)obj;
-            String strCurTime = curTime.get(Calendar.YEAR) + "/" + (curTime.get(Calendar.MONTH)+1) + "/" + curTime.get(Calendar.DAY_OF_MONTH)
-                    + " " + curTime.get(Calendar.HOUR_OF_DAY) + ":" + curTime.get(Calendar.MINUTE) + ":" + curTime.get(Calendar.SECOND);
-
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
+            String strCurTime = format.format(curTime.getTime());
             return "TO_DATE('" + strCurTime + "', 'yyyy-mm-dd hh24:mi:ss')";
         }
 

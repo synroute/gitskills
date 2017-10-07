@@ -86,14 +86,14 @@ public enum TableNameEnume {
 			
 
 			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("COLUMNNAME", getAbbr() + "." + "DAILTYPE");
+			map.put("COLUMNNAME", getAbbr() + "." + "DIALTYPE");
 			map.put("COLUMNNAMECH", "拨打类型");
 			map.put("COLUMNDESCRIPTION", "拨打类型");
 			map.put("dataType", "varchar");
 			map.put("LENGTH", 50);
 
 			Map<String, Object> map2 = new HashMap<String, Object>();
-			map2.put("COLUMNNAME", getAbbr() + "." + "DAILTIME");
+			map2.put("COLUMNNAME", getAbbr() + "." + "DIALTIME");
 			map2.put("COLUMNNAMECH", "拨打时间");
 			map2.put("COLUMNDESCRIPTION", "拨打时间");
 			map2.put("dataType", "datetime");
@@ -103,8 +103,8 @@ public enum TableNameEnume {
 			map3.put("COLUMNNAME", getAbbr() + "." + "CUSTOMERCALLID");
 			map3.put("COLUMNNAMECH", "呼叫流水号");
 			map3.put("COLUMNDESCRIPTION", "呼叫流水号");
-			map3.put("dataType", "int");
-			map3.put("LENGTH", -1);
+			map3.put("dataType", "varchar");
+			map3.put("LENGTH", 50);
 			
 			Map<String, Object> map4 = new HashMap<String, Object>();
 			map4.put("COLUMNNAME", getAbbr() + "." + "SOURCEID");

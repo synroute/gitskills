@@ -162,15 +162,16 @@ public class SingleNumberOutboundDataManage {
         return shareDataItem;
     }
 
-    public String submitOutboundResult(String userId, int bizId, String importBatchId, String shareBatchId, String customerId,
-                                       String resultCodeType, String resultCode, Date presetTime, String resultData, String customerInfo) {
+    public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId,
+                                       String resultCodeType, String resultCode, Date presetTime, String resultData,
+                                       String customerInfo) {
 
         String dialType = "xxx";
         String customerCallId = "xxx";
-        String dialTime = new Date().toString();
+        Date dialTime = new Date();
 
-        resultCodeType = "结束码类型9092";
-        resultCode = "结束码9092";
+        resultCodeType = "EndType-Finish";
+        resultCode = "结案";
 
         SingleNumberModeShareCustomerItem originCustomerItem = removeWaitCustomer(userId, bizId, importBatchId, customerId);
 
@@ -185,9 +186,9 @@ public class SingleNumberOutboundDataManage {
 
         // 插入结果表
         //dataImportJdbc.insertDataToResultTable(bizId, shareBatchId, importBatchId, customerId, userId, resultData);
-        dmDAO.insertDMResult(bizId, shareBatchId, importBatchId, customerId, originCustomerItem.getModifyId() + 1,
+        dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId() + 1,
                             userId, dialType, dialTime, customerCallId);
-        dmDAO.updateDMResult(bizId, shareBatchId, importBatchId, customerId); // MODIFYLAST 0
+        dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId); // MODIFYLAST 0
 
         // 插入导入客户表
         dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo);
@@ -570,7 +571,7 @@ public class SingleNumberOutboundDataManage {
         item.setModifyUserId(userId);
         item.setModifyTime(now);
         item.setModifyId(originCustomerItem.getModifyId() + 1);
-        item.setLastDailTime(now);  //TODO
+        item.setLastDialTime(now);  //TODO
 
         if (RedialStateTypeEnum.REDIAL_STATE_FINISHED.equals(redialStateType)) {
             item.setState(SingleNumberModeShareCustomerStateEnum.FINISHED);

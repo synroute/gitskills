@@ -245,9 +245,9 @@ public class DMDAO extends BaseRepository {
      * @return
      */
     public Boolean insertDMResult(int bizId, String sourceId, String importBatchId, String customerId, int modifyId,
-                                  String modifyUserId, String dialType, String dialTime, String customerCallId) {
+                                  String modifyUserId, String dialType, Date dialTime, String customerCallId) {
 
-        String tableName = String.format("HAU_DM_B%dC_Result", bizId);
+        String tableName = String.format("HAU_DM_B%dC_RESULT", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
         sqlBuilder.append(" (ID, SOURCEID, IID, CID, MODIFYID, MODIFYUSERID, MODIFYTIME, MODIFYLAST, DIALTYPE, " +
@@ -264,6 +264,8 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(dialTime)).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(customerCallId));
         sqlBuilder.append(")");
+
+        System.out.println(sqlBuilder.toString());
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -288,7 +290,7 @@ public class DMDAO extends BaseRepository {
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
         sqlBuilder.append(" SET MODIFYLAST = ").append("0");
-        sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
+        sqlBuilder.append(" WHERE IID = ").append(SQLUtil.getSqlString(importBatchId));
         sqlBuilder.append(" AND SOURCEID = ").append(SQLUtil.getSqlString(shareBatchId));
         sqlBuilder.append(" AND CID = ").append(SQLUtil.getSqlString(customerId));
 

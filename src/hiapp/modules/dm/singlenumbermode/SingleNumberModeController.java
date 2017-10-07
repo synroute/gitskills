@@ -72,7 +72,7 @@ public class SingleNumberModeController {
         String resultCodeType = (String)map.get("resultCodeType");
         String resultCode = (String)map.get("resultCode");
         String importBatchId = (String)map.get("importBatchId");
-        String shareBatchId = (String)map.get("shareBatchId");
+        //String shareBatchId = (String)map.get("shareBatchId");
         String customerId = (String)map.get("customerId");
         String strPresetTime = (String) map.get("presetTime");
         Map<String, String> resultData = (Map<String, String>)map.get("resultData");
@@ -100,7 +100,7 @@ public class SingleNumberModeController {
         }
 
         singleNumberOutboundDataManage.submitOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId,
-                shareBatchId, customerId, resultCodeType, resultCode, presetTime , jsonResultData, jsonCustomerInfo);
+                customerId, resultCodeType, resultCode, presetTime , jsonResultData, jsonCustomerInfo);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();

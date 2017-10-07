@@ -94,12 +94,12 @@ public class SingleNumberModeShareCustomerItem {
         this.endCode = endCode;
     }
 
-    public Date getLastDailTime() {
-        return lastDailTime;
+    public Date getLastDialTime() {
+        return lastDialTime;
     }
 
-    public void setLastDailTime(Date lastDailTime) {
-        this.lastDailTime = lastDailTime;
+    public void setLastDialTime(Date lastDialTime) {
+        this.lastDialTime = lastDialTime;
     }
 
     public Date getNextDialTime() {
@@ -232,7 +232,7 @@ public class SingleNumberModeShareCustomerItem {
     String customerCallId; //客户呼叫流水号
     String endCodeType;
     String endCode;
-    Date   lastDailTime;    //最近一次拨打时间
+    Date   lastDialTime;    //最近一次拨打时间
     Date   nextDialTime;    //下次拨打时间
     int lostCallCurDayCount;   //当天未接通次数
     int   curRedialStageCount; //仅用于阶段拨打
