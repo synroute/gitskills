@@ -565,12 +565,7 @@ public class CustomerRepository extends BaseRepository {
 
 			// 查询条件
 
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
 			
-			sb.append(" AND ");
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 					+ "MODIFYLAST");
 			sb.append(" = ");
@@ -782,7 +777,11 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" = ");
 			sb.append("1");
 
-			
+			sb.append(" AND ");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+					+ "MODIFYUSERID");
+			sb.append(" = ");
+			sb.append(userId);
 
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
