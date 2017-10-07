@@ -135,10 +135,10 @@ public class AutomaticController {
 	
 	@RequestMapping(value = "srv/dm/dmCreateAutomaticPageUrl.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmCreateAutomaticPageUrl(@RequestParam("bizId") int bizId,@RequestParam("pageName") String pageName,
-			@RequestParam("pageUrl") String pageUrl,@RequestParam("pageParameter") String pageParameter) {
+			@RequestParam("pageUrl") String pageUrl,@RequestParam("pageParameter") String pageParameter,@RequestParam("sourceModular") String sourceModular) {
 		
 		ServiceResult serviceresult = new ServiceResult();
-		if(dmBizAutomatic.dmCreateAutomaticPageUrl(bizId,pageName,pageUrl,pageParameter))
+		if(dmBizAutomatic.dmCreateAutomaticPageUrl(bizId,pageName,pageUrl,pageParameter,sourceModular))
 		{
 			serviceresult.setReturnCode(0);
 			serviceresult.setReturnMessage("成功");

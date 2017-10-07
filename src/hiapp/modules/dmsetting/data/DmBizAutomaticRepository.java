@@ -306,7 +306,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			}
 	
 		//根据业务号获取url
-				public boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl,String pageParameter) {
+				public boolean dmCreateAutomaticPageUrl(int bizId,String pageName,String pageUrl,String pageParameter,String sourceModular) {
 					 
 					Connection dbConn = null;
 					String url="";
@@ -314,7 +314,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,SOURCEID,PAGENAME,PAGEURL,PAGEPARAMETER) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s','%s') ", bizId,pageName,pageUrl,pageParameter) ;
+						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,SOURCEID,PAGENAME,PAGEURL,PAGEPARAMETER,sourceModular) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s','%s','%s') ", bizId,pageName,pageUrl,pageParameter,sourceModular);
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();
 						
