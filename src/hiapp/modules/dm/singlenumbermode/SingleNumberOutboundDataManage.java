@@ -59,11 +59,11 @@ public class SingleNumberOutboundDataManage {
     // UserID <==> {BizID + ImportID + CustomerID <==> SingleNumberModeShareCustomerItem}
     Map<String, Map<String, SingleNumberModeShareCustomerItem>> mapWaitResultCustomerPool;
 
-    // 等待拨打结果的客户池，等超时的维度，放入分钟SLOT里
+    // 等待拨打超时的客户池，抽取时间的分钟SLOT维度
     // 分钟Slot <==> {BizId + ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
     Map<Long, Map<String, SingleNumberModeShareCustomerItem>> mapWaitTimeOutCustomerPool;
 
-    // 等待拨打结果的客户池，共享批次维度，用于标注已经停止批次
+    // 等待共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
     // BizId + ShareBatchId <==> {ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
     Map<String, Map<String, SingleNumberModeShareCustomerItem>> mapWaitStopCustomerPool;
 
@@ -872,6 +872,11 @@ public class SingleNumberOutboundDataManage {
         }
     }
 
+    /**
+     * 仅标注已经停止共享，不从等待池中移除。需要等待已拨打的结果。
+     * @param bizId
+     * @param shareBatchIds
+     */
     private void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
             Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool;
