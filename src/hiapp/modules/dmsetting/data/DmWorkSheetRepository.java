@@ -216,8 +216,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("最近一次拨打时间", "LASTDIALTIME", "最近一次拨打时间", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("最近一次拨打时间", "LASTDIALTIME", "最近一次拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("当天已拨打次数", "THISDAYDIALEDCOUNT", "当天已拨打次数", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("当前重拨阶段数", "CURREDIALSTAGECOUNT", "当前重拨阶段数", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("第一次未接通日期", "LOSTCALLFIRSTDAY", "第一次未接通日期", WorkSheetDataType.DATETIME, -1, false, true);
@@ -251,8 +251,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("最近一次拨打时间", "LASTDIALTIME", "最近一次拨打时间", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("最近一次拨打时间", "LASTDIALTIME", "最近一次拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("当天已拨打次数", "THISDAYDIALEDCOUNT", "当天已拨打次数", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("当前重拨阶段数", "CURREDIALSTAGECOUNT", "当前重拨阶段数", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("第一次未接通日期", "LOSTCALLFIRSTDAY", "第一次未接通日期", WorkSheetDataType.DATETIME, -1, false, true);
