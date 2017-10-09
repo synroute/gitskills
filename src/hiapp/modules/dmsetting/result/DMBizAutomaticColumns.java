@@ -5,6 +5,7 @@ package hiapp.modules.dmsetting.result;
  * 类说明 
  */
 public class DMBizAutomaticColumns {
+	private String worksheetId;
 	private String worksheetName;
 	private String worksheetNameCh;
 	private String columnName;
@@ -32,5 +33,11 @@ public class DMBizAutomaticColumns {
 	}
 	public void setColumnName(String columnName) {
 		this.columnName = columnName;
+	}
+	public String getWorksheetId() {
+		return worksheetId;
+	}
+	public void setWorksheetId(String worksheetId) {
+		this.worksheetId = worksheetId;
 	}
 }

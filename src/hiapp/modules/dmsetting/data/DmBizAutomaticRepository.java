@@ -61,15 +61,15 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			for (int i = 0; i < listColumns.size(); i++) {
 				WorkSheetColumn workSheetColumn=listColumns.get(i);
 				//剔除掉不需要显示的列信息
-				if (!workSheetColumn.getColumnName().equals("ID")&&!workSheetColumn.getColumnName().equals("MODIFYCLASS")&&
-						!workSheetColumn.getColumnName().equals("MODIFYID")&&!workSheetColumn.getColumnName().equals("MODIFYUSERID")) {
+				
 					DMBizAutomaticColumns dmBizAutomaticColumns=new DMBizAutomaticColumns();
+					dmBizAutomaticColumns.setWorksheetId(workSheetId);
 					dmBizAutomaticColumns.setWorksheetName("HAU_DM_B"+bizId+"C_IMPORT");
 					dmBizAutomaticColumns.setWorksheetNameCh(worksheetName);
 					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
 					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
 					listDmBizAutomaticColums.add(dmBizAutomaticColumns);
-				}
+				
 				
 			}
 			
@@ -97,8 +97,44 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			//将列绑定到列表中
 			for (WorkSheetColumn workSheetColumn : listColumns) {
 				//剔除掉不需要显示的列信息
-				if (!workSheetColumn.getColumnName().equals("ID")&&!workSheetColumn.getColumnName().equals("MODIFYID")&&!workSheetColumn.getColumnName().equals("MODIFYLAST")) {
+				
 					DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
+					dmBizAutomaticColumns.setWorksheetId(workSheetId);
+					dmBizAutomaticColumns.setWorksheetName(szWorkSheetName);
+					dmBizAutomaticColumns.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(workSheetId));
+					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
+					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+		}
+		return true;
+	}
+	//获取数据记录表待选列
+	
+	public boolean getPoolColumns(
+			List<DMBizAutomaticColumns> listDMBizAutomaticColumns, String bizId) {
+		Connection dbConn = null;
+		try {
+			dbConn = this.getDbConnection();
+			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
+			//根据表名获取worksheetid
+			String szWorkSheetName="HAU_DM_B"+bizId+"C_POOL";
+			String workSheetId = workSheetRepository.getWorksheetIdByName(szWorkSheetName);
+			//根据worksheetid获取该表下所有列信息
+			workSheet.getColumns(dbConn,workSheetId, listColumns);
+			//将列绑定到列表中
+			for (WorkSheetColumn workSheetColumn : listColumns) {
+				//剔除掉不需要显示的列信息
+				if (!workSheetColumn.getColumnName().equals("ID")&&!workSheetColumn.getColumnName().equals("IID")
+						&&!workSheetColumn.getColumnName().equals("CID")&&!workSheetColumn.getColumnName().equals("MODIFYUSERID")&&!workSheetColumn.getColumnName().equals("MODIFYTIME")) {
+					DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
+					dmBizAutomaticColumns.setWorksheetId(workSheetId);
 					dmBizAutomaticColumns.setWorksheetName(szWorkSheetName);
 					dmBizAutomaticColumns.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(workSheetId));
 					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
@@ -114,6 +150,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		}
 		return true;
 	}
+	
 	//根据cid，iid获取客户信息
 	public Map<String,String> dmGetBizCustomer(int bizId,String Cid,String IID,String columns)
 	{
@@ -231,43 +268,103 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		return true;
 	}
 	//获取该业务下所有工作表列
-	public List<DMBizAutomaticColumns> getAllBizColumns(String bizId) {
-//		List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
-//		List<WorkSheet> WorkSheets = new ArrayList<WorkSheet>();
-//		String szWorkSheetName1 = "HAU_DM_B"+bizId+"C_IMPORT";
-//		String szWorkSheetName2 = "HAU_DM_B"+bizId+"C_RESULT";
-//		String szWorkSheetName3 = "HASYS_DM_B"+bizId+"C_PRESETTIME";
-//		worksheetAddList(WorkSheets,szWorkSheetName1);
-//		worksheetAddList(WorkSheets,szWorkSheetName2);
-//		worksheetAddList(WorkSheets,szWorkSheetName3);
-//		List<WorkSheetColumn> listWorkSheetColumns = workSheetRepository.getSourceColumnsByWorksheetId(WorkSheets);
-//		for (WorkSheetColumn workSheetColumn : listWorkSheetColumns) {
-//				DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
-//				dmBizAutomaticColumns.setWorksheetName(workSheetColumn.getTableFieldName());
-//				dmBizAutomaticColumns.setWorksheetNameCh(workSheetColumn.getTableNameCh());
-//				dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
-//				dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
-//				listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
-//		}
-//		
-//		return listDMBizAutomaticColumns;
+	public List<DMBizAutomaticColumns> getAllBizColumns(String bizId,String type) {
+
 		//获取导入表列信息
+		List<DMBizAutomaticColumns> listDMBizAutomaticColumns=new ArrayList<DMBizAutomaticColumns>();
+		List<DMBizAutomaticColumns> listImportColumns = this.dmGetBizCustomerColumns(Integer.parseInt(bizId));
 		
-		List<DMBizAutomaticColumns> listDMBizAutomaticColumns = this.dmGetBizCustomerColumns(Integer.parseInt(bizId));
 		List<DMBizAutomaticColumns> listResultColumns = new ArrayList<DMBizAutomaticColumns>();
+		
 		//获取结果表列信息
 		this.getResultColumns(listResultColumns,bizId);
-		for (DMBizAutomaticColumns dmBizAutomaticColumns : listResultColumns) {
-			if (!dmBizAutomaticColumns.getColumnName().equals("IID")&&
-					!dmBizAutomaticColumns.getColumnName().equals("CID")&&
-					!dmBizAutomaticColumns.getColumnName().equals("MODIFYTIME")) {
-				listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+		if (type.equals("分配")) {
+			//循环获取导入表列
+			for (DMBizAutomaticColumns dmBizAutomaticColumns : listImportColumns) {
+				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYCLASS")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")) {
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				}
 			}
+			//循环获取结果表列
+			for (DMBizAutomaticColumns dmBizAutomaticColumns : listResultColumns) {
+				if (!dmBizAutomaticColumns.getColumnName().equals("IID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("CID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYTIME")&&
+						!dmBizAutomaticColumns.getColumnName().equals("ID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYLAST")&&
+						!dmBizAutomaticColumns.getColumnName().equals("ID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("SOURCEID")) {
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				}
+			}
+			
+			List<DMBizAutomaticColumns> listPoolColumns = new ArrayList<DMBizAutomaticColumns>();
+			//获取数据池记录表列信息
+			this.getPoolColumns(listPoolColumns,bizId);
+			listDMBizAutomaticColumns.addAll(listPoolColumns);
+			
+		}else if (type.equals("回收")) {
+			//循环获取导入表列
+			for (DMBizAutomaticColumns dmBizAutomaticColumns : listImportColumns) {
+				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYCLASS")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")) {
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				}
+			}
+			//循环获取结果表列
+			for (DMBizAutomaticColumns dmBizAutomaticColumns : listResultColumns) {
+				if (!dmBizAutomaticColumns.getColumnName().equals("IID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("CID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYTIME")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYLAST")&&
+						!dmBizAutomaticColumns.getColumnName().equals("ID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("SOURCEID")) {
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				}
+			}
+			
+			List<DMBizAutomaticColumns> listPoolColumns = new ArrayList<DMBizAutomaticColumns>();
+			//获取数据池记录表列信息
+			this.getPoolColumns(listPoolColumns,bizId);
+			listDMBizAutomaticColumns.addAll(listPoolColumns);
+			//获取预约表列信息
+			List<DMBizAutomaticColumns> listPresetColumns = new ArrayList<DMBizAutomaticColumns>();
+			
+			this.getPresetColumns(listPresetColumns,bizId);
+			listDMBizAutomaticColumns.addAll(listPresetColumns);
+		} 
+			else if(type.equals("导出")){
+			//循环获取导入表列
+			for (DMBizAutomaticColumns dmBizAutomaticColumns : listImportColumns) {
+				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYCLASS")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYUSERID")) {
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				}
+			}
+			//循环获取结果表列
+			for (DMBizAutomaticColumns dmBizAutomaticColumns : listResultColumns) {
+				if (!dmBizAutomaticColumns.getColumnName().equals("IID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("CID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYTIME")&&
+						!dmBizAutomaticColumns.getColumnName().equals("ID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYLAST")) {
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				}
+			}
+			
+			
+			List<DMBizAutomaticColumns> listPresetColumns = new ArrayList<DMBizAutomaticColumns>();
+			//获取预约表列信息
+			this.getPresetColumns(listPresetColumns,bizId);
+			listDMBizAutomaticColumns.addAll(listPresetColumns);
 		}
-		List<DMBizAutomaticColumns> listPresetColumns = new ArrayList<DMBizAutomaticColumns>();
-		//获取预约表列信息
-		this.getPresetColumns(listPresetColumns,bizId);
-		listDMBizAutomaticColumns.addAll(listPresetColumns);
+		
+		
+		
 		return listDMBizAutomaticColumns;
 	}
 	
@@ -314,7 +411,22 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						String szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,SOURCEID,PAGENAME,PAGEURL,PAGEPARAMETER,sourceModular) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s','%s','%s') ", bizId,pageName,pageUrl,pageParameter,sourceModular);
+						dbConn = this.getDbConnection();
+						String selectSql =String.format("select count(*) from HASYS_DM_PAGE_MAP_PER where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s' ",bizId,sourceModular,pageName) ;
+						
+						stmt = dbConn.prepareStatement(selectSql);
+						rs = stmt.executeQuery();
+						int ishas=0;
+						while (rs.next()) {
+							ishas = rs.getInt(1);
+						}
+						String szSql="";
+						if(ishas>0)
+						{
+							szSql=String.format("update HASYS_DM_PAGE_MAP_PER set PAGEURL='"+pageUrl+"' where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s' ",bizId,sourceModular,pageName) ;
+						}else{
+							szSql =String.format("insert into HASYS_DM_PAGE_MAP_PER(ID,SOURCEID,PAGENAME,PAGEURL,PAGEPARAMETER,sourceModular) VALUES(S_HASYS_DM_PAGE_MAP_PER.nextval,%s,'%s','%s','%s','%s') ", bizId,pageName,pageUrl,pageParameter,sourceModular);
+						}
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();
 						
@@ -336,8 +448,22 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					ResultSet rs = null;	
 					try {
 						dbConn = this.getDbConnection();
-						String szSql =String.format("insert into HASYS_DM_AUTOMATICCONFIG(ID,SourceID,SourceModular,PageName,PanleName,Config,CREATER,STATE,ISDELETE,DISPLAYTYPE,PAGEID,CREATETIME) "
+						String selectSql =String.format("select count(*) from HASYS_DM_AUTOMATICCONFIG where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s' and PANLENAME='%s'",sourceId,sourceModular,pageName,panleName) ;
+						
+						stmt = dbConn.prepareStatement(selectSql);
+						rs = stmt.executeQuery();
+						int ishas=0;
+						while (rs.next()) {
+							ishas = rs.getInt(1);
+						}
+						String szSql="";
+						if(ishas>0)
+						{
+							szSql=String.format("update HASYS_DM_AUTOMATICCONFIG set Config='"+jsonArray.toString()+"' where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s' and PANLENAME='%s'",sourceId,sourceModular,pageName,panleName) ;
+						}else{
+							szSql=String.format("insert into HASYS_DM_AUTOMATICCONFIG(ID,SourceID,SourceModular,PageName,PanleName,Config,CREATER,STATE,ISDELETE,DISPLAYTYPE,PAGEID,CREATETIME) "
 								+ "values(S_HASYS_DM_AUTOMATICCONFIG.nextval,'"+sourceId+"','"+sourceModular+"','"+pageName+"','"+panleName+"','"+jsonArray.toString()+"','"+userId+"','"+state+"',"+isDelete+",'"+displayType+"','"+pageId+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())+ "','yyyy-mm-dd hh24:mi:ss'))") ;
+						}
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();
 						

@@ -117,10 +117,10 @@ public class AutomaticController {
 	}
 	
 	@RequestMapping(value = "/srv/dm/dmGetAllBizColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmGetAllBizColumns(@RequestParam("bizId") String bizId) {
+	public String dmGetAllBizColumns(@RequestParam("bizId") String bizId,@RequestParam("type") String type) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try {
-			List<DMBizAutomaticColumns> listDMBizAutomaticColumns = dmBizAutomatic.getAllBizColumns(bizId);
+			List<DMBizAutomaticColumns> listDMBizAutomaticColumns = dmBizAutomatic.getAllBizColumns(bizId,type);
 			
 			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
 			recordsetResult.setPage(0);
