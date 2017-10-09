@@ -25,7 +25,7 @@ public class MultiNumberModeController {
     @Autowired
     MultiNumberOutboundDataManage multiNumberOutboundDataManage;
 
-    @RequestMapping(value="/srv/dm/extractNextCustomer.srv", method= RequestMethod.GET, produces="application/json")
+    @RequestMapping(value="/srv/dm6/extractNextCustomer.srv", method= RequestMethod.GET, produces="application/json")
     public String extractNextCustomer(HttpServletRequest request,
                                       @RequestParam("userId") String userId,
                                       @RequestParam("bizId") String bizId) {
@@ -47,13 +47,13 @@ public class MultiNumberModeController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/submitHiDialerOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
+    @RequestMapping(value="/srv/dm6/submitHiDialerOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitHiDialerOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
         //TODO
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
+    @RequestMapping(value="/srv/dm6/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
         /*
         HttpSession session = request.getSession();
@@ -99,7 +99,7 @@ public class MultiNumberModeController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/startShareBatch.srv", method= RequestMethod.GET, produces="application/json")
+    @RequestMapping(value="/srv/dm6/startShareBatch.srv", method= RequestMethod.GET, produces="application/json")
     public String startShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
 
         /*ServiceResult serviceresult = new ServiceResult();
@@ -118,7 +118,7 @@ public class MultiNumberModeController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/stopShareBatch.srv", method= RequestMethod.GET, produces="application/json")
+    @RequestMapping(value="/srv/dm6/stopShareBatch.srv", method= RequestMethod.GET, produces="application/json")
     public String stopShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
         /*
         ServiceResult serviceresult = new ServiceResult();
@@ -137,7 +137,7 @@ public class MultiNumberModeController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")
+    @RequestMapping(value="/srv/dm6/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")
     public String appendCustomersToShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
         /*
         ServiceResult serviceresult = new ServiceResult();
