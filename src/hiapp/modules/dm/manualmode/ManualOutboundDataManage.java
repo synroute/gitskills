@@ -1,4 +1,4 @@
-package hiapp.modules.dm.multinumbermode;
+package hiapp.modules.dm.manualmode;
 
 import hiapp.modules.dm.multinumbermode.bo.CustomerSharePool;
 import hiapp.modules.dm.multinumbermode.bo.CustomerWaitPool;
@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
-public class MultiNumberOutboundDataManage {
+public class ManualOutboundDataManage {
 
     CustomerSharePool customerSharePool;
     CustomerWaitPool customerWaitPool;
