@@ -65,6 +65,55 @@ public class DMDAO extends BaseRepository {
         return true;
     }
 
+    /*
+     *  指定外呼模式的业务的共享批次
+     */
+    public Boolean getGivenModeActiveShareBatchItems(int modeId, /*OUT*/List<ShareBatchItem> shareBatchItems) {
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            dbConn = this.getDbConnection();
+
+            //
+            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
+                    " CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID " +
+                    " LEFT JOIN HASYS_DM_BUSINESS ON HASYS_DM_SID.BUSINESSID = HASYS_DM_BUSINESS.BUSINESSID " +
+                    " WHERE ");
+            sqlBuilder.append(" STATE ='").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
+            sqlBuilder.append(" OUTBOUNDMDDEID = ").append(modeId);
+
+            System.out.println(sqlBuilder.toString());
+
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ShareBatchItem item = new ShareBatchItem();
+                item.setId(rs.getInt(1));
+                item.setBizId(rs.getInt(2));
+                item.setShareBatchId(rs.getString(3));
+                item.setShareBatchName(rs.getString(4));
+                item.setCreateUserId(rs.getString(5));
+                item.setCreateTime(rs.getTime(6));
+                item.setDescription(rs.getString(7));
+                item.setState(ShareBatchStateEnum.getFromString(rs.getString(8)) );
+                item.setStartTime(rs.getDate(9));
+                item.setEndTime(rs.getDate(10));
+                shareBatchItems.add(item);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
     /**
      *
      */

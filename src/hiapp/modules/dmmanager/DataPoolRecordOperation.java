@@ -10,81 +10,110 @@ import java.util.Date;
 public class DataPoolRecordOperation {
 	
 	private Integer id;             //ID
-	private String distId;          //分配批次号
+	private String sourceId;          //分配批次号
 	private String importId;        //导入批次号
-	private String custId;          //客户号
+	private String customerId;          //客户号
 	private OperationNameEnum operationName;   //操作类型OperationName
 	private Integer dataPoolIDLast; //上次所在数据池数据池
 	private Integer dataPoolIDCur;  //当前所在数据池
-	private AreaLastEnum areaLast;       //上次所在数据池分区
-	private AreaCurEnum areaCur;   //当前所在数据池分区
+	private AreaTypeEnum areaLast;       //上次所在数据池分区
+	private AreaTypeEnum areaCur;   //当前所在数据池分区
 	private IsRecoverEnum iSRecover;      //是否被回收
 	private String modifyUserID;    //修改人工号
 	private Date ModifyTime;        //修改时间
-	public AreaLastEnum getAreaLast() {
-		return areaLast;
+
+	public Integer getId() {
+		return id;
 	}
-	public void setAreaLast(AreaLastEnum areaLast) {
-		this.areaLast = areaLast;
+
+	public void setId(Integer id) {
+		this.id = id;
 	}
-	public AreaCurEnum getAreaCur() {
-		return areaCur;
+
+	public String getSourceId() {
+		return sourceId;
 	}
-	public void setAreaCur(AreaCurEnum areaCur) {
-		this.areaCur = areaCur;
+
+	public void setSourceId(String sourceId) {
+		this.sourceId = sourceId;
+	}
+
+	public String getImportId() {
+		return importId;
+	}
+
+	public void setImportId(String importId) {
+		this.importId = importId;
+	}
+
+	public String getCustomerId() {
+		return customerId;
+	}
+
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
 	}
 
 	public OperationNameEnum getOperationName() {
 		return operationName;
 	}
+
 	public void setOperationName(OperationNameEnum operationName) {
 		this.operationName = operationName;
 	}
-	public Integer getId() {
-		return id;
-	}
-	public void setId(Integer id) {
-		this.id = id;
-	}
-	public String getdId() {
-		return distId;
-	}
-	public void setdId(String dId) {
-		this.distId = dId;
-	}
-	public String getiId() {
-		return importId;
-	}
-	public void setiId(String importId) {
-		this.importId = importId;
-	}
-	public String getcId() {
-		return custId;
-	}
-	public void setcId(String cId) {
-		this.custId = cId;
-	}
+
 	public Integer getDataPoolIDLast() {
 		return dataPoolIDLast;
 	}
+
 	public void setDataPoolIDLast(Integer dataPoolIDLast) {
 		this.dataPoolIDLast = dataPoolIDLast;
 	}
+
 	public Integer getDataPoolIDCur() {
 		return dataPoolIDCur;
 	}
+
 	public void setDataPoolIDCur(Integer dataPoolIDCur) {
 		this.dataPoolIDCur = dataPoolIDCur;
 	}
+
+	public AreaTypeEnum getAreaLast() {
+		return areaLast;
+	}
+
+	public void setAreaLast(AreaTypeEnum areaLast) {
+		this.areaLast = areaLast;
+	}
+
+	public AreaTypeEnum getAreaCur() {
+		return areaCur;
+	}
+
+	public void setAreaCur(AreaTypeEnum areaCur) {
+		this.areaCur = areaCur;
+	}
+
+	public IsRecoverEnum getiSRecover() {
+		return iSRecover;
+	}
+
+	public void setiSRecover(IsRecoverEnum iSRecover) {
+		this.iSRecover = iSRecover;
+	}
+
 	public String getModifyUserID() {
 		return modifyUserID;
 	}
+
 	public void setModifyUserID(String modifyUserID) {
 		this.modifyUserID = modifyUserID;
 	}
+
 	public Date getModifyTime() {
 		return ModifyTime;
 	}
+
 	public void setModifyTime(Date modifyTime) {
 		ModifyTime = modifyTime;
 	}

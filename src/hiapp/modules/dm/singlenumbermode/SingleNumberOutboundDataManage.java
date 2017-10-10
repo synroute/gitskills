@@ -48,7 +48,7 @@ public class SingleNumberOutboundDataManage {
     }
 
     Long timeSlotSpan = 1000*60L; // 60 seconds
-    Long timeoutThreshold = 30 * timeSlotSpan; //
+    Long timeoutThreshold = 2 * timeSlotSpan; //
 
     // 客户共享池
     // BizID <==> {ShareBatchID <==> PriorityBlockingQueue<SingleNumberModeShareCustomerItem>}
