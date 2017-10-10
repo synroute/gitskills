@@ -16,8 +16,7 @@ import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
 @Repository
 public class DMBizDistributiontRepository extends BaseRepository{
-	@Autowired
-	private DMBizExportTemplate templateExportRepository;
+
 
 	public ServiceResultCode newDistributiontTemplate(String bizId, String templateID,
 			String name, String description, String isDefault,

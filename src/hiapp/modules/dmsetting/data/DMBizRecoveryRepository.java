@@ -15,9 +15,7 @@ import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
 @Repository
 public class DMBizRecoveryRepository  extends BaseRepository{
-	@Autowired
-	private DMBizExportTemplate templateExportRepository;
-
+	
 	public ServiceResultCode newRecoveryTemplate(String bizId, String templateID,
 			String name, String description, String isDefault,
 			StringBuffer errMessage) {
