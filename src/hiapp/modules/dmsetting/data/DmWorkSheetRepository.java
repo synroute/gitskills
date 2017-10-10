@@ -45,6 +45,9 @@ public class DmWorkSheetRepository extends BaseRepository {
 			if (dmBusiness.getModeId()==1) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetResult(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPool(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==2) {
 				
 			} else if (dmBusiness.getModeId()==3) {

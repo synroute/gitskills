@@ -1,6 +1,7 @@
 package hiapp.modules.dmsetting.data;
 
 import hiapp.modules.dmsetting.DMBizAutomaticConfig;
+import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.result.DMBizAutomaticColumns;
 import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.system.worksheet.bean.WorkSheetColumn;
@@ -8,6 +9,8 @@ import hiapp.system.worksheet.data.WorkSheetRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 
+import java.io.StringReader;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.beanutils.Converter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -460,13 +464,23 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						if(ishas>0)
 						{
 							szSql=String.format("update HASYS_DM_AUTOMATICCONFIG set Config='"+jsonArray.toString()+"' where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s' and PANLENAME='%s'",sourceId,sourceModular,pageName,panleName) ;
+							PreparedStatement stat=dbConn.prepareStatement("update HASYS_DM_AUTOMATICCONFIG set Config=? where SourceID="+sourceId+" and SOURCEMODULAR='"+sourceModular+"' and PAGENAME='"+pageName+"' and PANLENAME='"+panleName+"'");
+							 String clobContent = jsonArray.toString();  
+						     StringReader reader = new StringReader(clobContent);  
+						     stat.setCharacterStream(1, reader, clobContent.length());
+						     stat.executeUpdate();
 						}else{
-							szSql=String.format("insert into HASYS_DM_AUTOMATICCONFIG(ID,SourceID,SourceModular,PageName,PanleName,Config,CREATER,STATE,ISDELETE,DISPLAYTYPE,PAGEID,CREATETIME) "
-								+ "values(S_HASYS_DM_AUTOMATICCONFIG.nextval,'"+sourceId+"','"+sourceModular+"','"+pageName+"','"+panleName+"','"+jsonArray.toString()+"','"+userId+"','"+state+"',"+isDelete+",'"+displayType+"','"+pageId+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())+ "','yyyy-mm-dd hh24:mi:ss'))") ;
+							PreparedStatement stat=dbConn.prepareStatement("insert into HASYS_DM_AUTOMATICCONFIG(ID,SourceID,SourceModular,PageName,PanleName,Config,CREATER,STATE,ISDELETE,DISPLAYTYPE,PAGEID,CREATETIME) "
+									+ "values(S_HASYS_DM_AUTOMATICCONFIG.nextval,'"+sourceId+"','"+sourceModular+"','"+pageName+"','"+panleName+"',?,'"+userId+"','"+state+"',"+isDelete+",'"+displayType+"','"+pageId+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())+ "','yyyy-mm-dd hh24:mi:ss'))");
+							 String clobContent = jsonArray.toString();  
+						     StringReader reader = new StringReader(clobContent);  
+						     stat.setCharacterStream(1, reader, clobContent.length());
+						     stat.executeUpdate();
 						}
-						stmt = dbConn.prepareStatement(szSql);
-						stmt.execute();
 						
+						/*stmt = dbConn.prepareStatement(szSql);
+						
+						dbConn.commit();*/
 					} catch (Exception e) {
 						e.printStackTrace();
 						return false;
@@ -516,5 +530,57 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					return listDMBizAutomaticConfig;
 				}
 				
-				
+				//
+				public   boolean dmSubmitResult(DMBizImportTemplate dmBizImportTemplate,StringBuffer errMessage){
+					PreparedStatement stmt = null;
+					ResultSet rs = null;
+					Connection dbConn = null;
+					try {
+						dbConn =this.getDbConnection();
+						try {
+							
+							int count = 0;
+							String szSql = String.format("select COUNT(*) from HASYS_DM_BIZTEMPLATEIMPORT where BUSINESSID='%s' and TemplateID='%s'",dmBizImportTemplate.getBizId(),dmBizImportTemplate.getTemplateId());
+							stmt = dbConn.prepareStatement(szSql);
+							rs = stmt.executeQuery();
+							if (rs.next()) {
+								count = rs.getInt(1);
+							}
+							if (count > 0) {
+								errMessage.append("模板ID冲突！");
+								return false;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						try {
+							
+							int count = 0;
+							 String szSql = String.format("select COUNT(*) from HASYS_DM_BIZTEMPLATEIMPORT where BUSINESSID='%s' and NAME='%s'",dmBizImportTemplate.getBizId(),dmBizImportTemplate.getTemplateName());
+							stmt = dbConn.prepareStatement(szSql);
+							rs = stmt.executeQuery();
+							if (rs.next()) {
+								count = rs.getInt(1);
+							}
+							if (count > 0) {
+								errMessage.append("模板名称冲突！");
+								return false;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+						String szSql = "INSERT INTO HASYS_DM_BIZTEMPLATEIMPORT (ID,TemplateID,BusinessId,Name,Description,IsDefault,SourceType,Xml) VALUES(S_HASYS_DM_BIZTEMPLATEIMPORT.nextval,?,?,?,?,?,?,'') ";
+						stmt = dbConn.prepareStatement(szSql);
+						
+						stmt.execute();
+
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						DbUtil.DbCloseConnection(dbConn);
+						DbUtil.DbCloseExecute(stmt);
+					}
+					return true;
+				}
 }
