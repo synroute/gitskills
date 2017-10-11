@@ -237,9 +237,10 @@ public class DMBizDataShare extends BaseRepository {
 		String updateSql="";
 		try {
 			conn=this.getDbConnection();
-			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
+			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolName =?";
 			pst=conn.prepareStatement(getDataSourceSql);
 			pst.setInt(1,businessId);
+			pst.setString(2,user.getId());
 			rs=pst.executeQuery();
 			Integer dataPoolNumber=null;
 			while(rs.next()){
@@ -268,7 +269,7 @@ public class DMBizDataShare extends BaseRepository {
 				pst = conn.prepareStatement(insertSql);
 				pst.execute();
 			}
-			insertSql = String.format("INSERT INTO HASYS_DM_AID (ID,BUSINESSID,SHAREID,AdditionalID,AdditionalName,CreatUserID,CreateTime,Description,State) VALUES(S_HASYS_DM_SID.NEXTVAL,%s,'%s','%s','%s','%s',sysdate,'%s','%s')",businessId,newShareId,appendId,appendName,user.getId(),description,"入库成功");
+			insertSql = String.format("INSERT INTO HASYS_DM_AID (ID,BUSINESSID,SHAREID,AdditionalID,AdditionalName,CreatUserID,CreateTime,Description,State) VALUES(S_HASYS_DM_AID.NEXTVAL,%s,'%s','%s','%s','%s',sysdate,'%s','%s')",businessId,newShareId,appendId,appendName,user.getId(),description,"入库成功");
 			pst=conn.prepareStatement(insertSql);
 			pst.execute();
 			conn.commit();

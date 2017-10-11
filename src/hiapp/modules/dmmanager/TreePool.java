@@ -8,6 +8,13 @@ public class TreePool {
 	private Integer groupId;
 	private String groupName;
 	private String userName;
+	private Integer topLimit;
+	public Integer getTopLimit() {
+		return topLimit;
+	}
+	public void setTopLimit(Integer topLimit) {
+		this.topLimit = topLimit;
+	}
 	public Integer getGroupId() {
 		return groupId;
 	}

@@ -845,6 +845,9 @@ public class DataImportJdbc extends BaseRepository{
 				}
 				insertDataSql=insertDataSql.substring(0,insertDataSql.length()-1)+")"+valuesSql.substring(0,valuesSql.length()-1)+")";
 				statement.addBatch(insertDataSql);
+				if((i+1)%1000==0){
+					statement.executeBatch();
+				}
 			}
 			statement.executeBatch();
 			resultMap.put("result", true);

@@ -270,6 +270,7 @@ public class DMBizMangeShare extends BaseRepository{
 						if(uid[j]==null&&"".equals(uid[j])){
 							continue;
 						}
+						
 						String insertsql =String.format("INSERT INTO HASYS_DM_SIDUSERPOOl (ID,BUSINESSID,SHAREID,DATAPOOLNAME,DATAPOOLID) VALUES (S_HASYS_DM_SIDUSERPOOl.NEXTVAL,%s,'%s','%s',%s)",bizId,shareid,dataPoolName[j],uid[j]);
 						sta.addBatch(insertsql);
 					}

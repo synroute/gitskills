@@ -10,7 +10,14 @@ public class UserItem {
 	private String id;
 	private String state;
 	private Boolean checked;
+	private Integer topLimit;
 	private List<UserItem> children;
+	public Integer getTopLimit() {
+		return topLimit;
+	}
+	public void setTopLimit(Integer topLimit) {
+		this.topLimit = topLimit;
+	}
 	public Boolean getChecked() {
 		return checked;
 	}
