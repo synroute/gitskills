@@ -70,17 +70,13 @@ public class DMBizMangeShareController {
 			@RequestParam(value = "StartTime") String startTime,
 			@RequestParam(value = "EndTime") String endTime,
 			HttpServletRequest request) {
-		HttpSession session = request.getSession(false);
-		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(((User) session.getAttribute("user")).getId());
-		Permission permission = permissionRepository.getPermission(roleInGroupSet);
-		int permissionId = permission.getId();
 		Integer page=Integer.valueOf(request.getParameter("page"));
 		Integer rows=Integer.valueOf(request.getParameter("rows"));
 		String json = null;
 		try {
 			List<ShareBatchItemS> shareBatchItem = new ArrayList<ShareBatchItemS>();
 			Map<String,Object> resultMap = bizMangeShare.getUserShareBatchByTime(
-					businessID, startTime, endTime,shareBatchItem,permissionId,page,rows);
+					businessID, startTime, endTime,shareBatchItem,page,rows);
 			json = new Gson().toJson(resultMap);
 
 		} catch (Exception e) {

@@ -135,21 +135,6 @@ public class DistributDataController {
 			e.printStackTrace();
 		}
 	}
-	/**
-	 * 修改临时表
-	 * @param request
-	 * @param response
-	 */
-	@RequestMapping(value="/srv/DistributeDataController/updateTempData.srv")
-	public void updateTempData(HttpServletRequest request, HttpServletResponse response){
-		HttpSession session = request.getSession();
-		User user=(User) session.getAttribute("user");
-	    String userId =String.valueOf(user.getId());
-	    Integer bizId=Integer.valueOf(request.getParameter("bizId"));
-		String tempIds=request.getParameter("tempIds");
-		Integer action=Integer.valueOf(request.getParameter("action"));
-		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action);
-	}
 	
 	/**
 	 * 将数据保存到正式表中
@@ -167,6 +152,9 @@ public class DistributDataController {
 		String description=request.getParameter("description");
 		String dataPools=request.getParameter("dataPools");
 		List<Map<String,Object>>  dataPoolList=new Gson().fromJson(dataPools,List.class);
+		String tempIds=request.getParameter("tempIds");
+		Integer action=Integer.valueOf(request.getParameter("action"));
+		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action);
 		Map<String, Object> resultMap = dataDistributeJdbc.saveDistributeDataToDB(bizId, userId, disName, description, dataPoolList);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
@@ -197,6 +185,9 @@ public class DistributDataController {
 		String endTime=request.getParameter("endTime");
 		Integer model=Integer.valueOf(request.getParameter("model"));
 		Integer ifAppend=Integer.valueOf(request.getParameter("ifAppend"));
+		String tempIds=request.getParameter("tempIds");
+		Integer action=Integer.valueOf(request.getParameter("action"));
+		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action);
 		Map<String, Object> resultMap = dataDistributeJdbc.saveShareDataToDB(bizId, userId, shareName, description, startTime, endTime, dataPoolIds, dataPoolNames,model,ifAppend);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {

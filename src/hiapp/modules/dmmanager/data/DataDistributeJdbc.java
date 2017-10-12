@@ -1,5 +1,6 @@
 package hiapp.modules.dmmanager.data;
 
+import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.bean.DistributeTemplate;
@@ -13,10 +14,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +30,8 @@ import com.google.gson.JsonParser;
 public class DataDistributeJdbc extends BaseRepository{
 	@Autowired
 	private IdFactory idfactory;
+	@Autowired
+	private SingleNumberOutboundDataManage singleNumberOutboundDataManage;
 	/**
 	 * 获取所有分配模板
 	 * @param bizId
@@ -144,8 +145,8 @@ public class DataDistributeJdbc extends BaseRepository{
 			String configJson=getConfigJson(bizId, templateId);
 			JsonObject jsonObject= new JsonParser().parse(configJson).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
-			String getDataSql2="select S_HAU_DM_B909C_POOL.nextval,0,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
-			String insertSql="insert into "+tempTableName+" ";
+			String getDataSql2="b.id,0,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
+			String insertSql="insert into "+tempTableName+"(TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR, ";
 			String createTableSql="create table "+tempTableName+"(TEMPID NUMBER,IFCHECKD NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR BUMBER,";
 			
 			for (int i = 0; i < dataArray.size(); i++) {
@@ -180,8 +181,9 @@ public class DataDistributeJdbc extends BaseRepository{
 				for (int j = 0; j < newList.size(); j++) {
 					String asName="a"+j+".";
 					if(newList.get(j).equals(workSheetName)){
-						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
+						if(!"ID".equals(columnName.toUpperCase())&&!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql2+=asName+columnName+",";
+							insertSql+=columnName+",";
 							createTableSql+=getTempColumnType(columnName,workSheetId);
 							break;
 						}
@@ -204,7 +206,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			getDataSql2=getDataSql2.substring(0,getDataSql2.lastIndexOf("left join"))+" where ";
 			getDataSql2=getDataSql2+" t.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>(?,'yyyy-mm-dd') and a.ModifyTime<(?,'yyyy-mm-dd') and b.AreaCur=0 and b.DataPoolIDCur=(select m.id from HASYS_DM_DATAPOOL m where m.BusinessID=? and m.DataPoolName=?)  )";
 			createTableSql=createTableSql.substring(0,createTableSql.length()-1);
-			insertSql=insertSql+getDataSql2;
+			insertSql=insertSql.substring(0,insertSql.length()-1)+")"+getDataSql2;
 			if(dbTableName==null){
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
@@ -373,11 +375,11 @@ public class DataDistributeJdbc extends BaseRepository{
 		return treePool;
 	}
 	
-	public List<TreePool> getChildrenPool(Integer bizId,Integer pid){
+	public List<UserItem> getChildrenPool(Integer bizId,Integer pid){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
-		List<TreePool> treePools=new ArrayList<TreePool>();
+		List<UserItem>	userItems=new ArrayList<UserItem>();
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		try {
 			conn=this.getDbConnection();
@@ -387,11 +389,11 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst.setInt(2, pid);
 			rs=pst.executeQuery();
 			while(rs.next()){
-				TreePool treePool=new TreePool();
-				treePool.setId(rs.getInt(1));
-				treePool.setDataPoolName(rs.getString(2));
-				treePool.setTopLimit(rs.getInt(3));
-				treePools.add(treePool);
+				UserItem userItem=new UserItem();
+				userItem.setId(String.valueOf(rs.getInt(1)));
+				userItem.setText(rs.getString(2));;
+				userItem.setTopLimit(rs.getInt(3));
+				userItems.add(userItem);
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -400,7 +402,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			DbUtil.DbCloseQuery(rs,pst);
 			DbUtil.DbCloseConnection(conn);
 		}
-		return treePools;
+		return userItems;
 	}
 	/**
 	 * 获取前台tree
@@ -413,7 +415,8 @@ public class DataDistributeJdbc extends BaseRepository{
 		UserItem userItem=new UserItem();
 		userItem.setId(String.valueOf(treePool.getId()));
 		userItem.setText(treePool.getDataPoolName());
-		addChildren(userItem, bizId);
+		List<UserItem>  userItemList=getChildrenPool(bizId, treePool.getId());
+		userItem.setChildren(userItemList);
 		return userItem;
 	}
 	
@@ -422,7 +425,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param userTreeBranch
 	 * @param bizId
 	 */
-	public void addChildren(UserItem userTreeBranch,Integer bizId) {
+	/*public void addChildren(UserItem userTreeBranch,Integer bizId) {
 		    List<UserItem> listChildrenBranchs = new ArrayList<UserItem>();
 		    Integer pid=Integer.valueOf(userTreeBranch.getId());
 		    List<TreePool>  treePoolList=getChildrenPool(bizId, pid);
@@ -443,7 +446,7 @@ public class DataDistributeJdbc extends BaseRepository{
 				
 			}
 		    userTreeBranch.setChildren(listChildrenBranchs);
-		}
+		}*/
 	/**
 	 * 保存数据到正式表中
 	 * @param bizId
@@ -474,10 +477,10 @@ public class DataDistributeJdbc extends BaseRepository{
 				pst=conn.prepareStatement(updatePoolSql);
 				pst.executeUpdate();
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-										" select S_HAU_DM_DIS_POOLORE.nextval,'"+disBatchId+"',IID,CID,'分配',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+" ORDER BY b.TEMPID ASC";
+										" select tempId,'"+disBatchId+"',IID,CID,'分配',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+" ORDER BY b.TEMPID ASC";
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.executeUpdate();
-				String deleteSql=" delete from "+tempTableName+" a where a.tempId in(select b.tempId from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+" order by b.tempId asc";
+				String deleteSql=" delete from "+tempTableName+" a where a.tempId in(select b.tempId from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+" order by b.tempId asc)";
 				pst=conn.prepareStatement(deleteSql);
 				pst.executeUpdate();
 				
@@ -546,20 +549,22 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.executeUpdate();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-									" select S_HAU_DM_DIS_POOLORE.nextval,'"+shareId+"',IID,CID,'共享',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1  ORDER BY b.TEMPID ASC";
+									" select tempId,'"+shareId+"',IID,CID,'共享',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1  ORDER BY b.TEMPID ASC";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
 			if(model==3){
-				String insertDatamSql="insert into "+datamTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_HASYS_DM_B1C_DATAM3.NEXTVAL,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
+				String insertDatamSql="insert into "+datamTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select tempId,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
 									  "where b.ifchecked=1  ORDER BY b.TEMPID ASC";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.executeUpdate();
-				String insertHisDatamSql="insert into "+hisTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_HASYS_DM_B1C_DATAM3.NEXTVAL,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
+				String insertHisDatamSql="insert into "+hisTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select tempId,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
 										 "where b.ifchecked=1  ORDER BY b.TEMPID ASC";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.executeUpdate();
 			}
-		
+			String deleteTempSql=" delete from "+tempTableName+" a where b.ifchecked=1";
+			pst=conn.prepareStatement(deleteTempSql);
+			pst.executeUpdate();
 			String insertShareSql=null;
 			if(startTime==null||"".equals(startTime)){
 				if(ifAppend==0){
@@ -582,6 +587,9 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.setString(5,description);
 					pst.setString(6,"入库成功");
 					pst.executeUpdate();
+					List<String> shareIds=new ArrayList<String>();
+					shareIds.add(shareId);
+					singleNumberOutboundDataManage.appendCustomersToShareBatch(bizId, shareIds);
 				}
 			
 			}else{
@@ -595,9 +603,10 @@ public class DataDistributeJdbc extends BaseRepository{
 				pst.setString(6,startTime);
 				pst.setString(7,endTime);
 				pst.executeUpdate();
-				String deleteSql="delete from HASYS_DM_SIDUSERPOOl where SHAREID=?";
+				String deleteSql="delete from HASYS_DM_SIDUSERPOOl where SHAREID=? and BUSINESSID=?";
 				pst=conn.prepareStatement(deleteSql);
 				pst.setString(1,shareId);
+				pst.setInt(2,bizId);
 				pst.executeUpdate();
 				
 				for (int i = 0; i < arrDataPoolName.length; i++) {
@@ -684,9 +693,9 @@ public class DataDistributeJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 			String sql=null;
 			if(action==0){
-				sql="update "+tableName+" set IFCHECKD=1";
+				sql="update "+tableName+" set IFCHECKED=1";
 			}else{
-				sql="update "+tableName+" set IFCHECKD=1 where tempId in(";
+				sql="update "+tableName+" set IFCHECKED=1 where tempId in(";
 				for (int i = 0; i < arrTempId.length; i++) {
 					String tempId=arrTempId[i];
 					if(tempId==null||"".equals(tempId)){

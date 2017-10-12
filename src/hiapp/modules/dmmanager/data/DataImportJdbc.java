@@ -445,15 +445,12 @@ public class DataImportJdbc extends BaseRepository{
 		PreparedStatement pst1 = null;
 		Statement statement= null;
 		ResultSet rs = null;
-		List<String> stringList=new ArrayList<String>();
-		List<String> dataTypeList=new ArrayList<String>();
-		List<String> columList=new ArrayList<String>();
 		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
 		List<String> repeatColumns=new ArrayList<String>();//重复字段的集合
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
 		String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
-		String deleteTempSql="delete from "+tempTableName+" where tempId in(";
+		String resultTableName="HAU_DM_B"+bizId+"C_Result";//结果表
 		try {
 			conn=this.getDbConnection();
 	    	//解析JSON RepetitionExcludeType
@@ -467,9 +464,13 @@ public class DataImportJdbc extends BaseRepository{
 		    //排重字段
 		    resultMap.put("column",RepetitionColumnCh);
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
-			//获取导入表字段所属类型
-			getDataType(dataTypeList,columList,dataArray,workSheetId,1);
-			//获取排重字段类型
+			String distinctSql=null;
+			//查询数据
+			if("根据导入时间排重".equals(repetitionExcludeType)){
+				distinctSql="select "+RepetitionColumn+" from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
+			}else{
+				distinctSql="select a."+RepetitionColumn+" from "+tableName+" a,"+resultTableName+" b where a.iid=b.iid and a.cid=b.cid and b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
+			}
 			String getTypeSql="select dataType from HASYS_WORKSHEETCOLUMN	where COLUMNNAME=? and  workSheetId=?";
 			pst=conn.prepareStatement(getTypeSql);
 			pst.setString(1, RepetitionColumn);
@@ -479,114 +480,51 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				type=rs.getString(1);
 			}
-			String distinctSql=null;
-			String resultTableName="HAU_DM_B"+bizId+"C_Result";
-			//查询数据
-			if("根据导入时间排重".equals(repetitionExcludeType)){
-				if(type.startsWith("datetime")){
-					 distinctSql="select to_char("+RepetitionColumn+",'yyyy-mm-dd') from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
-				}else{
-					 distinctSql="select "+RepetitionColumn+" from "+tableName+" where modifytime <sysdate and modifytime>sysdate-"+RepetitionCount;
-				}
-			}else{
-				if(type.startsWith("datetime")){
-					 distinctSql="select to_char(a."+RepetitionColumn+",'yyyy-mm-dd') from "+tableName+" a,"+resultTableName+" b where b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
-				}else{
-					 distinctSql="select a."+RepetitionColumn+" from "+tableName+" a,"+resultTableName+" b where b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
-				}
-			}
 			
-			pst=conn.prepareStatement(distinctSql);
-			rs=pst.executeQuery();
+			String selectRepColumnSql=null;
+			if("datetime".equals(type.toLowerCase())){
+				selectRepColumnSql="select to_char("+RepetitionColumn+",'yyyy-mm-dd') from "+tempTableName+" where ifchecked=1 and "+RepetitionColumn+" in("+distinctSql+")";
+			}else{
+				selectRepColumnSql="select "+RepetitionColumn+" from "+tempTableName+" where ifchecked=1 and "+RepetitionColumn+" in("+distinctSql+")";
+			}
+			pst=conn.prepareStatement(selectRepColumnSql);
+			pst.executeQuery();
 			while(rs.next()){
 				if(type.toLowerCase().startsWith("varchar")||type.toLowerCase().startsWith("datetime")){
-					stringList.add(rs.getString(1));
+					repeatColumns.add(rs.getString(1));
 				}else if(type.toLowerCase().startsWith("int")){
-					stringList.add(String.valueOf(rs.getInt(1)));
-				}
+					repeatColumns.add(String.valueOf(rs.getInt(1)));
+				}	
 			}
+			//导入表里面添加数据
+			String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
+			String selectSql="select tempId,'"+importBatchId+"',CUSTOMERID,1,0,'"+userId+"',sysdate,";
 			//数据池记录表里面插数据
 			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-									+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
+									+" select tempId,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1 and "+RepetitionColumn +" not in("+distinctSql+") order by tempId asc";
 			pst=conn.prepareStatement(isnertDataPoolSql);
+			pst.executeUpdate();
 			//数据池操作记录表里面插数据
 			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
-										+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
-			pst1=conn.prepareStatement(dataPoolOperationSql);
-			statement=conn.createStatement();
-			//向导入表插数据
-			for (int i = 0; i < isnertData.size(); i++) {
-				String data=(String) isnertData.get(i).get(RepetitionColumn);
-				Boolean ifRepeat=true;
-				for(int h=0;h<stringList.size();h++){
-					if(data!=null&&data.equals(stringList.get(h))){
-						repeatColumns.add(data);
-						ifRepeat=false;
-						break;
-					}
-				}
-				if(ifRepeat){
-					String customerBatchId=idfactory.newId("DM_CID");//客户号
-					String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-					deleteTempSql+=isnertData.get(i).get("tempId")+",";
-					pst.setString(1,disBatchId);
-					pst.setString(2, importBatchId);
-					pst.setString(3,customerBatchId);
-					pst.setInt(4, dataPoolNumber);
-					pst.setInt(5, dataPoolNumber);
-					pst.setInt(6, 0);
-					pst.setInt(7, 0);
-					pst.setInt(8, 0);
-					pst.setString(9, userId);
-				
-					pst1.setString(1,disBatchId);
-					pst1.setString(2, importBatchId);
-					pst1.setString(3,customerBatchId);
-					pst1.setString(4,operationName);
-					pst1.setInt(5, dataPoolNumber);
-					pst1.setInt(6, dataPoolNumber);
-					pst1.setInt(7, 0);
-					pst1.setInt(8, 0);
-					pst1.setInt(9, 0);
-					pst1.setString(10, userId);
-					for (int k = 0; k < dataArray.size(); k++) {
-						String excelHeader=dataArray.get(k).getAsJsonObject().get("ExcelHeader").getAsString();
-						if(excelHeader!=null&&!"".equals(excelHeader)){
-							insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("DbFieldName").getAsString()+",";
-						}
-					}
-					insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
-					for (int j = 0; j < dataArray.size(); j++) {
-						String cName=dataArray.get(j).getAsJsonObject().get("DbFieldName").getAsString();
-						for (int k = 0; k < columList.size(); k++) {
-							String cType =dataTypeList.get(k);
-							if(cName.equals(columList.get(k))){
-								if(cType.toLowerCase().startsWith("varchar")){
-									insertImportDataSql+="'"+isnertData.get(i).get(cName)+"',";
-								}else if(cType.toLowerCase().startsWith("int")){
-									insertImportDataSql+=isnertData.get(i).get(cName)+",";
-								}else if(cType.toLowerCase().startsWith("datetime")){
-									insertImportDataSql+="to_date('"+isnertData.get(i).get(cName)+"','yyyy-mm-dd'),";
-								}
-							}
-						}
-					
-					}
-					insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+")";
-					statement.addBatch(insertImportDataSql);
-					pst.addBatch();
-					pst1.addBatch();
-				}
-				
-				
-			}
-		
-			pst.executeBatch();
-			pst1.executeBatch();
-			statement.executeBatch();
-			deleteTempSql=deleteTempSql.substring(0,deleteTempSql.length()-1)+")";
-			pst=conn.prepareStatement(deleteTempSql);
+										+" select tempId,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1 and "+RepetitionColumn +" not in("+distinctSql+") order by tempId asc";
+			pst=conn.prepareStatement(dataPoolOperationSql);
 			pst.executeUpdate();
+			for (int k = 0; k < dataArray.size(); k++) {
+				String excelHeader=dataArray.get(k).getAsJsonObject().get("ExcelHeader").getAsString();
+				if(excelHeader!=null&&!"".equals(excelHeader)){
+					insertImportDataSql+=dataArray.get(k).getAsJsonObject().get("DbFieldName").getAsString()+",";
+					selectSql+=dataArray.get(k).getAsJsonObject().get("DbFieldName").getAsString()+",";
+				}
+			}
+			selectSql=selectSql.substring(0,selectSql.length()-1)+" from "+tempTableName+"  where ifchecked=1 and "+RepetitionColumn +" not in("+distinctSql+") order by tempId asc";
+			insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") "+selectSql;
+			pst=conn.prepareStatement(insertImportDataSql);
+			pst.executeUpdate();
+			//从临时表中删除数据
+			String deleteTempSql="delete from "+tempTableName+" where ifChecked=1 and "+RepetitionColumn +" not in("+distinctSql+")";	
+			pst=conn.prepareStatement(deleteTempSql);	
+			pst.executeUpdate();
+			
 			resultMap.put("repeatColumn", repeatColumns);
 			resultMap.put("flag", 1);
 			resultMap.put("result",true);
@@ -803,7 +741,7 @@ public class DataImportJdbc extends BaseRepository{
 			
 			if(dbTableName==null){
 				//创建临时表
-				String createTableSql="create table "+tableName+"(TEMPID NUMBER,";
+				String createTableSql="create table "+tableName+"(TEMPID NUMBER,IFCHECKED NUMBER,CUSTOMERID VARCHAR2(50),";
 				for (int i = 0; i < sheetColumnList.size(); i++) {
 					String type=sheetColumnList.get(i).getDataType();
 					String columnName=sheetColumnList.get(i).getField();
@@ -826,9 +764,11 @@ public class DataImportJdbc extends BaseRepository{
 			pst.executeUpdate();
 			//临时表插数据 
 			statement=conn.createStatement();
+			
 			for(int i=0;i<dataList.size();i++){
-				String insertDataSql="insert into "+tableName+"(TEMPID,";
-				String valuesSql=" values(S_HAU_DM_B101C_IMPORT.nextval,";
+				String customerBatchId=idfactory.newId("DM_CID");//客户号
+				String insertDataSql="insert into "+tableName+"(TEMPID,CUSTOMERID,";
+				String valuesSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+customerBatchId+"',";
 				for (int j = 0; j < sheetColumnList.size(); j++) {
 					String columnName=sheetColumnList.get(j).getField();
 					String type=sheetColumnList.get(j).getDataType();
@@ -902,7 +842,7 @@ public class DataImportJdbc extends BaseRepository{
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int i = 0; i < sheetColumnList.size(); i++) {
 					String column=sheetColumnList.get(i).getField();
-					if(rs.getObject(column)!=null&&!"ID".equals(column.toUpperCase())){
+					if(rs.getObject(column)!=null){
 						map.put("tempId",rs.getObject("tempId"));
 						map.put(column, rs.getObject(column));
 					}
@@ -1006,5 +946,46 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 	}
 	  
   }
+  
+  
+  /**
+	 * 修改临时表
+	 * @param bizId
+	 * @param userId
+	 * @param tempIds
+	 * @param action
+	 */
+	public void updateTempData(Integer bizId,String userId,String tempIds,Integer action){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String[] arrTempId=tempIds.split(",");
+		String tableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
+		try {
+			conn=this.getDbConnection();
+			String sql=null;
+			if(action==0){
+				sql="update "+tableName+" set IFCHECKED=1";
+			}else{
+				sql="update "+tableName+" set IFCHECKED=1 where tempId in(";
+				for (int i = 0; i < arrTempId.length; i++) {
+					String tempId=arrTempId[i];
+					if(tempId==null||"".equals(tempId)){
+						continue;
+					}
+					sql+=Integer.valueOf(tempId)+",";
+				}
+				sql=sql.substring(0,sql.length()-1)+")";
+			}
+			pst=conn.prepareStatement(sql);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+	}
     
 }

@@ -40,7 +40,7 @@ public class DataRecyleJdbc extends BaseRepository{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
-		try {
+		try {	
 			conn=this.getDbConnection();
 			String sql="select id,TEMPLATEID,BUSINESSID,NAME,DESCRIPTION from HASYS_DM_BIZTEMPLATERECOVER where BUSINESSID=?";
 			pst=conn.prepareStatement(sql);
@@ -130,9 +130,9 @@ public class DataRecyleJdbc extends BaseRepository{
 			String configJson=getConfigJson(bizId, templateId);
 			JsonObject jsonObject= new JsonParser().parse(configJson).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
-			String insertSql="insert into "+tempTableName+" ";
+			String insertSql="insert into "+tempTableName+"(TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
 			String createTableSql="create table "+tempTableName+" (TEMPID NUMBER,IFCHECKD NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR BUMBER,";
-			String getDataSql2="select S_HAU_DM_HS.nextval,0,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
+			String getDataSql2="select b.id,0,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=null ;
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
@@ -165,8 +165,9 @@ public class DataRecyleJdbc extends BaseRepository{
 				for (int j = 0; j < newList.size(); j++) {
 					String asName="a"+j+".";
 					if(newList.get(j).equals(workSheetName)){
-						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
-							getDataSql2+=dataDistributeJdbc.getDataType(columnName,workSheetId,asName)+",";
+						if(!"ID".equals(columnName.toUpperCase())&&!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
+							getDataSql2+=asName+columnName+",";
+							insertSql+=columnName+",";
 							createTableSql+=dataDistributeJdbc.getTempColumnType(columnName,workSheetId);
 							break;
 						}
@@ -188,7 +189,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			getDataSql2=getDataSql2+" t.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>(?,'yyyy-mm-dd') and a.ModifyTime<(?,'yyyy-mm-dd') "
 					+ " and b.AreaCur=0 and b.ISRecover=0 and b.DataPoolIDCur in(select id from HASYS_DM_DATAPOOL p where p.pid=(select m.id from HASYS_DM_DATAPOOL m where m.BusinessID=? and m.DataPoolName=?) and p.BusinessID=?) )";
 			createTableSql=createTableSql.substring(0,createTableSql.length()-1)+")";
-			insertSql=insertSql+getDataSql2;
+			insertSql=insertSql.substring(0,insertSql.length()-1)+") "+getDataSql2;
 			if(dbTableName==null){
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
@@ -240,7 +241,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 			String sql = "";
 			String sql1="";
-			sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,to_char(A.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,A.DESCRIPTION,A.STATE,to_char(A.STARTTIME,'yyyy-mm-dd') STARTTIME,to_char(A.ENDTIME,'yyyy-mm-dd') ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SHAREID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SHAREID ) B WHERE A.SHAREID=B.SHAREID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND (A.STATE='stop'or A.STATE='expired') AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY CREATETIME";
+			sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,to_char(A.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,A.DESCRIPTION,A.STATE,to_char(A.STARTTIME,'yyyy-mm-dd') STARTTIME,to_char(A.ENDTIME,'yyyy-mm-dd') ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B WHERE A.SHAREID=B.SourceID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND (A.STATE='stop'or A.STATE='expired') AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY CREATETIME";
 			sql1="SELECT DISTINCT ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION,STATE,STARTTIME,ENDTIME,ABC from (";
 			sql=sql1+sql+") m where rn>=?";			
 			pst= conn.prepareStatement(sql);
@@ -265,7 +266,7 @@ public class DataRecyleJdbc extends BaseRepository{
 					shareBatchStateEnum ="停止";
 				}else if("expired".equals(state)){
 					shareBatchStateEnum ="过期";
-				}else{
+				}else if(state==null||"".equals(state)){
 					shareBatchStateEnum ="";
 				}
 				shareBatchItems.setState(shareBatchStateEnum);
@@ -274,7 +275,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				shareBatchItems.setAbc(rs.getInt(11));
 				shareBatchItemList.add(shareBatchItems);
 			}
-			String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SHAREID,BUSINESSID ) B where  A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND (A.STATE='stop'or A.STATE='expired') AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME)";
+			String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B where  A.SHAREID=B.SourceID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND (A.STATE='stop'or A.STATE='expired') AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME) t";
 			pst=conn.prepareStatement(getCountSql);
 			pst.setString(1,startTime);
 			pst.setString(2,endTime);
@@ -326,10 +327,10 @@ public class DataRecyleJdbc extends BaseRepository{
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.executeUpdate();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-					" select S_HAU_DM_DIS_POOLORE.nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1  ORDER BY b.TEMPID ASC";
+					" select tempId,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1  ORDER BY b.TEMPID ASC";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
-			String deleteSql=" delete from "+tempTableName+" a where a.tempId in(select b.tempId from "+tempTableName+" b where b.ifchecked=1  order by b.tempId asc";
+			String deleteSql=" delete from "+tempTableName+" a where b.ifchecked=1";
 			pst=conn.prepareStatement(deleteSql);
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,?,?,?,sysdate)";
 			pst.setInt(1,bizId);
@@ -385,7 +386,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				pst.setString(4,shareId);
 				pst.executeUpdate();
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-										" select S_HAU_DM_DIS_POOLORE.nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+orePoolName+" b where b.SourceID=?";
+										" select tempId,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+orePoolName+" b where b.SourceID=?";
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.setString(1, shareId);
 				pst.executeUpdate();

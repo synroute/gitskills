@@ -254,6 +254,7 @@ public class ImportDataController {
 	 * @param response
 	 * @throws IOException
 	 */
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value="/srv/ImportDataController/ImportDBCustomerData.srv")
 	public void ImportDBCustomerData(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
@@ -302,8 +303,11 @@ public class ImportDataController {
 		String operationName=request.getParameter("operationName");
 		WorkSheet workSheet=dataImportJdbc.getWorkSheet(workSheetId);
 		String tableName=workSheet.getName();
+		String tempIds=request.getParameter("tempIds");
+		Integer action=Integer.valueOf(request.getParameter("action"));
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
 		List<Map<String,Object>> isnertData=new Gson().fromJson(importData, List.class);
+		dataImportJdbc.updateTempData(bizId, userId, tempIds, action);
 		Map<String,Object> resultMap = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, sheetColumnList, isnertData, tableName, userId,operationName);
 		String jsonObject=new Gson().toJson(resultMap);
 		PrintWriter printWriter = response.getWriter();
