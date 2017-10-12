@@ -1,20 +1,32 @@
 package hiapp.modules.dm.multinumbermode;
 
-import hiapp.modules.dm.multinumbermode.bo.CustomerSharePool;
-import hiapp.modules.dm.multinumbermode.bo.CustomerWaitPool;
+import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
+import hiapp.modules.dm.multinumbermode.bo.OneBizCustomerSharePool;
+import hiapp.modules.dm.multinumbermode.dao.MultiNumberPredictModeDAO;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MultiNumberOutboundDataManage {
 
-    CustomerSharePool customerSharePool;
-    CustomerWaitPool customerWaitPool;
+    @Autowired
+    MultiNumberPredictModeDAO multiNumberPredictModeDAO;
+
+
+    // bizId <==> OneBizCustomerSharePool
+    Map<Integer, OneBizCustomerSharePool> mapBizIdVsCustomerPool;
+
 
     public synchronized SingleNumberModeShareCustomerItem extractNextOutboundCustomer(String userId, int bizId) {
+        OneBizCustomerSharePool bizCustomerSharePool = mapBizIdVsCustomerPool.get(bizId);
+        bizCustomerSharePool.extractCustomer(userId);
+
         return null;
     }
 
@@ -53,6 +65,17 @@ public class MultiNumberOutboundDataManage {
     ////////////////////////////////////////////////////////////
 
     private void initialize() {
+
+        mapBizIdVsCustomerPool = new HashMap<Integer, OneBizCustomerSharePool>();
+
+        List<MultiNumberCustomer> customerList = multiNumberPredictModeDAO.getAllActiveCustomers();
+        for (MultiNumberCustomer customer : customerList) {
+            OneBizCustomerSharePool bizCustomerSharePool = mapBizIdVsCustomerPool.get(customer.getBizId());
+            if (null == bizCustomerSharePool) {
+                bizCustomerSharePool = new OneBizCustomerSharePool(customer.getBizId());
+                bizCustomerSharePool.add(customer);
+            }
+        }
 
     }
 
