@@ -63,7 +63,13 @@ public class DmWorkSheetRepository extends BaseRepository {
 			} else if (dmBusiness.getModeId()==5) {
 				
 			} else if (dmBusiness.getModeId()==6) {
-				
+				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetResult(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPool(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDuoDataM3(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDuoDataM3_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -265,7 +271,147 @@ public class DmWorkSheetRepository extends BaseRepository {
 			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHAREHISTROY,errMessage);
 		}
-	
+		//多号码预测外呼
+		private ServiceResultCode m_newWorkSheetDuoDataM3(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+			creationInfoWorkSheet.setOwner(true);
+			String szWorkSheetName=String.format("HAU_DM_B%dC_DATAM3", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%d多号码预测外拨模式共享数据状态表", dmBusiness.getBizId());
+			String szWorkSheetDescription=String.format("外拨业务%d多号码预测外拨模式共享数据状态表，多号码预测外拨模式共享数据状态存入此工作表",dmBusiness.getBizId());
+			creationInfoWorkSheet.setName(szWorkSheetName);
+			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+			creationInfoWorkSheet.addColumn("业务ID", "BUSINESSID", "业务ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("共享ID", "SHAREID", "共享ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("状态", "STATE", "状态", WorkSheetDataType.TEXT, 50, false, true);	
+			creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改描述", "MODIFYDESC", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+			creationInfoWorkSheet.addColumn("是否追加", "ISAPPEND", "是否追加", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型1_电话号码", "PT1_PHONENUMBER", "电话类型1_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型1_最后拨打时间", "PT1_LASTDIALTIME", "电话类型1_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型1_产生预约拨打次数", "PT1_CAUSEPRESETDOALCOUNT", "电话类型1_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型1_拨打次数", "PT1_DOALCOUNT", "电话类型1_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型2_电话号码", "PT2_PHONENUMBER", "电话类型2_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型2_最后拨打时间", "PT2_LASTDIALTIME", "电话类型2_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型2_产生预约拨打次数", "PT2_CAUSEPRESETDOALCOUNT", "电话类型2_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型2_拨打次数", "PT2_DOALCOUNT", "电话类型2_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型3_电话号码", "PT3_PHONENUMBER", "电话类型3_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型3_最后拨打时间", "PT3_LASTDIALTIME", "电话类型3_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型3_产生预约拨打次数", "PT3_CAUSEPRESETDOALCOUNT", "电话类型3_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型3_拨打次数", "PT3_DOALCOUNT", "电话类型3_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型4_电话号码", "PT4_PHONENUMBER", "电话类型4_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型4_最后拨打时间", "PT4_LASTDIALTIME", "电话类型4_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型4_产生预约拨打次数", "PT4_CAUSEPRESETDOALCOUNT", "电话类型4_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型4_拨打次数", "PT4_DOALCOUNT", "电话类型4_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型5_电话号码", "PT5_PHONENUMBER", "电话类型5_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型5_最后拨打时间", "PT5_LASTDIALTIME", "电话类型5_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型5_产生预约拨打次数", "PT5_CAUSEPRESETDOALCOUNT", "电话类型5_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型5_拨打次数", "PT5_DOALCOUNT", "电话类型5_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型6_电话号码", "PT6_PHONENUMBER", "电话类型6_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型6_最后拨打时间", "PT6_LASTDIALTIME", "电话类型6_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型6_产生预约拨打次数", "PT6_CAUSEPRESETDOALCOUNT", "电话类型6_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型6_拨打次数", "PT6_DOALCOUNT", "电话类型6_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型7_电话号码", "PT7_PHONENUMBER", "电话类型7_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型7_最后拨打时间", "PT7_LASTDIALTIME", "电话类型7_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型7_产生预约拨打次数", "PT7_CAUSEPRESETDOALCOUNT", "电话类型7_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型7_拨打次数", "PT7_DOALCOUNT", "电话类型7_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型8_电话号码", "PT8_PHONENUMBER", "电话类型8_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型8_最后拨打时间", "PT8_LASTDIALTIME", "电话类型8_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型8_产生预约拨打次数", "PT8_CAUSEPRESETDOALCOUNT", "电话类型8_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型8_拨打次数", "PT8_DOALCOUNT", "电话类型8_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型9_电话号码", "PT9_PHONENUMBER", "电话类型9_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型9_最后拨打时间", "PT9_LASTDIALTIME", "电话类型9_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型9_产生预约拨打次数", "PT9_CAUSEPRESETDOALCOUNT", "电话类型9_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型9_拨打次数", "PT9_DOALCOUNT", "电话类型9_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型10_电话号码", "PT10_PHONENUMBER", "电话类型10_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型10_最后拨打时间", "PT10_LASTDIALTIME", "电话类型10_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型10_产生预约拨打次数", "PT10_CAUSEPRESETDOALCOUNT", "电话类型10_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型10_拨打次数", "PT10_DOALCOUNT", "电话类型10_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当前已拨打号码", "CURDIALPHONE", "当前已拨打号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESEDIALTTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.TEXT, 50, false, true);
+			
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
+		}
+		//多号码预测外呼历史表
+		private ServiceResultCode m_newWorkSheetDuoDataM3_his(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+			creationInfoWorkSheet.setOwner(true);
+			String szWorkSheetName=String.format("HAU_DM_B%dC_DATAM3_HIS", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%d多号码预测外拨模式共享数据状态历史表", dmBusiness.getBizId());
+			String szWorkSheetDescription=String.format("外拨业务%d多号码预测外拨模式共享数据状态历史表，多号码预测外拨模式共享数据状态历史存入此工作表",dmBusiness.getBizId());
+			creationInfoWorkSheet.setName(szWorkSheetName);
+			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+			creationInfoWorkSheet.addColumn("业务ID", "BUSINESSID", "业务ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("共享ID", "SHAREID", "共享ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("状态", "STATE", "状态", WorkSheetDataType.TEXT, 50, false, true);	
+			creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改描述", "MODIFYDESC", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+			creationInfoWorkSheet.addColumn("是否追加", "ISAPPEND", "是否追加", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型1_电话号码", "PT1_PHONENUMBER", "电话类型1_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型1_最后拨打时间", "PT1_LASTDIALTIME", "电话类型1_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型1_产生预约拨打次数", "PT1_CAUSEPRESETDOALCOUNT", "电话类型1_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型1_拨打次数", "PT1_DOALCOUNT", "电话类型1_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型2_电话号码", "PT2_PHONENUMBER", "电话类型2_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型2_最后拨打时间", "PT2_LASTDIALTIME", "电话类型2_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型2_产生预约拨打次数", "PT2_CAUSEPRESETDOALCOUNT", "电话类型2_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型2_拨打次数", "PT2_DOALCOUNT", "电话类型2_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型3_电话号码", "PT3_PHONENUMBER", "电话类型3_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型3_最后拨打时间", "PT3_LASTDIALTIME", "电话类型3_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型3_产生预约拨打次数", "PT3_CAUSEPRESETDOALCOUNT", "电话类型3_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型3_拨打次数", "PT3_DOALCOUNT", "电话类型3_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型4_电话号码", "PT4_PHONENUMBER", "电话类型4_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型4_最后拨打时间", "PT4_LASTDIALTIME", "电话类型4_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型4_产生预约拨打次数", "PT4_CAUSEPRESETDOALCOUNT", "电话类型4_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型4_拨打次数", "PT4_DOALCOUNT", "电话类型4_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型5_电话号码", "PT5_PHONENUMBER", "电话类型5_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型5_最后拨打时间", "PT5_LASTDIALTIME", "电话类型5_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型5_产生预约拨打次数", "PT5_CAUSEPRESETDOALCOUNT", "电话类型5_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型5_拨打次数", "PT5_DOALCOUNT", "电话类型5_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型6_电话号码", "PT6_PHONENUMBER", "电话类型6_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型6_最后拨打时间", "PT6_LASTDIALTIME", "电话类型6_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型6_产生预约拨打次数", "PT6_CAUSEPRESETDOALCOUNT", "电话类型6_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型6_拨打次数", "PT6_DOALCOUNT", "电话类型6_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型7_电话号码", "PT7_PHONENUMBER", "电话类型7_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型7_最后拨打时间", "PT7_LASTDIALTIME", "电话类型7_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型7_产生预约拨打次数", "PT7_CAUSEPRESETDOALCOUNT", "电话类型7_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型7_拨打次数", "PT7_DOALCOUNT", "电话类型7_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型8_电话号码", "PT8_PHONENUMBER", "电话类型8_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型8_最后拨打时间", "PT8_LASTDIALTIME", "电话类型8_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型8_产生预约拨打次数", "PT8_CAUSEPRESETDOALCOUNT", "电话类型8_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型8_拨打次数", "PT8_DOALCOUNT", "电话类型8_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型9_电话号码", "PT9_PHONENUMBER", "电话类型9_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型9_最后拨打时间", "PT9_LASTDIALTIME", "电话类型9_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型9_产生预约拨打次数", "PT9_CAUSEPRESETDOALCOUNT", "电话类型9_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型9_拨打次数", "PT9_DOALCOUNT", "电话类型9_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型10_电话号码", "PT10_PHONENUMBER", "电话类型10_电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型10_最后拨打时间", "PT10_LASTDIALTIME", "电话类型10_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("电话类型10_产生预约拨打次数", "PT10_CAUSEPRESETDOALCOUNT", "电话类型10_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话类型10_拨打次数", "PT10_DOALCOUNT", "电话类型10_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当前已拨打号码", "CURDIALPHONE", "当前已拨打号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESEDIALTTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.TEXT, 50, false, true);
+			
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
+		}
+		
 	//设置工作表ID前缀，创建表
 	private ServiceResultCode m_newWs(Connection dbConn,int bizId,CreationInfoWorkSheet creationInfoWorkSheet,DMWorkSheetTypeEnum dmWsType,StringBuffer errMessage){
 		String szSql;
