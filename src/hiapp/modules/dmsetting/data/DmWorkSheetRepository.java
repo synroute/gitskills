@@ -114,7 +114,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("拨打类型", "DIALTYPE", "拨打类型", WorkSheetDataType.TEXT, 10, false, true);
 		creationInfoWorkSheet.addColumn("拨打时间", "DIALTIME", "拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 		creationInfoWorkSheet.addColumn("呼叫流水号", "CUSTOMERCALLID", "呼叫流水号", WorkSheetDataType.TEXT, 50, false, true);
-		
+		creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+		creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
 		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_RESULT,errMessage);
 	}
 	

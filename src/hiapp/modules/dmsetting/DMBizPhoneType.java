@@ -5,6 +5,8 @@ package hiapp.modules.dmsetting;
  * 类说明  业务号码类型信息
  */
 public class DMBizPhoneType {
+		//业务编号
+		private String bizId;
 		//号码类型名称
 		private String	name;
 		//号码类型中文名称
@@ -44,5 +46,11 @@ public class DMBizPhoneType {
 		}
 		public void setCustomerColumnMap(String customerColumnMap) {
 			this.customerColumnMap = customerColumnMap;
+		}
+		public String getBizId() {
+			return bizId;
+		}
+		public void setBizId(String bizId) {
+			this.bizId = bizId;
 		}
 }
