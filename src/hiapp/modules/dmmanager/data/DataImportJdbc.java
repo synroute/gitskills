@@ -891,7 +891,7 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 	  try {
 		conn=this.getDbConnection();
 		String columnSql="insert into "+tableName+"(id,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,";
-		String valueSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerId+"',1,"+Modifyid+",'"+userId+"',sysdate,";
+		String valueSql=" values(S_"+tableName+".nextval,'"+importBatchId+"','"+customerId+"',1,"+Modifyid+",'"+userId+"',sysdate,";
 		Iterator<Entry<String, Object>> it = columnMap.entrySet().iterator();
 		 for(Map.Entry<String, Object> entry : columnMap.entrySet()) {
 			   System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
