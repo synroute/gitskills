@@ -9,7 +9,11 @@ import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.bean.DistributeTemplate;
 import hiapp.modules.dmmanager.bean.OutputFirstRow;
 import hiapp.modules.dmmanager.data.DataDistributeJdbc;
+import hiapp.system.buinfo.Permission;
+import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
+import hiapp.system.buinfo.data.PermissionRepository;
+import hiapp.system.buinfo.data.UserRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +29,10 @@ import com.google.gson.Gson;
 public class DistributDataController {
 	@Autowired
 	private DataDistributeJdbc dataDistributeJdbc;
+	@Autowired
+	private PermissionRepository permissionRepository;
+	@Autowired
+	private UserRepository userRepository;
 	/**
 	 * 获取所有分配模板
 	 * @param request
@@ -124,8 +132,11 @@ public class DistributDataController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 	    String userId =String.valueOf(user.getId());
+	    RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(userId);
+		Permission permission = permissionRepository.getPermission(roleInGroupSet);
+		int permissionId = permission.getId();
 	    Integer bizId=Integer.valueOf(request.getParameter("bizId"));
-	    UserItem userItem = dataDistributeJdbc.getTreePoolByBizId(bizId, userId);
+	    UserItem userItem = dataDistributeJdbc.getTreePoolByBizId(bizId, userId,permissionId);
 		String jsonObject=new Gson().toJson(userItem);
 		try {
 			PrintWriter printWriter = response.getWriter();

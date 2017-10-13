@@ -347,17 +347,17 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param bizId
 	 * @return
 	 */
-	public TreePool getRootPool(String userId,Integer bizId){
+	public TreePool getRootPool(String userId,Integer bizId,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		TreePool treePool=new TreePool();
 		try {
 			conn=this.getDbConnection();
-			String sql="select ID,DATAPOOLNAME,PID from HASYS_DM_DATAPOOL where BusinessID=? and DATAPOOLNAME=?";
+			String sql="select a.ID,a.DATAPOOLNAME,a.PID from HASYS_DM_DATAPOOL a where a.id=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=?)";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1, bizId);
-			pst.setString(2, userId);
+			pst.setInt(2,permissionId);
 			rs=pst.executeQuery();
 			while(rs.next()){
 				treePool.setId(rs.getInt(1));
@@ -410,8 +410,8 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param userId
 	 * @return
 	 */
-	public UserItem getTreePoolByBizId(Integer bizId,String userId){
-		TreePool treePool=getRootPool(userId, bizId);
+	public UserItem getTreePoolByBizId(Integer bizId,String userId,int permissionId){
+		TreePool treePool=getRootPool(userId, bizId,permissionId);
 		UserItem userItem=new UserItem();
 		userItem.setId(String.valueOf(treePool.getId()));
 		userItem.setText(treePool.getDataPoolName());
