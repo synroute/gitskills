@@ -174,7 +174,15 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			while(rs.next()){
 				for(int i=0;i<column.length;i++)
 				{
-					map.put(column[i], rs.getString(column[i]));
+					if (column[i].contains("TIME")) {
+						
+						String time=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(rs.getTimestamp(column[i]));
+						map.put(column[i],time);
+					}else{
+						
+						map.put(column[i], rs.getString(column[i]));
+					}
+					
 					//jsonObject.addProperty(column[i], rs.getString(column[i]));
 				}
 			}
@@ -299,7 +307,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")&&
 						!dmBizAutomaticColumns.getColumnName().equals("MODIFYLAST")&&
 						!dmBizAutomaticColumns.getColumnName().equals("ID")&&
-						!dmBizAutomaticColumns.getColumnName().equals("SOURCEID")) {
+						!dmBizAutomaticColumns.getColumnName().equals("SOURCEID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYUSERID")) {
 					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
 				}
 			}
