@@ -41,4 +41,9 @@ public class DMPermController {
 		return serviceresult.toJson();
 	}
 	
+	@RequestMapping(value = "srv/dm/getUserBizManagePermission.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String getUserBizManagePermission() {
+		JsonObject jsonObject = dmBizPermissionRepository.getUserBizPermission();
+		return jsonObject.toString();
+	}
 }
