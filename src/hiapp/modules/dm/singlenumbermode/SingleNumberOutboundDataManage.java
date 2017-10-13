@@ -192,7 +192,7 @@ public class SingleNumberOutboundDataManage {
                           originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId);
 
         // 插入导入客户表
-        dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo);
+        dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomerItem.getModifyId() + 1);
 
         return "";
     }
