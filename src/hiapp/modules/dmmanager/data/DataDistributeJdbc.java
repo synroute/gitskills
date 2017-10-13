@@ -354,7 +354,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		TreePool treePool=new TreePool();
 		try {
 			conn=this.getDbConnection();
-			String sql="select a.ID,a.DATAPOOLNAME,a.PID from HASYS_DM_DATAPOOL a where a.id=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=?)";
+			String sql="select a.ID,a.DATAPOOLNAME,a.PID from HASYS_DM_DATAPOOL a where a.id=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null)";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1, bizId);
 			pst.setInt(2,permissionId);
