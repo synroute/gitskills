@@ -165,8 +165,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("来源编号", "SOURCEID", "来源编号", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
-		creationInfoWorkSheet.addColumn("上次所在数据池ID", "DATAPOOlIDLAST", "上次所在数据池ID", WorkSheetDataType.INT, -1, false, true);
-		creationInfoWorkSheet.addColumn("当前所在数据池ID", "DATAPOOlIDCUR", "当前所在数据池ID", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("上次所在数据池ID", "DATAPOOLIDLAST", "上次所在数据池ID", WorkSheetDataType.INT, -1, false, true);
+		creationInfoWorkSheet.addColumn("当前所在数据池ID", "DATAPOOLIDCUR", "当前所在数据池ID", WorkSheetDataType.INT, -1, false, true);
 		creationInfoWorkSheet.addColumn("上次所在数据池分区", "AREALAST", "上次所在数据池分区", WorkSheetDataType.INT, -1, false, true);
 		creationInfoWorkSheet.addColumn("当前所在数据池分区", "AREACUR", "当前所在数据池分区", WorkSheetDataType.INT, -1, false, true);	
 		creationInfoWorkSheet.addColumn("是否被回收", "ISRECOVER", "是否被回收", WorkSheetDataType.INT, -1, false, true);	
@@ -191,8 +191,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("本次操作", "OPERATIONNAME", "本次操作", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("上次所在数据池ID", "DATAPOOlIDLAST", "上次所在数据池ID", WorkSheetDataType.INT, -1, false, true);
-			creationInfoWorkSheet.addColumn("当前所在数据池ID", "DATAPOOlIDCUR", "当前所在数据池ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("上次所在数据池ID", "DATAPOOLIDLAST", "上次所在数据池ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("当前所在数据池ID", "DATAPOOLIDCUR", "当前所在数据池ID", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("上次所在数据池分区", "AREALAST", "上次所在数据池分区", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("当前所在数据池分区", "AREACUR", "当前所在数据池分区", WorkSheetDataType.INT, -1, false, true);	
 			creationInfoWorkSheet.addColumn("是否被回收", "ISRECOVER", "是否被回收", WorkSheetDataType.INT, -1, false, true);	
