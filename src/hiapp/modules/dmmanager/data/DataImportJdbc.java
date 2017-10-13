@@ -582,11 +582,11 @@ public class DataImportJdbc extends BaseRepository{
 			getDataType(dataTypeList,columList,dataArray,workSheetId,2);
 			//数据池记录表里面插数据
 			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-									+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
+									+" values(S_"+poolName+".nextval,?,?,?,?,?,?,?,?,?,sysdate)";
 			pst=conn.prepareStatement(isnertDataPoolSql);
 			//数据池操作记录表里面插数据
 			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
-										+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
+										+" values(S_"+orePoolName+".nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
 			pst1=conn.prepareStatement(dataPoolOperationSql);
 			//向导入表插数据
 			statement=conn.createStatement();
@@ -622,7 +622,7 @@ public class DataImportJdbc extends BaseRepository{
 
 					}
 				}
-				insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
+				insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_"+tableName+".nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
 				for (int j = 0; j < dataArray.size(); j++) {
 					String cName=dataArray.get(j).getAsJsonObject().get("FieldName").getAsString();
 					for (int k = 0; k < columList.size(); k++) {
