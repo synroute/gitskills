@@ -103,14 +103,23 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			{
 				xml=rs.getString("xml");
 			}
-
-			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
-			jsonObject.remove("RedialState");
-			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
+			int type=3;
 			
-			jsonObject.add("RedialState", jsonArray_Map);
+			String szSql ="";
+			if(type==3)
+				{
+				JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
+				jsonObject.remove("RedialState");
+				JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
+				
+				jsonObject.add("RedialState", jsonArray_Map);
+				
+				szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
+			}else if(type==6)
+			{
+				szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+MapColumns+"' where BusinessID="+bizId+"");
+			}
 			
-			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			
