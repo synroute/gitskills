@@ -31,8 +31,11 @@ public class DMDAO extends BaseRepository {
             dbConn = this.getDbConnection();
 
             //
-            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
-                                        "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
+            StringBuilder sqlBuilder = new StringBuilder(
+                    "SELECT a.ID, a.BUSINESSID, a.SHAREID, a.SHARENAME, a.CREATEUSERID, a.CREATETIME, a.DESCRIPTION, a.STATE, a.STARTTIME, a.ENDTIME, b.OUTBOUNDMDDEID" +
+                    "  FROM HASYS_DM_SID a " +
+                    "  LEFT JOIN HASYS_DM_BUSINESS b ON a.BUSINESSID = b.BUSINESSID " +
+                    "WHERE ");
             sqlBuilder.append(" STATE ='").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
 
             System.out.println(sqlBuilder.toString());
@@ -51,6 +54,7 @@ public class DMDAO extends BaseRepository {
                 item.setState(ShareBatchStateEnum.getFromString(rs.getString(8)) );
                 item.setStartTime(rs.getDate(9));
                 item.setEndTime(rs.getDate(10));
+                item.setOutboundModeId(rs.getInt(11));
                 shareBatchItems.add(item);
             }
 

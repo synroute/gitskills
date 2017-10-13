@@ -87,6 +87,14 @@ public class ShareBatchItem {
         EndTime = endTime;
     }
 
+    public int getOutboundModeId() {
+        return outboundModeId;
+    }
+
+    public void setOutboundModeId(int outboundModeId) {
+        this.outboundModeId = outboundModeId;
+    }
+
     int id;
     int bizId;
     String shareBatchId;
@@ -97,4 +105,7 @@ public class ShareBatchItem {
     ShareBatchStateEnum	state;
     Date StartTime;
     Date EndTime;
+
+    // 非数据库字段
+    int outboundModeId;
 }

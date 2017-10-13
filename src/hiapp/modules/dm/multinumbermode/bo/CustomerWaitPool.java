@@ -1,19 +1,41 @@
 package hiapp.modules.dm.multinumbermode.bo;
+import hiapp.modules.dm.Constants;
 
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
-
+import java.util.HashMap;
 import java.util.Map;
 
 public class CustomerWaitPool {
 
     int bizId = 0;
 
+
     public CustomerWaitPool(int bizId) {
         this.bizId = bizId;
     }
 
-    public void add(String userId, MultiNumberCustomer customer) {
+    public void add(String userId, MultiNumberCustomer customerItem) {
+        Map<String, MultiNumberCustomer> mapWaitResultPool = mapWaitResultCustomerPool.get(userId);
+        if (null == mapWaitResultPool) {
+            mapWaitResultPool = new HashMap<String, MultiNumberCustomer>();
+            mapWaitResultCustomerPool.put(userId, mapWaitResultPool);
+        }
+        mapWaitResultPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
+        Long timeSlot = customerItem.getExtractTime().getTime()/Constants.timeSlotSpan;
+        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapWaitTimeOutCustomerPool.get(timeSlot);
+        if (null == mapWaitTimeOutPool) {
+            mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
+            mapWaitTimeOutCustomerPool.put(timeSlot, mapWaitTimeOutPool);
+        }
+        mapWaitTimeOutPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+
+        Map<String, MultiNumberCustomer> mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + customerItem.getShareBatchId());
+        if (null == mapWaitStopPool) {
+            mapWaitStopPool = new HashMap<String, MultiNumberCustomer>();
+            mapWaitStopCustomerPool.put(bizId + customerItem.getShareBatchId(), mapWaitStopPool);
+        }
+        mapWaitStopPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        
     }
 
 
