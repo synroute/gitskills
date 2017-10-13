@@ -901,7 +901,7 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 			   System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
 			   columnSql+=entry.getKey()+",";
 			   String type=getDataType(workSheetId, entry.getKey());
-			   if("datatime".equals(type.toLowerCase())){
+			   if("datetime".equals(type.toLowerCase())){
 				   valueSql+="to_date('"+entry.getValue()+"','yyyy-mm-dd hh24:mi:ss'),";
 			   }else if("int".equals(type.toLowerCase())){
 				   valueSql+=entry.getValue()+",";
