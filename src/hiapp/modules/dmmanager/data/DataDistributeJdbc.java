@@ -473,14 +473,14 @@ public class DataDistributeJdbc extends BaseRepository{
 				Integer dataPoolId=(Integer) dataPoolList.get(i).get("dataPoolId");
 				Integer disNum=(Integer) dataPoolList.get(i).get("disNum");
 				String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime)"
-						+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1 and rownum<="+disNum+" ORDER BY b.TEMPID ASC)";
+						+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1 and rownum<="+disNum+")";
 				pst=conn.prepareStatement(updatePoolSql);
 				pst.executeUpdate();
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-										" select tempId,'"+disBatchId+"',IID,CID,'分配',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+" ORDER BY b.TEMPID ASC";
+										" select tempId,'"+disBatchId+"',IID,CID,'分配',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+"";
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.executeUpdate();
-				String deleteSql=" delete from "+tempTableName+" a where a.tempId in(select b.tempId from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+" order by b.tempId asc)";
+				String deleteSql=" delete from "+tempTableName+" a where a.tempId in(select b.tempId from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+")";
 				pst=conn.prepareStatement(deleteSql);
 				pst.executeUpdate();
 				
@@ -545,20 +545,20 @@ public class DataDistributeJdbc extends BaseRepository{
 				dataPoolId=rs.getInt(1);
 			}
 			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime)"
-					+ " = (select '"+shareId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,1,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1 ORDER BY b.TEMPID ASC)";
+					+ " = (select '"+shareId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,1,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1)";
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.executeUpdate();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-									" select tempId,'"+shareId+"',IID,CID,'共享',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1  ORDER BY b.TEMPID ASC";
+									" select S_HAU_DM_B1C_POOL_ORE.nextval,'"+shareId+"',IID,CID,'共享',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 ";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
 			if(model==3){
-				String insertDatamSql="insert into "+datamTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select tempId,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
-									  "where b.ifchecked=1  ORDER BY b.TEMPID ASC";
+				String insertDatamSql="insert into "+datamTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_HASYS_DM_B1C_DATAM3.NEXTVAL,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
+									  "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.executeUpdate();
-				String insertHisDatamSql="insert into "+hisTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select tempId,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
-										 "where b.ifchecked=1  ORDER BY b.TEMPID ASC";
+				String insertHisDatamSql="insert into "+hisTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_HASYS_DM_B1C_DATAM3_HIS,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
+										 "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.executeUpdate();
 			}

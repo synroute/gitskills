@@ -323,11 +323,11 @@ public class DataRecyleJdbc extends BaseRepository{
 				dataPoolId=rs.getInt(1);
 			}
 			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime,ISRecover)"
-					+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate,1 from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1 ORDER BY b.TEMPID ASC)";
+					+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate,1 from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1)";
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.executeUpdate();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-					" select tempId,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1  ORDER BY b.TEMPID ASC";
+					" select S_HAU_DM_B1C_POOL_ORE.nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
 			String deleteSql=" delete from "+tempTableName+" a where b.ifchecked=1";
@@ -386,7 +386,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				pst.setString(4,shareId);
 				pst.executeUpdate();
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-										" select tempId,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+orePoolName+" b where b.SourceID=?";
+										" select S_HAU_DM_B1C_POOL_ORE.nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+orePoolName+" b where b.SourceID=?";
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.setString(1, shareId);
 				pst.executeUpdate();
