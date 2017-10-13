@@ -505,15 +505,15 @@ public class DataImportJdbc extends BaseRepository{
 			
 			//导入表里面添加数据
 			String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-			String selectSql="select S_HAU_DM_B1C_POOL.nextval,'"+importBatchId+"',CUSTOMERID,1,0,'"+userId+"',sysdate,";
+			String selectSql="select S_"+tableName+".nextval,'"+importBatchId+"',CUSTOMERID,1,0,'"+userId+"',sysdate,";
 			//数据池记录表里面插数据
 			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-									+" select S_HAU_DM_B1C_POOL.nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
+									+" select S_"+poolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(isnertDataPoolSql);
 			pst.executeUpdate();
 			//数据池操作记录表里面插数据
 			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
-										+" select S_HAU_DM_B1C_POOL_ORE.nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
+										+" select S_"+orePoolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(dataPoolOperationSql);
 			pst.executeUpdate();
 			for (int k = 0; k < dataArray.size(); k++) {
@@ -882,7 +882,7 @@ public class DataImportJdbc extends BaseRepository{
      * @param customerInfo
      */
   @SuppressWarnings({ "unchecked", "unused" })
-public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo){
+public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo,Integer Modifyid){
 	  Connection conn=null;
 	  PreparedStatement pst = null;
 	  String tableName="HAU_DM_B"+bizId+"C_IMPORT";
@@ -891,7 +891,7 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 	  try {
 		conn=this.getDbConnection();
 		String columnSql="insert into "+tableName+"(id,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,";
-		String valueSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerId+"',1,1,'"+userId+"',sysdate,";
+		String valueSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerId+"',1,"+Modifyid+",'"+userId+"',sysdate,";
 		Iterator<Entry<String, Object>> it = columnMap.entrySet().iterator();
 		 for(Map.Entry<String, Object> entry : columnMap.entrySet()) {
 			   System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());

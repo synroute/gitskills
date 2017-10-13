@@ -132,7 +132,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
 			String insertSql="insert into "+tempTableName+"(TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
 			String createTableSql="create table "+tempTableName+" (TEMPID NUMBER,IFCHECKD NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR BUMBER,";
-			String getDataSql2="select b.id,0,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
+			String getDataSql2="select S_HAU_DM_B101C_IMPORT.nextval,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=null ;
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
@@ -165,7 +165,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				for (int j = 0; j < newList.size(); j++) {
 					String asName="a"+j+".";
 					if(newList.get(j).equals(workSheetName)){
-						if(!"ID".equals(columnName.toUpperCase())&&!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
+						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql2+=asName+columnName+",";
 							insertSql+=columnName+",";
 							createTableSql+=dataDistributeJdbc.getTempColumnType(columnName,workSheetId);
@@ -327,7 +327,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.executeUpdate();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-					" select S_HAU_DM_B1C_POOL_ORE.nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1";
+					" select S_"+orePoolName+".nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
 			String deleteSql=" delete from "+tempTableName+" a where b.ifchecked=1";
@@ -386,7 +386,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				pst.setString(4,shareId);
 				pst.executeUpdate();
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-										" select S_HAU_DM_B1C_POOL_ORE.nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+orePoolName+" b where b.SourceID=?";
+										" select S_"+orePoolName+".nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+orePoolName+" b where b.SourceID=?";
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.setString(1, shareId);
 				pst.executeUpdate();

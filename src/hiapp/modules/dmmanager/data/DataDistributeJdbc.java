@@ -145,7 +145,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			String configJson=getConfigJson(bizId, templateId);
 			JsonObject jsonObject= new JsonParser().parse(configJson).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
-			String getDataSql2="b.id,0,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
+			String getDataSql2="S_HAU_DM_B101C_IMPORT.nextval,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
 			String insertSql="insert into "+tempTableName+"(TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR, ";
 			String createTableSql="create table "+tempTableName+"(TEMPID NUMBER,IFCHECKD NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR BUMBER,";
 			
@@ -181,7 +181,7 @@ public class DataDistributeJdbc extends BaseRepository{
 				for (int j = 0; j < newList.size(); j++) {
 					String asName="a"+j+".";
 					if(newList.get(j).equals(workSheetName)){
-						if(!"ID".equals(columnName.toUpperCase())&&!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
+						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql2+=asName+columnName+",";
 							insertSql+=columnName+",";
 							createTableSql+=getTempColumnType(columnName,workSheetId);
@@ -477,7 +477,7 @@ public class DataDistributeJdbc extends BaseRepository{
 				pst=conn.prepareStatement(updatePoolSql);
 				pst.executeUpdate();
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-										" select tempId,'"+disBatchId+"',IID,CID,'分配',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+"";
+										" select S_"+orePoolName+".NEXTVAL,'"+disBatchId+"',IID,CID,'分配',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+"";
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.executeUpdate();
 				String deleteSql=" delete from "+tempTableName+" a where a.tempId in(select b.tempId from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+")";
@@ -549,15 +549,15 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.executeUpdate();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-									" select S_HAU_DM_B1C_POOL_ORE.nextval,'"+shareId+"',IID,CID,'共享',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 ";
+									" select S_"+orePoolName+".nextval,'"+shareId+"',IID,CID,'共享',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 ";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
 			if(model==3){
-				String insertDatamSql="insert into "+datamTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_HASYS_DM_B1C_DATAM3.NEXTVAL,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
+				String insertDatamSql="insert into "+datamTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
 									  "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.executeUpdate();
-				String insertHisDatamSql="insert into "+hisTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_HASYS_DM_B1C_DATAM3_HIS,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
+				String insertHisDatamSql="insert into "+hisTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
 										 "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.executeUpdate();
