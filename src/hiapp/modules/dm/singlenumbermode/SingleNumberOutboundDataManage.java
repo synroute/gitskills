@@ -14,6 +14,7 @@ import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMPresetStateEnum;
 import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
 import hiapp.utils.database.DBConnectionPool;
+import hiapp.modules.dm.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -39,17 +40,6 @@ public class SingleNumberOutboundDataManage {
     @Autowired
     private DMBizMangeShare dmBizMangeShare;
 
-    @Autowired
-    @Qualifier("tenantDBConnectionPool")
-    public void setDBConnectionPool(DBConnectionPool dbConnectionPool) {
-        this.dbConnectionPool = dbConnectionPool;
-
-        initialize();
-    }
-
-    Long timeSlotSpan = 1000*60L; // 60 seconds
-    Long timeoutThreshold = 2 * timeSlotSpan; //
-
     // 客户共享池
     // BizID <==> {ShareBatchID <==> PriorityBlockingQueue<SingleNumberModeShareCustomerItem>}
     Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPresetDialCustomerSharePool;
@@ -73,14 +63,6 @@ public class SingleNumberOutboundDataManage {
     // 重拨策略
     // BizID <==> EndCodeRedialStrategy
     Map<Integer, EndCodeRedialStrategy> mapBizIdVsEndCodeRedialStrategy;
-
-    DBConnectionPool dbConnectionPool;
-    Timer dailyTimer;
-    TimerTask dailyTimerTask;
-
-    Timer timeoutTimer;
-    TimerTask timeoutTimerTask;
-
 
     /**
      * 获取下个外呼客户
@@ -192,7 +174,7 @@ public class SingleNumberOutboundDataManage {
                           originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId);
 
         // 插入导入客户表
-        dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo);
+        dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomerItem.getModifyId() + 1);
 
         return "";
     }
@@ -242,7 +224,7 @@ public class SingleNumberOutboundDataManage {
                 addCustomerToSharePool(customerItem);
             }
 
-            Long timeSlot = customerItem.getExtractTime().getTime()/timeSlotSpan;
+            Long timeSlot = customerItem.getExtractTime().getTime()/Constants.timeSlotSpan;
             removeWaitTimeOutCustomer(customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId(), timeSlot);
 
             removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
@@ -254,9 +236,7 @@ public class SingleNumberOutboundDataManage {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void initialize() {
-        setDailyRoutine();
-        setTimeOutRoutine(timeSlotSpan);
+    public void initialize() {
 
         mapPresetDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
         mapStageDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
@@ -269,30 +249,22 @@ public class SingleNumberOutboundDataManage {
         mapBizIdVsEndCodeRedialStrategy = new HashMap<Integer, EndCodeRedialStrategy>();
 
         Date now = new Date();
-        earliestTimeSlot = now.getTime()/timeSlotSpan;
+        earliestTimeSlot = now.getTime()/Constants.timeSlotSpan;
 
         //singleNumberModeDAO.resetLoadedFlag();
 
-        List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
-        loadCustomersDaily(shareBatchItems);
+        //List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
+        //loadCustomersDaily(shareBatchItems);
 
         System.out.println("SingleNumber Outbound InitComplete ...");
     }
 
-
-    private List<ShareBatchItem> shareBatchDailyProc() {
+    public void dailyProc(List<ShareBatchItem> shareBatchItems) {
         mapPresetDialCustomerSharePool.clear();
         mapStageDialCustomerSharePool.clear();
         mapDialCustomerSharePool.clear();
 
-        //List<String> expiredShareBatchIds = new ArrayList<String>();
-        dmDAO.expireShareBatchsByEndTime(/*expiredShareBatchIds*/);
-
-        dmDAO.activateShareBatchByStartTime();
-
-        List<ShareBatchItem> shareBatchItems = new ArrayList<ShareBatchItem>();
-        Boolean result = dmDAO.getAllActiveShareBatchItems(shareBatchItems);
-        return shareBatchItems;
+        loadCustomersDaily(shareBatchItems);
     }
 
     private List<ShareBatchItem> shareBatchIncrementalProc() {
@@ -435,57 +407,6 @@ public class SingleNumberOutboundDataManage {
         }
     };
 
-    private void setDailyRoutine() {
-        dailyTimer = new Timer();
-        dailyTimerTask = new TimerTask() {
-            @Override
-            public void run() {
-                List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
-                loadCustomersDaily(shareBatchItems);
-            }
-        };
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        calendar.set(Calendar.HOUR_OF_DAY, 2); // 控制时
-        calendar.set(Calendar.MINUTE, 0);      // 控制分
-        calendar.set(Calendar.SECOND, 0);      // 控制秒
-
-        dailyTimer.scheduleAtFixedRate(dailyTimerTask, calendar.getTime(), 1000 * 60 * 60 * 24);
-    }
-
-    private void setTimeOutRoutine(Long timeSlotSpan) {
-        timeoutTimer = new Timer();
-        timeoutTimerTask = new TimerTask() {
-            @Override
-            public void run() {
-            Date now =  new Date();
-            Long curTimeSlot = now.getTime()/timeSlotSpan;
-            Long timeoutTimeSlot = curTimeSlot - timeoutThreshold/timeSlotSpan;
-
-            while (earliestTimeSlot < timeoutTimeSlot) {
-                Map<String, SingleNumberModeShareCustomerItem> mapTimeSlotWaitTimeOutPool;
-                mapTimeSlotWaitTimeOutPool =  mapWaitTimeOutCustomerPool.get(earliestTimeSlot);
-
-                for (SingleNumberModeShareCustomerItem customerItem : mapTimeSlotWaitTimeOutPool.values()) {
-                    // 放回客户共享池
-                    if (!customerItem.getInvalid()) {
-                        addCustomerToSharePool(customerItem);
-                    }
-
-                    removeWaitResultCustome(customerItem.getUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                    removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                            customerItem.getCustomerId());
-                }
-            }
-            }
-        };
-
-        dailyTimer.scheduleAtFixedRate(timeoutTimerTask, timeSlotSpan, timeSlotSpan);
-    }
-
     private void addWaitCustomer(String userId, int bizId, SingleNumberModeShareCustomerItem customerItem) {
         Map<String, SingleNumberModeShareCustomerItem> mapWaitResultPool = mapWaitResultCustomerPool.get(userId);
         if (null == mapWaitResultPool) {
@@ -494,7 +415,7 @@ public class SingleNumberOutboundDataManage {
         }
         mapWaitResultPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
-        Long timeSlot = customerItem.getExtractTime().getTime()/timeSlotSpan;
+        Long timeSlot = customerItem.getExtractTime().getTime()/Constants.timeSlotSpan;
         Map<String, SingleNumberModeShareCustomerItem> mapWaitTimeOutPool = mapWaitTimeOutCustomerPool.get(timeSlot);
         if (null == mapWaitTimeOutPool) {
             mapWaitTimeOutPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
@@ -516,7 +437,7 @@ public class SingleNumberOutboundDataManage {
         if (null == customerItem)
             return customerItem;
 
-        Long timeSlot = customerItem.getExtractTime().getTime()/timeSlotSpan;
+        Long timeSlot = customerItem.getExtractTime().getTime()/Constants.timeSlotSpan;
         removeWaitTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
 
         removeWaitStopCustomer(bizId, customerItem.getShareBatchId(), importBatchId, customerId);
@@ -825,6 +746,32 @@ public class SingleNumberOutboundDataManage {
             }
         }
     }
+
+    public void timeoutProc() {
+        Date now =  new Date();
+        Long curTimeSlot = now.getTime()/Constants.timeSlotSpan;
+        Long timeoutTimeSlot = curTimeSlot - Constants.timeoutThreshold/Constants.timeSlotSpan;
+
+        while (earliestTimeSlot < timeoutTimeSlot) {
+            Map<String, SingleNumberModeShareCustomerItem> mapTimeSlotWaitTimeOutPool;
+            mapTimeSlotWaitTimeOutPool =  mapWaitTimeOutCustomerPool.get(earliestTimeSlot++);
+            if (null == mapTimeSlotWaitTimeOutPool)
+                continue;
+
+            for (SingleNumberModeShareCustomerItem customerItem : mapTimeSlotWaitTimeOutPool.values()) {
+                // 放回客户共享池
+                if (!customerItem.getInvalid()) {
+                    addCustomerToSharePool(customerItem);
+                }
+
+                removeWaitResultCustome(customerItem.getUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+
+                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                        customerItem.getCustomerId());
+            }
+        }
+    }
+
 
 }
 

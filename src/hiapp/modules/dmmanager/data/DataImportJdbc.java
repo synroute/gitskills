@@ -4,6 +4,8 @@ import hiapp.modules.dmmanager.bean.Business;
 import hiapp.modules.dmmanager.bean.ImportTemplate;
 import hiapp.modules.dmmanager.bean.WorkSheet;
 import hiapp.modules.dmmanager.bean.WorkSheetColumn;
+import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
+import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
@@ -36,6 +38,8 @@ import com.google.gson.JsonParser;
 public class DataImportJdbc extends BaseRepository{
 	@Autowired
 	private IdFactory idfactory;
+	@Autowired
+	private DmWorkSheetRepository dmWorkSheetRepository;
 	/**
 	 * 获取所有业务
 	 * @param userId
@@ -505,15 +509,15 @@ public class DataImportJdbc extends BaseRepository{
 			
 			//导入表里面添加数据
 			String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-			String selectSql="select S_HAU_DM_B1C_POOL.nextval,'"+importBatchId+"',CUSTOMERID,1,0,'"+userId+"',sysdate,";
+			String selectSql="select S_"+tableName+".nextval,'"+importBatchId+"',CUSTOMERID,1,0,'"+userId+"',sysdate,";
 			//数据池记录表里面插数据
 			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-									+" select S_HAU_DM_B1C_POOL.nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
+									+" select S_"+poolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(isnertDataPoolSql);
 			pst.executeUpdate();
 			//数据池操作记录表里面插数据
 			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
-										+" select S_HAU_DM_B1C_POOL_ORE.nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
+										+" select S_"+orePoolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(dataPoolOperationSql);
 			pst.executeUpdate();
 			for (int k = 0; k < dataArray.size(); k++) {
@@ -582,11 +586,11 @@ public class DataImportJdbc extends BaseRepository{
 			getDataType(dataTypeList,columList,dataArray,workSheetId,2);
 			//数据池记录表里面插数据
 			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-									+" values(S_HAU_DM_B1C_POOL.nextval,?,?,?,?,?,?,?,?,?,sysdate)";
+									+" values(S_"+poolName+".nextval,?,?,?,?,?,?,?,?,?,sysdate)";
 			pst=conn.prepareStatement(isnertDataPoolSql);
 			//数据池操作记录表里面插数据
 			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
-										+" values(S_HAU_DM_B1C_POOL_ORE.nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
+										+" values(S_"+orePoolName+".nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
 			pst1=conn.prepareStatement(dataPoolOperationSql);
 			//向导入表插数据
 			statement=conn.createStatement();
@@ -622,7 +626,7 @@ public class DataImportJdbc extends BaseRepository{
 
 					}
 				}
-				insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
+				insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") values(S_"+tableName+".nextval,'"+importBatchId+"','"+customerBatchId+"',1,0,'"+userId+"',sysdate,";
 				for (int j = 0; j < dataArray.size(); j++) {
 					String cName=dataArray.get(j).getAsJsonObject().get("FieldName").getAsString();
 					for (int k = 0; k < columList.size(); k++) {
@@ -882,21 +886,29 @@ public class DataImportJdbc extends BaseRepository{
      * @param customerInfo
      */
   @SuppressWarnings({ "unchecked", "unused" })
-public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo){
+public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo,Integer Modifyid){
 	  Connection conn=null;
 	  PreparedStatement pst = null;
 	  String tableName="HAU_DM_B"+bizId+"C_IMPORT";
 	  Map<String,Object> columnMap=new Gson().fromJson(customerInfo, Map.class);
-	 
+	  String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 	  try {
 		conn=this.getDbConnection();
-		String columnSql="insert into "+tableName+"(id,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,";
-		String valueSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+importBatchId+"','"+customerId+"',1,1,'"+userId+"',sysdate,";
+		String columnSql="insert into "+tableName+"(";
+		String valueSql=" values(";
 		Iterator<Entry<String, Object>> it = columnMap.entrySet().iterator();
 		 for(Map.Entry<String, Object> entry : columnMap.entrySet()) {
 			   System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
 			   columnSql+=entry.getKey()+",";
-			   valueSql+="'"+entry.getValue()+"',";
+			   String type=getDataType(workSheetId, entry.getKey());
+			   if("datetime".equals(type.toLowerCase())){
+				   valueSql+="to_date('"+entry.getValue()+"','yyyy-mm-dd hh24:mi:ss'),";
+			   }else if("int".equals(type.toLowerCase())){
+				   valueSql+=entry.getValue()+",";
+			   }else{
+				   valueSql+="'"+entry.getValue()+"',";
+			   }
+			  
 			 }
 		 columnSql=columnSql.substring(0,columnSql.length()-1)+")"+valueSql.substring(0,valueSql.length()-1)+")";
 		 pst=conn.prepareStatement(columnSql);
@@ -993,6 +1005,28 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 			DbUtil.DbCloseQuery(rs,pst);
 			DbUtil.DbCloseConnection(conn);
 		}
+	}
+	
+	public  String getDataType(String workSheetId,String columName){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String dataType=null;
+		try {
+			conn=this.getDbConnection();
+			String getTypeSql="select dataType from HASYS_WORKSHEETCOLUMN	where COLUMNNAME=? and  workSheetId=?";
+			pst=conn.prepareStatement(getTypeSql);
+			pst.setString(1, columName);
+			pst.setString(2, workSheetId);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				dataType=rs.getString(1);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return dataType;
 	}
     
 }

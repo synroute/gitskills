@@ -314,8 +314,6 @@ public class CustomerRepository extends BaseRepository {
 
 			sb.append(" ON ");
 
-			sb.append("(");
-
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "IID");
 			sb.append(" = ");
 			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "IID");
@@ -325,20 +323,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" = ");
 			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "CID");
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-
-			sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(")");
+			
 
 			sb.append(" WHERE ");
 			// 查询条件
@@ -368,27 +353,30 @@ public class CustomerRepository extends BaseRepository {
 					String field = map.get("field");
 					String value = map.get("value");
 					String type = map.get("dataType");
-					if (value != null) {
-						// 时间字段使用范围查询
-						if (type != null && type.toLowerCase().contains("date")) {
-							try {
-								new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
-										.parse(value);
-								if (map1.get(field) == null) {
-									map1.put(field, value);
-								} else {
-									map2.put(field, value);
+					if(!field.equals(""))
+					{
+						if (value != null) {
+							// 时间字段使用范围查询
+							if (type != null && type.toLowerCase().contains("date")) {
+								try {
+									new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
+											.parse(value);
+									if (map1.get(field) == null) {
+										map1.put(field, value);
+									} else {
+										map2.put(field, value);
+									}
+								} catch (ParseException e) {
+									e.printStackTrace();
 								}
-							} catch (ParseException e) {
-								e.printStackTrace();
+							} else {
+	
+								// 非时间字段使用模糊查询
+								sb.append(field);
+								sb.append(" LIKE '%");
+								sb.append(value);
+								sb.append("%' AND ");
 							}
-						} else {
-
-							// 非时间字段使用模糊查询
-							sb.append(field);
-							sb.append(" LIKE '%");
-							sb.append(value);
-							sb.append("%' AND ");
 						}
 					}
 				}
@@ -748,20 +736,6 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" = ");
 			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "CID");
 
-			sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-
-			sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-
 			sb.append(")");
 
 			sb.append(" WHERE ");
@@ -798,27 +772,31 @@ public class CustomerRepository extends BaseRepository {
 					String field = map.get("field");
 					String value = map.get("value");
 					String type = map.get("dataType");
-					if (value != null) {
-						// 时间字段使用范围查询
-						if (type != null && type.toLowerCase().contains("date")) {
-							try {
-								new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
-										.parse(value);
-								if (map1.get(field) == null) {
-									map1.put(field, value);
-								} else {
-									map2.put(field, value);
+					if (!field.equals("")) {
+						
+					
+						if (value != null) {
+							// 时间字段使用范围查询
+							if (type != null && type.toLowerCase().contains("date")) {
+								try {
+									new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
+											.parse(value);
+									if (map1.get(field) == null) {
+										map1.put(field, value);
+									} else {
+										map2.put(field, value);
+									}
+								} catch (ParseException e) {
+									e.printStackTrace();
 								}
-							} catch (ParseException e) {
-								e.printStackTrace();
+							} else {
+	
+								// 非时间字段使用模糊查询
+								sb.append(field);
+								sb.append(" LIKE '%");
+								sb.append(value);
+								sb.append("%' AND ");
 							}
-						} else {
-
-							// 非时间字段使用模糊查询
-							sb.append(field);
-							sb.append(" LIKE '%");
-							sb.append(value);
-							sb.append("%' AND ");
 						}
 					}
 				}
