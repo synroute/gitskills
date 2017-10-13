@@ -290,7 +290,7 @@ public class DataDistributeJdbc extends BaseRepository{
 					String asName="a"+j+".";
 					if(newList.get(j).equals(workSheetName)){
 						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())){
-							getDataSql1+=getDataType(columnName,workSheetId,asName)+",";
+							getDataSql1+=columnName+",";
 							getDataSql3+=getDataType(columnName,workSheetId,asName)+",";
 							break;
 						}
