@@ -199,11 +199,11 @@ public class DistributDataController {
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
 		Integer model=Integer.valueOf(request.getParameter("model"));
-		Integer ifAppend=Integer.valueOf(request.getParameter("ifAppend"));
+		String shareId=request.getParameter("shareId");
 		String tempIds=request.getParameter("tempIds");
 		Integer action=Integer.valueOf(request.getParameter("action"));
 		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action);
-		Map<String, Object> resultMap = dataDistributeJdbc.saveShareDataToDB(bizId, userId, shareName, description, startTime, endTime, dataPoolIds, dataPoolNames,model,ifAppend);
+		Map<String, Object> resultMap = dataDistributeJdbc.saveShareDataToDB(bizId, userId, shareName, description, startTime, endTime, dataPoolIds, dataPoolNames,model,shareId);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();

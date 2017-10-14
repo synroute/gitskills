@@ -509,7 +509,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param dataPoolNames
 	 */
 	@SuppressWarnings("resource")
-	public Map<String,Object> saveShareDataToDB(Integer bizId,String userId,String shareName,String description,String startTime,String endTime,String dataPoolIds,String dataPoolNames,Integer model,Integer ifAppend ){
+	public Map<String,Object> saveShareDataToDB(Integer bizId,String userId,String shareName,String description,String startTime,String endTime,String dataPoolIds,String dataPoolNames,Integer model,String appendId ){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -522,6 +522,9 @@ public class DataDistributeJdbc extends BaseRepository{
 		String hisTableName= "HAU_DM_B"+bizId+"C_DATAM3_HIS";
 		//共享批次
 		String shareId = idfactory.newId("DM_SID");
+		if(appendId!=null&&!"".endsWith(shareId)){
+			shareId=appendId;
+		}
 		String[] arrDataPoolId=dataPoolIds.split(",");
 		String[] arrDataPoolName=dataPoolNames.split(",");
 		Map<String,Object> resultMap=new HashMap<String, Object>();
@@ -559,7 +562,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst.executeUpdate();
 			String insertShareSql=null;
 			if(startTime==null||"".equals(startTime)){
-				if(ifAppend==0){
+				if(appendId!=null&&!"".equals(appendId)){
 					insertShareSql="INSERT INTO HASYS_DM_SID (ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION) values(S_HASYS_DM_SID.NEXTVAL,?,?,?,?,sysdate,?)";
 					pst=conn.prepareStatement(insertShareSql);
 					pst.setInt(1,bizId);
@@ -569,12 +572,12 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.setString(5,description);
 					pst.executeUpdate();
 				}else{
-					String appendId=idfactory.newId("DM_AID");
+					String appendIds=idfactory.newId("DM_AID");
 					insertShareSql="INSERT INTO HASYS_DM_AID (ID,BUSINESSID,SHAREID,AdditionalID,AdditionalName,CreatUserID,CreateTime,Description,State) VALUES(S_HASYS_DM_AID.nextval,?,?,?,?,?,sysdate,?,?)";
 					pst=conn.prepareStatement(insertShareSql);
 					pst.setInt(1,bizId);
 					pst.setString(2,shareId);
-					pst.setString(3,appendId);
+					pst.setString(3,appendIds);
 					pst.setString(4, userId);
 					pst.setString(5,description);
 					pst.setString(6,"入库成功");

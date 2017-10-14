@@ -398,11 +398,14 @@ public class DMBizMangeShare extends BaseRepository{
 					if(treeBranch.getId()==null){
 						continue;
 					}
-					if(dataPoolIdList.contains(TreePoolBranch.getId())){
-						treeBranch.setChecked(true);
-					}else{
-						treeBranch.setChecked(false);
+					if(dataPoolIdList!=null){
+						if(dataPoolIdList.contains(TreePoolBranch.getId())){
+							treeBranch.setChecked(true);
+						}else{
+							treeBranch.setChecked(false);
+						}
 					}
+					
 					addChildren(treeBranch,bizId,dataPoolIdList);
 					listChildrenBranchs.add(treeBranch);
 					

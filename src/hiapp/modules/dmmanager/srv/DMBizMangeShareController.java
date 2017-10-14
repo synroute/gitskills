@@ -179,10 +179,14 @@ public class DMBizMangeShareController {
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
 		String shareId=request.getParameter("shareId");
-		String[] arrShareId=shareId.split(",");
+		String[] arrShareId=null;
 		TreePool treePool=new TreePool();
 		bizMangeShare.getUserPoolTree(permissionId,treePool,businessID);
-		List<Integer> dataPoolIdList=bizMangeShare.getDataPoolIds(businessID, arrShareId[0]);
+		List<Integer> dataPoolIdList=null;
+		if(shareId!=null||!"".equals(shareId)){
+			arrShareId=shareId.split(",");
+			dataPoolIdList=bizMangeShare.getDataPoolIds(businessID, arrShareId[0]);
+		}
 		UserItem userItem=bizMangeShare.getUserPoolTreeByPermissionID(businessID,treePool,dataPoolIdList);
 		String gson=new Gson().toJson(userItem);
 		try {
