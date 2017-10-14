@@ -1,30 +1,9 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 public class MultiNumberCustomer {
-
-    int id;
-    int bizId;
-    String shareBatchId;
-    String importBatchId;
-    String customerId;
-    MultiNumberPredictStateEnum state;
-    int modifyId;
-    String modifyUserId;
-    Date  modifyTime;
-    String modifyDesc;
-    String customerCallId;
-    String endCodeType;
-    String endCode;
-
-    String curDialPhone;
-    Date   curPresetDialTime;
-    int    nextDialPhoneType;
-
-    Map<Integer, PhoneDialInfo> mapDialSequenceVsPhoneInfo;
 
     public Date getShareBatchStartTime() {
         return shareBatchStartTime;
@@ -57,13 +36,6 @@ public class MultiNumberCustomer {
     public void setInvalid(Boolean invalid) {
         this.invalid = invalid;
     }
-
-    // 非本表字段
-    Date shareBatchStartTime;  //用于优先级控制
-    String userId;    // 抽取该客户的坐席人员
-    Date extractTime; // 用于记录抽取时间
-    Boolean invalid = false;
-
 
     public int getId() {
         return id;
@@ -194,20 +166,63 @@ public class MultiNumberCustomer {
     }
 
     public Map<Integer, PhoneDialInfo> getDialInfo() {
-        return mapDialSequenceVsPhoneInfo;
+        return mapPhoneTypeVsPhoneInfo;
     }
 
     public void setDialInfo(Map<Integer, PhoneDialInfo> dialInfo) {
-        this.mapDialSequenceVsPhoneInfo = dialInfo;
+        this.mapPhoneTypeVsPhoneInfo = dialInfo;
     }
 
-    public PhoneDialInfo getDialInfo(int dialSequence) {
-        return mapDialSequenceVsPhoneInfo.get(dialSequence);
+    public PhoneDialInfo getDialInfo(int phoneType) {
+        return mapPhoneTypeVsPhoneInfo.get(phoneType);
     }
 
-    public void setDialInfo(int dialSequence, PhoneDialInfo dialInfo) {
-        mapDialSequenceVsPhoneInfo.put(dialSequence, dialInfo);
+    public void setDialInfo(int phoneType, PhoneDialInfo dialInfo) {
+        mapPhoneTypeVsPhoneInfo.put(phoneType, dialInfo);
     }
 
+    public int getCurDialPhoneType() {
+        return curDialPhoneType;
+    }
+
+    public void setCurDialPhoneType(int curDialPhoneType) {
+        this.curDialPhoneType = curDialPhoneType;
+    }
+
+    public int getIsAppend() {
+        return isAppend;
+    }
+
+    public void setIsAppend(int isAppend) {
+        this.isAppend = isAppend;
+    }
+
+
+    int id;
+    int bizId;
+    String shareBatchId;
+    String importBatchId;
+    String customerId;
+    MultiNumberPredictStateEnum state;
+    int modifyId;
+    String modifyUserId;
+    Date  modifyTime;
+    String modifyDesc;
+    String customerCallId;
+    String endCodeType;
+    String endCode;
+
+    String curDialPhone;
+    Date   curPresetDialTime;
+    int    curDialPhoneType;
+    int    nextDialPhoneType;
+    int    isAppend;
+    Map<Integer, PhoneDialInfo> mapPhoneTypeVsPhoneInfo;
+
+    // 非本表字段
+    Date shareBatchStartTime;  //用于优先级控制
+    String userId;    // 抽取该客户的坐席人员
+    Date extractTime; // 用于记录抽取时间
+    Boolean invalid = false;
 }
 

@@ -40,7 +40,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			
 			
 			
-			JsonArray jsonArray_Endcode=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
+			JsonArray jsonArray_Endcode=jsonObject.get("EndCodeRedialStrategyM6").getAsJsonArray();
 			JsonObject jsonObject_Endcode=new JsonObject();
 			
 			
@@ -57,8 +57,8 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 				jsonArray_dataInfo.add(jsonArray_Endcode.get(i).getAsJsonObject());
 			}
 			newJsonObject.add("dataInfo", jsonArray_dataInfo);
-			jsonObject.remove("EndCodeRedialStrategy");
-			jsonObject.add("EndCodeRedialStrategy", newJsonObject);*/
+			jsonObject.remove("EndCodeRedialStrategyM6");
+			jsonObject.add("EndCodeRedialStrategyM6", newJsonObject);*/
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -171,10 +171,10 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			}
 
 			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
-			jsonObject.remove("EndCodeRedialStrategy");
+			jsonObject.remove("EndCodeRedialStrategyM6");
 			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
 			
-			jsonObject.add("EndCodeRedialStrategy", jsonArray_Map);
+			jsonObject.add("EndCodeRedialStrategyM6", jsonArray_Map);
 			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();

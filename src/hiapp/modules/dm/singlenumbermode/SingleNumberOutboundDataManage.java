@@ -61,7 +61,7 @@ public class SingleNumberOutboundDataManage {
     Long earliestTimeSlot;
 
     // 重拨策略
-    // BizID <==> EndCodeRedialStrategy
+    // BizID <==> EndCodeRedialStrategyM6
     Map<Integer, EndCodeRedialStrategy> mapBizIdVsEndCodeRedialStrategy;
 
     /**
@@ -250,11 +250,6 @@ public class SingleNumberOutboundDataManage {
 
         Date now = new Date();
         earliestTimeSlot = now.getTime()/Constants.timeSlotSpan;
-
-        //singleNumberModeDAO.resetLoadedFlag();
-
-        //List<ShareBatchItem> shareBatchItems = shareBatchDailyProc();
-        //loadCustomersDaily(shareBatchItems);
 
         System.out.println("SingleNumber Outbound InitComplete ...");
     }
@@ -796,7 +791,7 @@ public class SingleNumberOutboundDataManage {
         EndCodeRedialStrategyFromDB tmp00 = new Gson().fromJson(jsonObject,
                 EndCodeRedialStrategyFromDB.class);*/
 
-        //EndCodeRedialStrategy endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
+        //EndCodeRedialStrategyM6 endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
 
         /*String tmp = "{\"bizId\":11,\"importBatchId\":77\" }";
         Map<String, String> map = new Gson().fromJson(tmp, Map.class);

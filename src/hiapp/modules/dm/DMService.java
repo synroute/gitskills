@@ -37,7 +37,6 @@ public class DMService {
     public void setDBConnectionPool(DBConnectionPool dbConnectionPool) {
         //this.dbConnectionPool = dbConnectionPool;
 
-
         singleNumberOutboundDataManage.initialize();
         multiNumberOutboundDataManage.initialize();
 
@@ -61,12 +60,10 @@ public class DMService {
         List<ShareBatchItem> shareBatchItems = new ArrayList<ShareBatchItem>();
         Boolean ret = shareBatchDailyProc(shareBatchItems);
 
-        Map<Integer, List<ShareBatchItem>> mapOutboundModeIdVsShareBatchs;
-        mapOutboundModeIdVsShareBatchs = new HashMap<Integer, List<ShareBatchItem>>();
-
+        Map<Integer, List<ShareBatchItem>> mapOutboundModeIdVsShareBatchs = new HashMap<Integer, List<ShareBatchItem>>();
         List<ShareBatchItem> oneModeShareBatchItems;
 
-        // TODO 根据业务类型分类
+        // 根据Outbound Mode, 分类共享批次
         for (ShareBatchItem shareBatchItem : shareBatchItems) {
             int outboundModeId = shareBatchItem.getOutboundModeId();
             oneModeShareBatchItems = mapOutboundModeIdVsShareBatchs.get(outboundModeId);
@@ -95,7 +92,6 @@ public class DMService {
             @Override
             public void run() {
                 dailyProc();
-                //loadCustomersDaily(shareBatchItems);
             }
         };
 

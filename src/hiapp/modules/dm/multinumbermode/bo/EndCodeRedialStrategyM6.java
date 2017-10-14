@@ -1,28 +1,20 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 
-public class EndCodeRedialStrategy {
+public class EndCodeRedialStrategyM6 {
 
-    // resultCodeType + resultCode <==> EndCodeRedialStrategyItem
-    Map<String, EndCodeRedialStrategyItem>  mapEndCodeRedialStrategy;
+    // resultCodeType + resultCode <==> EndCodeRedialStrategyM6Item
+    Map<String, EndCodeRedialStrategyM6Item>  mapEndCodeRedialStrategy;
 
     public void load() {
 
     }
 
+    public EndCodeRedialStrategyM6Item getEndCodeRedialStrategyItem(String resultCodeType, String resultCode) {
+        return mapEndCodeRedialStrategy.get(resultCodeType+resultCode);
+    }
+
 }
 
-class EndCodeRedialStrategyItem {
-    String resultCodeType;
-    String resultCode;
-    String description;
-    Boolean customerDialFinished;
-    Boolean phoneTypeDialFinished;
-    int redialDelayMinutes;
-    int maxRedialNum;
-    Boolean presetDial;
-}
+

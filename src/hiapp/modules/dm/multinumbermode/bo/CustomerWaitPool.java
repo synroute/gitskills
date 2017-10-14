@@ -1,5 +1,6 @@
 package hiapp.modules.dm.multinumbermode.bo;
 import hiapp.modules.dm.Constants;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,7 +8,6 @@ import java.util.Map;
 public class CustomerWaitPool {
 
     int bizId = 0;
-
 
     public CustomerWaitPool(int bizId) {
         this.bizId = bizId;
@@ -35,8 +35,52 @@ public class CustomerWaitPool {
             mapWaitStopCustomerPool.put(bizId + customerItem.getShareBatchId(), mapWaitStopPool);
         }
         mapWaitStopPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
-        
     }
+
+    public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
+
+        MultiNumberCustomer customerItem = removeWaitResultCustome(userId, bizId, importBatchId, customerId);
+        if (null == customerItem)
+            return customerItem;
+
+        Long timeSlot = customerItem.getExtractTime().getTime()/ Constants.timeSlotSpan;
+        removeWaitTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
+
+        removeWaitStopCustomer(bizId, customerItem.getShareBatchId(), importBatchId, customerId);
+
+        return customerItem;
+    }
+
+    private MultiNumberCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
+        MultiNumberCustomer customerItem = null;
+
+        Map<String, MultiNumberCustomer> mapWaitResultPool = mapWaitResultCustomerPool.get(userId);
+        if (null != mapWaitResultPool) {
+            customerItem = mapWaitResultPool.remove(importBatchId + customerId);
+            if (mapWaitResultPool.isEmpty())
+                mapWaitResultCustomerPool.remove(userId);
+        }
+        return customerItem;
+    }
+
+    private void removeWaitTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
+        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapWaitTimeOutCustomerPool.get(timeSlot);
+        if (null != mapWaitTimeOutPool) {
+            mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
+            if (mapWaitTimeOutPool.isEmpty())
+                mapWaitTimeOutCustomerPool.remove(timeSlot);
+        }
+    }
+
+    private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
+        Map<String, MultiNumberCustomer> mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + shareBatchId);
+        if (null != mapWaitStopPool) {
+            mapWaitStopPool.remove(importBatchId + customerId);
+            if (mapWaitStopPool.isEmpty())
+                mapWaitStopCustomerPool.remove(bizId + shareBatchId);
+        }
+    }
+
 
 
     // 等待拨打结果的客户池，坐席人员维度

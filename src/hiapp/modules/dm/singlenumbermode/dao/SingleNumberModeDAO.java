@@ -3,6 +3,7 @@ package hiapp.modules.dm.singlenumbermode.dao;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
+import hiapp.modules.dm.util.DateUtil;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -116,14 +117,6 @@ public class SingleNumberModeDAO extends BaseRepository {
         try {
             dbConn = this.getDbConnection();
 
-            Calendar curDay = Calendar.getInstance();
-            curDay.setTime(new Date());
-            curDay.add(Calendar.DAY_OF_MONTH, 1);
-            curDay.set(Calendar.HOUR_OF_DAY, 0);
-            curDay.set(Calendar.MINUTE, 0);
-            curDay.set(Calendar.SECOND, 0);
-            curDay.set(Calendar.MILLISECOND, 0);
-
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
                     "MODIFYUSERID, MODIFYTIME, MODIFYDESC, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, LASTDIALTIME, " +
@@ -131,7 +124,7 @@ public class SingleNumberModeDAO extends BaseRepository {
                     "LOSTCALLTOTALCOUNT FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND STATE IN (").append(SQLUtil.shareStatelistToSqlString(shareDataStateList)).append(")");
-            sqlBuilder.append(" AND NEXTDIALTIME < ").append("TO_DATA(").append(curDay).append(",'yyyy-MM-dd')");
+            sqlBuilder.append(" AND NEXTDIALTIME < ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             ResultSet rs = stmt.executeQuery();

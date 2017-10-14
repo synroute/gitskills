@@ -1,17 +1,6 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
-import hiapp.modules.dm.multinumbermode.bo.CustomerWaitPool;
-import hiapp.modules.dm.multinumbermode.bo.CustomerSharePool;
-import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
-import hiapp.modules.dmmanager.data.DMBizMangeShare;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.PriorityBlockingQueue;
 
 public class OnePhoneTypeCustomerPool {
 
@@ -19,12 +8,12 @@ public class OnePhoneTypeCustomerPool {
     CustomerWaitPool customerWaitPool;
 
     int bizId = 0;
-    int dialSequence;
+    int phoneType;
 
     public OnePhoneTypeCustomerPool(int bizId, int dialSequence) {
 
         this.bizId = bizId;
-        this.dialSequence = dialSequence;
+        this.phoneType = dialSequence;
 
         customerSharePool = new CustomerSharePool(bizId);
         customerWaitPool = new CustomerWaitPool(bizId);
@@ -45,11 +34,17 @@ public class OnePhoneTypeCustomerPool {
         }
 
         return shareDataItem;
-
     }
 
     public void add(MultiNumberCustomer customer) {
         customerSharePool.add(customer);
     }
 
+    public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
+
+        return customerWaitPool.removeWaitCustomer(userId, bizId, importBatchId, customerId);
+    }
+
+
 }
+

@@ -53,5 +53,12 @@ public class DateUtil {
         return curDay.getTime();
     }
 
+    public static Date getNextXMinute(int deltaMinuteNum) {
+        Calendar curDay = Calendar.getInstance();
+        curDay.setTime(new Date());
+        curDay.add(Calendar.MINUTE, deltaMinuteNum);
+        return curDay.getTime();
+    }
+
 
 }

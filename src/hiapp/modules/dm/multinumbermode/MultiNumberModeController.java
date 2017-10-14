@@ -1,6 +1,7 @@
 package hiapp.modules.dm.multinumbermode;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
 import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
@@ -29,10 +30,9 @@ public class MultiNumberModeController {
     public String extractNextCustomer(HttpServletRequest request,
                                       @RequestParam("userId") String userId,
                                       @RequestParam("bizId") String bizId) {
-        /*System.out.println(userId + "。。。" + bizId);
+        System.out.println(userId + "。。。" + bizId);
         Integer intBizId = Integer.valueOf(bizId);
-        SingleNumberModeShareCustomerItem item = singleNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId);
-
+        MultiNumberCustomer item = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId);
 
         NextOutboundCustomerResult result = new NextOutboundCustomerResult();
         if (null == item) {
@@ -42,9 +42,9 @@ public class MultiNumberModeController {
             result.setCustomerId(item.getCustomerId());
             result.setImportBatchId(item.getImportBatchId());
             result.setShareBatchId(item.getShareBatchId());
+            result.setPhoneType(item.getNextDialPhoneType());
         }
-        return result.toJson();*/
-        return "";
+        return result.toJson();
     }
 
     @RequestMapping(value="/srv/dm6/submitHiDialerOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
@@ -55,7 +55,7 @@ public class MultiNumberModeController {
 
     @RequestMapping(value="/srv/dm6/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
-        /*
+
         HttpSession session = request.getSession();
         User user=(User) session.getAttribute("user");
 
@@ -65,6 +65,7 @@ public class MultiNumberModeController {
         String resultCode = (String)map.get("resultCode");
         String importBatchId = (String)map.get("importBatchId");
         //String shareBatchId = (String)map.get("shareBatchId");
+        int phoneType = (Integer)map.get("phoneType");
         String customerId = (String)map.get("customerId");
         String strPresetTime = (String) map.get("presetTime");
         Map<String, String> resultData = (Map<String, String>)map.get("resultData");
@@ -91,12 +92,11 @@ public class MultiNumberModeController {
             }
         }
 
-        singleNumberOutboundDataManage.submitOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId,
-                customerId, resultCodeType, resultCode, presetTime , jsonResultData, jsonCustomerInfo);
+        multiNumberOutboundDataManage.submitOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId,
+                customerId, phoneType, resultCodeType, resultCode, presetTime , jsonResultData, jsonCustomerInfo);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-        return serviceresult.toJson();*/
-        return "";
+        return serviceresult.toJson();
     }
 
     @RequestMapping(value="/srv/dm6/startShareBatch.srv", method= RequestMethod.GET, produces="application/json")

@@ -2,6 +2,7 @@ package hiapp.modules.dm.util;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
+import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 
 import java.text.SimpleDateFormat;
@@ -63,6 +64,17 @@ public class SQLUtil {
         StringBuilder sb = new StringBuilder();
         for (int indx = 0; indx < shareCustomerStateList.size(); indx++) {
             SingleNumberModeShareCustomerStateEnum state = shareCustomerStateList.get(indx);
+            sb.append("'").append(state.getName()).append("'");
+            if (indx < (shareCustomerStateList.size() - 1))
+                sb.append(",");
+        }
+        return sb.toString();
+    }
+
+    public static String multiNumberPredictStatelistToSqlString(List<MultiNumberPredictStateEnum> shareCustomerStateList) {
+        StringBuilder sb = new StringBuilder();
+        for (int indx = 0; indx < shareCustomerStateList.size(); indx++) {
+            MultiNumberPredictStateEnum state = shareCustomerStateList.get(indx);
             sb.append("'").append(state.getName()).append("'");
             if (indx < (shareCustomerStateList.size() - 1))
                 sb.append(",");

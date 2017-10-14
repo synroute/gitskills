@@ -17,6 +17,7 @@ public class NextOutboundCustomerResult extends ServiceResult {
     public void setCustomerId(String customerId) {
         data.setCustomerId(customerId);
     }
+    public void setPhoneType(int phoneType) { data.setPhoneType(phoneType); }
 
     class _inner_info {
 
@@ -32,8 +33,11 @@ public class NextOutboundCustomerResult extends ServiceResult {
             this.customerId = customerId;
         }
 
+        public void setPhoneType(int phoneType) { this.phoneType = phoneType; }
+
         String importBatchId;
         String shareBatchId;
         String customerId;
+        int phoneType;
     }
 }
