@@ -33,6 +33,7 @@ public class DistributDataController {
 	private PermissionRepository permissionRepository;
 	@Autowired
 	private UserRepository userRepository;
+	
 	/**
 	 * 获取所有分配模板
 	 * @param request
@@ -81,13 +82,16 @@ public class DistributDataController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 	    String userId =String.valueOf(user.getId());
+	    RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(userId);
+	  	Permission permission = permissionRepository.getPermission(roleInGroupSet);
+	  	int permissionId = permission.getId();
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
 		Integer pageNum=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
-		dataDistributeJdbc.getNotDisDatByTime(userId, bizId, templateId, startTime, endTime);
+		dataDistributeJdbc.getNotDisDatByTime(userId, bizId, templateId, startTime, endTime,permissionId);
 		Map<String, Object> resultMap = dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {

@@ -4,7 +4,11 @@ import hiapp.modules.dmmanager.bean.OutputFirstRow;
 import hiapp.modules.dmmanager.bean.RecyleTemplate;
 import hiapp.modules.dmmanager.data.DataDistributeJdbc;
 import hiapp.modules.dmmanager.data.DataRecyleJdbc;
+import hiapp.system.buinfo.Permission;
+import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
+import hiapp.system.buinfo.data.PermissionRepository;
+import hiapp.system.buinfo.data.UserRepository;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,6 +32,10 @@ public class DataRecyleController {
 	private DataRecyleJdbc dataRecyleJdbc;
 	@Autowired
 	private DataDistributeJdbc dataDistributeJdbc;
+	@Autowired
+	private PermissionRepository permissionRepository;
+	@Autowired
+	private UserRepository userRepository;
 	/**
 	 * 获取所有回收模板
 	 * @param request
@@ -76,6 +84,9 @@ public class DataRecyleController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 	    String userId =String.valueOf(user.getId());
+	    RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(userId);
+	  	Permission permission = permissionRepository.getPermission(roleInGroupSet);
+	  	int permissionId = permission.getId();
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
 		String startTime=request.getParameter("startTime");
@@ -85,7 +96,7 @@ public class DataRecyleController {
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		if(dataType==0){
-			dataRecyleJdbc.getDistributeDataByTime(bizId, userId, templateId, startTime, endTime);
+			dataRecyleJdbc.getDistributeDataByTime(bizId, userId, templateId, startTime, endTime,permissionId);
 			resultMap=dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize);
 		}else{
 			resultMap=dataRecyleJdbc.getShareDataByTime(bizId, userId, templateId, startTime, endTime, pageNum, pageSize);

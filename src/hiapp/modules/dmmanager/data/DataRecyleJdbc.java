@@ -78,8 +78,7 @@ public class DataRecyleJdbc extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			String configJson=getConfigJson(bizId, templateId);
-			JsonObject jsonObject= new JsonParser().parse(configJson).getAsJsonObject();
-			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
+			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
 				OutputFirstRow firstRow=new OutputFirstRow();
 				String title=null; 
@@ -117,7 +116,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param endTime
 	 */
 	@SuppressWarnings("resource")
-	public void getDistributeDataByTime(Integer bizId,String userId,Integer templateId,String startTime,String endTime){
+	public void getDistributeDataByTime(Integer bizId,String userId,Integer templateId,String startTime,String endTime,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -128,10 +127,9 @@ public class DataRecyleJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 			String dbTableName=getTableName(tempTableName);
 			String configJson=getConfigJson(bizId, templateId);
-			JsonObject jsonObject= new JsonParser().parse(configJson).getAsJsonObject();
-			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
+			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			String insertSql="insert into "+tempTableName+"(TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
-			String createTableSql="create table "+tempTableName+" (TEMPID NUMBER,IFCHECKD NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR BUMBER,";
+			String createTableSql="create table "+tempTableName+" (TEMPID NUMBER,IFCHECKED NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR BUMBER,";
 			String getDataSql2="select S_HAU_DM_B101C_IMPORT.nextval,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=null ;
@@ -159,12 +157,12 @@ public class DataRecyleJdbc extends BaseRepository{
 					workSheetId=dataArray.get(i).getAsJsonObject().get("WorkSheetId").getAsString();
 				}
 				String suffix=workSheetName.substring(workSheetName.lastIndexOf("_")+1);
-				if("pool".equals(suffix.toLowerCase())){
-					continue;
-				}
 				for (int j = 0; j < newList.size(); j++) {
 					String asName="a"+j+".";
 					if(newList.get(j).equals(workSheetName)){
+						if("pool".equals(suffix.toLowerCase())){
+							asName="b.";
+						}
 						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql2+=asName+columnName+",";
 							insertSql+=columnName+",";
@@ -183,11 +181,11 @@ public class DataRecyleJdbc extends BaseRepository{
 					continue;
 				}
 				String asName="a"+i;
-				getDataSql2+=newList.get(i)+" asName"+" on t.IID="+asName+".IID and t.CID="+asName+".CID left join ";
+				getDataSql2+=newList.get(i)+" asName"+" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
 			}
 			getDataSql2=getDataSql2.substring(0,getDataSql2.lastIndexOf("left join"))+" where ";
-			getDataSql2=getDataSql2+" t.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>(?,'yyyy-mm-dd') and a.ModifyTime<(?,'yyyy-mm-dd') "
-					+ " and b.AreaCur=0 and b.ISRecover=0 and b.DataPoolIDCur in(select id from HASYS_DM_DATAPOOL p where p.pid=(select m.id from HASYS_DM_DATAPOOL m where m.BusinessID=? and m.DataPoolName=?) and p.BusinessID=?) )";
+			getDataSql2=getDataSql2+" b.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>to_date(?,'yyyy-mm-dd hh24:mi:ss') and a.ModifyTime<to_date(?,'yyyy-mm-dd hh24:mi:ss') "
+					+ " and b.AreaCur=0 and b.ISRecover=0 and b.DataPoolIDCur in(select id from HASYS_DM_DATAPOOL p where p.pid=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null) and p.BusinessID=?) )";
 			createTableSql=createTableSql.substring(0,createTableSql.length()-1)+")";
 			insertSql=insertSql.substring(0,insertSql.length()-1)+") "+getDataSql2;
 			if(dbTableName==null){
@@ -204,7 +202,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			pst.setString(2,startTime);
 			pst.setString(3,endTime);
 			pst.setInt(4,bizId);
-			pst.setString(5, userId);
+			pst.setInt(5, permissionId);
 			pst.setInt(6, bizId);;
 			pst.executeUpdate();
 		} catch (SQLException e) {
@@ -426,7 +424,7 @@ public class DataRecyleJdbc extends BaseRepository{
 		String configJson=null;
 		try {
 			conn=this.getDbConnection();
-			String getJsonSql="select xml from HASYS_DM_BIZTEMPLATERECOVER where BUSINESSID=? and templateId=?";
+			String getJsonSql="select CONFIGJSON from HASYS_DM_BIZTEMPLATERECOVER where BUSINESSID=? and templateId=?";
 			pst=conn.prepareStatement(getJsonSql);
 			pst.setInt(1,bizId);
 			pst.setInt(2,templateId);

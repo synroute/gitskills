@@ -81,8 +81,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			String configJson=getConfigJson(bizId, templateId);
-			JsonObject jsonObject= new JsonParser().parse(configJson).getAsJsonObject();
-			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
+			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
 				OutputFirstRow firstRow=new OutputFirstRow();
 				String title=null; 
@@ -124,7 +123,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @return
 	 */
 	@SuppressWarnings({ "unused", "resource", "unchecked" })
-	public void getNotDisDatByTime(String userId,Integer bizId,Integer templateId,String startTime,String endTime){
+	public void getNotDisDatByTime(String userId,Integer bizId,Integer templateId,String startTime,String endTime,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -143,11 +142,10 @@ public class DataDistributeJdbc extends BaseRepository{
 				dbTableName=rs.getString(1);
 			}
 			String configJson=getConfigJson(bizId, templateId);
-			JsonObject jsonObject= new JsonParser().parse(configJson).getAsJsonObject();
-			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
-			String getDataSql2="S_HAU_DM_B101C_IMPORT.nextval,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
+			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
+			String getDataSql2="select S_HAU_DM_B101C_IMPORT.nextval,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
 			String insertSql="insert into "+tempTableName+"(TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR, ";
-			String createTableSql="create table "+tempTableName+"(TEMPID NUMBER,IFCHECKD NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR BUMBER,";
+			String createTableSql="create table "+tempTableName+"(TEMPID NUMBER,IFCHECKED NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR NUMBER,";
 			
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=null ;
@@ -175,12 +173,12 @@ public class DataDistributeJdbc extends BaseRepository{
 					workSheetId=dataArray.get(i).getAsJsonObject().get("WorkSheetId").getAsString();
 				}
 				String suffix=workSheetName.substring(workSheetName.lastIndexOf("_")+1);
-				if("pool".equals(suffix.toLowerCase())){
-					continue;
-				}
 				for (int j = 0; j < newList.size(); j++) {
 					String asName="a"+j+".";
 					if(newList.get(j).equals(workSheetName)){
+						if("pool".equals(suffix.toLowerCase())){
+							asName="b.";
+						}
 						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql2+=asName+columnName+",";
 							insertSql+=columnName+",";
@@ -192,7 +190,7 @@ public class DataDistributeJdbc extends BaseRepository{
 				}
 				
 			}
-			getDataSql2=getDataSql2+" from "+dataPoolName+" t left join ";
+			getDataSql2=getDataSql2.substring(0,getDataSql2.length()-1)+" from "+dataPoolName+" b left join ";
 			
 			for (int i = 0; i < newList.size(); i++) {
 				String workSheetName=newList.get(i);
@@ -201,11 +199,11 @@ public class DataDistributeJdbc extends BaseRepository{
 					continue;
 				}
 				String asName="a"+i;
-				getDataSql2+=newList.get(i)+" asName"+" on t.IID="+asName+".IID and t.CID="+asName+".CID left join ";
+				getDataSql2+=newList.get(i)+ " "+asName+" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
 			}
 			getDataSql2=getDataSql2.substring(0,getDataSql2.lastIndexOf("left join"))+" where ";
-			getDataSql2=getDataSql2+" t.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>(?,'yyyy-mm-dd') and a.ModifyTime<(?,'yyyy-mm-dd') and b.AreaCur=0 and b.DataPoolIDCur=(select m.id from HASYS_DM_DATAPOOL m where m.BusinessID=? and m.DataPoolName=?)  )";
-			createTableSql=createTableSql.substring(0,createTableSql.length()-1);
+			getDataSql2=getDataSql2+" b.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>to_date(?,'yyyy-mm-dd hh24:mi:ss') and a.ModifyTime<to_date(?,'yyyy-mm-dd hh24:mi:ss') and b.AreaCur=0 and b.DataPoolIDCur=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null)  )";
+			createTableSql=createTableSql.substring(0,createTableSql.length()-1)+")";
 			insertSql=insertSql.substring(0,insertSql.length()-1)+")"+getDataSql2;
 			if(dbTableName==null){
 				pst=conn.prepareStatement(createTableSql);
@@ -221,7 +219,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst.setString(2,startTime);
 			pst.setString(3,endTime);
 			pst.setInt(4,bizId);
-			pst.setString(5,userId);
+			pst.setInt(5,permissionId);
 			pst.executeUpdate();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -253,8 +251,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			String configJson=getConfigJson(bizId, templateId);
-			JsonObject jsonObject= new JsonParser().parse(configJson).getAsJsonObject();
-			JsonArray dataArray=jsonObject.get("Template").getAsJsonArray();
+			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			String getDataSql1="select TEMPID,IID,CID,";
 			String getDataSql3="select TEMPID,IID,CID,";
 			for (int i = 0; i < dataArray.size(); i++) {
@@ -282,16 +279,11 @@ public class DataDistributeJdbc extends BaseRepository{
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetId").isJsonNull()){
 					workSheetId=dataArray.get(i).getAsJsonObject().get("WorkSheetId").getAsString();
 				}
-				String suffix=workSheetName.substring(workSheetName.lastIndexOf("_")+1);
-				if("pool".equals(suffix.toLowerCase())){
-					continue;
-				}
 				for (int j = 0; j < newList.size(); j++) {
-					String asName="a"+j+".";
 					if(newList.get(j).equals(workSheetName)){
 						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())){
 							getDataSql1+=columnName+",";
-							getDataSql3+=getDataType(columnName,workSheetId,asName)+",";
+							getDataSql3+=getDataType(columnName,workSheetId)+",";
 							break;
 						}
 						
@@ -314,7 +306,7 @@ public class DataDistributeJdbc extends BaseRepository{
 					String key=null;
 					if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
 						key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
-						if(!"".equals(key)){
+						if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
 							map.put(key,rs.getObject(key));
 						}
 					}
@@ -470,10 +462,10 @@ public class DataDistributeJdbc extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			for(int i = 0; i < dataPoolList.size(); i++) {
-				Integer dataPoolId=(Integer) dataPoolList.get(i).get("dataPoolId");
-				Integer disNum=(Integer) dataPoolList.get(i).get("disNum");
+				Integer dataPoolId=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolId"));
+				Double disNum=(Double)dataPoolList.get(i).get("disNum");
 				String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime)"
-						+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1 and rownum<="+disNum+")";
+						+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1) where rownum<="+disNum;
 				pst=conn.prepareStatement(updatePoolSql);
 				pst.executeUpdate();
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
@@ -730,7 +722,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		String configJson=null;
 		try {
 			conn=this.getDbConnection();
-			String getJsonSql="select xml from hasys_dm_biztemplatedistview where BUSINESSID=? and templateId=?";
+			String getJsonSql="select CONFIGJSON from hasys_dm_biztemplatedistview where BUSINESSID=? and templateId=?";
 			pst=conn.prepareStatement(getJsonSql);
 			pst.setInt(1,bizId);
 			pst.setInt(2,templateId);
@@ -758,7 +750,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param asName
 	 * @return
 	 */
-	public String getDataType(String columnName,String workSheetId,String asName){
+	public String getDataType(String columnName,String workSheetId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -776,9 +768,9 @@ public class DataDistributeJdbc extends BaseRepository{
 			}
 			
 			if("varchar".equals(dataType.toLowerCase())||"int".equals(dataType.toLowerCase())){
-				column=asName+columnName;
+				column=columnName;
 			}else if("datetime".equals(dataType.toLowerCase())){
-				column="to_char("+asName+columnName+",'yyyy-mm-dd') columnName";
+				column="to_char("+columnName+",'yyyy-mm-dd hh24:mi:ss') "+columnName;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
