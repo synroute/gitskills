@@ -178,7 +178,6 @@ public class MultiNumberOutboundDataManage {
         originPhoneDialInfo.setDialCount( originPhoneDialInfo.getDialCount() + 1);
         originPhoneDialInfo.setLastDialTime(now);
         item.setDialInfo(originCustomerItem.getCurDialPhoneType(), originPhoneDialInfo);
-        item.setCurPhoneDialSequence(customerSharePool.getPhoneDialSequence(originCustomerItem.getCurDialPhoneType()));
 
         item.setShareBatchStartTime(originCustomerItem.getShareBatchStartTime());
 
