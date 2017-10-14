@@ -5,10 +5,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@Component
-@Qualifier("multiNumberPredictMode-EndCodeRedialStrategy")
 public class EndCodeRedialStrategy {
 
+    // resultCodeType + resultCode <==> EndCodeRedialStrategyItem
     Map<String, EndCodeRedialStrategyItem>  mapEndCodeRedialStrategy;
 
     public void load() {
