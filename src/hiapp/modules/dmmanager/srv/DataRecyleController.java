@@ -112,6 +112,31 @@ public class DataRecyleController {
 		}
 	}
 	/**
+	 * 从临时表中查询要展示的数据
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/DataRecyleController/getTempNotDisData.srv")
+	public void getTempNotDisData(HttpServletRequest request, HttpServletResponse response){
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+	    String userId =String.valueOf(user.getId());
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
+		Integer pageNum=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		String tempTableName="HAU_DM_H"+bizId+"S_"+userId;
+		Map<String, Object> resultMap = dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
+		String jsonObject=new Gson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
 	 * 回收数据
 	 * @param request
 	 * @param response
@@ -121,14 +146,21 @@ public class DataRecyleController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 	    String userId =String.valueOf(user.getId());
+	    RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(userId);
+	  	Permission permission = permissionRepository.getPermission(roleInGroupSet);
+	  	int permissionId = permission.getId();
 	    Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 	    String shareIds=request.getParameter("shareIds");
 	    Integer dataType=Integer.valueOf(request.getParameter("dataType"));
+	    Integer action=Integer.valueOf(request.getParameter("action"));
+	    String tempIds=request.getParameter("tempIds");
+	    String tempTableName="HAU_DM_H"+bizId+"S_"+userId;
 	    Map<String,Object> resultMap=null;
 	    if(dataType==0){
-	    	resultMap=dataRecyleJdbc.recyleDisData(bizId, userId);
+	    	dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action,tempTableName);
+	    	resultMap=dataRecyleJdbc.recyleDisData(bizId, userId,permissionId);
 	    }else{
-	    	resultMap=dataRecyleJdbc.recyleShareData(bizId,userId, shareIds);
+	    	resultMap=dataRecyleJdbc.recyleShareData(bizId,userId, shareIds,permissionId);
 	    }
 	    String jsonObject=new Gson().toJson(resultMap);
 		try {

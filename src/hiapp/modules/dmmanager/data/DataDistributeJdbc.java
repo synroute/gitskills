@@ -374,7 +374,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		try {
 			conn=this.getDbConnection();
-			String sql="select a.ID,a.DATAPOOLNAME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0),a.dataPoolType from "+poolName+" b) topLimit from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.pid=?";
+			String sql="select a.ID,a.DATAPOOLNAME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0) from "+poolName+" b) topLimit,a.dataPoolType from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.pid=?";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1,bizId);
 			pst.setInt(2, pid);
@@ -678,12 +678,11 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param tempIds
 	 * @param action
 	 */
-	public void updateTempData(Integer bizId,String userId,String tempIds,Integer action){
+	public void updateTempData(Integer bizId,String userId,String tempIds,Integer action,String tableName){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String[] arrTempId=tempIds.split(",");
-		String tableName="HAU_DM_"+bizId+"_"+userId;
 		try {
 			conn=this.getDbConnection();
 			String sql=null;

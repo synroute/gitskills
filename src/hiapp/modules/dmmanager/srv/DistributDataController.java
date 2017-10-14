@@ -171,7 +171,8 @@ public class DistributDataController {
 		List<Map<String,Object>>  dataPoolList=new Gson().fromJson(dataPools,List.class);
 		String tempIds=request.getParameter("tempIds");
 		Integer action=Integer.valueOf(request.getParameter("action"));
-		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action);
+		String tempTableName="HAU_DM_"+bizId+"_"+userId;
+		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action,tempTableName);
 		Map<String, Object> resultMap = dataDistributeJdbc.saveDistributeDataToDB(bizId, userId, disName, description, dataPoolList);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
@@ -204,7 +205,8 @@ public class DistributDataController {
 		String shareId=request.getParameter("shareId");
 		String tempIds=request.getParameter("tempIds");
 		Integer action=Integer.valueOf(request.getParameter("action"));
-		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action);
+		String tempTableName="HAU_DM_"+bizId+"_"+userId;
+		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action,tempTableName);
 		Map<String, Object> resultMap = dataDistributeJdbc.saveShareDataToDB(bizId, userId, shareName, description, startTime, endTime, dataPoolIds, dataPoolNames,model,shareId);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {

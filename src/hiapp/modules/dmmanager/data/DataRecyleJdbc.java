@@ -300,40 +300,38 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param userId
 	 */
 	@SuppressWarnings({ "unused", "resource" })
-	public Map<String,Object> recyleDisData(Integer bizId,String userId){
+	public Map<String,Object> recyleDisData(Integer bizId,String userId,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String disBatchId=idfactory.newId("DM_DID");//分配号
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
-		String tempTableName="HAU_DM_"+bizId+"_"+userId;
+		String tempTableName="HAU_DM_H"+bizId+"S_"+userId;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and DataPoolName =?";
+			String getDataSourceSql="select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null";
 			pst=conn.prepareStatement(getDataSourceSql);
 			pst.setInt(1,bizId);
-			pst.setString(2,userId);
+			pst.setInt(2,permissionId);
 			rs=pst.executeQuery();
 			Integer dataPoolId=null;
 			while(rs.next()){
 				dataPoolId=rs.getInt(1);
 			}
 			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime,ISRecover)"
-					+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate,1 from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1)";
+					+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate,1 from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1) "
+							+ " where exists(select 1 from "+tempTableName+" b where a.IID = b.IID AND a.CID = b.CID and b.ifchecked=1)";
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.executeUpdate();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
 					" select S_"+orePoolName+".nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
-			String deleteSql=" delete from "+tempTableName+" a where b.ifchecked=1";
+			String deleteSql=" delete from "+tempTableName+" a where a.ifchecked=1";
 			pst=conn.prepareStatement(deleteSql);
-			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,?,?,?,sysdate)";
-			pst.setInt(1,bizId);
-			pst.setString(2,disBatchId);
-			pst.setString(3, userId);
+			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,"+bizId+",'"+disBatchId+"','"+userId+"',sysdate)";
 			pst.executeUpdate();
 			resultMap.put("result",true);
 		} catch (SQLException e) {
@@ -354,7 +352,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param shareIds
 	 */
 	@SuppressWarnings({ "unused", "resource" })
-	public Map<String,Object> recyleShareData(Integer bizId,String userId,String shareIds){
+	public Map<String,Object> recyleShareData(Integer bizId,String userId,String shareIds,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -365,10 +363,10 @@ public class DataRecyleJdbc extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and DataPoolName =?";
+			String getDataSourceSql="select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null";
 			pst=conn.prepareStatement(getDataSourceSql);
 			pst.setInt(1,bizId);
-			pst.setString(2,userId);
+			pst.setInt(2,permissionId);
 			rs=pst.executeQuery();
 			Integer dataPoolId=null;
 			while(rs.next()){
