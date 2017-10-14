@@ -238,12 +238,11 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param pageSize
 	 */
 	@SuppressWarnings("resource")
-	public Map<String,Object> getTempNotDisData(Integer bizId,Integer templateId ,String userId,Integer num,Integer pageSize){
+	public Map<String,Object> getTempNotDisData(Integer bizId,Integer templateId ,String userId,Integer num,Integer pageSize,String tempTableName){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
-		String tempTableName="HAU_DM_"+bizId+"_"+userId;
 		Integer startNum=(num-1)*pageSize+1;
 		Integer endNum=num*pageSize+1;
 		List<String> workSheetNameList=new ArrayList<String>();

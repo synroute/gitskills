@@ -120,7 +120,7 @@ public class DataRecyleJdbc extends BaseRepository{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
-		String tempTableName="HAU_DM_"+bizId+"_"+userId;
+		String tempTableName="HAU_DM_H"+bizId+"S_"+userId;
 		String dataPoolName="HAU_DM_B"+bizId+"C_POOL";
 		List<String> workSheetNameList=new ArrayList<String>();
 		try {
@@ -129,7 +129,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			String configJson=getConfigJson(bizId, templateId);
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			String insertSql="insert into "+tempTableName+"(TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
-			String createTableSql="create table "+tempTableName+" (TEMPID NUMBER,IFCHECKED NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR BUMBER,";
+			String createTableSql="create table "+tempTableName+" (TEMPID NUMBER,IFCHECKED NUMBER,IID VARCHAR2(50),CID VARCHAR2(50),DATAPOOLIDCUR NUMBER,AREACUR NUMBER,";
 			String getDataSql2="select S_HAU_DM_B101C_IMPORT.nextval,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=null ;
@@ -173,7 +173,7 @@ public class DataRecyleJdbc extends BaseRepository{
 					}
 				}
 			}
-			getDataSql2=getDataSql2+" from "+dataPoolName+" t left join ";
+			getDataSql2=getDataSql2.substring(0,getDataSql2.length()-1)+" from "+dataPoolName+" b left join ";
 			for (int i = 0; i < newList.size(); i++) {
 				String workSheetName=newList.get(i);
 				String suffix=workSheetName.substring(workSheetName.lastIndexOf("_")+1);
@@ -181,7 +181,7 @@ public class DataRecyleJdbc extends BaseRepository{
 					continue;
 				}
 				String asName="a"+i;
-				getDataSql2+=newList.get(i)+" asName"+" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
+				getDataSql2+=newList.get(i)+" "+asName+" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
 			}
 			getDataSql2=getDataSql2.substring(0,getDataSql2.lastIndexOf("left join"))+" where ";
 			getDataSql2=getDataSql2+" b.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>to_date(?,'yyyy-mm-dd hh24:mi:ss') and a.ModifyTime<to_date(?,'yyyy-mm-dd hh24:mi:ss') "

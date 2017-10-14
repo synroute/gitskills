@@ -91,8 +91,9 @@ public class DistributDataController {
 		String endTime=request.getParameter("endTime");
 		Integer pageNum=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		String tempTableName="HAU_DM_"+bizId+"_"+userId;
 		dataDistributeJdbc.getNotDisDatByTime(userId, bizId, templateId, startTime, endTime,permissionId);
-		Map<String, Object> resultMap = dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize);
+		Map<String, Object> resultMap = dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();
@@ -116,7 +117,8 @@ public class DistributDataController {
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
 		Integer pageNum=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
-		Map<String, Object> resultMap = dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize);
+		String tempTableName="HAU_DM_"+bizId+"_"+userId;
+		Map<String, Object> resultMap = dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();

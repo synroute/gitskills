@@ -96,8 +96,9 @@ public class DataRecyleController {
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		if(dataType==0){
+			String tempTableName="HAU_DM_H"+bizId+"S_"+userId;
 			dataRecyleJdbc.getDistributeDataByTime(bizId, userId, templateId, startTime, endTime,permissionId);
-			resultMap=dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize);
+			resultMap=dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
 		}else{
 			resultMap=dataRecyleJdbc.getShareDataByTime(bizId, userId, templateId, startTime, endTime, pageNum, pageSize);
 		}
