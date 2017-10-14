@@ -11,7 +11,16 @@ public class UserItem {
 	private String state;
 	private Boolean checked;
 	private Integer topLimit;
+	private int dataPoolType;
 	private List<UserItem> children;
+	
+
+	public int getDataPoolType() {
+		return dataPoolType;
+	}
+	public void setDataPoolType(int dataPoolType) {
+		this.dataPoolType = dataPoolType;
+	}
 	public Integer getTopLimit() {
 		return topLimit;
 	}

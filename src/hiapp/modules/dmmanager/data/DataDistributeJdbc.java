@@ -374,7 +374,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		try {
 			conn=this.getDbConnection();
-			String sql="select a.ID,a.DATAPOOLNAME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0) from "+poolName+" b) topLimit from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.pid=?";
+			String sql="select a.ID,a.DATAPOOLNAME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0),a.dataPoolType from "+poolName+" b) topLimit from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.pid=?";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1,bizId);
 			pst.setInt(2, pid);
@@ -384,6 +384,7 @@ public class DataDistributeJdbc extends BaseRepository{
 				userItem.setId(String.valueOf(rs.getInt(1)));
 				userItem.setText(rs.getString(2));;
 				userItem.setTopLimit(rs.getInt(3));
+				userItem.setDataPoolType(rs.getInt(4));
 				userItems.add(userItem);
 			}
 		} catch (SQLException e) {
