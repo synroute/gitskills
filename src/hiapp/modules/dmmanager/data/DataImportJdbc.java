@@ -1028,5 +1028,7 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 		}
 		return dataType;
 	}
+	
+	
     
 }

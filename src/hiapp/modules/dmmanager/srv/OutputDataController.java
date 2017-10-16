@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -74,8 +75,10 @@ public class OutputDataController{
 		String endTime=request.getParameter("endTime");
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
-		List<Map<String, Object>> outputDataList = dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId,bizId);
-		String jsonObject=new Gson().toJson(outputDataList);
+		Integer pageNum=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId,bizId,pageNum,pageSize);
+		String jsonObject=new Gson().toJson(resultMap);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
 	}

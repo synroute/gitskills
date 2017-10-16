@@ -123,13 +123,16 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource", "unchecked", "unused", "rawtypes" })
-	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId) throws IOException{
+	public Map<String,Object> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId,Integer num,Integer pageSize) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		List<String> workSheetNameList=new ArrayList<String>();
 		//导入数据的集合
 		List<Map<String,Object>> outDataList=new ArrayList<Map<String,Object>>();
+		Map<String,Object> resultMap=new HashMap<String, Object>();
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
 		try {
 			conn=this.getDbConnection();
 			String getOutputXmlSql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=? and BUSINESSID=?";
@@ -145,11 +148,13 @@ public class DataOutputJdbc extends BaseRepository{
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
 				String  workSheetName=null;
+				String workSheetId=null;
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
 				 workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
-				}
-				if(workSheetName!=null&&!"".equals(workSheetName)){
-					workSheetNameList.add(workSheetName);
+				 if(workSheetName!=null&&!"".equals(workSheetName)){
+						workSheetNameList.add(workSheetName);
+					}
+					
 				}
 				
 			}
@@ -158,21 +163,28 @@ public class DataOutputJdbc extends BaseRepository{
 			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
 			//查询数据Sql
 			String getOutDataSql="select ";
+			String getOutDataSql1="select ";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName1=null;
+				String workSheetId=null;
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
 					 workSheetName1=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
 					}
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetId").isJsonNull()){
+					workSheetId=dataArray.get(i).getAsJsonObject().get("WorkSheetId").getAsString();
+					
+				}
 				for (int j = 0; j <newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName1)){
 						String asName="a"+j+".";//别名
 						String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
-						getOutDataSql+=asName+dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString()+",";
+						getOutDataSql+=getDataType(column,workSheetId,asName)+",";
+						getOutDataSql1+=column+",";
 						break;
 					}
 				}
 			}
-			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" from ";
+			getOutDataSql=getOutDataSql+"rownum rn from ";
 			for(int k=0;k<newList.size();k++){
 					String asName="a"+k;//别名
 					getOutDataSql+=newList.get(k)+" "+asName+",";
@@ -189,10 +201,13 @@ public class DataOutputJdbc extends BaseRepository{
 				getOutDataSql+="a0.CID="+asName+"CID and ";
 			}
 			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)";
-			pst=conn.prepareStatement(getOutDataSql);
+			getOutDataSql1=getOutDataSql1.substring(0,getOutDataSql1.length()-1)+" from ("+getOutDataSql+" and rownum<?) t where rn>=?";
+			pst=conn.prepareStatement(getOutDataSql1);
 			pst.setString(1,startTime);
 			pst.setString(2, endTime);
 			pst.setInt(3,bizId);
+			pst.setInt(4, endNum);
+			pst.setInt(5,startNum);
 			rs=pst.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
@@ -211,6 +226,18 @@ public class DataOutputJdbc extends BaseRepository{
 				outDataList.add(map);
 			}
 			
+			String getCountSql="select count(1) from ("+getOutDataSql+") t";
+			pst=conn.prepareStatement(getCountSql);
+			pst.setString(1, startTime);
+			pst.setString(2, endTime);
+			pst.setInt(3,bizId);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()){
+				total=rs.getInt(1);
+			}
+			resultMap.put("total", total);
+			resultMap.put("rows",outDataList);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -218,7 +245,7 @@ public class DataOutputJdbc extends BaseRepository{
 			DbUtil.DbCloseQuery(rs,pst);
 			DbUtil.DbCloseConnection(conn);
 		}
-		return outDataList;
+		return resultMap;
 	}
 	
 
@@ -238,4 +265,43 @@ public class DataOutputJdbc extends BaseRepository{
     }  
     
 
+	/**
+	 * 获取字段类型
+	 * @param columnName
+	 * @param workSheetId
+	 * @param asName
+	 * @return
+	 */
+	public String getDataType(String columnName,String workSheetId,String asName){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String column=null;
+		try {
+			conn=this.getDbConnection();
+			String sql="select dataType from Hasys_Worksheetcolumn where WORKSHEETID=? and COLUMNNAME=?";
+			pst=conn.prepareStatement(sql);
+			pst.setString(1,workSheetId);
+			pst.setString(2, columnName);
+			rs=pst.executeQuery();
+			String dataType=null;
+			while(rs.next()){
+				dataType=rs.getString(1);
+			}
+			
+			if("varchar".equals(dataType.toLowerCase())||"int".equals(dataType.toLowerCase())){
+				column=asName+columnName;
+			}else if("datetime".equals(dataType.toLowerCase())){
+				column="to_char("+asName+columnName+",'yyyy-mm-dd hh24:mi:ss') "+columnName;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+		return column;
+	}
 }
