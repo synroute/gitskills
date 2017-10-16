@@ -1,6 +1,7 @@
 package hiapp.modules.dmmanager.data;
 
 import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.bean.DistributeTemplate;
@@ -412,33 +413,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		return userItem;
 	}
 	
-	/**
-	 * 递归方法
-	 * @param userTreeBranch
-	 * @param bizId
-	 */
-	/*public void addChildren(UserItem userTreeBranch,Integer bizId) {
-		    List<UserItem> listChildrenBranchs = new ArrayList<UserItem>();
-		    Integer pid=Integer.valueOf(userTreeBranch.getId());
-		    List<TreePool>  treePoolList=getChildrenPool(bizId, pid);
-		    for (int ii = 0; ii < treePoolList.size(); ii++) {
-				TreePool TreePoolBranch = treePoolList.get(ii);
-				UserItem treeBranch = new UserItem();
-				treeBranch.setId(String.valueOf(TreePoolBranch.getId()));
-				treeBranch.setText(TreePoolBranch.getDataPoolName());
-				treeBranch.setState("");
-				treeBranch.setDicId(TreePoolBranch.getId());
-				treeBranch.setItemText(TreePoolBranch.getDataPoolName());
-				treeBranch.setTopLimit(TreePoolBranch.getTopLimit());
-				if(treeBranch.getId()==null){
-					continue;
-				}
-				addChildren(treeBranch,bizId);
-				listChildrenBranchs.add(treeBranch);
-				
-			}
-		    userTreeBranch.setChildren(listChildrenBranchs);
-		}*/
+	
 	/**
 	 * 保存数据到正式表中
 	 * @param bizId
@@ -508,56 +483,6 @@ public class DataDistributeJdbc extends BaseRepository{
 		return resultMap;
 	}
 	
-/*	@SuppressWarnings({ "unused","resource" })
-	public Map<String,Object> saveDistributeDataToDB(Integer bizId,String userId,String disName,String description,List<Map<String,Object>>  dataPoolList){
-		Connection conn=null;
-		PreparedStatement pst = null;
-		ResultSet rs = null;
-		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
-		String disBatchId=idfactory.newId("DM_DID");//分配号
-		String poolName="HAU_DM_B"+bizId+"C_POOL";
-		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
-		String tempTableName="HAU_DM_"+bizId+"_"+userId;
-		Map<String,Object> resultMap=new HashMap<String, Object>();
-		try {
-			conn=this.getDbConnection();
-			for(int i = 0; i < dataPoolList.size(); i++) {
-				Integer dataPoolId=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolId"));
-				Integer dataPoolType=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolType"));
-				Double disNum=(Double)dataPoolList.get(i).get("disNum");
-				String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime)"
-						+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1) where rownum<="+disNum;
-				pst=conn.prepareStatement(updatePoolSql);
-				pst.executeUpdate();
-				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-										" select S_"+orePoolName+".NEXTVAL,'"+disBatchId+"',IID,CID,'分配',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+"";
-				pst=conn.prepareStatement(insertOrePoolSql);
-				pst.executeUpdate();
-				String deleteSql=" delete from "+tempTableName+" a where a.tempId in(select b.tempId from "+tempTableName+" b where b.ifchecked=1 and rownum<="+disNum+")";
-				pst=conn.prepareStatement(deleteSql);
-				pst.executeUpdate();
-				
-			}
-			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
-			pst=conn.prepareStatement(insertDisBatchSql);
-			pst.setInt(1,bizId);
-			pst.setString(2,disBatchId);
-			pst.setString(3,disName);
-			pst.setString(4,userId);
-			pst.setString(5,description);
-			pst.executeUpdate();
-			resultMap.put("result",true);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			resultMap.put("result",false);
-		}finally{
-			DbUtil.DbCloseQuery(rs,pst);
-			DbUtil.DbCloseConnection(conn);
-		}
-		
-		return resultMap;
-	}*/
 	/**
 	 * 保存共享数据
 	 * @param bizId
@@ -610,11 +535,11 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
 			if(model==3){
-				String insertDatamSql="insert into "+datamTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'共享创建',0,'"+userId+"',sysdate from "+tempTableName+" b "+
+				String insertDatamSql="insert into "+datamTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+SingleNumberModeShareCustomerStateEnum.CREATED.getName()+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 									  "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.executeUpdate();
-				String insertHisDatamSql="insert into "+hisTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'共享创建',0,'"+userId+"',sysdate from "+tempTableName+" b "+
+				String insertHisDatamSql="insert into "+hisTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+SingleNumberModeShareCustomerStateEnum.CREATED.getName()+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 										 "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.executeUpdate();
@@ -882,7 +807,6 @@ public class DataDistributeJdbc extends BaseRepository{
 		}
 		return tempColumnType;
 	}
-	
 	
 
 }

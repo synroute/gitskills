@@ -8,7 +8,8 @@ public enum ShareBatchStateEnum {
     ACTIVE("active"), //激活
     PAUSE("pause"),
     STOP("stop"),
-    EXPIRED("expired");
+    EXPIRED("expired"),
+    RECOVER("recover");//回收
 
     private ShareBatchStateEnum(String name) {
         this.name = name;

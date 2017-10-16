@@ -1,5 +1,6 @@
 package hiapp.modules.dmmanager.data;
 
+import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dmmanager.ShareBatchItemS;
 import hiapp.modules.dmmanager.bean.OutputFirstRow;
 import hiapp.modules.dmmanager.bean.RecyleTemplate;
@@ -386,7 +387,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.setString(1, shareId);
 				pst.executeUpdate();
-				String updateShareIdSql="update HASYS_DM_SID set state ='recover' where BusinessID="+bizId+" and ShareID='"+shareId+"'";
+				String updateShareIdSql="update HASYS_DM_SID set state ='"+ShareBatchStateEnum.RECOVER.getName()+"' where BusinessID="+bizId+" and ShareID='"+shareId+"'";
 				pst.executeUpdate();
 			}
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,"+bizId+",'"+disBatchId+"','"+userId+"',sysdate)";
