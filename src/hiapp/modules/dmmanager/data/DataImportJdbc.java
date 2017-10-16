@@ -916,6 +916,10 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 		 columnSql=columnSql.substring(0,columnSql.length()-1)+")"+valueSql.substring(0,valueSql.length()-1)+")";
 		 pst=conn.prepareStatement(columnSql);
 		 pst.executeUpdate();
+		 
+		 String updateSql="update "+tableName+" set MODIFYLAST=0 where IID='"+importBatchId+"' and CID='"+customerId+"'";
+		 pst=conn.prepareStatement(updateSql);
+		 pst.executeUpdate();
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
