@@ -194,6 +194,9 @@ public class DistributDataController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 	    String userId =String.valueOf(user.getId());
+	    RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(userId);
+	  	Permission permission = permissionRepository.getPermission(roleInGroupSet);
+	  	int permissionId = permission.getId();
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String shareName=request.getParameter("shareName");
 		String description=request.getParameter("description");
@@ -207,7 +210,7 @@ public class DistributDataController {
 		Integer action=Integer.valueOf(request.getParameter("action"));
 		String tempTableName="HAU_DM_"+bizId+"_"+userId;
 		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action,tempTableName);
-		Map<String, Object> resultMap = dataDistributeJdbc.saveShareDataToDB(bizId, userId, shareName, description, startTime, endTime, dataPoolIds, dataPoolNames,model,shareId);
+		Map<String, Object> resultMap = dataDistributeJdbc.saveShareDataToDB(bizId, userId, shareName, description, startTime, endTime, dataPoolIds, dataPoolNames,model,shareId,permissionId);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();
@@ -228,8 +231,11 @@ public class DistributDataController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 	    String userId =String.valueOf(user.getId());
+	    RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(userId);
+		Permission permission = permissionRepository.getPermission(roleInGroupSet);
+		int permissionId = permission.getId();
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
-		Map<String, Object> resultMap = dataDistributeJdbc.ifCurPoolChildrens(bizId, userId);
+		Map<String, Object> resultMap = dataDistributeJdbc.ifCurPoolChildrens(bizId,permissionId);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();

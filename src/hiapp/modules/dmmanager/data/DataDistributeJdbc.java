@@ -9,6 +9,7 @@ import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 @Repository
@@ -448,7 +448,67 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param dataPoolList
 	 * @return
 	 */
-	@SuppressWarnings({ "unused","resource" })
+	@SuppressWarnings({ "unused"})
+	public Map<String,Object> saveDistributeDataToDB(Integer bizId,String userId,String disName,String description,List<Map<String,Object>>  dataPoolList){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		CallableStatement callStmt = null; 
+		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
+		String disBatchId=idfactory.newId("DM_DID");//分配号
+		String poolName="HAU_DM_B"+bizId+"C_POOL";
+		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
+		String tempTableName="HAU_DM_"+bizId+"_"+userId;
+		Map<String,Object> resultMap=new HashMap<String, Object>();
+		try {
+			conn=this.getDbConnection();
+			for(int i = 0; i < dataPoolList.size(); i++) {
+				Integer dataPoolId=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolId"));
+				Double dataPoolType=(Double)dataPoolList.get(i).get("dataPoolType");
+				String dataPoolName=(String)dataPoolList.get(i).get("dataPoolName");
+				Double disNum=(Double)dataPoolList.get(i).get("disNum");
+				callStmt = conn.prepareCall("{call HASYS_DM_DISTRIBUTION_BATCH(?,?,?,?,?,?,?)}");
+				callStmt.setString(1,tempTableName);
+				callStmt.setDouble(2,dataPoolType);
+				callStmt.setInt(3,bizId);
+				callStmt.setString(4,disBatchId);
+				callStmt.setDouble(5, disNum);
+				callStmt.setInt(6,dataPoolId);
+				callStmt.setString(7,userId);
+				callStmt.execute();  
+				
+			}
+			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
+			pst=conn.prepareStatement(insertDisBatchSql);
+			pst.setInt(1,bizId);
+			pst.setString(2,disBatchId);
+			pst.setString(3,disName);
+			pst.setString(4,userId);
+			pst.setString(5,description);
+			pst.executeUpdate();
+			resultMap.put("result",true);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			resultMap.put("result",false);
+		}finally{
+			try {
+				if(pst!=null){
+					pst.close();
+				}
+				if(callStmt!=null){
+					callStmt.close();
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+		return resultMap;
+	}
+	
+/*	@SuppressWarnings({ "unused","resource" })
 	public Map<String,Object> saveDistributeDataToDB(Integer bizId,String userId,String disName,String description,List<Map<String,Object>>  dataPoolList){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -463,6 +523,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 			for(int i = 0; i < dataPoolList.size(); i++) {
 				Integer dataPoolId=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolId"));
+				Integer dataPoolType=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolType"));
 				Double disNum=(Double)dataPoolList.get(i).get("disNum");
 				String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime)"
 						+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1) where rownum<="+disNum;
@@ -496,7 +557,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		}
 		
 		return resultMap;
-	}
+	}*/
 	/**
 	 * 保存共享数据
 	 * @param bizId
@@ -509,7 +570,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param dataPoolNames
 	 */
 	@SuppressWarnings("resource")
-	public Map<String,Object> saveShareDataToDB(Integer bizId,String userId,String shareName,String description,String startTime,String endTime,String dataPoolIds,String dataPoolNames,Integer model,String appendId ){
+	public Map<String,Object> saveShareDataToDB(Integer bizId,String userId,String shareName,String description,String startTime,String endTime,String dataPoolIds,String dataPoolNames,Integer model,String appendId,int permissionId ){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -522,7 +583,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		String hisTableName= "HAU_DM_B"+bizId+"C_DATAM3_HIS";
 		//共享批次
 		String shareId = idfactory.newId("DM_SID");
-		if(appendId!=null&&!"".endsWith(shareId)){
+		if(appendId!=null&&!"".equals(appendId)){
 			shareId=appendId;
 		}
 		String[] arrDataPoolId=dataPoolIds.split(",");
@@ -530,17 +591,18 @@ public class DataDistributeJdbc extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and DataPoolName =?";
+			String getDataSourceSql="select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null";
 			pst=conn.prepareStatement(getDataSourceSql);
 			pst.setInt(1,bizId);
-			pst.setString(2,userId);
+			pst.setInt(2,permissionId);
 			rs=pst.executeQuery();
 			Integer dataPoolId=null;
 			while(rs.next()){
 				dataPoolId=rs.getInt(1);
 			}
 			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime)"
-					+ " = (select '"+shareId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,1,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1)";
+					+ " = (select '"+shareId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,1,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1)"
+					+ " where exists(select 1 from "+tempTableName+" b where a.IID = b.IID AND a.CID = b.CID and b.ifchecked=1)";;
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.executeUpdate();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
@@ -548,21 +610,21 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.executeUpdate();
 			if(model==3){
-				String insertDatamSql="insert into "+datamTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
+				String insertDatamSql="insert into "+datamTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'共享创建',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 									  "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.executeUpdate();
-				String insertHisDatamSql="insert into "+hisTableName+"a(ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"'IID,CID,'共享创建',0,sysdate from "+tempTableName+"b "+
+				String insertHisDatamSql="insert into "+hisTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'共享创建',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 										 "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.executeUpdate();
 			}
-			String deleteTempSql=" delete from "+tempTableName+" a where b.ifchecked=1";
+			String deleteTempSql=" delete from "+tempTableName+" a where a.ifchecked=1";
 			pst=conn.prepareStatement(deleteTempSql);
 			pst.executeUpdate();
 			String insertShareSql=null;
 			if(startTime==null||"".equals(startTime)){
-				if(appendId!=null&&!"".equals(appendId)){
+				if(appendId==null||"".equals(appendId)){
 					insertShareSql="INSERT INTO HASYS_DM_SID (ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION) values(S_HASYS_DM_SID.NEXTVAL,?,?,?,?,sysdate,?)";
 					pst=conn.prepareStatement(insertShareSql);
 					pst.setInt(1,bizId);
@@ -578,9 +640,10 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.setInt(1,bizId);
 					pst.setString(2,shareId);
 					pst.setString(3,appendIds);
-					pst.setString(4, userId);
-					pst.setString(5,description);
-					pst.setString(6,"入库成功");
+					pst.setString(4,shareName);
+					pst.setString(5, userId);
+					pst.setString(6,description);
+					pst.setString(7,"入库成功");
 					pst.executeUpdate();
 					List<String> shareIds=new ArrayList<String>();
 					shareIds.add(shareId);
@@ -640,7 +703,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param userId
 	 * @return
 	 */
-	public Map<String,Object> ifCurPoolChildrens(Integer bizId,String userId){
+	public Map<String,Object> ifCurPoolChildrens(Integer bizId,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -648,10 +711,10 @@ public class DataDistributeJdbc extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select DataPoolType from HASYS_DM_DATAPOOL where pid=(select id from HASYS_DM_DATAPOOL where BusinessID=? and DataPoolName=?)";
+			String sql="select DataPoolType from HASYS_DM_DATAPOOL where pid=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null)";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1,bizId);
-			pst.setString(2,userId);
+			pst.setInt(2,permissionId);
 			rs=pst.executeQuery();
 			while(rs.next()){
 				Integer dataPoolType=rs.getInt(1);

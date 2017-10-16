@@ -226,7 +226,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @return
 	 */
 	@SuppressWarnings("resource")
-	public Map<String,Object> getShareDataByTime(Integer bizId,String userId,Integer templateId,String startTime,String endTime,Integer num,Integer pageSize){
+	public Map<String,Object> getShareDataByTime(Integer bizId,String userId,String startTime,String endTime,Integer num,Integer pageSize){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -273,7 +273,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				shareBatchItems.setAbc(rs.getInt(11));
 				shareBatchItemList.add(shareBatchItems);
 			}
-			String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B where  A.SHAREID=B.SourceID AND A.BUSINESSID=B.BUSINESSID AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND (A.STATE='stop'or A.STATE='expired') AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME) t";
+			String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B where  A.SHAREID=B.SourceID  AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND (A.STATE='stop'or A.STATE='expired') AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME) t";
 			pst=conn.prepareStatement(getCountSql);
 			pst.setString(1,startTime);
 			pst.setString(2,endTime);
@@ -386,16 +386,10 @@ public class DataRecyleJdbc extends BaseRepository{
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.setString(1, shareId);
 				pst.executeUpdate();
-				String updateShareIdSql="update HASYS_DM_SID set state =? where BusinessID=? and ShareID=?";
-				pst.setString(1,"recover");
-				pst.setInt(2,bizId);
-				pst.setString(3,shareId);
+				String updateShareIdSql="update HASYS_DM_SID set state ='recover' where BusinessID="+bizId+" and ShareID='"+shareId+"'";
 				pst.executeUpdate();
 			}
-			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,?,?,?,sysdate)";
-			pst.setInt(1,bizId);
-			pst.setString(2,disBatchId);
-			pst.setString(3, userId);
+			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,"+bizId+",'"+disBatchId+"','"+userId+"',sysdate)";
 			pst.executeUpdate();
 			resultMap.put("result",true);
 		} catch (SQLException e) {

@@ -100,8 +100,33 @@ public class DataRecyleController {
 			dataRecyleJdbc.getDistributeDataByTime(bizId, userId, templateId, startTime, endTime,permissionId);
 			resultMap=dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
 		}else{
-			resultMap=dataRecyleJdbc.getShareDataByTime(bizId, userId, templateId, startTime, endTime, pageNum, pageSize);
+			resultMap=dataRecyleJdbc.getShareDataByTime(bizId, userId, startTime, endTime, pageNum, pageSize);
 		}
+		String jsonObject=new Gson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 得到所有共享数据
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/DataRecyleController/getShareDataByTime.srv")
+	public void getShareDataByTime(HttpServletRequest request, HttpServletResponse response){
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+	    String userId =String.valueOf(user.getId());
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
+		Integer pageNum=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String,Object> resultMap=dataRecyleJdbc.getShareDataByTime(bizId, userId, startTime, endTime, pageNum, pageSize);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();
