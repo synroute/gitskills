@@ -441,9 +441,9 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			{
 				xml=rs.getString(1);
 			}
-			int type=3;
+			int type=1;
 			String updateadd="";
-			if(type==3)
+			if(type==1)
 			{
 				JsonObject jsonObject= new JsonParser().parse(xml).getAsJsonObject();
 				JsonArray jsonArray=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();

@@ -103,10 +103,10 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			{
 				xml=rs.getString("xml");
 			}
-			int type=3;
+			int type=1;
 			
 			String szSql ="";
-			if(type==3)
+			if(type==1)
 				{
 				JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 				jsonObject.remove("RedialState");
