@@ -623,9 +623,10 @@ public class DataDistributeJdbc extends BaseRepository{
 			}else{
 				if(result){
 					conn.commit();
-					String updateSql="update HASYS_DM_AID set State='通知分配器成功' where BusinessID="+bizId+" and ShareID='"+shareId+"' and AdditionalID='"+appendIds+"'";
+					String updateSql="update HASYS_DM_AID a set a.state='通知分配器成功' where a.BusinessID="+bizId+" and a.ShareID='"+shareId+"' and a.AdditionalID='"+appendIds+"'";
 					pst=conn.prepareStatement(updateSql);
-					pst.executeUpdate();
+					pst.execute();
+					conn.commit();
 				}else{
 					conn.rollback();
 				}
