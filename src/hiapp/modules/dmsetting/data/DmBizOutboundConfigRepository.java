@@ -1,5 +1,6 @@
 package hiapp.modules.dmsetting.data;
 
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -114,14 +115,19 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 				
 				jsonObject.add("RedialState", jsonArray_Map);
 				
-				szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
+				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=?  where BusinessID="+bizId+"");
+				
+				String clobContent = jsonObject.toString();  
+			     StringReader reader = new StringReader(clobContent);  
+			     stat.setCharacterStream(1, reader, clobContent.length());
 			}else if(type==6)
 			{
-				szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+MapColumns+"' where BusinessID="+bizId+"");
+				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where BusinessID="+bizId+"");
+				
+				String clobContent = MapColumns;  
+			     StringReader reader = new StringReader(clobContent);  
+			     stat.setCharacterStream(1, reader, clobContent.length());
 			}
-			
-			stmt = conn.prepareStatement(szSql);
-			stmt.executeUpdate();
 			
 			
 			  
@@ -171,10 +177,10 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			}
 
 			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
-			jsonObject.remove("EndCodeRedialStrategyM6");
+			jsonObject.remove("EndCodeRedialStrategy");
 			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
 			
-			jsonObject.add("EndCodeRedialStrategyM6", jsonArray_Map);
+			jsonObject.add("EndCodeRedialStrategy", jsonArray_Map);
 			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
