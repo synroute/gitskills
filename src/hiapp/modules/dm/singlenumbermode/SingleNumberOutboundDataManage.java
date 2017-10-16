@@ -152,10 +152,6 @@ public class SingleNumberOutboundDataManage {
         String customerCallId = "xxx";
         Date dialTime = new Date();
 
-        //presetTime = DateUtil.getNextXDay(5);
-        //resultCodeType = "EndType-LostCall";
-        //resultCode = "未接通拨打";
-
         SingleNumberModeShareCustomerItem originCustomerItem = removeWaitCustomer(userId, bizId, importBatchId, customerId);
 
         EndCodeRedialStrategy endCodeRedialStrategy = mapBizIdVsEndCodeRedialStrategy.get(bizId);
@@ -171,7 +167,8 @@ public class SingleNumberOutboundDataManage {
         //dataImportJdbc.insertDataToResultTable(bizId, shareBatchId, importBatchId, customerId, userId, resultData);
         dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
         dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
-                          originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId);
+                          originCustomerItem.getModifyId() + 1, userId, dialType, dialTime,
+                            customerCallId, resultCodeType, resultCode);
 
         // 插入导入客户表
         dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomerItem.getModifyId() + 1);

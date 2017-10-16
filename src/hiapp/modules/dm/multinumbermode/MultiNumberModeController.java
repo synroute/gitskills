@@ -144,7 +144,7 @@ public class MultiNumberModeController {
     @RequestMapping(value="/srv/dm6/startShareBatch.srv", method= RequestMethod.GET, produces="application/json")
     public String startShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
 
-        /*ServiceResult serviceresult = new ServiceResult();
+        ServiceResult serviceresult = new ServiceResult();
 
         //List<String> shareBatchIds = new Gson().fromJson(jsonShareBatchIds, List.class);
         List<String> shareBatchIds = new ArrayList<String>();
@@ -153,16 +153,15 @@ public class MultiNumberModeController {
         for (String shareBatchId : arrayShareBatchId)
             shareBatchIds.add(shareBatchId);
 
-        singleNumberOutboundDataManage.startShareBatch(bizId, shareBatchIds);
+        multiNumberOutboundDataManage.startShareBatch(bizId, shareBatchIds);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-        return serviceresult.toJson();*/
-        return "";
+        return serviceresult.toJson();
     }
 
     @RequestMapping(value="/srv/dm6/stopShareBatch.srv", method= RequestMethod.GET, produces="application/json")
     public String stopShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
-        /*
+
         ServiceResult serviceresult = new ServiceResult();
 
         //List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
@@ -172,11 +171,10 @@ public class MultiNumberModeController {
         for (String shareBatchId : arrayShareBatchId)
             shareBatchIds.add(shareBatchId);
 
-        singleNumberOutboundDataManage.stopShareBatch(bizId, shareBatchIds);
+        multiNumberOutboundDataManage.stopShareBatch(bizId, shareBatchIds);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-        return serviceresult.toJson();*/
-        return "";
+        return serviceresult.toJson();
     }
 
     @RequestMapping(value="/srv/dm6/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")

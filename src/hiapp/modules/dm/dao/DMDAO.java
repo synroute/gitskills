@@ -298,13 +298,14 @@ public class DMDAO extends BaseRepository {
      * @return
      */
     public Boolean insertDMResult(int bizId, String sourceId, String importBatchId, String customerId, int modifyId,
-                                  String modifyUserId, String dialType, Date dialTime, String customerCallId) {
+                                  String modifyUserId, String dialType, Date dialTime, String customerCallId,
+                                  String resultCodeType, String resultCode) {
 
         String tableName = String.format("HAU_DM_B%dC_RESULT", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
         sqlBuilder.append(" (ID, SOURCEID, IID, CID, MODIFYID, MODIFYUSERID, MODIFYTIME, MODIFYLAST, DIALTYPE, " +
-                                "DIALTIME, CUSTOMERCALLID) VALUES ( ");
+                                "DIALTIME, CUSTOMERCALLID, ENDCODETYPE, ENDCODE) VALUES ( ");
         sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
         sqlBuilder.append(SQLUtil.getSqlString(sourceId)).append(",");;
         sqlBuilder.append(SQLUtil.getSqlString(importBatchId)).append(",");;
@@ -315,7 +316,9 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append("1").append(","); // MODIFYLAST
         sqlBuilder.append(SQLUtil.getSqlString(dialType)).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(dialTime)).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(customerCallId));
+        sqlBuilder.append(SQLUtil.getSqlString(customerCallId)).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(resultCodeType)).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(resultCode));
         sqlBuilder.append(")");
 
         System.out.println(sqlBuilder.toString());
