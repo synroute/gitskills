@@ -1,6 +1,7 @@
 package hiapp.modules.dmsetting.data;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -48,6 +49,17 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				err.append("有正在活动的共享批次，请停止后再添加结束码！");
 				return false;
 			}
+			
+			
+			String typesql=String.format("select OutboundMddeId from HASYS_DM_Business where BusinessID="+bizId+"");
+			stmt = conn.prepareStatement(typesql);
+			rs = stmt.executeQuery();
+			int type=0;
+			while(rs.next())
+			{
+				type=rs.getInt(1);
+			}
+			
 			JsonArray jsonArray= new JsonParser().parse(mapColmns).getAsJsonArray();
 			for(int i=0;i<jsonArray.size();i++)
 			{
@@ -128,8 +140,13 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				
 				
 				
-				
-				add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc);
+				if(type==3)
+				{
+					add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc);
+				}else if(type==6)
+				{
+					addModel6( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc);
+				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -282,8 +299,6 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		        jsonArray_zong.add(jsonobject_info);
 		        jsonObject.add("EndCodeRedialStrategy", jsonArray_zong);
 		        
-		        
-		        	
 		            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
 		            stmt = conn.prepareStatement(insertsql);
 		            stmt.executeUpdate();
@@ -423,6 +438,16 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				err.append("有正在活动的共享批次，请停止后再添加结束码！");
 				return false;
 			}
+
+			String typesql=String.format("select OutboundMddeId from HASYS_DM_Business where BusinessID="+dmEndCode.getBizId()+"");
+			stmt = conn.prepareStatement(typesql);
+			rs = stmt.executeQuery();
+			int type=0;
+			while(rs.next())
+			{
+				type=rs.getInt(1);
+			}
+			
 			//删除结束码表信息
 			String szSql = String.format("delete from HASYS_DM_BIZENDCODE where BusinessId="+dmEndCode.getBizId()+" and CodeType='"+dmEndCode.getEndCodeType() +"' and Code='"+dmEndCode.getEndCode()+"'");
 			stmt = conn.prepareStatement(szSql);
@@ -441,9 +466,9 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			{
 				xml=rs.getString(1);
 			}
-			int type=1;
+			
 			String updateadd="";
-			if(type==1)
+			if(type==3)
 			{
 				JsonObject jsonObject= new JsonParser().parse(xml).getAsJsonObject();
 				JsonArray jsonArray=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
@@ -457,7 +482,13 @@ public class DmBizEndCodeRepository extends BaseRepository {
 					}
 				}
 				
-				updateadd="update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where businessid="+dmEndCode.getBizId()+"";
+				//updateadd="update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where businessid="+dmEndCode.getBizId()+"";
+				
+				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where businessid="+dmEndCode.getBizId()+"");
+				
+				String clobContent = jsonObject.toString();  
+			     StringReader reader = new StringReader(clobContent);  
+			     stat.setCharacterStream(1, reader, clobContent.length());
 			}else if(type==6)
 			{
 				
@@ -470,10 +501,16 @@ public class DmBizEndCodeRepository extends BaseRepository {
 					}
 				}
 				
-				updateadd="update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonArray.toString()+"' where businessid="+dmEndCode.getBizId()+"";
+				//updateadd="update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonArray.toString()+"' where businessid="+dmEndCode.getBizId()+"";
+
+				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where businessid="+dmEndCode.getBizId()+"");
+				
+				String clobContent = jsonArray.toString();  
+			     StringReader reader = new StringReader(clobContent);  
+			     stat.setCharacterStream(1, reader, clobContent.length());
 			}
-			stmt = conn.prepareStatement(updateadd);
-			stmt.executeUpdate();
+			/*stmt = conn.prepareStatement(updateadd);
+			stmt.executeUpdate();*/
 			
 		} catch (SQLException e) {
 			e.printStackTrace();

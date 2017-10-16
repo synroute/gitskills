@@ -1,5 +1,6 @@
 package hiapp.modules.dmsetting.data;
 
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -186,9 +187,17 @@ public class DMBizRecoveryRepository  extends BaseRepository{
 		String szSql = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("UPDATE HASYS_DM_BIZTEMPLATERECOVER SET CONFIGJSON = '%s' WHERE TemplateID='%s' AND BusinessId='%s' ",mapColumns,templateId,bizId) ;
+			
+			
+			PreparedStatement stat=dbConn.prepareStatement("UPDATE HASYS_DM_BIZTEMPLATERECOVER SET CONFIGJSON = ? WHERE TemplateID='"+templateId+"' AND BusinessId='"+bizId+"' ") ;
+			
+			String clobContent = mapColumns;  
+		     StringReader reader = new StringReader(clobContent);  
+		     stat.setCharacterStream(1, reader, clobContent.length());
+			
+			/*szSql = String.format("UPDATE HASYS_DM_BIZTEMPLATERECOVER SET CONFIGJSON = '%s' WHERE TemplateID='%s' AND BusinessId='%s' ",mapColumns,templateId,bizId) ;
 			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();
+			stmt.execute();*/
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
