@@ -248,7 +248,119 @@ public class DataOutputJdbc extends BaseRepository{
 		return resultMap;
 	}
 	
-
+	/**
+	 * 根据时间获得要导出的数据 
+	 * @param startTime
+	 * @param endTime
+	 * @param templateId
+	 * @return
+	 * @throws IOException
+	 */
+	@SuppressWarnings({ "resource", "unchecked" })
+	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId) throws IOException{
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		List<String> workSheetNameList=new ArrayList<String>();
+		//导入数据的集合
+		List<Map<String,Object>> outDataList=new ArrayList<Map<String,Object>>();
+		try {
+			conn=this.getDbConnection();
+			String getOutputXmlSql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=? and BUSINESSID=?";
+			pst=conn.prepareStatement(getOutputXmlSql);
+			pst.setInt(1,templateId );
+			pst.setInt(2,bizId);
+			rs=pst.executeQuery();
+			String workSheets=null;
+			while(rs.next()){
+				workSheets=ClobToString(rs.getClob(1));
+			}
+			JsonObject jsonObject= new JsonParser().parse(workSheets).getAsJsonObject();
+			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			for (int i = 0; i < dataArray.size(); i++) {
+				String  workSheetName=null;
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+				 workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+				}
+				if(workSheetName!=null&&!"".equals(workSheetName)){
+					workSheetNameList.add(workSheetName);
+				}
+				
+			}
+			
+			//对workSheetNameList去重
+			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
+			//查询数据Sql
+			String getOutDataSql="select ";
+			for (int i = 0; i < dataArray.size(); i++) {
+				String workSheetName1=null;
+				String workSheetId=null;
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+					 workSheetName1=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+				}
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetId").isJsonNull()){
+					workSheetId=dataArray.get(i).getAsJsonObject().get("WorkSheetId").getAsString();
+					
+				}
+				for (int j = 0; j <newList.size(); j++) {
+					if(newList.get(j).equals(workSheetName1)){
+						String asName="a"+j+".";//别名
+						String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
+						getOutDataSql+=getDataType(column,workSheetId,asName)+",";
+						break;
+					}
+				}
+			}
+			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" from ";
+			for(int k=0;k<newList.size();k++){
+					String asName="a"+k;//别名
+					getOutDataSql+=newList.get(k)+" "+asName+",";
+			
+			}
+			
+			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" where ";
+			for (int h = 1; h < newList.size(); h++) {
+				String asName="a"+h+".";
+				getOutDataSql+="a0.IID="+asName+"IID and ";
+			}
+			for (int h = 1; h < newList.size(); h++) {
+				String asName="a"+h+".";
+				getOutDataSql+="a0.CID="+asName+"CID and ";
+			}
+			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)";
+			pst=conn.prepareStatement(getOutDataSql);
+			pst.setString(1,startTime);
+			pst.setString(2, endTime);
+			pst.setInt(3,bizId);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				Map<String,Object> map=new HashMap<String, Object>();
+				for (int i = 0; i < dataArray.size(); i++) {
+					String value=null;
+					if(!dataArray.get(i).getAsJsonObject().get("WorkSheetColName").isJsonNull()){
+						value=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
+					}
+					String key=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
+					if(value!=null&&!"".equals(value)){
+						map.put(key,rs.getObject(value));
+					}else{
+						map.put(key,"");
+					}
+				}
+				outDataList.add(map);
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return outDataList;
+	}
+	
+	
     // CLOB转换成String
     public String ClobToString(Clob sc) throws SQLException, IOException {  
         String reString = "";  

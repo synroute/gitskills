@@ -95,7 +95,15 @@ public class OutputDataController{
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String importData=request.getParameter("importData");
-		List<Map<String,Object>> dataList=new Gson().fromJson(importData, List.class);
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
+		List<Map<String,Object>> dataList=null;
+		if(importData!=null&&!"".equals(importData)){
+			dataList=new Gson().fromJson(importData, List.class);
+		}else{
+			dataList=dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId, bizId);
+		}
+	
 		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(bizId,templateId);
 		List<String> excelHeader =new ArrayList<String>();
 		List<String> sheetCulomn =new ArrayList<String>();
