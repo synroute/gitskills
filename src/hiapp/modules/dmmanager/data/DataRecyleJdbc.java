@@ -300,7 +300,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param bizId
 	 * @param userId
 	 */
-	@SuppressWarnings({ "unused", "resource" })
+	@SuppressWarnings({"resource" })
 	public Map<String,Object> recyleDisData(Integer bizId,String userId,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -321,19 +321,25 @@ public class DataRecyleJdbc extends BaseRepository{
 			while(rs.next()){
 				dataPoolId=rs.getInt(1);
 			}
+			//不自动提交数据
+			conn.setAutoCommit(false);
 			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime,ISRecover)"
 					+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate,1 from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1) "
 							+ " where exists(select 1 from "+tempTableName+" b where a.IID = b.IID AND a.CID = b.CID and b.ifchecked=1)";
 			pst=conn.prepareStatement(updatePoolSql);
-			pst.executeUpdate();
+			pst.execute();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
 					" select S_"+orePoolName+".nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1";
 			pst=conn.prepareStatement(insertOrePoolSql);
-			pst.executeUpdate();
+			pst.execute();
 			String deleteSql=" delete from "+tempTableName+" a where a.ifchecked=1";
 			pst=conn.prepareStatement(deleteSql);
+			pst.execute();
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,"+bizId+",'"+disBatchId+"','"+userId+"',sysdate)";
-			pst.executeUpdate();
+			pst=conn.prepareStatement(insertDisBatchSql);
+			pst.execute();
+			//提交
+			conn.commit();
 			resultMap.put("result",true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -352,7 +358,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param userId
 	 * @param shareIds
 	 */
-	@SuppressWarnings({ "unused", "resource" })
+	@SuppressWarnings({ "resource" })
 	public Map<String,Object> recyleShareData(Integer bizId,String userId,String shareIds,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -373,6 +379,8 @@ public class DataRecyleJdbc extends BaseRepository{
 			while(rs.next()){
 				dataPoolId=rs.getInt(1);
 			}
+			//不自动提交数据
+			conn.setAutoCommit(false);
 			for (int i = 0; i < shareIdArr.length; i++) {
 				String shareId=shareIdArr[i];
 				String updatePoolSql="update "+poolName+" set SourceID=?,DataPoolIDLast=DataPoolIDCur,DataPoolIDCur=?,AreaLast=AreaCur,AreaCur=0,ISRecover=1,ModifyUserID=?,ModifyTime=sysdate where SourceID=?";
@@ -381,17 +389,20 @@ public class DataRecyleJdbc extends BaseRepository{
 				pst.setInt(2, dataPoolId);
 				pst.setString(3,userId);
 				pst.setString(4,shareId);
-				pst.executeUpdate();
+				pst.execute();
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
 										" select S_"+orePoolName+".nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+orePoolName+" b where b.SourceID=?";
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.setString(1, shareId);
-				pst.executeUpdate();
+				pst.execute();
 				String updateShareIdSql="update HASYS_DM_SID set state ='"+ShareBatchStateEnum.RECOVER.getName()+"' where BusinessID="+bizId+" and ShareID='"+shareId+"'";
-				pst.executeUpdate();
+				pst=conn.prepareStatement(updateShareIdSql);
+				pst.execute();
 			}
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,"+bizId+",'"+disBatchId+"','"+userId+"',sysdate)";
-			pst.executeUpdate();
+			pst=conn.prepareStatement(insertDisBatchSql);
+			pst.execute();
+			conn.commit();
 			resultMap.put("result",true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

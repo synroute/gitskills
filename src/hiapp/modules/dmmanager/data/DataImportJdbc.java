@@ -388,29 +388,9 @@ public class DataImportJdbc extends BaseRepository{
 			}else{
 				resultMap=insertDbData(bizId,jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
 			}
-			//导入批次表里面插数据
-			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
-			pst=conn.prepareStatement(insertImportBatchSql);
-			pst.setString(1, importBatchId);
-			pst.setInt(2, bizId);
-			pst.setString(3, userId);
-			pst.setString(4, "导入批次");
-			pst.setString(5, "导入批次");
-			pst.setString(6, operationName);
-			pst.executeUpdate();
-			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
-			pst=conn.prepareStatement(insertDisBatchSql);
-			pst.setInt(1,bizId);
-			pst.setString(2, disBatchId);
-			pst.setString(3,"分配批次");
-			pst.setString(4,userId);
-			pst.setString(5,"分配批次");
-			pst.executeUpdate();
-			resultMap.put("result", true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			resultMap.put("result", false);
 		}finally{
 			DbUtil.DbCloseQuery(rs,pst);
 			DbUtil.DbCloseConnection(conn);
@@ -506,7 +486,8 @@ public class DataImportJdbc extends BaseRepository{
 					}	
 				}
 			}
-			
+			//不自动提交数据
+			conn.setAutoCommit(false);
 			//导入表里面添加数据
 			String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
 			String selectSql="select S_"+tableName+".nextval,'"+importBatchId+"',CUSTOMERID,1,0,'"+userId+"',sysdate,";
@@ -514,12 +495,12 @@ public class DataImportJdbc extends BaseRepository{
 			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
 									+" select S_"+poolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(isnertDataPoolSql);
-			pst.executeUpdate();
+			pst.execute();
 			//数据池操作记录表里面插数据
 			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
 										+" select S_"+orePoolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(dataPoolOperationSql);
-			pst.executeUpdate();
+			pst.execute();
 			for (int k = 0; k < dataArray.size(); k++) {
 				String excelHeader=dataArray.get(k).getAsJsonObject().get("ExcelHeader").getAsString();
 				if(excelHeader!=null&&!"".equals(excelHeader)){
@@ -530,12 +511,31 @@ public class DataImportJdbc extends BaseRepository{
 			selectSql=selectSql.substring(0,selectSql.length()-1)+" from "+tempTableName+"  where ifchecked=1"+dintincColumn;
 			insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") "+selectSql;
 			pst=conn.prepareStatement(insertImportDataSql);
-			pst.executeUpdate();
+			pst.execute();
 			//从临时表中删除数据
 			String deleteTempSql="delete from "+tempTableName+" b where ifChecked=1"+dintincColumn;	
 			pst=conn.prepareStatement(deleteTempSql);	
-			pst.executeUpdate();
-			
+			pst.execute();
+			//导入批次表里面插数据
+			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
+			pst=conn.prepareStatement(insertImportBatchSql);
+			pst.setString(1, importBatchId);
+			pst.setInt(2, bizId);
+			pst.setString(3, userId);
+			pst.setString(4, "导入批次");
+			pst.setString(5, "导入批次");
+			pst.setString(6, operationName);
+			pst.execute();
+			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
+			pst=conn.prepareStatement(insertDisBatchSql);
+			pst.setInt(1,bizId);
+			pst.setString(2, disBatchId);
+			pst.setString(3,"分配批次");
+			pst.setString(4,userId);
+			pst.setString(5,"分配批次");
+			pst.execute();
+			//提交
+			conn.commit();
 			resultMap.put("repeatColumn", repeatColumns);
 			resultMap.put("flag", 1);
 			resultMap.put("result",true);
@@ -653,6 +653,24 @@ public class DataImportJdbc extends BaseRepository{
 			statement.executeBatch();
 			deleteTempSql=deleteTempSql.substring(0,deleteTempSql.length()-1)+")";
 			pst=conn.prepareStatement(deleteTempSql);
+			pst.executeUpdate();
+			//导入批次表里面插数据
+			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
+			pst=conn.prepareStatement(insertImportBatchSql);
+			pst.setString(1, importBatchId);
+			pst.setInt(2, bizId);
+			pst.setString(3, userId);
+			pst.setString(4, "导入批次");
+			pst.setString(5, "导入批次");
+			pst.setString(6, operationName);
+			pst.executeUpdate();
+			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
+			pst=conn.prepareStatement(insertDisBatchSql);
+			pst.setInt(1,bizId);
+			pst.setString(2, disBatchId);
+			pst.setString(3,"分配批次");
+			pst.setString(4,userId);
+			pst.setString(5,"分配批次");
 			pst.executeUpdate();
 			resultMap.put("flag", 2);
 			resultMap.put("result",true);
@@ -885,7 +903,7 @@ public class DataImportJdbc extends BaseRepository{
      * @param userId
      * @param customerInfo
      */
-  @SuppressWarnings({ "unchecked", "unused" })
+  @SuppressWarnings({ "unchecked", "unused", "resource" })
 public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo,Integer Modifyid){
 	  Connection conn=null;
 	  PreparedStatement pst = null;
