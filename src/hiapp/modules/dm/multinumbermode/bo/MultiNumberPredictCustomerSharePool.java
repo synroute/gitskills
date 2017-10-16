@@ -18,8 +18,8 @@ public class MultiNumberPredictCustomerSharePool {
     public MultiNumberCustomer extractCustomer(String userId, int bizId) {
         MultiNumberCustomer customer;
 
-        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.size(); dialIndex++) {
-            int phoneType = phoneTypeDialSequence.get(dialIndex);
+        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
+            int phoneType = phoneTypeDialSequence.getPhoneType(bizId, dialIndex);
 
             Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(bizId);
             OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(phoneType);
@@ -61,30 +61,6 @@ public class MultiNumberPredictCustomerSharePool {
         return null;
     }
 
-    public Integer getNextDialPhoneType(int curDialPhoneType) {
-        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.size(); dialIndex++) {
-            if (curDialPhoneType != phoneTypeDialSequence.get(dialIndex))
-                continue;
-
-            if (dialIndex == phoneTypeDialSequence.size())
-                return null;
-
-            return phoneTypeDialSequence.get(dialIndex + 1);
-        }
-
-        return null;
-    }
-
-    public Integer getPhoneDialSequence(int phoneType) {
-        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.size(); dialIndex++) {
-            if (phoneType != phoneTypeDialSequence.get(dialIndex))
-                continue;
-
-            return dialIndex;
-        }
-
-        return null;
-    }
 
     void initialize() {
 

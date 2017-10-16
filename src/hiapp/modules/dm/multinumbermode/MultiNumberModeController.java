@@ -49,7 +49,39 @@ public class MultiNumberModeController {
 
     @RequestMapping(value="/srv/dm6/submitHiDialerOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitHiDialerOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
-        //TODO
+
+        //hidialer userId : 0
+        HttpSession session = request.getSession();
+        User user=(User) session.getAttribute("user");
+
+        Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
+        String strBizId = (String) map.get("bizId");
+        String resultCodeType = (String)map.get("resultCodeType");
+        String resultCode = (String)map.get("resultCode");
+        String importBatchId = (String)map.get("importBatchId");
+        //String shareBatchId = (String)map.get("shareBatchId");
+        int phoneType = (Integer)map.get("phoneType");
+        String customerId = (String)map.get("customerId");
+
+
+        return "";
+    }
+
+    @RequestMapping(value="/srv/dm6/submitAgentScreenPopUp.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
+    public String submitScreenPopUp(HttpServletRequest request, @RequestBody String requestBody) {
+
+        //
+        HttpSession session = request.getSession();
+        User user=(User) session.getAttribute("user");
+
+        Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
+        String strBizId = (String) map.get("bizId");
+        String importBatchId = (String)map.get("importBatchId");
+        //String shareBatchId = (String)map.get("shareBatchId");
+        int phoneType = (Integer)map.get("phoneType");
+        String customerId = (String)map.get("customerId");
+
+
         return "";
     }
 

@@ -34,7 +34,8 @@ public class MultiNumberOutboundDataManage {
     @Autowired
     private DataImportJdbc dataImportJdbc;
 
-
+    @Autowired
+    PhoneTypeDialSequence phoneTypeDialSequence;
 
     Map<Integer, EndCodeRedialStrategyM6> mapEndCodeRedialStrategy;
 
@@ -55,16 +56,17 @@ public class MultiNumberOutboundDataManage {
         return "";
     }
 
+    public String submitAgentScreenPopUp(String userId, int bizId, String importBatchId, String customerId, int phoneType,
+                                       String resultCodeType, String resultCode) {
+        return "";
+    }
+
     public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId, int phoneType,
                                        String resultCodeType, String resultCode, Date presetTime, String resultData,
                                        String customerInfo) {
         String dialType = "xxx";
         String customerCallId = "xxx";
         Date dialTime = new Date();
-
-        //presetTime = DateUtil.getNextXDay(5);
-        //resultCodeType = "EndType-LostCall";
-        //resultCode = "未接通拨打";
 
         MultiNumberCustomer originCustomerItem = customerSharePool.removeWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
 
@@ -154,13 +156,6 @@ public class MultiNumberOutboundDataManage {
         EndCodeRedialStrategyM6 endCodeRedialStrategyM6 = mapEndCodeRedialStrategy.get(originCustomerItem.getBizId());
         EndCodeRedialStrategyM6Item strategyItem = endCodeRedialStrategyM6.getEndCodeRedialStrategyItem(resultCodeType, resultCode);
 
-        Boolean customerDialFinished;
-        Boolean phoneTypeDialFinished;
-        int redialDelayMinutes;
-        int maxRedialNum;
-        Boolean presetDial;
-
-
         MultiNumberCustomer item = new MultiNumberCustomer();
         item.setBizId(originCustomerItem.getBizId());
         item.setShareBatchId(originCustomerItem.getShareBatchId());
@@ -192,6 +187,8 @@ public class MultiNumberOutboundDataManage {
 
         } else if (strategyItem.getPresetDial()) {
             item.setState(MultiNumberPredictStateEnum.PRESET_DIAL);
+            PhoneDialInfo phoneDialInfo = item.getDialInfo(item.getCurDialPhoneType());
+            phoneDialInfo.setCausePresetDialCount( phoneDialInfo.getCausePresetDialCount() + 1);
 
             // 更新共享状态表
             item.setCurPresetDialTime(presetTime);
@@ -224,7 +221,7 @@ public class MultiNumberOutboundDataManage {
         } else if (strategyItem.getPhoneTypeDialFinished()) {
             item.setState(MultiNumberPredictStateEnum.WAIT_DIAL);
 
-            int nextDialPhoneType = customerSharePool.getNextDialPhoneType(item.getCurDialPhoneType());
+            int nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());
             item.setNextDialPhoneType(nextDialPhoneType);
 
             multiNumberPredictModeDAO.updateCustomerShareState(item);
@@ -238,7 +235,7 @@ public class MultiNumberOutboundDataManage {
 
             if ((phoneDialInfo.getDialCount() - phoneDialInfo.getCausePresetDialCount()) >= strategyItem.getMaxRedialNum()) {
                 item.setState(MultiNumberPredictStateEnum.WAIT_DIAL);
-                int nextDialPhoneType = customerSharePool.getNextDialPhoneType(item.getCurDialPhoneType());
+                int nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());
                 item.setNextDialPhoneType(nextDialPhoneType);
             } else {
                 item.setState(MultiNumberPredictStateEnum.WAIT_REDIAL);
@@ -262,7 +259,6 @@ public class MultiNumberOutboundDataManage {
 
     }
 
-
     //
     private void loadCustomersDaily(List<ShareBatchItem> shareBatchItems) {
 
@@ -283,12 +279,12 @@ public class MultiNumberOutboundDataManage {
         shareCustomerStateList.add(MultiNumberPredictStateEnum.CREATED);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.APPENDED);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.WAIT_DIAL);
-        shareCustomerStateList.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.REVERT);
 
         List<MultiNumberPredictStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberPredictStateEnum>();
         shareCustomerStateList2.add(MultiNumberPredictStateEnum.PRESET_DIAL);
+        shareCustomerStateList.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
 
         List<MultiNumberCustomer> shareDataItems = new ArrayList<MultiNumberCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -348,12 +344,12 @@ public class MultiNumberOutboundDataManage {
         shareCustomerStateList.add(MultiNumberPredictStateEnum.CREATED);
         //shareCustomerStateList.add(MultiNumberPredictStateEnum.APPENDED);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.WAIT_DIAL);
-        shareCustomerStateList.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.REVERT);
 
         List<MultiNumberPredictStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberPredictStateEnum>();
         shareCustomerStateList2.add(MultiNumberPredictStateEnum.PRESET_DIAL);
+        shareCustomerStateList.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
 
         List<MultiNumberCustomer> shareDataItems = new ArrayList<MultiNumberCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
