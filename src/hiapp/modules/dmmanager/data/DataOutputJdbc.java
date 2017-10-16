@@ -133,6 +133,9 @@ public class DataOutputJdbc extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		Integer startNum=(num-1)*pageSize+1;
 		Integer endNum=num*pageSize+1;
+		String dataPoolName="HAU_DM_B"+bizId+"C_POOL";
+		String importTableName="HAU_DM_B"+bizId+"C_IMPORT";
+		String resultTableName="HAU_DM_B"+bizId+"C_Result";
 		try {
 			conn=this.getDbConnection();
 			String getOutputXmlSql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=? and BUSINESSID=?";
@@ -162,8 +165,9 @@ public class DataOutputJdbc extends BaseRepository{
 			//对workSheetNameList去重
 			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
 			//查询数据Sql
-			String getOutDataSql="select ";
-			String getOutDataSql1="select ";
+			String getOutDataSql="select b.IID,b.CID,";
+			String getOutDataSql1="select IID,CID,";
+			String getOutDataSql2="";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName1=null;
 				String workSheetId=null;
@@ -174,34 +178,52 @@ public class DataOutputJdbc extends BaseRepository{
 					workSheetId=dataArray.get(i).getAsJsonObject().get("WorkSheetId").getAsString();
 					
 				}
+				String suffix=workSheetName1.substring(workSheetName1.lastIndexOf("_")+1);
 				for (int j = 0; j <newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName1)){
 						String asName="a"+j+".";//别名
+						if("pool".equals(suffix.toLowerCase())){
+							asName="b.";
+						}
 						String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
-						getOutDataSql+=getDataType(column,workSheetId,asName)+",";
-						getOutDataSql1+=column+",";
-						break;
+						if(!"IID".equals(column.toUpperCase())&&!"CID".equals(column.toUpperCase())){
+							getOutDataSql+=getDataType(column,workSheetId,asName)+",";
+							getOutDataSql1+=column+",";
+							break;
+						}
+						
 					}
 				}
 			}
-			getOutDataSql=getOutDataSql+"rownum rn from ";
-			for(int k=0;k<newList.size();k++){
-					String asName="a"+k;//别名
-					getOutDataSql+=newList.get(k)+" "+asName+",";
+			getOutDataSql=getOutDataSql+"rownum rn from "+dataPoolName+" b left join ";
+			for (int i = 0; i < newList.size(); i++) {
+				String asName="a"+i;
+				String workSheetName=newList.get(i);
+				String suffix=workSheetName.substring(workSheetName.lastIndexOf("_")+1);
+				if("pool".equals(suffix.toLowerCase())){
+					continue;
+				}
+				if(newList.contains(importTableName)&&!newList.contains(resultTableName)){
+					if("import".equals(suffix.toLowerCase())){
+						getOutDataSql2=" and "+asName+".Modifylast=1";
+					}
+				}
+				if(!newList.contains(importTableName)&&newList.contains(resultTableName)){
+					if("result".equals(suffix.toLowerCase())){
+						getOutDataSql2=" and "+asName+".Modifylast=1";
+					}
+				}
+				if(newList.contains(importTableName)&&newList.contains(resultTableName)){
+					if("import".equals(suffix.toLowerCase())){
+						getOutDataSql2=" and "+asName+".Modifylast=1";
+					}
+				}
 			
+				getOutDataSql+=newList.get(i)+ " "+asName+" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
 			}
-			
-			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" where ";
-			for (int h = 1; h < newList.size(); h++) {
-				String asName="a"+h+".";
-				getOutDataSql+="a0.IID="+asName+"IID and ";
-			}
-			for (int h = 1; h < newList.size(); h++) {
-				String asName="a"+h+".";
-				getOutDataSql+="a0.CID="+asName+"CID and ";
-			}
-			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)";
-			getOutDataSql1=getOutDataSql1.substring(0,getOutDataSql1.length()-1)+" from ("+getOutDataSql+" and rownum<?) t where rn>=?";
+			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.lastIndexOf("left join"))+" where ";
+			getOutDataSql+="b.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)";
+			getOutDataSql1=getOutDataSql1.substring(0,getOutDataSql1.length()-1)+" from ("+getOutDataSql+getOutDataSql2+" and rownum<?) t where rn>=?";
 			pst=conn.prepareStatement(getOutDataSql1);
 			pst.setString(1,startTime);
 			pst.setString(2, endTime);
@@ -211,13 +233,15 @@ public class DataOutputJdbc extends BaseRepository{
 			rs=pst.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
+				map.put("IID",rs.getObject(1));
+				map.put("CID",rs.getObject(2));
 				for (int i = 0; i < dataArray.size(); i++) {
 					String value=null;
 					if(!dataArray.get(i).getAsJsonObject().get("WorkSheetColName").isJsonNull()){
 						value=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
 					}
 					String key=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
-					if(value!=null&&!"".equals(value)){
+					if(value!=null&&!"".equals(value)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
 						map.put(key,rs.getObject(value));
 					}else{
 						map.put(key,"");
@@ -226,7 +250,7 @@ public class DataOutputJdbc extends BaseRepository{
 				outDataList.add(map);
 			}
 			
-			String getCountSql="select count(1) from ("+getOutDataSql+") t";
+			String getCountSql="select count(1) from ("+getOutDataSql+getOutDataSql2+") t";
 			pst=conn.prepareStatement(getCountSql);
 			pst.setString(1, startTime);
 			pst.setString(2, endTime);
@@ -264,6 +288,9 @@ public class DataOutputJdbc extends BaseRepository{
 		List<String> workSheetNameList=new ArrayList<String>();
 		//导入数据的集合
 		List<Map<String,Object>> outDataList=new ArrayList<Map<String,Object>>();
+		String dataPoolName="HAU_DM_B"+bizId+"C_POOL";
+		String importTableName="HAU_DM_B"+bizId+"C_IMPORT";
+		String resultTableName="HAU_DM_B"+bizId+"C_Result";
 		try {
 			conn=this.getDbConnection();
 			String getOutputXmlSql="select configJson from HASYS_DM_BIZTEMPLATEEXPORT where TEMPLATEID=? and BUSINESSID=?";
@@ -291,43 +318,62 @@ public class DataOutputJdbc extends BaseRepository{
 			//对workSheetNameList去重
 			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
 			//查询数据Sql
-			String getOutDataSql="select ";
+			String getOutDataSql="select b.IID,";
+			String getOutDataSql2="";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName1=null;
 				String workSheetId=null;
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
 					 workSheetName1=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
-				}
+					}
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetId").isJsonNull()){
 					workSheetId=dataArray.get(i).getAsJsonObject().get("WorkSheetId").getAsString();
 					
 				}
+				String suffix=workSheetName1.substring(workSheetName1.lastIndexOf("_")+1);
 				for (int j = 0; j <newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName1)){
 						String asName="a"+j+".";//别名
+						if("pool".equals(suffix.toLowerCase())){
+							asName="b.";
+						}
 						String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
-						getOutDataSql+=getDataType(column,workSheetId,asName)+",";
-						break;
+						if(!"IID".equals(column.toUpperCase())&&!"CID".equals(column.toUpperCase())){
+							getOutDataSql+=getDataType(column,workSheetId,asName)+",";
+							break;
+						}
+						
 					}
 				}
 			}
-			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" from ";
-			for(int k=0;k<newList.size();k++){
-					String asName="a"+k;//别名
-					getOutDataSql+=newList.get(k)+" "+asName+",";
+			getOutDataSql=getOutDataSql+"rownum rn from "+dataPoolName+" b left join ";
+			for (int i = 0; i < newList.size(); i++) {
+				String asName="a"+i;
+				String workSheetName=newList.get(i);
+				String suffix=workSheetName.substring(workSheetName.lastIndexOf("_")+1);
+				if("pool".equals(suffix.toLowerCase())){
+					continue;
+				}
+				if(newList.contains(importTableName)&&!newList.contains(resultTableName)){
+					if("import".equals(suffix.toLowerCase())){
+						getOutDataSql2=" and "+asName+".Modifylast=1";
+					}
+				}
+				if(!newList.contains(importTableName)&&newList.contains(resultTableName)){
+					if("result".equals(suffix.toLowerCase())){
+						getOutDataSql2=" and "+asName+".Modifylast=1";
+					}
+				}
+				if(newList.contains(importTableName)&&newList.contains(resultTableName)){
+					if("import".equals(suffix.toLowerCase())){
+						getOutDataSql2=" and "+asName+".Modifylast=1";
+					}
+				}
 			
+				getOutDataSql+=newList.get(i)+ " "+asName+" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
 			}
-			
-			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.length()-1)+" where ";
-			for (int h = 1; h < newList.size(); h++) {
-				String asName="a"+h+".";
-				getOutDataSql+="a0.IID="+asName+"IID and ";
-			}
-			for (int h = 1; h < newList.size(); h++) {
-				String asName="a"+h+".";
-				getOutDataSql+="a0.CID="+asName+"CID and ";
-			}
-			getOutDataSql+="a0.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)";
+			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.lastIndexOf("left join"))+" where ";
+			getOutDataSql+="b.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)"+getOutDataSql2;
 			pst=conn.prepareStatement(getOutDataSql);
 			pst.setString(1,startTime);
 			pst.setString(2, endTime);
@@ -341,7 +387,7 @@ public class DataOutputJdbc extends BaseRepository{
 						value=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
 					}
 					String key=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
-					if(value!=null&&!"".equals(value)){
+					if(value!=null&&!"".equals(value)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
 						map.put(key,rs.getObject(value));
 					}else{
 						map.put(key,"");
@@ -416,4 +462,6 @@ public class DataOutputJdbc extends BaseRepository{
 		
 		return column;
 	}
+	
+	
 }
