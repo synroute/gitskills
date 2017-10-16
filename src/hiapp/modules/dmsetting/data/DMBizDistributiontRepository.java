@@ -196,6 +196,7 @@ public class DMBizDistributiontRepository extends BaseRepository{
 			String clobContent = mapColumns;  
 		     StringReader reader = new StringReader(clobContent);  
 		     stat.setCharacterStream(1, reader, clobContent.length());
+		     stat.executeUpdate();
 			/*stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();*/
 		} catch (SQLException e) {

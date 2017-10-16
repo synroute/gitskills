@@ -489,6 +489,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				String clobContent = jsonObject.toString();  
 			     StringReader reader = new StringReader(clobContent);  
 			     stat.setCharacterStream(1, reader, clobContent.length());
+			     stat.executeUpdate();
 			}else if(type==6)
 			{
 				
@@ -508,6 +509,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				String clobContent = jsonArray.toString();  
 			     StringReader reader = new StringReader(clobContent);  
 			     stat.setCharacterStream(1, reader, clobContent.length());
+			     stat.executeUpdate();
 			}
 			/*stmt = conn.prepareStatement(updateadd);
 			stmt.executeUpdate();*/

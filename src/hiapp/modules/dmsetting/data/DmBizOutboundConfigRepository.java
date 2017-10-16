@@ -104,11 +104,10 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			{
 				xml=rs.getString("xml");
 			}
-			int type=1;
+			
 			
 			String szSql ="";
-			if(type==1)
-				{
+			
 				JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 				jsonObject.remove("RedialState");
 				JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
@@ -120,14 +119,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 				String clobContent = jsonObject.toString();  
 			     StringReader reader = new StringReader(clobContent);  
 			     stat.setCharacterStream(1, reader, clobContent.length());
-			}else if(type==6)
-			{
-				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where BusinessID="+bizId+"");
-				
-				String clobContent = MapColumns;  
-			     StringReader reader = new StringReader(clobContent);  
-			     stat.setCharacterStream(1, reader, clobContent.length());
-			}
+			     stat.executeUpdate();
 			
 			
 			  
@@ -175,7 +167,19 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			{
 				xml=rs.getString("xml");
 			}
-
+			
+			String typesql=String.format("select OutboundMddeId from HASYS_DM_Business where BusinessID="+bizId+"");
+			stmt = conn.prepareStatement(typesql);
+			rs = stmt.executeQuery();
+			int type=0;
+			while(rs.next())
+			{
+				type=rs.getInt(1);
+			}
+			
+			
+			if(type==3)
+			{
 			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 			jsonObject.remove("EndCodeRedialStrategy");
 			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
@@ -184,7 +188,16 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
-			
+			}
+			if(type==6)
+			{
+				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where BusinessID="+bizId+"");
+				
+				String clobContent = MapColumns;  
+			     StringReader reader = new StringReader(clobContent);  
+			     stat.setCharacterStream(1, reader, clobContent.length());
+			     stat.executeUpdate();
+			}
 			  
 		} catch (SQLException e) {
 			e.printStackTrace();

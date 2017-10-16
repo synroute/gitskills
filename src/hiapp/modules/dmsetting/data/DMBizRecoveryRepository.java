@@ -194,7 +194,7 @@ public class DMBizRecoveryRepository  extends BaseRepository{
 			String clobContent = mapColumns;  
 		     StringReader reader = new StringReader(clobContent);  
 		     stat.setCharacterStream(1, reader, clobContent.length());
-			
+		     stat.executeUpdate();
 			/*szSql = String.format("UPDATE HASYS_DM_BIZTEMPLATERECOVER SET CONFIGJSON = '%s' WHERE TemplateID='%s' AND BusinessId='%s' ",mapColumns,templateId,bizId) ;
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();*/
