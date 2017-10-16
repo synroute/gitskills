@@ -894,11 +894,14 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 	  String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 	  try {
 		conn=this.getDbConnection();
-		String columnSql="insert into "+tableName+"(";
-		String valueSql=" values(";
+		String columnSql="insert into "+tableName+"(ID,IID,CID,Modifyuserid,Modifylast,Modifyid,Modifytime,";
+		String valueSql=" values(S_"+tableName+".nextval,'"+importBatchId+"','"+customerId+"','"+userId+"',1,"+Modifyid+",sysdate,";
 		Iterator<Entry<String, Object>> it = columnMap.entrySet().iterator();
 		 for(Map.Entry<String, Object> entry : columnMap.entrySet()) {
-			   System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+			 	String column=entry.getKey();
+			 	if("ID".equals(column.toUpperCase())||"CID".equals(column.toUpperCase())||"IID".equals(column.toUpperCase())||"MODIFYUSERID".equals(column.toUpperCase())||"MODIFYLAST".equals(column.toUpperCase())||"MODIFYTIME".equals(column.toUpperCase())||"MODIFYID".equals(column.toUpperCase())){
+			 		continue;
+			 	}
 			   columnSql+=entry.getKey()+",";
 			   String type=getDataType(workSheetId, entry.getKey());
 			   if("datetime".equals(type.toLowerCase())){
@@ -908,8 +911,8 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 			   }else{
 				   valueSql+="'"+entry.getValue()+"',";
 			   }
-			  
-			 }
+		  
+		 }
 		 columnSql=columnSql.substring(0,columnSql.length()-1)+")"+valueSql.substring(0,valueSql.length()-1)+")";
 		 pst=conn.prepareStatement(columnSql);
 		 pst.executeUpdate();
