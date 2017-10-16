@@ -48,6 +48,19 @@ public class MultiNumberPredictCustomerSharePool {
         onePhoneTypeCustomerPool.add(customer);
     }
 
+    public void addWaitResultCustomer(MultiNumberCustomer customer) {
+        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(customer.getBizId());
+        if (null == oneBizCustomerSharePool)
+            return;
+
+        OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(customer.getCurDialPhoneType());
+        if (null == onePhoneTypeCustomerPool)
+            return;
+
+        onePhoneTypeCustomerPool.addWaitResultCustomer(customer);
+    }
+
+
     public void clear() {
         mapCustomerManage.clear();
     }
@@ -61,6 +74,14 @@ public class MultiNumberPredictCustomerSharePool {
         return null;
     }
 
+    public MultiNumberCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
+        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(bizId);
+
+        OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(phoneType);
+
+        onePhoneTypeCustomerPool.getWaitCustomer(userId, bizId, importBatchId, customerId);
+        return null;
+    }
 
     void initialize() {
 

@@ -40,11 +40,19 @@ public class OnePhoneTypeCustomerPool {
         customerSharePool.add(customer);
     }
 
+    public void addWaitResultCustomer(MultiNumberCustomer customer) {
+        customerWaitPool.add(customer.getModifyUserId(), customer);
+    }
+
     public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
 
         return customerWaitPool.removeWaitCustomer(userId, bizId, importBatchId, customerId);
     }
 
+    public MultiNumberCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
+
+        return customerWaitPool.getWaitCustome(userId, bizId, importBatchId, customerId);
+    }
 
 }
 

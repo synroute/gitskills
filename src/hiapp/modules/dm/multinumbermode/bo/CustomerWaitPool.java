@@ -51,6 +51,15 @@ public class CustomerWaitPool {
         return customerItem;
     }
 
+    public MultiNumberCustomer getWaitCustome(String userId, int bizId, String importBatchId, String customerId) {
+        Map<String, MultiNumberCustomer> mapWaitResultPool = mapWaitResultCustomerPool.get(userId);
+        if (null == mapWaitResultPool)
+            return null;
+
+        MultiNumberCustomer customerItem = mapWaitResultPool.get(importBatchId + customerId);
+        return customerItem;
+    }
+
     private MultiNumberCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
         MultiNumberCustomer customerItem = null;
 

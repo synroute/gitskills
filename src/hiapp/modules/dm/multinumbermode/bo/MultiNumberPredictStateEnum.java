@@ -9,7 +9,10 @@ public enum MultiNumberPredictStateEnum {
     WAIT_REDIAL("WAIT_REDIAL"),   // 等待重拨状态
     LOSS_WAIT_REDIAL("LOSS_WAIT_REDIAL"),   //呼损重拨状态
     FINISHED("FINISHED"),      // 本客户拨打完成
-    REVERT("REVERT");         // 回退状态
+    REVERT("REVERT"),         // 回退状态
+
+    PHONECONNECTED("PHONECONNECTED"),
+    SCREENPOPUP("SCREENPOPUP");
 
     private MultiNumberPredictStateEnum(String name) {
         this.name = name;
@@ -46,7 +49,15 @@ public enum MultiNumberPredictStateEnum {
         if (MultiNumberPredictStateEnum.REVERT.getName().equals(columnValue))
             return MultiNumberPredictStateEnum.REVERT;
 
+
+        if (MultiNumberPredictStateEnum.PHONECONNECTED.getName().equals(columnValue))
+            return MultiNumberPredictStateEnum.PHONECONNECTED;
+
+        if (MultiNumberPredictStateEnum.SCREENPOPUP.getName().equals(columnValue))
+            return MultiNumberPredictStateEnum.SCREENPOPUP;
+
         return null;
     }
 
 }
+

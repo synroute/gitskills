@@ -63,8 +63,13 @@ public class MultiNumberModeController {
         int phoneType = (Integer)map.get("phoneType");
         String customerId = (String)map.get("customerId");
 
+        ServiceResult serviceresult = new ServiceResult();
 
-        return "";
+        multiNumberOutboundDataManage.submitHiDialerOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId,
+                customerId, phoneType, resultCodeType, resultCode);
+
+        serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+        return serviceresult.toJson();
     }
 
     @RequestMapping(value="/srv/dm6/submitAgentScreenPopUp.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
@@ -81,8 +86,13 @@ public class MultiNumberModeController {
         int phoneType = (Integer)map.get("phoneType");
         String customerId = (String)map.get("customerId");
 
+        ServiceResult serviceresult = new ServiceResult();
 
-        return "";
+        multiNumberOutboundDataManage.submitAgentScreenPopUp(user.getId(), Integer.parseInt(strBizId), importBatchId,
+                customerId, phoneType);
+
+        serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+        return serviceresult.toJson();
     }
 
     @RequestMapping(value="/srv/dm6/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")

@@ -65,7 +65,8 @@ public class CustomerSharePool {
 
     public void add(MultiNumberCustomer customer) {
         PriorityBlockingQueue<MultiNumberCustomer> queue;
-        if (MultiNumberPredictStateEnum.PRESET_DIAL.equals(customer.getState())) {
+        if (MultiNumberPredictStateEnum.PRESET_DIAL.equals(customer.getState())
+            || MultiNumberPredictStateEnum.WAIT_REDIAL.equals(customer.getState()) ) {
             queue = mapPreseCustomerSharePool.get(customer.getShareBatchId());
             if (null == queue) {
                 queue = new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator);
