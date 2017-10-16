@@ -202,14 +202,14 @@ public class SingleNumberOutboundDataManage {
         markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }
 
-    public String appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
+    public Boolean appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
 
         // 获取ACTIVE状态的 shareBatchIds
         List<ShareBatchItem> shareBatchItemList = new ArrayList<ShareBatchItem>();
         dmDAO.getActiveShareBatchItems(shareBatchIds, shareBatchItemList);
 
         loadCustomersAppend(bizId, shareBatchItemList);
-        return "";
+        return true;
     }
 
     // 用户登录通知
