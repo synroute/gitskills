@@ -39,6 +39,10 @@ public class DateUtil {
     }
 
     public static Boolean isSameDay(Date date1, Date date2) {
+
+        if (null == date1 || null == date2)
+            return false;
+
         return date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth() && date1.getDay() == date2.getDay();
     }
 
