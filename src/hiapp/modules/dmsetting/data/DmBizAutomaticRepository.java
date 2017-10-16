@@ -211,8 +211,9 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		try {
 			dbConn =this.getDbConnection();
 			columns=columns.substring(0, columns.length()-1);
+			String repcolumn=columns.replaceAll("-","\\.");
 			//String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"'";
-			String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT,HASYS_DM_B"+bizId+"C_PresetTime,HAU_DM_B"+bizId+"C_RESULT "
+			String szSelectSql="select "+repcolumn+" from HAU_DM_B"+bizId+"C_IMPORT,HASYS_DM_B"+bizId+"C_PresetTime,HAU_DM_B"+bizId+"C_RESULT "
 					+ " where HAU_DM_B"+bizId+"C_IMPORT.Cid=HAU_DM_B"+bizId+"C_RESULT.CID and HAU_DM_B"+bizId+"C_IMPORT.Cid=HASYS_DM_B"+bizId+"C_PresetTime.CID Cid='"+Cid+"'";
 			stmt = dbConn.prepareStatement(szSelectSql);
 			rs = stmt.executeQuery();
@@ -222,7 +223,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				for(int i=0;i<column.length;i++)
 				{
 					String columnString=column[i];
-					String[] workColumn=columnString.split("\\.");
+					String[] workColumn=columnString.split("-");
 					map.put(column[i], rs.getString(workColumn[1]));
 					
 				}
@@ -264,6 +265,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						&&!workSheetColumn.getColumnName().equals("MODIFYUSERID")
 						&&!workSheetColumn.getColumnName().equals("MODIFYTIME")) {
 					DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
+					dmBizAutomaticColumns.setWorksheetId(workSheetId);
 					dmBizAutomaticColumns.setWorksheetName(szWorkSheetName);
 					dmBizAutomaticColumns.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(workSheetId));
 					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());

@@ -21,7 +21,7 @@ public class DmBizHidialerSetting extends BaseRepository {
 		
 		try {
 			dbConn =this.getDbConnection();
-			String sql = "update  HASYS_DM_Business set DetailSettingXml='"+mapcolumn+"' where BusinessID="+bizid+"";
+			String sql = "update  HASYS_DM_Business set CONFIGJSON='"+mapcolumn+"' where BusinessID="+bizid+"";
 			stmt = dbConn.prepareStatement(sql);
 	        stmt.executeUpdate();
 	     	
@@ -41,7 +41,7 @@ public class DmBizHidialerSetting extends BaseRepository {
 		String hidialer="";
 		try {
 			dbConn =this.getDbConnection();
-			String sql = "select DetailSettingXml from  HASYS_DM_Business where BusinessID="+bizid+"";
+			String sql = "select CONFIGJSON from  HASYS_DM_Business where BusinessID="+bizid+"";
 			stmt = dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			if (rs.next()) {

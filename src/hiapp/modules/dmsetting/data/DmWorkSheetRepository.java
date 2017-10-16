@@ -335,9 +335,9 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("电话类型10_最后拨打时间", "PT10_LASTDIALTIME", "电话类型10_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("电话类型10_产生预约拨打次数", "PT10_CAUSEPRESETDOALCOUNT", "电话类型10_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("电话类型10_拨打次数", "PT10_DOALCOUNT", "电话类型10_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("当前已拨打号码", "CURDIALPHONE", "当前已拨打号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当前已拨打号码", "CURDIALPHONE", "当前已拨打号码", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESEDIALTTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
-			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
@@ -405,9 +405,9 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("电话类型10_最后拨打时间", "PT10_LASTDIALTIME", "电话类型10_最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("电话类型10_产生预约拨打次数", "PT10_CAUSEPRESETDOALCOUNT", "电话类型10_产生预约拨打次数", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("电话类型10_拨打次数", "PT10_DOALCOUNT", "电话类型10_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("当前已拨打号码", "CURDIALPHONE", "当前已拨打号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当前已拨打号码", "CURDIALPHONE", "当前已拨打号码", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESEDIALTTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
-			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
