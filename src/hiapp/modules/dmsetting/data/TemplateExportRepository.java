@@ -1,5 +1,6 @@
 package hiapp.modules.dmsetting.data;
 
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -194,9 +195,17 @@ public class TemplateExportRepository extends BaseRepository{
 		String szSql = null;
 		try {
 			dbConn = this.getDbConnection();
+			
+			PreparedStatement stat=dbConn.prepareStatement("UPDATE HASYS_DM_BIZTEMPLATEEXPORT SET CONFIGJSON = ? WHERE TemplateID='"+templateId+"' AND BusinessId='"+bizId+"' ") ;
+			
+			String clobContent = mapColumns;  
+		     StringReader reader = new StringReader(clobContent);  
+		     stat.setCharacterStream(1, reader, clobContent.length());
+		     stat.executeUpdate();
+			/*
 			szSql = String.format("UPDATE HASYS_DM_BIZTEMPLATEEXPORT SET CONFIGJSON = '%s' WHERE TemplateID='%s' AND BusinessId='%s' ",mapColumns,templateId,bizId) ;
 			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();
+			stmt.execute();*/
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;

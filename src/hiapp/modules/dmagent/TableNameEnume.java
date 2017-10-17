@@ -112,6 +112,20 @@ public enum TableNameEnume {
 			map4.put("COLUMNDESCRIPTION", "来源编号");
 			map4.put("dataType", "varchar");
 			map4.put("LENGTH", 50);
+			
+			Map<String, Object> map5 = new HashMap<String, Object>();
+			map3.put("COLUMNNAME", getAbbr() + "." + "ENDCODETYPE");
+			map3.put("COLUMNNAMECH", "结束码类型");
+			map3.put("COLUMNDESCRIPTION", "结束码类型");
+			map3.put("dataType", "varchar");
+			map3.put("LENGTH", 50);
+			
+			Map<String, Object> map6 = new HashMap<String, Object>();
+			map4.put("COLUMNNAME", getAbbr() + "." + "ENDCODE");
+			map4.put("COLUMNNAMECH", "结束码");
+			map4.put("COLUMNDESCRIPTION", "结束码");
+			map4.put("dataType", "varchar");
+			map4.put("LENGTH", 50);
 
 			list.add(map);
 			list.add(map2);
