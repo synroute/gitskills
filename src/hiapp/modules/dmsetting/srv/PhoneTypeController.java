@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
+
 import hiapp.modules.dmsetting.DMBizPhoneType;
 import hiapp.modules.dmsetting.data.DmBizPhoneTypeRepository;
 import hiapp.utils.serviceresult.RecordsetResult;
@@ -37,7 +40,7 @@ public class PhoneTypeController {
 		return recordsetResult.toJson();
 	}
 	
-	//修改号码类型
+	/*//修改号码类型
 	@RequestMapping(value = "srv/dm/dmModifyBizPhoneType.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmModifyBizPhoneType(@RequestParam("bizId") String bizId,@RequestParam("name") String name,
 			@RequestParam("nameCh") String nameCh,@RequestParam("description") String description,
@@ -62,8 +65,8 @@ public class PhoneTypeController {
 		}
 		return serviceresult.toJson();
 	}
-	
-	//删除号码类型
+	*/
+	/*//删除号码类型
 	@RequestMapping(value = "srv/dm/dmDeleteBizPhoneType.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmDeleteBizPhoneType(@RequestParam("bizId") String bizId,@RequestParam("name") String name) {
 		
@@ -78,30 +81,26 @@ public class PhoneTypeController {
 			serviceresult.setReturnMessage("失败");
 		}
 		return serviceresult.toJson();
-	}
+	}*/
 	//添加号码类型
 	@RequestMapping(value = "srv/dm/dmAddBizPhoneType.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmAddBizPhoneType(@RequestParam("bizId") String bizId,@RequestParam("name") String name,
-			@RequestParam("nameCh") String nameCh,@RequestParam("description") String description,
-			@RequestParam("customerColumnMap") String customerColumnMap,@RequestParam("dialOrder") int dialOrder) {
+	public String dmAddBizPhoneType(@RequestParam("bizId") String bizId,@RequestParam("mapColumn") String mapcolumn) {
 		
 		ServiceResult serviceresult = new ServiceResult();
-		DMBizPhoneType dmBizPhoneType=new DMBizPhoneType();
-		dmBizPhoneType.setBizId(bizId);
-		dmBizPhoneType.setName(name);
-		dmBizPhoneType.setNameCh(nameCh);
-		dmBizPhoneType.setDescription(description);
-		dmBizPhoneType.setCustomerColumnMap(customerColumnMap);
-		dmBizPhoneType.setDialOrder(dialOrder);
-		StringBuffer errMessage=new StringBuffer();
-		if(dmBizPhoneTypeRepository.dmAddBizPhoneType(dmBizPhoneType, errMessage))
-		{
-			serviceresult.setReturnCode(0);
-			serviceresult.setReturnMessage("成功");
-		}else {
-			serviceresult.setReturnCode(1);
-			serviceresult.setReturnMessage("失败");
-		}
+		
+		JsonArray jsonArray=new JsonParser().parse(mapcolumn).getAsJsonArray();
+		
+			
+			StringBuffer errMessage=new StringBuffer();
+			if(dmBizPhoneTypeRepository.dmAddBizPhoneType(bizId,jsonArray, errMessage))
+			{
+				serviceresult.setReturnCode(0);
+				serviceresult.setReturnMessage("成功");
+			}else {
+				serviceresult.setReturnCode(1);
+				serviceresult.setReturnMessage("失败");
+			}
+		
 		return serviceresult.toJson();
 	}
 	

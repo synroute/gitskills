@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import hiapp.modules.dmsetting.DMBizPhoneType;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
@@ -18,69 +21,73 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 	
 	Connection dbConn = null;
 	//添加号码类型
-	public boolean dmAddBizPhoneType(DMBizPhoneType dmBizPhoneType,StringBuffer errMessage)
+	public boolean dmAddBizPhoneType(String bizId,JsonArray jsonArray,StringBuffer errMessage)
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		
+		dmDeleteBizPhoneType(bizId);
 		try {
 			dbConn =this.getDbConnection();
-			try {
+			for(int i=0;i<jsonArray.size();i++)
+			{
+				JsonObject jsonObject =jsonArray.get(i).getAsJsonObject();
+				try {
+					
+					int count = 0;
+					String szSql = String.format("select COUNT(*) from HASYS_DM_BIZPHONETYPE where BusinessId=%s and name='%s'",bizId,jsonObject.get("name").getAsString());
+					stmt = dbConn.prepareStatement(szSql);
+					rs = stmt.executeQuery();
+					if (rs.next()) {
+						count = rs.getInt(1);
+					}
+					if (count > 0) {
+						errMessage.append("名称冲突！");
+						return false;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				
-				int count = 0;
-				String szSql = String.format("select COUNT(*) from HASYS_DM_BIZPHONETYPE where BusinessId=%s and name='%s'",dmBizPhoneType.getBizId(),dmBizPhoneType.getName());
-				stmt = dbConn.prepareStatement(szSql);
-				rs = stmt.executeQuery();
-				if (rs.next()) {
-					count = rs.getInt(1);
+				try {
+					
+					int count = 0;
+					String szSql = String.format("select COUNT(*) from HASYS_DM_BIZPHONETYPE where BusinessId=%s and CustomerColumnMap='%s'",bizId,jsonObject.get("customerColumnMap").getAsString());
+					stmt = dbConn.prepareStatement(szSql);
+					rs = stmt.executeQuery();
+					if (rs.next()) {
+						count = rs.getInt(1);
+					}
+					if (count > 0) {
+						errMessage.append("导入表设置字段冲突！");
+						return false;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				if (count > 0) {
-					errMessage.append("名称冲突！");
-					return false;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			try {
 				
-				int count = 0;
-				String szSql = String.format("select COUNT(*) from HASYS_DM_BIZPHONETYPE where BusinessId=%s and CustomerColumnMap='%s'",dmBizPhoneType.getBizId(),dmBizPhoneType.getCustomerColumnMap());
-				stmt = dbConn.prepareStatement(szSql);
-				rs = stmt.executeQuery();
-				if (rs.next()) {
-					count = rs.getInt(1);
+				try {
+					
+					int count = 0;
+					String szSql = String.format("select COUNT(*) from HASYS_DM_BIZPHONETYPE where BusinessId=%s and DialOrder=%s",bizId,jsonObject.get("dialOrder").getAsString());
+					stmt = dbConn.prepareStatement(szSql);
+					rs = stmt.executeQuery();
+					if (rs.next()) {
+						count = rs.getInt(1);
+					}
+					if (count > 0) {
+						errMessage.append("拨打顺序冲突！");
+						return false;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				if (count > 0) {
-					errMessage.append("导入表设置字段冲突！");
-					return false;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			try {
 				
-				int count = 0;
-				String szSql = String.format("select COUNT(*) from HASYS_DM_BIZPHONETYPE where BusinessId=%s and DialOrder=%s",dmBizPhoneType.getBizId(),dmBizPhoneType.getDialOrder());
-				stmt = dbConn.prepareStatement(szSql);
-				rs = stmt.executeQuery();
-				if (rs.next()) {
-					count = rs.getInt(1);
-				}
-				if (count > 0) {
-					errMessage.append("拨打顺序冲突！");
-					return false;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
+				
+				String sql="insert into HASYS_DM_BIZPHONETYPE (BusinessId,name,nameCh,decription,CustomerColumnMap,dialOrder,DIALTYPE) values("+bizId+",'"+
+				jsonObject.get("name").getAsString()+"','"+jsonObject.get("nameCh").getAsString()+"','"+jsonObject.get("description").getAsString()+"','"+jsonObject.get("customerColumnMap").getAsString()+"',"+jsonObject.get("dialOrder").getAsString()+","+jsonObject.get("dialType").getAsString()+")";
+				stmt = dbConn.prepareStatement(sql);
+		        stmt.executeUpdate();
 			}
-			
-			
-			String sql="insert into HASYS_DM_BIZPHONETYPE (BusinessId,name,nameCh,decription,CustomerColumnMap,dialOrder) values("+dmBizPhoneType.getBizId()+",'"+dmBizPhoneType.getName()+"','"+dmBizPhoneType.getNameCh()+"','"+dmBizPhoneType.getDescription()+"','"+dmBizPhoneType.getCustomerColumnMap()+"',"+dmBizPhoneType.getDialOrder()+")";
-			stmt = dbConn.prepareStatement(sql);
-	        stmt.executeUpdate();
-	     	
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -91,7 +98,7 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 	}
 	
 	
-	public boolean dmModifyBizPhoneType(DMBizPhoneType dmBizPhoneType,StringBuffer errMessage)
+	/*public boolean dmModifyBizPhoneType(DMBizPhoneType dmBizPhoneType,StringBuffer errMessage)
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -160,9 +167,9 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 			DbUtil.DbCloseExecute(stmt);
 		}
 		return true;
-	}
+	}*/
 	
-	public boolean dmDeleteBizPhoneType(String bizid,String name)
+	public boolean dmDeleteBizPhoneType(String bizid)
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -171,7 +178,7 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 			dbConn =this.getDbConnection();
 			
 			
-			String sql = "delete from HASYS_DM_BIZPHONETYPE where BusinessId="+bizid+" and name='"+name+"'";
+			String sql = "delete from HASYS_DM_BIZPHONETYPE where BusinessId="+bizid+"";
 			stmt = dbConn.prepareStatement(sql);
 	        stmt.executeUpdate();
 	     	

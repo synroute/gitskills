@@ -86,6 +86,58 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		}
 		return listDmBizAutomaticColums;
 	}
+	
+	//获取号码类型待选列
+	public List<DMBizAutomaticColumns> dmGetBizCustomerColumnsForPhone(int bizId)
+	{
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
+		List<DMBizAutomaticColumns> listDmBizAutomaticColums=new ArrayList<DMBizAutomaticColumns>();
+		try {
+			//根据表名查询中文名称接worksheetid
+			dbConn =this.getDbConnection();
+			String szSelectSql="select ID,NameCh from HASYS_WORKSHEET where NAME='HAU_DM_B"+bizId+"C_IMPORT'";
+			stmt = dbConn.prepareStatement(szSelectSql);
+			rs = stmt.executeQuery();
+			String workSheetId="";
+			String worksheetName="";
+			while(rs.next()){
+				workSheetId=rs.getString(1);
+				worksheetName=rs.getString(2);
+			}
+			
+			//根据worksheetid获取该工作表下所有列信息
+			workSheet.getColumns(dbConn,workSheetId, listColumns);
+			//将列值绑定到列表中
+			for (int i = 0; i < listColumns.size(); i++) {
+				WorkSheetColumn workSheetColumn=listColumns.get(i);
+				//剔除掉不需要显示的列信息
+				if (workSheetColumn.getIsPhoneColumn()==1)
+				{
+					DMBizAutomaticColumns dmBizAutomaticColumns=new DMBizAutomaticColumns();
+					dmBizAutomaticColumns.setWorksheetId(workSheetId);
+					dmBizAutomaticColumns.setWorksheetName("HAU_DM_B"+bizId+"C_IMPORT");
+					dmBizAutomaticColumns.setWorksheetNameCh(worksheetName);
+					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
+					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+					listDmBizAutomaticColums.add(dmBizAutomaticColumns);
+				}
+				
+			}
+			
+		
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseExecute(stmt);
+		}
+		return listDmBizAutomaticColums;
+	}
+	
+	
 	//获取结果表列
 	public boolean getResultColumns(
 			List<DMBizAutomaticColumns> listDMBizAutomaticColumns, String bizId) {

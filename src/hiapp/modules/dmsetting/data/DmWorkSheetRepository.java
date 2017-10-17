@@ -581,7 +581,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 		String szSql =null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql = "SELECT ColumnName,ColumnNameCh,ColumnDescription,DataTypeCh,Length,IsSysColumn FROM HASYS_WORKSHEETCOLUMN WHERE WorkSheetId=? ORDER BY ID ";
+			szSql = "SELECT ColumnName,ColumnNameCh,ColumnDescription,DataTypeCh,Length,IsSysColumn,ISPHONECOLUMN FROM HASYS_WORKSHEETCOLUMN WHERE WorkSheetId=? ORDER BY ID ";
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.setString(1,worksheetId);
 			rs = stmt.executeQuery();
@@ -594,6 +594,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				workSheetColumn.setColumnType(rs.getString(4));
 				workSheetColumn.setColumnLength(rs.getInt(5));
 				workSheetColumn.setFixedColumn(rs.getString(6));
+				workSheetColumn.setIsPhoneColumn(rs.getInt(7));
 				listWorkSheetColumn.add(workSheetColumn);	
 			}
 		} catch (SQLException e) {

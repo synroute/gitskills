@@ -74,6 +74,27 @@ public class AutomaticController {
 		return recordsetResult.toJson();
 	}
 	
+	
+	@RequestMapping(value = "/srv/dm/dmGetBizCustomerColumnsForPhone.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmGetBizCustomerColumnsForPhone(@RequestParam("bizId") int bizId) {
+		RecordsetResult recordsetResult = new RecordsetResult();
+		try {
+			
+			List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
+			listDMBizAutomaticColumns=dmBizAutomatic.dmGetBizCustomerColumnsForPhone(bizId);
+			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
+			recordsetResult.setPage(0);
+			recordsetResult.setTotal(listDMBizAutomaticColumns.size());
+			recordsetResult.setPageSize(listDMBizAutomaticColumns.size());
+			recordsetResult.setRows(listDMBizAutomaticColumns);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return recordsetResult.toJson();
+	}
+	
+	
 	@RequestMapping(value = "/srv/dm/dmGetBizCustomer.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetBizCustomer(@RequestParam("bizId") int bizId,@RequestParam("Cid") String Cid,@RequestParam("IID") String IID,
 			@RequestParam("columns") String columns) {

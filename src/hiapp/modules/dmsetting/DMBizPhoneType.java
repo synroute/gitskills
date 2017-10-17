@@ -17,6 +17,7 @@ public class DMBizPhoneType {
 		private int	dialOrder;
 		//对应导入字段
 		private String customerColumnMap;
+		private int dialType;
 		public String getName() {
 			return name;
 		}
@@ -52,5 +53,11 @@ public class DMBizPhoneType {
 		}
 		public void setBizId(String bizId) {
 			this.bizId = bizId;
+		}
+		public int getDialType() {
+			return dialType;
+		}
+		public void setDialType(int dialType) {
+			this.dialType = dialType;
 		}
 }
