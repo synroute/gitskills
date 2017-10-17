@@ -192,11 +192,20 @@ public class DataRecyleJdbc extends BaseRepository{
 			if(dbTableName==null){
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
+			}else{
+				//删除数据
+				String delteSql="delete from "+tempTableName;
+				pst=conn.prepareStatement(delteSql);
+				pst.executeUpdate();
+				//删除表
+				String dropTableSql="drop table "+tempTableName;
+				pst=conn.prepareStatement(dropTableSql);
+				pst.executeUpdate();
+				//创建表
+				pst=conn.prepareStatement(createTableSql);
+				pst.executeUpdate();
 			}
-			//删除数据
-			String delteSql="delete from "+tempTableName;
-			pst=conn.prepareStatement(delteSql);
-			pst.executeUpdate();
+		
 			//向临时表添加数据
 			pst=conn.prepareStatement(insertSql);
 			pst.setInt(1,bizId);

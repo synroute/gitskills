@@ -210,11 +210,17 @@ public class DataDistributeJdbc extends BaseRepository{
 			if(dbTableName==null){
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
+			}else{
+				//删除数据
+				String delteSql="delete from "+tempTableName;
+				pst=conn.prepareStatement(delteSql);
+				pst.executeUpdate();
+				String dropTableSql="drop table "+tempTableName;
+				pst=conn.prepareStatement(dropTableSql);
+				pst.executeUpdate();
+				pst=conn.prepareStatement(createTableSql);
+				pst.executeUpdate();
 			}
-			//删除数据
-			String delteSql="delete from "+tempTableName;
-			pst=conn.prepareStatement(delteSql);
-			pst.executeUpdate();
 			//向临时表添加数据
 			pst=conn.prepareStatement(insertSql);
 			pst.setInt(1,bizId);
@@ -543,11 +549,17 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.execute();
 			if(model==3){
-				String insertDatamSql="insert into "+datamTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+SingleNumberModeShareCustomerStateEnum.CREATED.getName()+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
+				String state=null;
+				if(appendId==null||"".equals(appendId)){
+					state=SingleNumberModeShareCustomerStateEnum.CREATED.getName();
+				}else{
+					state=SingleNumberModeShareCustomerStateEnum.APPENDED.getName();
+				}
+				String insertDatamSql="insert into "+datamTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 									  "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.execute();
-				String insertHisDatamSql="insert into "+hisTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+SingleNumberModeShareCustomerStateEnum.CREATED.getName()+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
+				String insertHisDatamSql="insert into "+hisTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 										 "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.execute();

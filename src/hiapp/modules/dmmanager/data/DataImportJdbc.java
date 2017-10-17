@@ -768,25 +768,38 @@ public class DataImportJdbc extends BaseRepository{
 				dbTableName=rs.getString(1);
 			}
 			
-			if(dbTableName==null){
-				//创建临时表
-				String createTableSql="create table "+tableName+"(TEMPID NUMBER,IFCHECKED NUMBER,CUSTOMERID VARCHAR2(50),";
-				for (int i = 0; i < sheetColumnList.size(); i++) {
-					String type=sheetColumnList.get(i).getDataType();
-					String columnName=sheetColumnList.get(i).getField();
-					if("varchar".equals(type.toLowerCase())){
-						createTableSql+=columnName+"  VARCHAR2("+sheetColumnList.get(i).getLength()+"),";
-					}else if("int".equals(type.toLowerCase())){
-						createTableSql+=columnName+"  NUMBER,";
-					}else if("datetime".equals(type.toLowerCase())){
-						createTableSql+=columnName+"  DATE,";
-					}
+				//创建临时表sql
+			String createTableSql="create table "+tableName+"(TEMPID NUMBER,IFCHECKED NUMBER,CUSTOMERID VARCHAR2(50),";
+			for (int i = 0; i < sheetColumnList.size(); i++) {
+				String type=sheetColumnList.get(i).getDataType();
+				String columnName=sheetColumnList.get(i).getField();
+				if("varchar".equals(type.toLowerCase())){
+					createTableSql+=columnName+"  VARCHAR2("+sheetColumnList.get(i).getLength()+"),";
+				}else if("int".equals(type.toLowerCase())){
+					createTableSql+=columnName+"  NUMBER,";
+				}else if("datetime".equals(type.toLowerCase())){
+					createTableSql+=columnName+"  DATE,";
 				}
-				
-				createTableSql=createTableSql.substring(0, createTableSql.length()-1)+")";
+			}
+			
+			createTableSql=createTableSql.substring(0, createTableSql.length()-1)+")";
+			if(dbTableName==null){
+				pst=conn.prepareStatement(createTableSql);
+				pst.executeUpdate();
+			}else{
+				//删除数据
+				String delteSql="delete from "+tableName;
+				pst=conn.prepareStatement(delteSql);
+				pst.executeUpdate();
+				//删除表
+				String dropTableSql="drop table "+tableName;
+				pst=conn.prepareStatement(dropTableSql);
+				pst.executeUpdate();
+				//创建表
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
 			}
+			
 			//删除临时表数据
 			String deleteSql="delete from "+tableName;
 			pst=conn.prepareStatement(deleteSql);
