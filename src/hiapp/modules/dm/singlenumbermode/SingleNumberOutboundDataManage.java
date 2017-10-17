@@ -183,7 +183,7 @@ public class SingleNumberOutboundDataManage {
     public String startShareBatch(int bizId, List<String> shareBatchIds) {
 
         // 设置共享批次状态
-        singleNumberModeDAO.updateShareBatchState(bizId, shareBatchIds, ShareBatchStateEnum.ENABLE.getName());
+        dmDAO.updateShareBatchState(bizId, shareBatchIds, ShareBatchStateEnum.ENABLE.getName());
 
         List<ShareBatchItem> shareBatchItems = shareBatchIncrementalProc();
 

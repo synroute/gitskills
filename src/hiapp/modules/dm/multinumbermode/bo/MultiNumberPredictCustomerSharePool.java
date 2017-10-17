@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -81,6 +82,39 @@ public class MultiNumberPredictCustomerSharePool {
 
         onePhoneTypeCustomerPool.getWaitCustomer(userId, bizId, importBatchId, customerId);
         return null;
+    }
+
+
+    public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
+        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(bizId);
+        if (null == oneBizCustomerSharePool)
+            return;
+
+        // 号码类型遍历
+        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
+            int phoneType = phoneTypeDialSequence.getPhoneType(bizId, dialIndex);
+            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(phoneType);
+            if (null == onePhoneTypeCustomerPool)
+                continue;
+
+            onePhoneTypeCustomerPool.markShareBatchStopFromCustomerWaitPool(shareBatchIds);
+        }
+    }
+
+    public void removeShareCustomer(int bizId, List<String> shareBatchIds) {
+        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(bizId);
+        if (null == oneBizCustomerSharePool)
+            return;
+
+        // 号码类型遍历
+        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
+            int phoneType = phoneTypeDialSequence.getPhoneType(bizId, dialIndex);
+            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(phoneType);
+            if (null == onePhoneTypeCustomerPool)
+                continue;
+
+            onePhoneTypeCustomerPool.removeShareCustomer(shareBatchIds);
+        }
     }
 
     void initialize() {

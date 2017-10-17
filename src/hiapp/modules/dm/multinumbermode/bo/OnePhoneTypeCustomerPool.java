@@ -1,6 +1,7 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
 import java.util.Date;
+import java.util.List;
 
 public class OnePhoneTypeCustomerPool {
 
@@ -52,6 +53,14 @@ public class OnePhoneTypeCustomerPool {
     public MultiNumberCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
 
         return customerWaitPool.getWaitCustome(userId, bizId, importBatchId, customerId);
+    }
+
+    public void removeShareCustomer(List<String> shareBatchIds) {
+        customerSharePool.removeShareCustomer(shareBatchIds);
+    }
+
+    public void markShareBatchStopFromCustomerWaitPool(List<String> shareBatchIds) {
+        customerWaitPool.markShareBatchStopFromCustomerWaitPool(shareBatchIds);
     }
 
 }

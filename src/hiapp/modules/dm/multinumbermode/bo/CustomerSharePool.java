@@ -15,6 +15,12 @@ public class CustomerSharePool {
     @Autowired
     private DMBizMangeShare dmBizMangeShare;
 
+    // 客户共享池
+    // ShareBatchID <==> PriorityBlockingQueue<MultiNumberCustomer>
+    Map<String, PriorityBlockingQueue<MultiNumberCustomer>> mapPreseCustomerSharePool;
+    Map<String, PriorityBlockingQueue<MultiNumberCustomer>> mapCustomerSharePool;
+
+
     int bizId = 0;
 
     public CustomerSharePool(int bizId) {
@@ -39,8 +45,10 @@ public class CustomerSharePool {
                 continue;
 
             shareDataItem = customerQueue.peek();
-            if (null == shareDataItem)
+            if (null == shareDataItem) {
+                mapPreseCustomerSharePool.remove(shareBatchId);
                 continue;
+            }
 
             if (shareDataItem.getCurPresetDialTime().before(now)) {
                 shareDataItem = customerQueue.poll();
@@ -57,6 +65,8 @@ public class CustomerSharePool {
                 shareDataItem = customerQueue.poll();
                 if (null != shareDataItem)
                     break;
+
+                mapCustomerSharePool.remove(shareBatchId);
             }
         }
 
@@ -84,6 +94,20 @@ public class CustomerSharePool {
         queue.put(customer);
     }
 
+    public void removeShareCustomer(List<String> shareBatchIds) {
+        removeFromCustomerSharePool(shareBatchIds, mapPreseCustomerSharePool);
+        removeFromCustomerSharePool(shareBatchIds, mapCustomerSharePool);
+    }
+
+    private void removeFromCustomerSharePool(List<String> shareBatchIds,
+                                             Map<String, PriorityBlockingQueue<MultiNumberCustomer>> shareBatchIdVsCustomerMap)  {
+        PriorityBlockingQueue<MultiNumberCustomer> queue;
+        if (null != shareBatchIdVsCustomerMap) {
+            for (String shareBatchId : shareBatchIds) {
+                queue = shareBatchIdVsCustomerMap.remove(shareBatchId);
+            }
+        }
+    }
 
     //////////////////////////////////////////////////////////
 
@@ -104,12 +128,5 @@ public class CustomerSharePool {
             return (c1.getShareBatchStartTime().before(c2.getShareBatchStartTime())) ? 1 : -1;
         }
     };
-
-
-
-    // 客户共享池
-    // ShareBatchID <==> PriorityBlockingQueue<MultiNumberCustomer>
-    Map<String, PriorityBlockingQueue<MultiNumberCustomer>> mapPreseCustomerSharePool;
-    Map<String, PriorityBlockingQueue<MultiNumberCustomer>> mapCustomerSharePool;
 
 }

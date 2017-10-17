@@ -7,6 +7,7 @@ import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
+import hiapp.utils.serviceresult.ServiceResultCode;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -438,6 +439,25 @@ public class DMDAO extends BaseRepository {
 
         return true;
     }
+
+    public ServiceResultCode updateShareBatchState(int bizId, List<String> shareBatchIds, String state) {
+        PreparedStatement stmt = null;
+        Connection dbConn = null;
+        try {
+            dbConn=this.getDbConnection();
+            StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
+            sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(state));
+            sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
+            sqlBuilder.append(" AND SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIds));
+
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ServiceResultCode.SUCCESS;
+    }
+
 
 
 }

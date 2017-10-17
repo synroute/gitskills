@@ -3,6 +3,7 @@ import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CustomerWaitPool {
@@ -58,6 +59,20 @@ public class CustomerWaitPool {
 
         MultiNumberCustomer customerItem = mapWaitResultPool.get(importBatchId + customerId);
         return customerItem;
+    }
+
+    /**
+     * 仅标注已经停止共享，不从等待池中移除。需要等待已拨打的结果。
+     * @param shareBatchIds
+     */
+    public void markShareBatchStopFromCustomerWaitPool(List<String> shareBatchIds) {
+        for (String shareBatchId : shareBatchIds) {
+            Map<String, MultiNumberCustomer> mapWaitStopPool;
+            mapWaitStopPool = mapWaitStopCustomerPool.get(shareBatchId);
+            for (MultiNumberCustomer item : mapWaitStopPool.values()) {
+                item.setInvalid(true);
+            }
+        }
     }
 
     private MultiNumberCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {

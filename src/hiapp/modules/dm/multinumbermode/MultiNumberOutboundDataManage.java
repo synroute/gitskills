@@ -2,6 +2,7 @@ package hiapp.modules.dm.multinumbermode;
 
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.bo.ShareBatchItem;
+import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.multinumbermode.bo.*;
 import hiapp.modules.dm.multinumbermode.dao.MultiNumberPredictModeDAO;
@@ -176,13 +177,29 @@ public class MultiNumberOutboundDataManage {
      *
      */
     public String startShareBatch(int bizId, List<String> shareBatchIds) {
+        // 设置共享批次状态
+        dmDAO.updateShareBatchState(bizId, shareBatchIds, ShareBatchStateEnum.ENABLE.getName());
+
+        List<ShareBatchItem> shareBatchItems = shareBatchIncrementalProc();
+
+        loadCustomersIncremental(shareBatchItems);
+
         return "";
     }
 
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
+
+        customerSharePool.removeShareCustomer(bizId, shareBatchIds);
+
+        customerSharePool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }
 
     public Boolean appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
+        // 获取ACTIVE状态的 shareBatchIds
+        List<ShareBatchItem> shareBatchItemList = new ArrayList<ShareBatchItem>();
+        dmDAO.getActiveShareBatchItems(shareBatchIds, shareBatchItemList);
+
+        loadCustomersAppend(bizId, shareBatchItemList);
         return true;
     }
 
@@ -490,6 +507,47 @@ public class MultiNumberOutboundDataManage {
         System.out.println("wait result multinumber customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
+    }
+
+    private List<ShareBatchItem> shareBatchIncrementalProc() {
+        //List<String> expiredShareBatchIds = new ArrayList<String>();
+        dmDAO.expireShareBatchsByEndTime(/*expiredShareBatchIds*/);
+
+        List<ShareBatchItem> shareBatchItems = new ArrayList<ShareBatchItem>();
+        dmDAO.getCurDayNeedActiveShareBatchItems(shareBatchItems);
+
+        dmDAO.activateShareBatchByStartTime();
+
+        return shareBatchItems;
+    }
+
+    // 处理追加客户的情形
+    private void loadCustomersAppend(int bizId, List<ShareBatchItem> shareBatchItems) {
+        System.out.println("bizId : " + bizId);
+
+        List<MultiNumberPredictStateEnum> shareCustomerStateList = new ArrayList<MultiNumberPredictStateEnum>();
+        shareCustomerStateList.add(MultiNumberPredictStateEnum.APPENDED);
+
+        List<MultiNumberCustomer> shareDataItems = new ArrayList<MultiNumberCustomer>();
+
+        // TODO 成批从DB取数据
+        Boolean result = multiNumberPredictModeDAO.getGivenBizCustomersByState(
+                bizId, shareBatchItems, shareCustomerStateList, shareDataItems);
+
+        // 记录客户共享状态为 SingleNumberModeShareCustomerStateEnum.APPENDED 的客户信息
+        // 后续需要更改状态为 SingleNumberModeShareCustomerStateEnum.CREATED
+        List<String> appendedStateCustomerIdList = new ArrayList<String>();
+
+        for (MultiNumberCustomer customerItem : shareDataItems) {
+            addCustomerToSharePool(customerItem);
+
+            if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
+                appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+            }
+        }
+
+        multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
+                MultiNumberPredictStateEnum.CREATED);
     }
 
 }
