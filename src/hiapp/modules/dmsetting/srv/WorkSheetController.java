@@ -78,10 +78,11 @@ public class WorkSheetController {
 			@RequestParam("columnNameCh") String columnNameCh,
 			@RequestParam("columnType") String columnType,
 			@RequestParam("columnLength") String columnLength,
-			@RequestParam("columnDes") String columnDes) {
+			@RequestParam("columnDes") String columnDes,
+			@RequestParam("isPhoneColumn") String isPhoneColumn) {
 		ServiceResult serviceresult = new ServiceResult();
 		StringBuffer errMessage = new StringBuffer();
-		ServiceResultCode serviceResultCode = dmWorkSheetRepository.modifyColumnNameCh(worksheetId,columnName,columnNameCh,columnDes,columnLength,errMessage);
+		ServiceResultCode serviceResultCode = dmWorkSheetRepository.modifyColumnNameCh(worksheetId,columnName,columnNameCh,columnDes,columnLength,isPhoneColumn,errMessage);
 		if (serviceResultCode != ServiceResultCode.SUCCESS) {
 			serviceresult.setResultCode(serviceResultCode);
 			serviceresult.setReturnMessage(errMessage.toString());
@@ -102,6 +103,7 @@ public class WorkSheetController {
 		String columnType = "";
 		String columnLength = "";
 		String columnDes = "";
+		String isPhoneColumn="";
 		ServiceResultCode serviceResultCode = ServiceResultCode.SUCCESS;
 		StringBuffer errMessage = new StringBuffer();
 		ServiceResult serviceresult = new ServiceResult();
@@ -116,7 +118,8 @@ public class WorkSheetController {
 			columnType = jsonObject.get("columnType").getAsString();
 			columnLength = jsonObject.get("columnLength").getAsString();
 			columnDes = jsonObject.get("columnDes").getAsString();
-			serviceResultCode = dmWorkSheetRepository.newColumn(worksheetId,fixedColumn,columnName,columnNameCh,columnType,columnLength,columnDes,errMessage);
+			isPhoneColumn=jsonObject.get("isPhoneColumn").getAsString();
+			serviceResultCode = dmWorkSheetRepository.newColumn(worksheetId,fixedColumn,columnName,columnNameCh,columnType,columnLength,columnDes,isPhoneColumn,errMessage);
 		}
 		if (serviceResultCode != ServiceResultCode.SUCCESS) {
 			serviceresult.setResultCode(serviceResultCode);

@@ -608,7 +608,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 	}
 	//修改工作表列中文名称
 	public ServiceResultCode modifyColumnNameCh(String worksheetId, String columnName,
-			String columnNameCh,String columnDes,String columnLength, StringBuffer errMessage) {
+			String columnNameCh,String columnDes,String columnLength,String isPhoneColumn,StringBuffer errMessage) {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -652,7 +652,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {
-			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s',LENGTH="+columnLength+" where worksheetid='%s' and columnname='%s' ",
+			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s',LENGTH="+columnLength+",ISPHONETYPE="+isPhoneColumn+" where worksheetid='%s' and columnname='%s' ",
 					columnNameCh,columnDes,worksheetId,columnName);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
@@ -667,7 +667,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 	}
 	public ServiceResultCode newColumn(String worksheetId, String fixedColumn,
 			String columnName, String columnNameCh, String columnType,
-			String columnLength, String columnDes, StringBuffer errMessage) {
+			String columnLength, String columnDes,String isPhoneColumn, StringBuffer errMessage) {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -724,8 +724,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 				datatype = "datetime";
 				type ="DATE";
 			}
-			szSql = String.format("INSERT INTO hasys_worksheetcolumn(ID,WORKSHEETID,COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH,ISSYSCOLUMN,DATATYPECH) VALUES (HASYS_WORKSHEETCOLUMN_ID.nextval,'%s','%s','%s','%s','%s','%s','%s','%s')",
-					worksheetId,columnName,columnNameCh,columnDes,datatype,columnLength,isSysColumn,columnType);
+			szSql = String.format("INSERT INTO hasys_worksheetcolumn(ID,WORKSHEETID,COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH,ISSYSCOLUMN,DATATYPECH,ISPHONETYPE) VALUES (HASYS_WORKSHEETCOLUMN_ID.nextval,'%s','%s','%s','%s','%s','%s','%s','%s',%s)",
+					worksheetId,columnName,columnNameCh,columnDes,datatype,columnLength,isSysColumn,columnType,isPhoneColumn);
 			stmt = dbConn.prepareStatement(szSql);		
 			stmt.execute();
 			workSheetRepository.newWorkSheetColumn(worksheetId,columnName,type,columnLength);
