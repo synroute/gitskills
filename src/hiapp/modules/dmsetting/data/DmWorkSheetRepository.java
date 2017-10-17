@@ -652,7 +652,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {
-			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s',LENGTH="+columnLength+",ISPHONETYPE="+isPhoneColumn+" where worksheetid='%s' and columnname='%s' ",
+			szSql=String.format("update hasys_worksheetcolumn set columnnamech = '%s',COLUMNDESCRIPTION = '%s',LENGTH="+columnLength+",ISPHONECOLUMN="+isPhoneColumn+" where worksheetid='%s' and columnname='%s' ",
 					columnNameCh,columnDes,worksheetId,columnName);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();
@@ -724,7 +724,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				datatype = "datetime";
 				type ="DATE";
 			}
-			szSql = String.format("INSERT INTO hasys_worksheetcolumn(ID,WORKSHEETID,COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH,ISSYSCOLUMN,DATATYPECH,ISPHONETYPE) VALUES (HASYS_WORKSHEETCOLUMN_ID.nextval,'%s','%s','%s','%s','%s','%s','%s','%s',%s)",
+			szSql = String.format("INSERT INTO hasys_worksheetcolumn(ID,WORKSHEETID,COLUMNNAME,COLUMNNAMECH,COLUMNDESCRIPTION,DATATYPE,LENGTH,ISSYSCOLUMN,DATATYPECH,ISPHONECOLUMN) VALUES (HASYS_WORKSHEETCOLUMN_ID.nextval,'%s','%s','%s','%s','%s','%s','%s','%s',%s)",
 					worksheetId,columnName,columnNameCh,columnDes,datatype,columnLength,isSysColumn,columnType,isPhoneColumn);
 			stmt = dbConn.prepareStatement(szSql);		
 			stmt.execute();
