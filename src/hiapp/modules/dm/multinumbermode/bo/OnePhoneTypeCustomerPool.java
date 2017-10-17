@@ -1,12 +1,15 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
+import hiapp.modules.dm.Constants;
+
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class OnePhoneTypeCustomerPool {
 
     CustomerSharePool customerSharePool;
-    CustomerWaitPool customerWaitPool;
+    //CustomerWaitPool customerWaitPool;
 
     int bizId = 0;
     int phoneType;
@@ -17,7 +20,7 @@ public class OnePhoneTypeCustomerPool {
         this.phoneType = dialSequence;
 
         customerSharePool = new CustomerSharePool(bizId);
-        customerWaitPool = new CustomerWaitPool(bizId);
+        //customerWaitPool = new CustomerWaitPool(bizId);
 
     }
 
@@ -29,9 +32,6 @@ public class OnePhoneTypeCustomerPool {
         if (null != shareDataItem) {
             shareDataItem.setExtractTime(now);
             shareDataItem.setUserId(userId);
-
-            // 放入 客户等待池
-            customerWaitPool.add(userId, shareDataItem);
         }
 
         return shareDataItem;
@@ -41,6 +41,11 @@ public class OnePhoneTypeCustomerPool {
         customerSharePool.add(customer);
     }
 
+    public void removeShareCustomer(List<String> shareBatchIds) {
+        customerSharePool.removeShareCustomer(shareBatchIds);
+    }
+
+/*
     public void addWaitResultCustomer(MultiNumberCustomer customer) {
         customerWaitPool.add(customer.getModifyUserId(), customer);
     }
@@ -55,13 +60,11 @@ public class OnePhoneTypeCustomerPool {
         return customerWaitPool.getWaitCustome(userId, bizId, importBatchId, customerId);
     }
 
-    public void removeShareCustomer(List<String> shareBatchIds) {
-        customerSharePool.removeShareCustomer(shareBatchIds);
-    }
 
     public void markShareBatchStopFromCustomerWaitPool(List<String> shareBatchIds) {
         customerWaitPool.markShareBatchStopFromCustomerWaitPool(shareBatchIds);
     }
+*/
 
 }
 

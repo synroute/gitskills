@@ -46,6 +46,8 @@ public class MultiNumberOutboundDataManage {
     TimerTask timeoutTimerTask;
 
 
+
+
     public synchronized MultiNumberCustomer extractNextOutboundCustomer(String userId, int bizId) {
         return customerSharePool.extractCustomer(userId, bizId);
     }
@@ -172,6 +174,33 @@ public class MultiNumberOutboundDataManage {
         return "";
     }
 
+    public void lostProc(MultiNumberCustomer item) {
+        String dialType = "dialType";
+        String customerCallId = "customerCallId";
+
+        int originModifyId = item.getModifyId();
+        PhoneDialInfo originPhoneDialInfo = item.getDialInfo(item.getCurDialPhoneType());
+
+        Date now = new Date();
+
+        item.setState(MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);
+        item.setModifyTime(now);
+        item.setModifyId(originModifyId + 1);
+
+
+        multiNumberPredictModeDAO.updateCustomerShareState(item);
+
+        // 插入共享历史表
+        multiNumberPredictModeDAO.insertCustomerShareStateHistory(item);
+
+        // 插入结果表
+        dmDAO.updateDMResult(item.getBizId(), item.getShareBatchId(), item.getImportBatchId(), item.getCustomerId(),
+                originModifyId); // MODIFYLAST 0
+        dmDAO.insertDMResult(item.getBizId(), item.getShareBatchId(), item.getImportBatchId(), item.getCustomerId(),
+                originModifyId + 1, item.getUserId(), dialType, originPhoneDialInfo.getLastDialTime(), customerCallId,
+                item.getEndCodeType(), item.getEndCode());
+    }
+
     /*
      * 重新初始化处理不适合，举例说明：系统运行中，进行启用共享批次操作，会导致获取外呼客户的功能暂停一段时间。
      *
@@ -205,6 +234,9 @@ public class MultiNumberOutboundDataManage {
 
     // 用户登录通知
     public void onLogin(String userId) {
+
+
+
     }
 
 
@@ -219,27 +251,7 @@ public class MultiNumberOutboundDataManage {
     }
 
     public void timeoutProc() {
-        Date now =  new Date();
-        Long curTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        Long timeoutTimeSlot = curTimeSlot - Constants.timeoutThreshold/Constants.timeSlotSpan;
-
-        /*
-        while (earliestTimeSlot < timeoutTimeSlot) {
-            Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapWaitTimeOutCustomerPool.get(earliestTimeSlot);
-
-            for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    addCustomerToSharePool(customerItem);
-                }
-
-                removeWaitResultCustome(customerItem.getUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
-            }
-        }*/
+        customerSharePool.timeoutProc();
     }
 
 
@@ -493,7 +505,7 @@ public class MultiNumberOutboundDataManage {
         }
     }
 
-    private void addCustomerToSharePool(MultiNumberCustomer newCustomerItem) {
+    public void addCustomerToSharePool(MultiNumberCustomer newCustomerItem) {
         customerSharePool.add(newCustomerItem);
 
         System.out.println("share multinumber customer: bizId[" + newCustomerItem.getBizId()
