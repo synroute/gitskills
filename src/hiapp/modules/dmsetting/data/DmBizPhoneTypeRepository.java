@@ -202,7 +202,7 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 			try {
 				
 				int count = 0;
-				String szSql = String.format("select BusinessId,Name,NameCh,Decription,DialOrder,CustomerColumnMap from HASYS_DM_BIZPHONETYPE where BusinessId=%s",bizId);
+				String szSql = String.format("select BusinessId,Name,NameCh,Decription,DialOrder,CustomerColumnMap,DIALTYPE from HASYS_DM_BIZPHONETYPE where BusinessId=%s",bizId);
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				if (rs.next()) {
@@ -212,7 +212,8 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 					dmBizPhoneType.setNameCh(rs.getString(3));
 					dmBizPhoneType.setDescription(rs.getString(4));
 					dmBizPhoneType.setDialOrder(rs.getInt(5));
-					dmBizPhoneType.setCustomerColumnMap(rs.getString(2));
+					dmBizPhoneType.setCustomerColumnMap(rs.getString(6));
+					dmBizPhoneType.setDialType(rs.getInt(7));
 					listDmBizPhoneType.add(dmBizPhoneType);
 				}
 				

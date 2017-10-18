@@ -98,7 +98,7 @@ public class PhoneTypeController {
 				serviceresult.setReturnMessage("成功");
 			}else {
 				serviceresult.setReturnCode(1);
-				serviceresult.setReturnMessage("失败");
+				serviceresult.setReturnMessage(errMessage.toString());
 			}
 		
 		return serviceresult.toJson();
