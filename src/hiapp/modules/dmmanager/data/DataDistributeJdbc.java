@@ -514,13 +514,26 @@ public class DataDistributeJdbc extends BaseRepository{
 		String tempTableName="HAU_DM_"+bizId+"_"+userId;
 		//单号码重拨表
 		String datamTableName="HAU_DM_B"+bizId+"C_DATAM3";
-		//
+		//单号码重拨历史表
 		String hisTableName= "HAU_DM_B"+bizId+"C_DATAM3_HIS";
+		//多号码重拨表
+		String datamTableName6="HAU_DM_B"+bizId+"C_DATAM6";
+		//多号码重拨历史表
+		String hisTableName6= "HAU_DM_B"+bizId+"C_DATAM6_HIS";
+		//导入表
+		String importTableName="HAU_DM_B"+bizId+"C_IMPORT";
 		//共享批次
 		String shareId = idfactory.newId("DM_SID");
 		String appendIds=null;
-		if(appendId!=null&&!"".equals(appendId)){
+		String state=null;
+		Integer ifAppend=0;
+		if(appendId==null||"".equals(appendId)){
+			ifAppend=0;
+			state=SingleNumberModeShareCustomerStateEnum.CREATED.getName();
+		}else{
 			shareId=appendId;
+			state=SingleNumberModeShareCustomerStateEnum.APPENDED.getName();
+			ifAppend=1;
 		}
 		String[] arrDataPoolId=dataPoolIds.split(",");
 		String[] arrDataPoolName=dataPoolNames.split(",");
@@ -549,12 +562,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.execute();
 			if(model==3){
-				String state=null;
-				if(appendId==null||"".equals(appendId)){
-					state=SingleNumberModeShareCustomerStateEnum.CREATED.getName();
-				}else{
-					state=SingleNumberModeShareCustomerStateEnum.APPENDED.getName();
-				}
+				
 				String insertDatamSql="insert into "+datamTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 									  "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertDatamSql);
@@ -562,6 +570,19 @@ public class DataDistributeJdbc extends BaseRepository{
 				String insertHisDatamSql="insert into "+hisTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 										 "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertHisDatamSql);
+				pst.execute();
+			}else if(model==6){
+				Map<Integer,String> phoneNumMap=getPhoneNum(bizId);
+				String insertDatamSql6="insert into "+datamTableName6+" a (ID,BusinessID,SHAREID,IID,CID,State,ModifyID,ModifyUserID,ModifyTime,IsAppend,Pt1_PhoneNumber,Pt2_PhoneNumber,Pt3_PhoneNumber,Pt4_PhoneNumber,Pt5_PhoneNumber,Pt6_PhoneNumber,Pt7_PhoneNumber,Pt8_PhoneNumber,Pt9_PhoneNumber,Pt10_PhoneNumber)"+
+									   " select S_"+datamTableName6+".nextval,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,"+ifAppend+","+getColumnName(1,phoneNumMap)+","+getColumnName(2,phoneNumMap)+","+getColumnName(3,phoneNumMap)+","+getColumnName(4,phoneNumMap)+","+getColumnName(5,phoneNumMap)+
+									   ","+getColumnName(6,phoneNumMap)+","+getColumnName(7,phoneNumMap)+","+getColumnName(8,phoneNumMap)+","+getColumnName(9,phoneNumMap)+","+getColumnName(10,phoneNumMap)+" from "+tempTableName+" m left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
+				pst=conn.prepareStatement(insertDatamSql6);
+				pst.execute();
+				
+				String insertHisDatamSql6="insert into "+hisTableName6+" a (ID,BusinessID,SHAREID,IID,CID,State,ModifyID,ModifyUserID,ModifyTime,IsAppend,Pt1_PhoneNumber,Pt2_PhoneNumber,Pt3_PhoneNumber,Pt4_PhoneNumber,Pt5_PhoneNumber,Pt6_PhoneNumber,Pt7_PhoneNumber,Pt8_PhoneNumber,Pt9_PhoneNumber,Pt10_PhoneNumber)"+
+						   " select S_"+datamTableName6+".nextval,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,"+ifAppend+","+getColumnName(1,phoneNumMap)+","+getColumnName(2,phoneNumMap)+","+getColumnName(3,phoneNumMap)+","+getColumnName(4,phoneNumMap)+","+getColumnName(5,phoneNumMap)+
+						   ","+getColumnName(6,phoneNumMap)+","+getColumnName(7,phoneNumMap)+","+getColumnName(8,phoneNumMap)+","+getColumnName(9,phoneNumMap)+","+getColumnName(10,phoneNumMap)+" from "+tempTableName+" m left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
+				pst=conn.prepareStatement(insertHisDatamSql6);
 				pst.execute();
 			}
 			String deleteTempSql=" delete from "+tempTableName+" a where a.ifchecked=1";
@@ -656,6 +677,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		return resultMap;
 	}
 	
+
 	/**
 	 * 判断当前数据池下面是否有坐席池
 	 * @param bizId
@@ -842,5 +864,37 @@ public class DataDistributeJdbc extends BaseRepository{
 		return tempColumnType;
 	}
 	
-
+	public Map<Integer,String> getPhoneNum(Integer bizId){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		Map<Integer,String> resultMap=new HashMap<Integer, String>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select DialType,CustomerColumnMap from hasys_DM_BizPhoneType where BusinessId=?";
+			pst=conn.prepareStatement(sql);
+			pst.setInt(1,bizId);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				Integer phoneNum=rs.getInt(1);
+				String column=rs.getString(2);
+				resultMap.put(phoneNum, column);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	
+	public String getColumnName(Integer num,Map<Integer,String> phoneNumMap){
+		String columName=null;
+		if(phoneNumMap.keySet().contains(num)){
+			columName="n."+phoneNumMap.get(num);
+		}
+		return columName;
+	}
 }

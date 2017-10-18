@@ -5,8 +5,6 @@ import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dmmanager.ShareBatchItemS;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
-import hiapp.system.buinfo.Permission;
-import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
 import hiapp.system.buinfo.data.PermissionRepository;
 import hiapp.system.buinfo.data.UserRepository;
@@ -34,21 +32,24 @@ public class DMBizMangeShare extends BaseRepository{
 	@Autowired
 	private UserRepository userRepository;
 	    //根据用户的权限 获取到所有的共享批次数据
-		public List<ShareBatchItem> getUserShareBatch(String id,int businessID) {
-			String sql = "";
+		@SuppressWarnings("resource")
+		public Map<String,Object> getUserShareBatch(String id,int businessID,Integer num,Integer pageSize) {
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
 			ResultSet rs = null;
-			String  HAUDMBCDATAM3="HAU_DM_B"+businessID+"C_DATAM3";
+			Integer startNum=(num-1)*pageSize+1;
+			Integer endNum=num*pageSize+1;
 			List<ShareBatchItem> shareBatchItem= new ArrayList<ShareBatchItem>();
-			RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(id);
-			Permission permission = permissionRepository.getPermission(roleInGroupSet);
-			int permissionId = permission.getId();
+			Map<String,Object> resultMap=new HashMap<String, Object>();
 			try {
 				dbConn = this.getDbConnection();
-				sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SHAREID,BUSINESSID,COUNT(1) AS ABC FROM "+HAUDMBCDATAM3+" GROUP BY SHAREID,BUSINESSID ) B where A.SHAREID=B.SHAREID AND A.BUSINESSID=B.BUSINESSID AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and (A.state='启动' or A.state is null) ORDER BY A.CREATETIME";
-				stmt = dbConn.prepareStatement(sql);
+				String getDataSql="select ID,BUSINESSID,SHAREID,SHAREID,CREATEUSERID,CREATETIME,DESCRIPTION,STATE,STARTTIME,ENDTIME from (";
+				String sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,rownum rn FROM HASYS_DM_SID A  where A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and (A.state='启动' or A.state is null) ";
+				getDataSql=getDataSql+sql+" and rownum<?) t where rn>=?";
+				stmt = dbConn.prepareStatement(getDataSql);
 				stmt.setInt(1,businessID); 
+				stmt.setInt(2,endNum);
+				stmt.setInt(3,startNum);
 				rs = stmt.executeQuery();
 				while (rs.next()) {
 					ShareBatchItem shareBatchItems = new ShareBatchItem();
@@ -77,13 +78,24 @@ public class DMBizMangeShare extends BaseRepository{
 					shareBatchItems.setEndTime(rs.getDate(10));
 					shareBatchItem.add(shareBatchItems);
 				}
+				
+				String getCountSql="select count(1) from ("+sql+")";
+				stmt=dbConn.prepareStatement(getCountSql);
+				stmt.setInt(1,businessID);
+				rs=stmt.executeQuery();
+				Integer total=0;
+				while(rs.next()){
+					total=rs.getInt(1);
+				}
+				resultMap.put("total",total);
+				resultMap.put("rows",shareBatchItem);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}finally{
 				DbUtil.DbCloseQuery(rs,stmt);
 				DbUtil.DbCloseConnection(dbConn);
 			}
-			return shareBatchItem;
+			return resultMap;
 		}
 		//根据userid的权限 获取到规定时间内的共享批次数据，通过业务id
 				@SuppressWarnings("resource")

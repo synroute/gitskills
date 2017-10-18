@@ -48,19 +48,22 @@ public class DMBizMangeShareController {
     private DmWorkSheetRepository dmWorkSheetRepository;
 	// 根据userid的权限和业务id 获取到所有业务下共享批次客户数据
 	@RequestMapping(value = "/srv/DMBizMangeShareController/getUserShareBatch.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String getUserShareBatch(HttpServletRequest request,
+	public void getUserShareBatch(HttpServletRequest request,HttpServletResponse response,
 			@RequestParam(value = "businessId") String businessID){
 		HttpSession session = request.getSession(false);
 		User userid=(User) session.getAttribute("user");
-		String s = null;
 		Integer bizid = Integer.valueOf(businessID);
+		Integer pageNum=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = bizMangeShare.getUserShareBatch(userid.getId(),bizid,pageNum,pageSize);
+		String jsonObject=new Gson().toJson(resultMap);
 		try {
-			List<ShareBatchItem> list = bizMangeShare.getUserShareBatch(userid.getId(),bizid);
-			s = new Gson().toJson(list);
-		} catch (Exception e) {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return s;
 	}
 
 	//  获取到规定时间内的共享批次数据，通过业务id
