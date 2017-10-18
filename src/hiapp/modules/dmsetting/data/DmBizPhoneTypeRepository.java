@@ -205,7 +205,7 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 				String szSql = String.format("select BusinessId,Name,NameCh,Decription,DialOrder,CustomerColumnMap,DIALTYPE from HASYS_DM_BIZPHONETYPE where BusinessId=%s",bizId);
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
-				if (rs.next()) {
+				while (rs.next()) {
 					DMBizPhoneType dmBizPhoneType =new DMBizPhoneType();
 					dmBizPhoneType.setBizId(bizId);
 					dmBizPhoneType.setName(rs.getString(2));
