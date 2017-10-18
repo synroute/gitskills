@@ -326,11 +326,15 @@ public class MultiNumberOutboundDataManage {
             }
 
         } else if (strategyItem.getPhoneTypeDialFinished()) {
-            item.setState(MultiNumberPredictStateEnum.WAIT_DIAL);
+            Integer nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());
+            if (null != nextDialPhoneType) {
+                item.setState(MultiNumberPredictStateEnum.WAIT_DIAL);
+                item.setNextDialPhoneType(nextDialPhoneType);
+            } else {
+                item.setState(MultiNumberPredictStateEnum.FINISHED);
+            }
 
-            int nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());
-            item.setNextDialPhoneType(nextDialPhoneType);
-
+            // 更新共享状态表
             multiNumberPredictModeDAO.updateCustomerShareState(item);
 
             // 插入共享历史表

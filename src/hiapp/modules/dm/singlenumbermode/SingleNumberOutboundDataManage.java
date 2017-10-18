@@ -331,8 +331,10 @@ public class SingleNumberOutboundDataManage {
                 }
             }
 
-            singleNumberModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
-                    SingleNumberModeShareCustomerStateEnum.CREATED.getName());
+            if (!appendedStateCustomerIdList.isEmpty()) {
+                singleNumberModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
+                        SingleNumberModeShareCustomerStateEnum.CREATED.getName());
+            }
         }
     }
 

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -28,6 +29,10 @@ public class DMDAO extends BaseRepository {
         Connection dbConn = null;
         PreparedStatement stmt = null;
 
+        List<ShareBatchStateEnum> shareBatchStateList = new ArrayList<ShareBatchStateEnum>();
+        shareBatchStateList.add(ShareBatchStateEnum.ACTIVE);
+        shareBatchStateList.add(ShareBatchStateEnum.RECOVER);
+
         try {
             dbConn = this.getDbConnection();
 
@@ -37,7 +42,7 @@ public class DMDAO extends BaseRepository {
                     "  FROM HASYS_DM_SID a " +
                     "  LEFT JOIN HASYS_DM_BUSINESS b ON a.BUSINESSID = b.BUSINESSID " +
                     "WHERE ");
-            sqlBuilder.append(" STATE ='").append(ShareBatchStateEnum.ACTIVE.getName()).append("'");
+            sqlBuilder.append(" STATE IN (").append(SQLUtil.shareBatchStatelistToCommaSplitString(shareBatchStateList)).append(")");
 
             System.out.println(sqlBuilder.toString());
 
