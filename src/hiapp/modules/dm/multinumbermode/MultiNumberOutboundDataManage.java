@@ -235,13 +235,13 @@ public class MultiNumberOutboundDataManage {
     // 用户登录通知
     public void onLogin(String userId) {
 
-
+        // TODO ??? 多号码预测模式需要处理吗 ？
 
     }
 
 
     public void initialize() {
-
+        customerSharePool.initialize();
     }
 
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {
