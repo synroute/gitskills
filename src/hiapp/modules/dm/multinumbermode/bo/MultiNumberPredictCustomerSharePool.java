@@ -107,6 +107,7 @@ public class MultiNumberPredictCustomerSharePool {
     public void initialize() {
 
         mapCustomerManage = new HashMap<Integer, Map<Integer, OnePhoneTypeCustomerPool>>();
+        customerWaitPool = new CustomerWaitPool();
 
         /*
         for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.size(); dialIndex++) {
