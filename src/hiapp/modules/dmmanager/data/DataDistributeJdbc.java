@@ -9,7 +9,6 @@ import hiapp.modules.dmmanager.bean.OutputFirstRow;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
-import hiapp.utils.serviceresult.ServiceResult;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -504,7 +503,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param dataPoolIds
 	 * @param dataPoolNames
 	 */
-	@SuppressWarnings({ "resource", "unused" })
+	@SuppressWarnings({ "resource"})
 	public Map<String,Object> saveShareDataToDB(Integer bizId,String userId,String shareName,String description,String startTime,String endTime,String dataPoolIds,String dataPoolNames,Integer model,String appendId,int permissionId ){
 		Connection conn=null;
 		PreparedStatement pst = null;

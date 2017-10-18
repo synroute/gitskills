@@ -1,6 +1,5 @@
 package hiapp.modules.dmmanager.srv;
 
-import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dmmanager.ShareBatchItemS;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
