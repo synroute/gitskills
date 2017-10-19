@@ -319,7 +319,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		List<DMDataPool> listDataPools=new ArrayList<DMDataPool>();
 		listDataPools=getAllDataPool();
 		List<DMBusiness> listdmBusinesses=new ArrayList<DMBusiness>();
-		dmBizRepository.getAllDMBusiness(listdmBusinesses);
+		dmBizRepository.getAllDMBusinessforper(listdmBusinesses);
 		for(int row=0;row<jArray.size();row++){
 			JsonObject joRow=jArray.get(row).getAsJsonObject();
 			
