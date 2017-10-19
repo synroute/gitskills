@@ -718,7 +718,7 @@ public class CustomerRepository extends BaseRepository {
 			if(outid==1)
 			{
 				// 要查哪些表
-				sb.append("HAU_DM_B"+bizId+"C_POOL a left join HAU_DM_B"+bizId+"C_IMPORT DR on a.iid=DR.iid and a.cid=DR.cid left join (select * from HASYS_DM_DATAPOOL where businessid="+bizId+") a1 on a.DataPoolIDCur=a1.datapoolname left join HAU_DM_B"+bizId+"C_Result JG on a.iid=JG.iid and a.cid=JG.cid ");
+				sb.append("HAU_DM_B"+bizId+"C_POOL a left join HAU_DM_B"+bizId+"C_IMPORT DR on a.iid=DR.iid and a.cid=DR.cid left join (select * from HASYS_DM_DATAPOOL where businessid="+bizId+") a1 on a.DataPoolIDCur=a1.id left join HAU_DM_B"+bizId+"C_Result JG on a.iid=JG.iid and a.cid=JG.cid ");
 				
 	
 				sb.append(" WHERE ");
@@ -734,13 +734,13 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(" = ");
 				sb.append("1");
 	
-				sb.append(" AND ");
+				/*sb.append(" AND ");
 				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYUSERID");
 				sb.append(" = ");
-				sb.append(userId);
+				sb.append(userId);*/
 				
-				sb.append("where a1.datapoolname='"+userId+"'");
+				sb.append("and a1.datapoolname='"+userId+"'");
 			}else
 			{
 				// 要查哪些表
