@@ -101,7 +101,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		jsonObject.add("fixedColumns", jsonArray_fixedColumn);
 		
 		//获取所有业务信息
-		dmBizRepository.getAllDMBusiness(listdmBusinesses);
+		dmBizRepository.getAllDMBusinessforper(listdmBusinesses);
 		//添加业务所有列
 		
 		JsonArray jsonArray_biz=new JsonArray();
