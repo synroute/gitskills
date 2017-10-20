@@ -58,10 +58,10 @@ public class DMController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.GET, /*consumes="application/json", */produces="application/json")
-    public String submitOutboundResult(HttpServletRequest request/*, @RequestBody String requestBody*/) {
+    @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.GET, consumes="application/json", produces="application/json")
+    public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
 
-        String requestBody = testData();
+        //String requestBody = testData();
 
         Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
         String strBizId = (String) map.get("bizId");
@@ -106,7 +106,7 @@ public class DMController {
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-            requestBody = testData();
+            //requestBody = testData();
             return multiNumberModeController.submitHiDialerOutboundResult(request, requestBody);
         }
 
@@ -133,7 +133,7 @@ public class DMController {
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-            requestBody = testData();
+            //requestBody = testData();
             return multiNumberModeController.submitScreenPopUp(request, requestBody);
         }
 
@@ -209,6 +209,7 @@ public class DMController {
         return "";
     }
 
+    // TODO JUST FOR TEST
     private String testData() {
         Map<String, Object> map = new HashMap<String, Object>();
 
