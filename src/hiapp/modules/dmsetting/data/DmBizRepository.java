@@ -354,4 +354,40 @@ public class DmBizRepository extends BaseRepository{
 		}
 		return true;
 	}
+
+	public DMBusiness getDMBusinessByBizId(int bizId) {
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		DMBusiness dmBusiness= new DMBusiness();
+
+		try {
+			dbConn = this.getDbConnection();
+			szSql = String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS " +
+					"WHERE ISDELETE=0 AND BUSINESSID = %d", bizId);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+
+			if (rs.next()) {
+				dmBusiness.setBizId(rs.getInt(1));
+				dmBusiness.setName(rs.getString(2));
+				dmBusiness.setDesc(rs.getString(3));
+				dmBusiness.setOwnerGroupId(rs.getString(4));
+				String groupName = groupRepository.getGroupById(rs.getInt(4)).getName();
+				dmBusiness.setOwnerGroupName(groupName);
+				dmBusiness.setModeId(rs.getInt(5));
+				DMBizOutboundModelEnum modelEnum = DMBizOutboundModelEnum.values()[dmBusiness.getModeId() - 1];
+				dmBusiness.setModeInfo(modelEnum.getOutboundID() + ";" + modelEnum.getOutboundType() + ";" + modelEnum.getOutboundMode());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		return dmBusiness;
+	}
 }
