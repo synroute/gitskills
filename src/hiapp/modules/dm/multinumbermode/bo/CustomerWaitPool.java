@@ -228,7 +228,9 @@ public class CustomerWaitPool {
 
         while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
             Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitPhoneConnectCustomerPool.get(earliestPhoneConnectTimeSlot);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitPhoneConnectCustomerPool.get(earliestPhoneConnectTimeSlot++);
+            if (null == mapTimeSlotWaitTimeOutPool)
+                continue;
 
             for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
@@ -246,7 +248,9 @@ public class CustomerWaitPool {
         // 坐席弹屏 超时处理 ==> 呼损处理
         while (earliestScreenPopUpTimeSlot < phoneConnectTimeoutTimeSlot) {
             Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitScreenPopUpCustomerPool.get(earliestScreenPopUpTimeSlot);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitScreenPopUpCustomerPool.get(earliestScreenPopUpTimeSlot++);
+            if (null == mapTimeSlotWaitTimeOutPool)
+                continue;
 
             for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
@@ -265,7 +269,9 @@ public class CustomerWaitPool {
         // 坐席递交结果 超时处理
         while (earliestResultTimeSlot < phoneConnectTimeoutTimeSlot) {
             Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitResultCustomerPool.get(earliestResultTimeSlot);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitResultCustomerPool.get(earliestResultTimeSlot++);
+            if (null == mapTimeSlotWaitTimeOutPool)
+                continue;
 
             for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
