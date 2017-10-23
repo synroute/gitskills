@@ -372,6 +372,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			        jsonObject_EndCode.addProperty("IsPhoneStop", "");
 			        jsonObject_EndCode.addProperty("RedialMinutes", "");
 			        jsonObject_EndCode.addProperty("RedialCount", "");
+			        jsonObject_EndCode.addProperty("isPresetDial", "");
 			        jsonArray_EndCode.add(jsonObject_EndCode);
 			        
 			        	
