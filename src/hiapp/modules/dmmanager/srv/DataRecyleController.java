@@ -98,7 +98,7 @@ public class DataRecyleController {
 		if(dataType==0){
 			String tempTableName="HAU_DM_H"+bizId+"S_"+userId;
 			dataRecyleJdbc.getDistributeDataByTime(bizId, userId, templateId, startTime, endTime,permissionId);
-			resultMap=dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
+			resultMap=dataRecyleJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
 		}else{
 			resultMap=dataRecyleJdbc.getShareDataByTime(bizId, userId, startTime, endTime, pageNum, pageSize);
 		}
@@ -111,6 +111,7 @@ public class DataRecyleController {
 			e.printStackTrace();
 		}
 	}
+	
 	/**
 	 * 得到所有共享数据
 	 * @param request
@@ -151,7 +152,7 @@ public class DataRecyleController {
 		Integer pageNum=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 		String tempTableName="HAU_DM_H"+bizId+"S_"+userId;
-		Map<String, Object> resultMap = dataDistributeJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
+		Map<String, Object> resultMap = dataRecyleJdbc.getTempNotDisData(bizId, templateId, userId, pageNum, pageSize,tempTableName);
 		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();

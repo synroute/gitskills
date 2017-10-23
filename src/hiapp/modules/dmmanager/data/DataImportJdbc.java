@@ -131,7 +131,7 @@ public class DataImportJdbc extends BaseRepository{
 			pst=conn.prepareStatement(sql);
 			pst.setString(1, name);
 			rs = pst.executeQuery();
-		
+			
 			while(rs.next()){
 				wookSheetId=rs.getString(1);
 			}
@@ -263,7 +263,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	@SuppressWarnings({ "resource", "unused", "unchecked", "rawtypes" })
+	@SuppressWarnings({ "resource","unchecked","rawtypes" })
 	public Map<String,Object> getDbData(Integer temPlateId,Integer bizId,Integer num,Integer pageSize) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
