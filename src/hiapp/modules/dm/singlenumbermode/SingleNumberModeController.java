@@ -25,10 +25,9 @@ public class SingleNumberModeController {
     @Autowired
     SingleNumberOutboundDataManage singleNumberOutboundDataManage;
 
-    @RequestMapping(value="/srv/dm/extractNextCustomer.srv", method= RequestMethod.GET, produces="application/json")
     public /*OutboundCustomer*/String extractNextCustomer(HttpServletRequest request,
-                                                          @RequestParam("userId") String userId,
-                                                          @RequestParam("bizId") String bizId) {
+                                                          String userId,
+                                                          String bizId) {
 
 /*        HttpSession session = request.getSession();
         User user=(User) session.getAttribute("user");
@@ -57,8 +56,7 @@ public class SingleNumberModeController {
         return result.toJson();
     }
 
-    @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
-    public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
+    public String submitOutboundResult(HttpServletRequest request, String requestBody) {
 
         // 客户原信息变更、拨打信息、结果信息
         /*{"bizId":11,"importBatchId":77","shareBatchId":"66","customerId":91,"resultCodeType":"结束","resultCode":"结案"," +
@@ -106,8 +104,7 @@ public class SingleNumberModeController {
         return serviceresult.toJson();
     }
 
-    @RequestMapping(value="/srv/dm/startShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    public String startShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
+    public String startShareBatch( int bizId,  String strShareBatchIds) {
 
         ServiceResult serviceresult = new ServiceResult();
 
@@ -124,8 +121,7 @@ public class SingleNumberModeController {
         return serviceresult.toJson();
     }
 
-    @RequestMapping(value="/srv/dm/stopShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    public String stopShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
+    public String stopShareBatch( int bizId, String strShareBatchIds) {
 
         ServiceResult serviceresult = new ServiceResult();
 
@@ -142,8 +138,7 @@ public class SingleNumberModeController {
         return serviceresult.toJson();
     }
 
-    @RequestMapping(value="/srv/dm/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    public String appendCustomersToShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
+    public String appendCustomersToShareBatch( int bizId, String strShareBatchIds) {
 
         ServiceResult serviceresult = new ServiceResult();
 
