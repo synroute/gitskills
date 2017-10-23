@@ -43,7 +43,7 @@ public class DataRecyleJdbc extends BaseRepository{
 		ResultSet rs = null;
 		try {	
 			conn=this.getDbConnection();
-			String sql="select id,TEMPLATEID,BUSINESSID,NAME,DESCRIPTION from HASYS_DM_BIZTEMPLATERECOVER where BUSINESSID=?";
+			String sql="select id,TEMPLATEID,BUSINESSID,NAME,DESCRIPTION,ISDEFAULT from HASYS_DM_BIZTEMPLATERECOVER where BUSINESSID=?";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1,bizId);
 			rs=pst.executeQuery();
@@ -54,6 +54,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				recyleTemplate.setBizId(rs.getInt(3));
 				recyleTemplate.setName(rs.getString(4));
 				recyleTemplate.setDescription(rs.getString(5));
+				recyleTemplate.setIsDefault(rs.getInt(6));
 				templateList.add(recyleTemplate);
 			}
 			

@@ -45,7 +45,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			conn=this.getDbConnection();
-			String sql="select id,TEMPLATEID,BUSINESSID,NAME,DESCRIPTION from hasys_dm_biztemplatedistview where BUSINESSID=?";
+			String sql="select id,TEMPLATEID,BUSINESSID,NAME,DESCRIPTION,ISDEFAULT from hasys_dm_biztemplatedistview where BUSINESSID=?";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1,bizId);
 			rs=pst.executeQuery();
@@ -56,6 +56,7 @@ public class DataDistributeJdbc extends BaseRepository{
 				disTemplate.setBizId(rs.getInt(3));
 				disTemplate.setName(rs.getString(4));
 				disTemplate.setDescription(rs.getString(5));
+				disTemplate.setIsDefault(rs.getInt(6));
 				disTempateList.add(disTemplate);
 			}
 		} catch (SQLException e) {
@@ -509,7 +510,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
-		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
+		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";	
 		String tempTableName="HAU_DM_"+bizId+"_"+userId;
 		//单号码重拨表
 		String datamTableName="HAU_DM_B"+bizId+"C_DATAM3";
@@ -895,5 +896,51 @@ public class DataDistributeJdbc extends BaseRepository{
 			columName="n."+phoneNumMap.get(num);
 		}
 		return columName;
+	}
+	
+	public List<String> getDataPool(List<Map<String,Object>>  dataPoolList,Integer bizId){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String poolName="HAU_DM_B"+bizId+"C_POOL";
+		List<UserItem>	userItems=new ArrayList<UserItem>();
+		List<String> poolNameList=new ArrayList<String>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select a.ID,a.DATAPOOLN/;AME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0) from "+poolName+" b) topLimit,a.dataPoolType from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.id in(";
+			for (int i = 0; i < dataPoolList.size(); i++) {
+				Integer dataPoolId=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolId"));
+				sql+=dataPoolId+",";
+			}
+			sql=sql.substring(0,sql.length()-1)+")";
+			pst=conn.prepareStatement(sql);;
+			rs=pst.executeQuery();
+			while(rs.next()){
+				UserItem userItem=new UserItem();
+				userItem.setItemId(rs.getInt(1));
+				userItem.setItemText(rs.getString(2));
+				userItem.setTopLimit(rs.getInt(3));
+				userItems.add(userItem);
+			}
+			
+			for (int i = 0; i < dataPoolList.size(); i++) {
+				String dataPoolName=(String)dataPoolList.get(i).get("dataPoolName");
+				Double disNum=(Double)dataPoolList.get(i).get("disNum");
+				for (int j = 0; j < userItems.size(); j++) {
+					if(dataPoolName.equals(userItems.get(j).getItemText())){
+						if(userItems.get(j).getTopLimit()<disNum){
+							poolNameList.add(dataPoolName);
+							break;
+						}
+					}
+				}
+
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return poolNameList;
 	}
 }

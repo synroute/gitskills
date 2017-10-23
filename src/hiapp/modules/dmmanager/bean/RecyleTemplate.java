@@ -6,6 +6,13 @@ public class RecyleTemplate {
 	private Integer bizId;
 	private String  name;
 	private String description;
+	private Integer isDefault;
+	public Integer getIsDefault() {
+		return isDefault;
+	}
+	public void setIsDefault(Integer isDefault) {
+		this.isDefault = isDefault;
+	}
 	public Integer getId() {
 		return id;
 	}
