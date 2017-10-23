@@ -39,6 +39,20 @@ public class CustomerWaitPool {
     Long earliestScreenPopUpTimeSlot;
     Long earliestResultTimeSlot;
 
+    public CustomerWaitPool() {
+        Date now =  new Date();
+        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+
+        mapUserWaitResultCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
+        mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
+
+        mapTimeOutWaitPhoneConnectCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
+        mapTimeOutWaitScreenPopUpCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
+        mapTimeOutWaitResultCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
+    }
+
 
     public void add(String userId, MultiNumberCustomer customerItem) {
         Map<String, MultiNumberCustomer> mapWaitResultPool = mapUserWaitResultCustomerPool.get(userId);

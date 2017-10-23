@@ -8,6 +8,7 @@ import hiapp.utils.serviceresult.RecordsetResult;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-@RestController
+@Component
 public class SingleNumberModeController {
 
     @Autowired

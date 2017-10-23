@@ -1,6 +1,7 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class MultiNumberCustomer {
@@ -217,7 +218,7 @@ public class MultiNumberCustomer {
     int    curDialPhoneType;
     int    nextDialPhoneType;
     int    isAppend;
-    Map<Integer, PhoneDialInfo> mapPhoneTypeVsPhoneInfo;
+    Map<Integer, PhoneDialInfo> mapPhoneTypeVsPhoneInfo = new HashMap<Integer, PhoneDialInfo>();
 
     // 非本表字段
     Date shareBatchStartTime;  //用于优先级控制

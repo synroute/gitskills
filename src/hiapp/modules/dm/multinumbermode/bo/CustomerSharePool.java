@@ -4,10 +4,7 @@ import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
 public class CustomerSharePool {
@@ -24,7 +21,11 @@ public class CustomerSharePool {
     int bizId = 0;
 
     public CustomerSharePool(int bizId) {
+
         this.bizId = bizId;
+
+        mapPreseCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
+        mapCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
     }
 
     public MultiNumberCustomer extractCustomer(String userId) {

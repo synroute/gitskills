@@ -396,7 +396,7 @@ public class MultiNumberOutboundDataManage {
 
         List<MultiNumberPredictStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberPredictStateEnum>();
         shareCustomerStateList2.add(MultiNumberPredictStateEnum.PRESET_DIAL);
-        shareCustomerStateList.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
+        shareCustomerStateList2.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
 
         List<MultiNumberCustomer> shareDataItems = new ArrayList<MultiNumberCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -405,10 +405,6 @@ public class MultiNumberOutboundDataManage {
 
             int bizId = entry.getKey();
             List<ShareBatchItem> givenBizShareBatchItems = entry.getValue();
-
-
-            // 根据未接通拨打日期，决定是否清零<当日未接通重拨次数>
-            //singleNumberModeDAO.clearPreviousDayLostCallCount(bizId);
 
             // 成批从DB取数据
             Boolean result = multiNumberPredictModeDAO.getGivenBizCustomersByState(
@@ -431,14 +427,14 @@ public class MultiNumberOutboundDataManage {
                 }
             }
 
-            multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
-                                                    MultiNumberPredictStateEnum.CREATED);
+            if (!appendedStateCustomerIdList.isEmpty())
+                multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList, MultiNumberPredictStateEnum.CREATED);
         }
 
         // 初始化等待池
         List<MultiNumberPredictStateEnum> shareCustomerStateList3 = new ArrayList<MultiNumberPredictStateEnum>();
-        shareCustomerStateList2.add(MultiNumberPredictStateEnum.PHONECONNECTED);
-        shareCustomerStateList.add(MultiNumberPredictStateEnum.SCREENPOPUP);
+        shareCustomerStateList3.add(MultiNumberPredictStateEnum.PHONECONNECTED);
+        shareCustomerStateList3.add(MultiNumberPredictStateEnum.SCREENPOPUP);
 
         List<MultiNumberCustomer> waitResultCustoms = new ArrayList<MultiNumberCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -450,7 +446,7 @@ public class MultiNumberOutboundDataManage {
 
             // 成批从DB取数据
             Boolean result = multiNumberPredictModeDAO.getGivenBizCustomersByState(
-                    bizId, givenBizShareBatchItems, shareCustomerStateList, waitResultCustoms);
+                    bizId, givenBizShareBatchItems, shareCustomerStateList3, waitResultCustoms);
 
             for (MultiNumberCustomer customerItem : waitResultCustoms) {
                 addCustomerToWaitPool(customerItem);
@@ -483,7 +479,7 @@ public class MultiNumberOutboundDataManage {
 
         List<MultiNumberPredictStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberPredictStateEnum>();
         shareCustomerStateList2.add(MultiNumberPredictStateEnum.PRESET_DIAL);
-        shareCustomerStateList.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
+        shareCustomerStateList2.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
 
         List<MultiNumberCustomer> shareDataItems = new ArrayList<MultiNumberCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {

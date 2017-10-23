@@ -47,17 +47,17 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
                     " MODIFYUSERID, MODIFYTIME, MODIFYDESC, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
-                    " Pt1_PhoneNumber, Pt1_LastDialTime, Pt1_CausePresetDialCount, Pt1_DialCount, " +
-                    " Pt2_PhoneNumber, Pt2_LastDialTime, Pt2_CausePresetDialCount, Pt2_DialCount, " +
-                    " Pt3_PhoneNumber, Pt3_LastDialTime, Pt3_CausePresetDialCount, Pt3_DialCount, " +
-                    " Pt4_PhoneNumber, Pt4_LastDialTime, Pt4_CausePresetDialCount, Pt4_DialCount, " +
-                    " Pt5_PhoneNumber, Pt5_LastDialTime, Pt5_CausePresetDialCount, Pt5_DialCount, " +
-                    " Pt6_PhoneNumber, Pt6_LastDialTime, Pt6_CausePresetDialCount, Pt6_DialCount, " +
-                    " Pt7_PhoneNumber, Pt7_LastDialTime, Pt7_CausePresetDialCount, Pt7_DialCount, " +
-                    " Pt8_PhoneNumber, Pt8_LastDialTime, Pt8_CausePresetDialCount, Pt8_DialCount, " +
-                    " Pt9_PhoneNumber, Pt9_LastDialTime, Pt9_CausePresetDialCount, Pt9_DialCount, " +
-                    " Pt10_PhoneNumber, Pt10_LastDialTime, Pt10_CausePresetDialCount, Pt10_DialCount, " +
-                    " CurDialPhone, CurPresetDialTime, CurDialPhoneType, NextDialPhoneType " +
+                    " PT1_PHONENUMBER, PT1_LASTDIALTIME, PT1_CAUSEPRESETDIALCOUNT, PT1_DIALCOUNT, " +
+                    " PT2_PHONENUMBER, PT2_LASTDIALTIME, PT2_CAUSEPRESETDIALCOUNT, PT2_DIALCOUNT, " +
+                    " PT3_PHONENUMBER, PT3_LASTDIALTIME, PT3_CAUSEPRESETDIALCOUNT, PT3_DIALCOUNT, " +
+                    " PT4_PHONENUMBER, PT4_LASTDIALTIME, PT4_CAUSEPRESETDIALCOUNT, PT4_DIALCOUNT, " +
+                    " PT5_PHONENUMBER, PT5_LASTDIALTIME, PT5_CAUSEPRESETDIALCOUNT, PT5_DIALCOUNT, " +
+                    " PT6_PHONENUMBER, PT6_LASTDIALTIME, PT6_CAUSEPRESETDIALCOUNT, PT6_DIALCOUNT, " +
+                    " PT7_PHONENUMBER, PT7_LASTDIALTIME, PT7_CAUSEPRESETDIALCOUNT, PT7_DIALCOUNT, " +
+                    " PT8_PHONENUMBER, PT8_LASTDIALTIME, PT8_CAUSEPRESETDIALCOUNT, PT8_DIALCOUNT, " +
+                    " PT9_PHONENUMBER, PT9_LASTDIALTIME, PT9_CAUSEPRESETDIALCOUNT, PT9_DIALCOUNT, " +
+                    " PT10_PHONENUMBER, PT10_LASTDIALTIME, PT10_CAUSEPRESETDIALCOUNT, PT10_DIALCOUNT, " +
+                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE " +
                     "FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberPredictStatelistToSqlString(shareDataStateList)).append(")");
@@ -83,13 +83,13 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                 item.setEndCodeType(rs.getString(13));
                 item.setEndCode(rs.getString(14));
 
-                for (int i=1; i<=10; i++) {
+                for (int i=0; i<10; i++) {
                     PhoneDialInfo phoneDialInfo = new PhoneDialInfo();
-                    phoneDialInfo.setPhoneNumber(rs.getString(14 + i));   //NOTE: IS 14
-                    phoneDialInfo.setLastDialTime(rs.getTime(15 + i));
-                    phoneDialInfo.setCausePresetDialCount(rs.getInt(16 + i));
-                    phoneDialInfo.setDialCount(rs.getInt(17 + i));
-                    item.setDialInfo(i, phoneDialInfo);
+                    phoneDialInfo.setPhoneNumber(rs.getString(15 + i*4));
+                    phoneDialInfo.setLastDialTime(rs.getTime(16 + i*4));
+                    phoneDialInfo.setCausePresetDialCount(rs.getInt(17 + i*4));
+                    phoneDialInfo.setDialCount(rs.getInt(18 + i*4));
+                    item.setDialInfo(i+1, phoneDialInfo);
                 }
 
                 item.setCurDialPhone(rs.getString(28));
