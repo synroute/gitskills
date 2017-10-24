@@ -263,6 +263,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		} 
 		finally {
 			DbUtil.DbCloseQuery(rs, stmt);
+			
 		}
 		return listBizPermissions;
 	}
@@ -337,7 +338,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 						if(!isInsert.equals("0"))
 						{
 							try {
-								dbConn =this.getDbConnection();
+								
 								String szSql = "select BusinessID from HASYS_DM_DATAPOOL where id="+dmDataPool.getPoolId()+"" ;
 								stmt = dbConn.prepareStatement(szSql);
 								rs = stmt.executeQuery();
@@ -411,7 +412,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 			
 			
 		}
-		
+		DbUtil.DbCloseConnection(dbConn);
 		
 		
 		return true;

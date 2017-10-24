@@ -281,7 +281,17 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				json=rs.getString(1);
 				SourceType=rs.getString(2);
 			}
-
+			
+			String szSelectSql="select ID from HASYS_WORKSHEET where NAME='HAU_DM_B"+dmBizImportTemplate.getBizId()+"C_IMPORT'";
+			stmt = dbConn.prepareStatement(szSelectSql);
+			rs = stmt.executeQuery();
+			String workSheetId="";
+			while(rs.next()){
+				workSheetId=rs.getString(1);
+			}
+			stmt.close();
+			List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
+			workSheet.getColumns(dbConn,workSheetId, listColumns);
 			if(json==null)
 			{
 				JsonObject jsonObject =new JsonObject();
@@ -315,16 +325,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				}
 				JsonArray jsonArray=new JsonArray();
 				
-				String szSelectSql="select ID from HASYS_WORKSHEET where NAME='HAU_DM_B"+dmBizImportTemplate.getBizId()+"C_IMPORT'";
-				stmt = dbConn.prepareStatement(szSelectSql);
-				rs = stmt.executeQuery();
-				String workSheetId="";
-				while(rs.next()){
-					workSheetId=rs.getString(1);
-				}
-				stmt.close();
-				List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
-				workSheet.getColumns(dbConn,workSheetId, listColumns);
+				
 				
 				for (int i = 0; i < listColumns.size(); i++) {
 					WorkSheetColumn workSheetColumn=listColumns.get(i);
@@ -345,6 +346,32 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				}
 				jsonObject.add("FieldMaps", jsonArray);
 				json=jsonObject.toString();
+			}else 
+			{
+				JsonObject jsonObject=new JsonParser().parse(json).getAsJsonObject();
+				JsonArray jsonArray=jsonObject.get("FieldMaps").getAsJsonArray();
+				if (jsonArray.size()==listColumns.size()) {
+					
+				}else{
+					for (int i = jsonArray.size(); i < listColumns.size(); i++) {
+						WorkSheetColumn workSheetColumn=listColumns.get(i);
+						JsonObject jsonObject_column=new JsonObject();
+						if(SourceType.equals("Excel"))
+						{
+							jsonObject_column.addProperty("RowIndex", "");
+							jsonObject_column.addProperty("DbFieldName", workSheetColumn.getColumnName());
+							jsonObject_column.addProperty("DbFieldNameCh", workSheetColumn.getColumnNameCh());
+							jsonObject_column.addProperty("ExcelHeader", "");
+							jsonArray.add(jsonObject_column);
+						}else{
+							jsonObject_column.addProperty("FieldName", workSheetColumn.getColumnName());
+							jsonObject_column.addProperty("FieldNameCh", workSheetColumn.getColumnNameCh());
+							jsonObject_column.addProperty("FieldNameSource", "");
+							jsonArray.add(jsonObject_column);
+						}
+					}
+					json=jsonObject.toString();
+				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
