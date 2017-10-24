@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 @Repository
@@ -80,6 +79,9 @@ public class DataRecyleJdbc extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			String configJson=getConfigJson(bizId, templateId);
+			if(configJson==null){
+				return null;
+			}
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
 				OutputFirstRow firstRow=new OutputFirstRow();
@@ -117,7 +119,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param startTime
 	 * @param endTime
 	 */
-	@SuppressWarnings("resource")
+	@SuppressWarnings({ "resource", "unchecked", "rawtypes" })
 	public void getDistributeDataByTime(Integer bizId,String userId,Integer templateId,String startTime,String endTime,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -233,7 +235,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param num
 	 * @param pageSize
 	 */
-	@SuppressWarnings("resource")
+	@SuppressWarnings({ "resource", "unchecked", "rawtypes" })
 	public Map<String,Object> getTempNotDisData(Integer bizId,Integer templateId ,String userId,Integer num,Integer pageSize,String tempTableName){
 		Connection conn=null;
 		PreparedStatement pst = null;

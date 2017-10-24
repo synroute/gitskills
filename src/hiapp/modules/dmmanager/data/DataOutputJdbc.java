@@ -93,6 +93,9 @@ public class DataOutputJdbc extends BaseRepository{
 				}
 				
 			}
+			if(columns==null){
+				return null;
+			}
 			JsonObject jsonObject= new JsonParser().parse(columns).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {

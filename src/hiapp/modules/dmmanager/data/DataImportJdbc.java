@@ -91,7 +91,6 @@ public class DataImportJdbc extends BaseRepository{
 			String sql="select id,TEMPLATEID,BUSINESSID,NAME,DESCRIPTION,ISDEFAULT,SOURCETYPE,XML from HASYS_DM_BIZTEMPLATEIMPORT where BUSINESSID=?";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1,businessId);
-			//ִ�и���
 			rs = pst.executeQuery();
 			while (rs.next()) {
 				ImportTemplate temPlate=new ImportTemplate();
