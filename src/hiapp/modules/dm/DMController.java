@@ -58,7 +58,7 @@ public class DMController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.GET, consumes="application/json", produces="application/json")
+    @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
 
         //String requestBody = testData();
