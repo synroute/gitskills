@@ -36,7 +36,7 @@ public class DataMonitorJdbc extends BaseRepository{
 					   "(select b.iid,sum(case when e.datapooltype = 1 then 1 else 0 end) sl1,sum(case when e.datapooltype = 2 then 1 else 0 end) sl2,"+
 					   "sum(case when e.datapooltype = 3 then 1 else 0 end) sl3 from HASYS_DM_DATAPOOL e, HAU_DM_B"+bizId+"C_POOL b "+
 					   "where e.id = b.datapoolidcur and e.businessid=? group by b.iid) t where a.iid = c.iid and t.iid = a.iid and a.businessid=? and a.importtime>to_date(?,'yyyy-mm-dd') and a.importtime<to_date(?,'yyyy-mm-dd')";
-			if(importId==null&&!"".equals(importId)){
+			if(importId!=null&&!"".equals(importId)){
 				getDataSql1+=" and a.iid='"+importId+"'";
 			}
 			getDataSql=getDataSql+getDataSql1+" and rownum<?) where rn>=?";
@@ -94,7 +94,7 @@ public class DataMonitorJdbc extends BaseRepository{
 					   "(select b.iid,sum(case when e.datapooltype = 1 then 1 else 0 end) sl1,sum(case when e.datapooltype = 2 then 1 else 0 end) sl2,"+
 					   "sum(case when e.datapooltype = 3 then 1 else 0 end) sl3 from HASYS_DM_DATAPOOL e, HAU_DM_B"+bizId+"C_POOL b "+
 					   "where e.id = b.datapoolidcur and e.businessid=? group by b.iid) t where a.iid = c.iid and t.iid = a.iid and a.businessid=? and a.importtime>to_date(?,'yyyy-mm-dd') and a.importtime<to_date(?,'yyyy-mm-dd')";
-			if(importId==null&&!"".equals(importId)){
+			if(importId!=null&&!"".equals(importId)){
 				getDataSql+=" and a.iid='"+importId+"'";
 			}
 			pst=conn.prepareStatement(getDataSql);
