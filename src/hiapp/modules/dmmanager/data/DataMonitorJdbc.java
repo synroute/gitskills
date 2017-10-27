@@ -33,8 +33,8 @@ public class DataMonitorJdbc extends BaseRepository{
 			String getDataSql="select IID, total, sl1,sl2, sl3 from( ";
 			String getDataSql1="select a.IID, c.total, t.sl1, t.sl2, t.sl3,rownum rn from HASYS_DM_IID a,"+
 					   "(select b.IId,count(1) total from "+poolName+" b group by b.iid) c,"+
-					   "(select b.iid,sum(case when e.datapooltype = 1 then 1 else 0 end) sl1,sum(case when e.datapooltype = 2 then 1 else 0 end) sl2),"+
-					   "sum(case when e.datapooltype = 3 then 1 else 0 end) sl3 from HASYS_DM_DATAPOOL e, HAU_DM_B33C_POOL b "+
+					   "(select b.iid,sum(case when e.datapooltype = 1 then 1 else 0 end) sl1,sum(case when e.datapooltype = 2 then 1 else 0 end) sl2,"+
+					   "sum(case when e.datapooltype = 3 then 1 else 0 end) sl3 from HASYS_DM_DATAPOOL e, HAU_DM_B"+bizId+"C_POOL b "+
 					   "where e.id = b.datapoolidcur and e.businessid=? group by b.iid) t where a.iid = c.iid and t.iid = a.iid and a.businessid=? and a.importtime>to_date(?,'yyyy-mm-dd') and a.importtime<to_date(?,'yyyy-mm-dd')";
 			if(importId==null&&!"".equals(importId)){
 				getDataSql1+=" and a.iid='"+importId+"'";
@@ -60,6 +60,10 @@ public class DataMonitorJdbc extends BaseRepository{
 			
 			String getCountSql="select count(1) from ("+getDataSql1+") t";
 			pst=conn.prepareStatement(getCountSql);
+			pst.setInt(1,bizId);
+			pst.setInt(2, bizId);
+			pst.setString(3, startTime);
+			pst.setString(4,endTime);
 			rs=pst.executeQuery();
 			Integer total=0;
 			while(rs.next()){
@@ -75,5 +79,46 @@ public class DataMonitorJdbc extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
+	}
+	
+	public List<Map<String,Object>> getExportData(Integer bizId,String startTime,String endTime,String importId){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
+		String poolName="HAU_DM_B"+bizId+"C_POOL";
+		try {
+			conn=this.getDbConnection();
+			String getDataSql="select a.IID, c.total, t.sl1, t.sl2, t.sl3 from HASYS_DM_IID a,"+
+					   "(select b.IId,count(1) total from "+poolName+" b group by b.iid) c,"+
+					   "(select b.iid,sum(case when e.datapooltype = 1 then 1 else 0 end) sl1,sum(case when e.datapooltype = 2 then 1 else 0 end) sl2,"+
+					   "sum(case when e.datapooltype = 3 then 1 else 0 end) sl3 from HASYS_DM_DATAPOOL e, HAU_DM_B"+bizId+"C_POOL b "+
+					   "where e.id = b.datapoolidcur and e.businessid=? group by b.iid) t where a.iid = c.iid and t.iid = a.iid and a.businessid=? and a.importtime>to_date(?,'yyyy-mm-dd') and a.importtime<to_date(?,'yyyy-mm-dd')";
+			if(importId==null&&!"".equals(importId)){
+				getDataSql+=" and a.iid='"+importId+"'";
+			}
+			pst=conn.prepareStatement(getDataSql);
+			pst.setInt(1,bizId);
+			pst.setInt(2, bizId);
+			pst.setString(3, startTime);
+			pst.setString(4,endTime);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				Map<String,Object> map=new HashMap<String, Object>();
+				map.put("importId", rs.getString(1));
+				map.put("totalNum",rs.getInt(2));
+				map.put("sourceNum",rs.getInt(3));
+				map.put("midNum",rs.getInt(4));
+				map.put("zxNum",rs.getInt(5));
+				dataList.add(map);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return dataList;
 	}
 }

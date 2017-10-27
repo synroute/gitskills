@@ -433,7 +433,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param dataPoolList
 	 * @return
 	 */
-	@SuppressWarnings({ "unused"})
+	@SuppressWarnings({ "unused", "unchecked"})
 	public Map<String,Object> saveDistributeDataToDB(Integer bizId,String userId,String disName,String description,List<Map<String,Object>>  dataPoolList){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -445,13 +445,17 @@ public class DataDistributeJdbc extends BaseRepository{
 		String tempTableName="HAU_DM_"+bizId+"_"+userId;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
+			resultMap=getDataPool(dataPoolList, bizId);
+			List<String> nameList=(List<String>) resultMap.get("poolName");
+			if(nameList==null||nameList.size()>0){
+				return resultMap;
+			}
 			conn=this.getDbConnection();
 			//不自动提交数据
 			conn.setAutoCommit(false);
 			for(int i = 0; i < dataPoolList.size(); i++) {
 				Integer dataPoolId=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolId"));
 				Double dataPoolType=(Double)dataPoolList.get(i).get("dataPoolType");
-				String dataPoolName=(String)dataPoolList.get(i).get("dataPoolName");
 				Double disNum=(Double)dataPoolList.get(i).get("disNum");
 				callStmt = conn.prepareCall("{call HASYS_DM_DISTRIBUTION_BATCH(?,?,?,?,?,?,?)}");
 				callStmt.setString(1,tempTableName);
@@ -901,22 +905,24 @@ public class DataDistributeJdbc extends BaseRepository{
 		return columName;
 	}
 	
-	public List<String> getDataPool(List<Map<String,Object>>  dataPoolList,Integer bizId){
+	public Map<String,Object> getDataPool(List<Map<String,Object>>  dataPoolList,Integer bizId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		List<UserItem>	userItems=new ArrayList<UserItem>();
 		List<String> poolNameList=new ArrayList<String>();
+		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select a.ID,a.DATAPOOLN/;AME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0) from "+poolName+" b) topLimit,a.dataPoolType from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.id in(";
+			String sql="select a.ID,a.DATAPOOLNAME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0) from "+poolName+" b) topLimit,a.dataPoolType from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.id in(";
 			for (int i = 0; i < dataPoolList.size(); i++) {
 				Integer dataPoolId=Integer.valueOf((String)dataPoolList.get(i).get("dataPoolId"));
 				sql+=dataPoolId+",";
 			}
 			sql=sql.substring(0,sql.length()-1)+")";
-			pst=conn.prepareStatement(sql);;
+			pst=conn.prepareStatement(sql);
+			pst.setInt(1,bizId);
 			rs=pst.executeQuery();
 			while(rs.next()){
 				UserItem userItem=new UserItem();
@@ -927,7 +933,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			}
 			
 			for (int i = 0; i < dataPoolList.size(); i++) {
-				String dataPoolName=(String)dataPoolList.get(i).get("dataPoolName");
+				String dataPoolName=(String)dataPoolList.get(i).get("poolName");
 				Double disNum=(Double)dataPoolList.get(i).get("disNum");
 				for (int j = 0; j < userItems.size(); j++) {
 					if(dataPoolName.equals(userItems.get(j).getItemText())){
@@ -939,11 +945,14 @@ public class DataDistributeJdbc extends BaseRepository{
 				}
 
 			}
+			resultMap.put("result",false);
+			resultMap.put("poolName",poolNameList);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			resultMap.put("result",false);
 		}
 		
-		return poolNameList;
+		return resultMap;
 	}
 }
