@@ -117,7 +117,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
 		creationInfoWorkSheet.addColumn("是否最后一次修改", "MODIFYLAST", "任务唯一标识", WorkSheetDataType.INT, -1, false, true);
-		creationInfoWorkSheet.addColumn("拨打类型", "DIALTYPE", "拨打类型", WorkSheetDataType.TEXT, 10, false, true);
+		creationInfoWorkSheet.addColumn("拨打类型", "DIALTYPE", "拨打类型", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("拨打时间", "DIALTIME", "拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 		creationInfoWorkSheet.addColumn("呼叫流水号", "CUSTOMERCALLID", "呼叫流水号", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
