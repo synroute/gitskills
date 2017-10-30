@@ -336,7 +336,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("电话类型10_产生预约拨打次数", "PT10_CAUSEPRESETDIALCOUNT", "电话类型10_产生预约拨打次数", WorkSheetDataType.INT, 50, false, true);
 			creationInfoWorkSheet.addColumn("电话类型10_拨打次数", "PT10_DIALCOUNT", "电话类型10_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("当前已拨打号码", "CURDIALPHONE", "当前已拨打号码", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESETDIALTTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESETDIALTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("下次拨打号码类型", "NEXTDIALPHONETYPE", "下次拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
@@ -406,7 +406,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("电话类型10_产生预约拨打次数", "PT10_CAUSEPRESETDIALCOUNT", "电话类型10_产生预约拨打次数", WorkSheetDataType.INT, 50, false, true);
 			creationInfoWorkSheet.addColumn("电话类型10_拨打次数", "PT10_DIALCOUNT", "电话类型10_拨打次数", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("当前已拨打号码", "CURDIALPHONE", "当前已拨打号码", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESETDIALTTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESETDIALTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("下次拨打号码类型", "NEXTDIALPHONETYPE", "下次拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
