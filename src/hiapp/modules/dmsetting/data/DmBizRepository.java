@@ -66,7 +66,7 @@ public class DmBizRepository extends BaseRepository{
 		ResultSet rs = null;
 		try {
 			dbConn = this.getDbConnection();
-			szSql = String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID FROM HASYS_DM_BUSINESS WHERE ISDELETE=0 ORDER BY BUSINESSID ");
+			szSql = String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID,CONFIGJSON FROM HASYS_DM_BUSINESS WHERE ISDELETE=0 ORDER BY BUSINESSID ");
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -80,6 +80,9 @@ public class DmBizRepository extends BaseRepository{
 				DMBusiness.setModeId(rs.getInt(5));
 				DMBizOutboundModelEnum modelEnum = DMBizOutboundModelEnum.values()[DMBusiness.getModeId()-1];
 				DMBusiness.setModeInfo(modelEnum.getOutboundID()+";"+modelEnum.getOutboundType()+";"+modelEnum.getOutboundMode());
+
+				DMBusiness.setConfigJson(rs.getString(6));
+
 				listDMBusiness.add(DMBusiness);
 			}
 		} catch (Exception e) {

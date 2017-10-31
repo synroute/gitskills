@@ -1,19 +1,31 @@
 package hiapp.modules.dm.multinumbermode;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.Constants;
+import hiapp.modules.dm.multinumbermode.bo.BizConfig;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
-import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
 import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
+import hiapp.modules.dm.util.DateUtil;
+import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.system.buinfo.User;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.Text;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.*;
+import org.xml.sax.InputSource;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,22 +44,64 @@ public class MultiNumberModeController {
                                       String bizId) {
         System.out.println(userId + "。。。" + bizId);
         Integer intBizId = Integer.valueOf(bizId);
-        MultiNumberCustomer item = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId);
+        List<MultiNumberCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId, 1);
 
         NextOutboundCustomerResult result = new NextOutboundCustomerResult();
-        if (null == item) {
+        if (null == customerList) {
             result.setResultCode(ServiceResultCode.CUSTOMER_NONE);
         } else {
             result.setResultCode(ServiceResultCode.SUCCESS);
-            result.setCustomerId(item.getCustomerId());
-            result.setImportBatchId(item.getImportBatchId());
-            result.setShareBatchId(item.getShareBatchId());
-            result.setPhoneType(item.getNextDialPhoneType());
+            result.setCustomerId(customerList.get(0).getCustomerId());
+            result.setImportBatchId(customerList.get(0).getImportBatchId());
+            result.setShareBatchId(customerList.get(0).getShareBatchId());
+            result.setPhoneType(customerList.get(0).getNextDialPhoneType());
         }
         return result.toJson();
     }
 
-    public String submitHiDialerOutboundResult(HttpServletRequest request, String requestBody) {
+    public String hiDialerGetCustList(HttpServletRequest request, String requestBody) {
+
+        ServiceResult result = new ServiceResult();
+
+        StringReader xmlString = new StringReader(requestBody);
+        InputSource source = new InputSource(xmlString);
+        // 创建一个新的SAXBuilder
+        SAXBuilder saxb = new SAXBuilder();
+
+        try {
+            // requestbody example :  <Msg JobId="13" Count="10"></Msg>
+            Document doc = saxb.build(source);
+            // 取的根元素
+            Element root = doc.getRootElement();
+            String strBizId = root.getAttributeValue("JobId");
+            String strCount = root.getAttributeValue("Count");
+
+            Integer intBizId = Integer.valueOf(strBizId);
+            Integer intCount = Integer.valueOf(strCount);
+            String userId = "0"; // hiDialer 用户
+
+            List<MultiNumberCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId, intCount);
+
+            if (null == customerList) {
+                result.setResultCode(ServiceResultCode.CUSTOMER_NONE);
+            } else {
+                result.setResultCode(ServiceResultCode.SUCCESS);
+                result.setReturnMessage("");
+            }
+            return result.toJson();
+
+        } catch (JDOMException e) {
+            e.printStackTrace();
+            result.setResultCode(ServiceResultCode.INVALID_PARAM);
+            return result.toJson();
+        } catch (IOException e) {
+            e.printStackTrace();
+            result.setResultCode(ServiceResultCode.INVALID_PARAM);
+            return result.toJson();
+        }
+    }
+
+    public String hiDialerDialResultNotify(HttpServletRequest request, String requestBody) {
 
         //hidialer userId : 0
         HttpSession session = request.getSession();
@@ -64,7 +118,7 @@ public class MultiNumberModeController {
 
         ServiceResult serviceresult = new ServiceResult();
 
-        multiNumberOutboundDataManage.submitHiDialerOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId,
+        multiNumberOutboundDataManage.hiDialerDialResultNotify(user.getId(), Integer.parseInt(strBizId), importBatchId,
                 customerId, phoneType, resultCodeType, resultCode);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
@@ -191,3 +245,4 @@ public class MultiNumberModeController {
     }
 
 }
+

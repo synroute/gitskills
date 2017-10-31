@@ -106,5 +106,13 @@
 			<artifactId>poi-ooxml-schemas</artifactId>
 			<version>3.15</version>
 		</dependency>
+
+	  <!-- https://mvnrepository.com/artifact/jdom/jdom -->
+	  <dependency>
+		  <groupId>jdom</groupId>
+		  <artifactId>jdom</artifactId>
+		  <version>1.1</version>
+	  </dependency>
+
   </dependencies>
 </project>

@@ -10,4 +10,7 @@ public class Constants {
     public static Long ScreenPopUpTimeoutThreshold3 = 2 * timeSlotSpan; //
     public static Long ResultTimeoutThreshold4 = 2 * timeSlotSpan; //
 
+    public static String timeStart = "TimeStart";
+    public static String timeEnd = "TimeEnd";
+
 }

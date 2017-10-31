@@ -10,8 +10,10 @@ import hiapp.modules.dm.singlenumbermode.bo.*;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
+import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.modules.dmsetting.DMPresetStateEnum;
 import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
+import hiapp.modules.dmsetting.data.DmBizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +31,6 @@ public class MultiNumberOutboundDataManage {
     @Autowired
     MultiNumberPredictCustomerSharePool customerSharePool;
 
-
     @Autowired
     private DataImportJdbc dataImportJdbc;
 
@@ -39,6 +40,9 @@ public class MultiNumberOutboundDataManage {
     @Autowired
     EndCodeRedialStrategyM6 endCodeRedialStrategyM6;
 
+    @Autowired
+    DmBizRepository dmBizRepository;
+
     Timer dailyTimer;
     TimerTask dailyTimerTask;
 
@@ -46,14 +50,22 @@ public class MultiNumberOutboundDataManage {
     TimerTask timeoutTimerTask;
 
 
+    public synchronized List<MultiNumberCustomer> extractNextOutboundCustomer(String userId, int bizId, int count) {
+        List<MultiNumberCustomer> customerList = new ArrayList<MultiNumberCustomer>();
 
+        for (int i=0; i<count; i++ ) {
+            MultiNumberCustomer customer = customerSharePool.extractCustomer(userId, bizId);
+            if (null == customer)
+                break;
 
-    public synchronized MultiNumberCustomer extractNextOutboundCustomer(String userId, int bizId) {
-        return customerSharePool.extractCustomer(userId, bizId);
+            customerList.add(customer);
+        }
+
+        return customerList;
     }
 
-    public String submitHiDialerOutboundResult(String userId, int bizId, String importBatchId, String customerId, int phoneType,
-                                                String resultCodeType, String resultCode) {
+    public String hiDialerDialResultNotify(String userId, int bizId, String importBatchId, String customerId, int phoneType,
+                                           String resultCodeType, String resultCode) {
         if (resultCodeType.equals("1") && resultCode.equals("1"))
         {
             String dialType = "dialType";
@@ -174,6 +186,10 @@ public class MultiNumberOutboundDataManage {
         return "";
     }
 
+
+    /**
+     *   呼损处理
+     */
     public void lostProc(MultiNumberCustomer item) {
         String dialType = "dialType";
         String customerCallId = "customerCallId";

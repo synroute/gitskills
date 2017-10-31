@@ -64,5 +64,10 @@ public class DateUtil {
         return curDay.getTime();
     }
 
+    public static String getCurTimeString() {
+        Date now = new Date();
+        return now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+    }
+
 
 }
