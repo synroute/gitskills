@@ -295,7 +295,7 @@ public class DataImportJdbc extends BaseRepository{
 				if(value!=null&&!"".equals(value)){
 					sourceColumns.add(value);
 				}
-			
+			 
 			}
 			List<String> newList=new ArrayList<String>(new HashSet(sourceColumns));
 			for (int i = 0; i < newList.size(); i++) {
@@ -342,6 +342,79 @@ public class DataImportJdbc extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
+	}
+	
+	/**
+	 * 获取要导入的数据
+	 * @param temPlateId
+	 * @param bizId
+	 * @return
+	 * @throws IOException
+	 */
+	@SuppressWarnings({ "resource","unchecked","rawtypes" })
+	public List<Map<String,Object>> getAllDbData(Integer temPlateId,Integer bizId) throws IOException{
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String jsonData=null;
+		String getDbDataSql1="select ";
+		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
+		List<String> sourceColumns=new ArrayList<String>();
+		try {
+			conn= this.getDbConnection();
+			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
+			pst=conn.prepareStatement(getXmlSql);
+			pst.setInt(1, temPlateId);
+			pst.setInt(2,bizId);
+			rs = pst.executeQuery();
+			while(rs.next()){
+				jsonData=ClobToString(rs.getClob(1));	
+			}
+			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
+			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
+			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
+			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
+			for (int i = 0; i < dataArray.size(); i++) {
+				String value=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
+				if(value!=null&&!"".equals(value)){
+					sourceColumns.add(value);
+				}
+			 
+			}
+			List<String> newList=new ArrayList<String>(new HashSet(sourceColumns));
+			for (int i = 0; i < newList.size(); i++) {
+				getDbDataSql1+=newList.get(i)+",";
+			}
+			getDbDataSql1=getDbDataSql1.substring(0, getDbDataSql1.length()-1)+" from "+sourceTableName;
+			pst=conn.prepareStatement(getDbDataSql1);
+		
+			rs = pst.executeQuery();
+			while(rs.next()){
+				Map<String,Object> map=new HashMap<String, Object>();
+				for (int i = 0; i < dataArray.size(); i++) {
+					String sourceName=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
+					String key=dataArray.get(i).getAsJsonObject().get("FieldName").getAsString();
+					for (int j= 0; j < newList.size(); j++) {
+						if(sourceName.equals(newList.get(j))){
+							map.put(key,rs.getObject(j+1));
+						}
+						
+					}
+				}
+			
+				
+				dataList.add(map);
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return dataList;
 	}
 	/**
 	 * 保存导入数据
@@ -695,7 +768,13 @@ public class DataImportJdbc extends BaseRepository{
 		}
 		return resultMap;
     }
-    
+	public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
+		Connection conn=null;
+		PreparedStatement pst = null;
+		return resultMap;
+	}
+
     /**
      * 获取字段类型
      * @param dataTypeList
@@ -758,51 +837,8 @@ public class DataImportJdbc extends BaseRepository{
 		String tableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
 		try {
 			conn=this.getDbConnection();
-			String selectTable="select table_name from user_tables where table_name=?";
-			pst=conn.prepareStatement(selectTable);
-			pst.setString(1,tableName);
-			rs=pst.executeQuery();
-			String dbTableName=null;
-			while(rs.next()){
-				dbTableName=rs.getString(1);
-			}
-			
-				//创建临时表sql
-			String createTableSql="create table "+tableName+"(TEMPID NUMBER,IFCHECKED NUMBER,CUSTOMERID VARCHAR2(50),";
-			for (int i = 0; i < sheetColumnList.size(); i++) {
-				String type=sheetColumnList.get(i).getDataType();
-				String columnName=sheetColumnList.get(i).getField();
-				if("varchar".equals(type.toLowerCase())){
-					createTableSql+=columnName+"  VARCHAR2("+sheetColumnList.get(i).getLength()+"),";
-				}else if("int".equals(type.toLowerCase())){
-					createTableSql+=columnName+"  NUMBER,";
-				}else if("datetime".equals(type.toLowerCase())){
-					createTableSql+=columnName+"  DATE,";
-				}
-			}
-			
-			createTableSql=createTableSql.substring(0, createTableSql.length()-1)+")";
-			if(dbTableName==null){
-				pst=conn.prepareStatement(createTableSql);
-				pst.executeUpdate();
-			}else{
-				//删除数据
-				String delteSql="delete from "+tableName;
-				pst=conn.prepareStatement(delteSql);
-				pst.executeUpdate();
-				//删除表
-				String dropTableSql="drop table "+tableName;
-				pst=conn.prepareStatement(dropTableSql);
-				pst.executeUpdate();
-				//创建表
-				pst=conn.prepareStatement(createTableSql);
-				pst.executeUpdate();
-			}
-			
-			//删除临时表数据
-			String deleteSql="delete from "+tableName;
-			pst=conn.prepareStatement(deleteSql);
-			pst.executeUpdate();
+			//创建表
+			createTable(tableName, sheetColumnList);
 			//临时表插数据 
 			statement=conn.createStatement();
 			
@@ -1062,10 +1098,70 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
 		}
 		return dataType;
 	}
 	
-	
+	@SuppressWarnings("resource")
+	public void createTable(String tableName,List<WorkSheetColumn> sheetColumnList){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		try {
+			conn=this.getDbConnection();
+			String selectTable="select table_name from user_tables where table_name=?";
+			pst=conn.prepareStatement(selectTable);
+			pst.setString(1,tableName);
+			rs=pst.executeQuery();
+			String dbTableName=null;
+			while(rs.next()){
+				dbTableName=rs.getString(1);
+			}
+			//创建临时表sql
+			String createTableSql="create table "+tableName+"(TEMPID NUMBER,IFCHECKED NUMBER,CUSTOMERID VARCHAR2(50),";
+			for (int i = 0; i < sheetColumnList.size(); i++) {
+				String type=sheetColumnList.get(i).getDataType();
+				String columnName=sheetColumnList.get(i).getField();
+				if("CUSTOMERID".equals(columnName.toUpperCase())){
+					continue;
+				}
+				if("varchar".equals(type.toLowerCase())){
+					createTableSql+=columnName+"  VARCHAR2("+sheetColumnList.get(i).getLength()+"),";
+				}else if("int".equals(type.toLowerCase())){
+					createTableSql+=columnName+"  NUMBER,";
+				}else if("datetime".equals(type.toLowerCase())){
+					createTableSql+=columnName+"  DATE,";
+				}
+			}
+			
+			createTableSql=createTableSql.substring(0, createTableSql.length()-1)+")";
+			if(dbTableName==null){
+				pst=conn.prepareStatement(createTableSql);
+				pst.executeUpdate();
+			}else{
+				//删除数据
+				String delteSql="delete from "+tableName;
+				pst=conn.prepareStatement(delteSql);
+				pst.executeUpdate();
+				//删除表
+				String dropTableSql="drop table "+tableName;
+				pst=conn.prepareStatement(dropTableSql);
+				pst.executeUpdate();
+				//创建表
+				pst=conn.prepareStatement(createTableSql);
+				pst.executeUpdate();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+	}
     
 }

@@ -305,8 +305,17 @@ public class ImportDataController {
 		String tableName=workSheet.getName();
 		String tempIds=request.getParameter("tempIds");
 		Integer action=Integer.valueOf(request.getParameter("action"));
+		List<Map<String,Object>> isnertData=null;
+		if(!"Excel".equals(operationName)){
+			if(action==0){
+				isnertData=dataImportJdbc.getAllDbData(temPlateId, bizId);
+			}else{
+				isnertData=new Gson().fromJson(importData, List.class);
+			}
+			
+		}
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-		List<Map<String,Object>> isnertData=new Gson().fromJson(importData, List.class);
+		
 		dataImportJdbc.updateTempData(bizId, userId, tempIds, action);
 		Map<String,Object> resultMap = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, sheetColumnList, isnertData, tableName, userId,operationName);
 		String jsonObject=new Gson().toJson(resultMap);
