@@ -83,15 +83,15 @@ public class DataPoolController {
 			DMDataPool dmDataPool=new DMDataPool();
 			dmDataPool.setBizId(bizId);
 			dmDataPool.setpId(Pid);
-			
-				if(dmBizDataPool.dmCreateBizUserDataPool(dmDataPool,Userid))
+			StringBuffer err=new StringBuffer();
+				if(dmBizDataPool.dmCreateBizUserDataPool(dmDataPool,Userid,err))
 				{
 					recordsetResult.setReturnCode(0);
 					recordsetResult.setReturnMessage("成功");
 				}else
 				{
 					recordsetResult.setReturnCode(1);
-					recordsetResult.setReturnMessage("失败");
+					recordsetResult.setReturnMessage(err.toString());
 				}
 				
 			} catch (Exception e) {

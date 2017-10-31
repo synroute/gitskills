@@ -199,7 +199,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 	
 	
 	//创建坐席数据池
-		public boolean dmCreateBizUserDataPool(DMDataPool dataPool,String userId )
+		public boolean dmCreateBizUserDataPool(DMDataPool dataPool,String userId ,StringBuffer err)
 		{
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
@@ -207,7 +207,20 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				
 				String[] userids=userId.split(",");
 				for(int row=0;row<userids.length;row++){
-					
+					//判断是否有活动的共享批次
+					String selectsql=String.format("select count(*) from HASYS_DM_DATAPOOL where DataPoolName='"+dataPool.getDataPoolName()+"' and BusinessID="+dataPool.getBizId()+"");
+					stmt = dbConn.prepareStatement(selectsql);
+					rs = stmt.executeQuery();
+					int count=0;
+					while(rs.next())
+					{
+						count=rs.getInt(1);
+					}
+					if (count>0) {
+						
+						err.append("数据池名称重复！"+dataPool.getDataPoolName());
+						return false;
+					}
 					
 					dbConn =this.getDbConnection();
 					
@@ -225,6 +238,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				stmt.close();
 				
 			} catch (SQLException e) {
+				err.append("失败！");
 				e.printStackTrace();
 				return false;
 			} 
