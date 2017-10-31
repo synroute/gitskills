@@ -177,7 +177,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				stmt.close();
 				if(type==3)
 				{
-					String deleteslq=String.format("delect from Hasys_DM_SIDUserPool where DataPoolID=%s",poolId);
+					String deleteslq=String.format("delete from Hasys_DM_SIDUserPool where DataPoolID=%s",poolId);
 					stmt = dbConn.prepareStatement(deleteslq);
 					stmt.executeUpdate();
 					stmt.close();
