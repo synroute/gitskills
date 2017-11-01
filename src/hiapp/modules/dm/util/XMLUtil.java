@@ -152,4 +152,22 @@ public class XMLUtil {
         }
         return result;
     }
+
+    public static String outputDocumentToString(Document doc) {
+        XMLOutputter outputter = null;
+        Format format = Format.getCompactFormat();
+        format.setEncoding("UTF-8");
+        format.setIndent("    ");
+        outputter = new XMLOutputter(format);
+
+        ByteArrayOutputStream byteRsp = new ByteArrayOutputStream();
+        try {
+            outputter.output(doc, byteRsp);
+            String configXml = byteRsp.toString("UTF-8");
+            return configXml;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
 }

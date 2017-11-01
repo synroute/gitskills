@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.multinumbermode.bo.BizConfig;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
+import hiapp.modules.dm.multinumbermode.bo.PhoneDialInfo;
 import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
 import hiapp.modules.dm.util.DateUtil;
+import hiapp.modules.dm.util.XMLUtil;
 import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.system.buinfo.User;
 import hiapp.utils.serviceresult.ServiceResult;
@@ -59,67 +61,69 @@ public class MultiNumberModeController {
         return result.toJson();
     }
 
-    public String hiDialerGetCustList(HttpServletRequest request, String requestBody) {
+    /**
+     * @param bizId
+     * @param count
+     * @return
+     *
+     * <Msg Result="1" CustomerCount="1">
+     *    <CustList>
+     *    <Item DMBusinessId="24" IID="20170309P_0001" CID="2398636" TaskID="20170309T0001" PhoneType="1" PhoneNum="15777731180"/>
+     *    </CustList>
+     * </Msg>
+     *
+     */
+    public String hiDialerGetCustList(int bizId, int count) {
 
-        ServiceResult result = new ServiceResult();
+        String userId = "0"; // hiDialer 用户
 
-        StringReader xmlString = new StringReader(requestBody);
-        InputSource source = new InputSource(xmlString);
-        // 创建一个新的SAXBuilder
-        SAXBuilder saxb = new SAXBuilder();
+        List<MultiNumberCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, bizId, count);
 
-        try {
-            // requestbody example :  <Msg JobId="13" Count="10"></Msg>
-            Document doc = saxb.build(source);
-            // 取的根元素
-            Element root = doc.getRootElement();
-            String strBizId = root.getAttributeValue("JobId");
-            String strCount = root.getAttributeValue("Count");
-
-            Integer intBizId = Integer.valueOf(strBizId);
-            Integer intCount = Integer.valueOf(strCount);
-            String userId = "0"; // hiDialer 用户
-
-            List<MultiNumberCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId, intCount);
-
-            if (null == customerList) {
-                result.setResultCode(ServiceResultCode.CUSTOMER_NONE);
-            } else {
-                result.setResultCode(ServiceResultCode.SUCCESS);
-                result.setReturnMessage("");
-            }
-            return result.toJson();
-
-        } catch (JDOMException e) {
-            e.printStackTrace();
-            result.setResultCode(ServiceResultCode.INVALID_PARAM);
-            return result.toJson();
-        } catch (IOException e) {
-            e.printStackTrace();
-            result.setResultCode(ServiceResultCode.INVALID_PARAM);
-            return result.toJson();
+        if (null == customerList) {
+            Document doc = new Document();
+            Element root = new Element("Msg");
+            root.setAttribute("Result", "0");
+            root.setAttribute("CustomerCount", "0");
+            doc.setRootElement(root);
+            return XMLUtil.outputDocumentToString(doc);
         }
+
+        Document doc = new Document();
+        Element root = new Element("Msg");
+        root.setAttribute("Result", "1");
+        doc.setRootElement(root);
+        Element custList = new Element("CustList");
+
+        for (MultiNumberCustomer customer : customerList) {
+            Element item = new Element("Item");
+            item.setAttribute("DMBusinessId", String.valueOf(customer.getBizId()));
+            item.setAttribute("IID", customer.getImportBatchId());
+            item.setAttribute("CID", customer.getCustomerId());
+            item.setAttribute("TaskID", customer.getShareBatchId());
+
+            int nextDialPhoneType = customer.getNextDialPhoneType();
+            PhoneDialInfo phoneDialInfo = customer.getDialInfo(nextDialPhoneType);
+            item.setAttribute("PhoneType", String.valueOf(nextDialPhoneType));
+            item.setAttribute("PhoneNum", phoneDialInfo.getPhoneNumber());
+
+            custList.addContent(item);
+        }
+
+        root.addContent(custList);
+
+        return XMLUtil.outputDocumentToString(doc);
     }
 
-    public String hiDialerDialResultNotify(HttpServletRequest request, String requestBody) {
-
+    public String hiDialerDialResultNotify(int bizId, String importBatchId, String customerId, String shareBatchId,
+                                           String phoneType, String resultCode, String customerCallID)
+    {
         //hidialer userId : 0
-        HttpSession session = request.getSession();
-        User user=(User) session.getAttribute("user");
-
-        Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
-        String strBizId = (String) map.get("bizId");
-        String resultCodeType = (String)map.get("resultCodeType");
-        String resultCode = (String)map.get("resultCode");
-        String importBatchId = (String)map.get("importBatchId");
-        //String shareBatchId = (String)map.get("shareBatchId");
-        int phoneType = (Integer)map.get("phoneType");
-        String customerId = (String)map.get("customerId");
+        String userId = "0";
 
         ServiceResult serviceresult = new ServiceResult();
 
-        multiNumberOutboundDataManage.hiDialerDialResultNotify(user.getId(), Integer.parseInt(strBizId), importBatchId,
-                customerId, phoneType, resultCodeType, resultCode);
+        multiNumberOutboundDataManage.hiDialerDialResultNotify(userId, bizId, importBatchId,
+                customerId, Integer.valueOf(phoneType), resultCode, resultCode);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();

@@ -5,19 +5,26 @@ import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
 import hiapp.modules.dm.multinumbermode.bo.BizConfig;
 import hiapp.modules.dm.singlenumbermode.SingleNumberModeController;
 import hiapp.modules.dm.util.DateUtil;
+import hiapp.modules.dm.util.XMLUtil;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.modules.dmsetting.data.DmBizRepository;
+import hiapp.utils.serviceresult.ServiceResult;
+import hiapp.utils.serviceresult.ServiceResultCode;
 import org.jdom.Document;
 import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.xml.sax.InputSource;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 
 @RestController
@@ -142,30 +149,41 @@ public class DMController {
 
         root.addContent(jobList);
 
-        XMLOutputter outputter = null;
-        Format format = Format.getCompactFormat();
-        format.setEncoding("UTF-8");
-        format.setIndent("    ");
-        outputter = new XMLOutputter(format);
-
-        ByteArrayOutputStream byteRsp = new ByteArrayOutputStream();
-        try {
-            outputter.output(doc, byteRsp);
-            String configXml = byteRsp.toString("UTF-8");
-            System.out.println(configXml);
-            return configXml;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return "";
+        return XMLUtil.outputDocumentToString(doc);
     }
 
+    /**
+     * @param request
+     * @param requestBody   :  <Msg JobId="13" Count="10"></Msg>
+     * @return
+     */
     @RequestMapping(value="/srv/dm/hiDialerGetCustList.srv", method= RequestMethod.POST, consumes="application/xml", produces="application/xml")
     public String hiDialerGetCustList(HttpServletRequest request, @RequestBody String requestBody) {
 
-        Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
-        String strBizId = (String) map.get("bizId");
+        StringReader xmlString = new StringReader(requestBody);
+        InputSource source = new InputSource(xmlString);
+        // 创建一个新的SAXBuilder
+        SAXBuilder saxb = new SAXBuilder();
+        Document doc;
+
+        try {
+            doc = saxb.build(source);
+        } catch (JDOMException e) {
+            e.printStackTrace();
+            ServiceResult result = new ServiceResult();
+            result.setResultCode(ServiceResultCode.INVALID_PARAM);
+            return result.toJson();
+        } catch (IOException e) {
+            e.printStackTrace();
+            ServiceResult result = new ServiceResult();
+            result.setResultCode(ServiceResultCode.INVALID_PARAM);
+            return result.toJson();
+        }
+
+        // 取的根元素
+        Element root = doc.getRootElement();
+        String strBizId = root.getAttributeValue("JobId");
+        String strCount = root.getAttributeValue("Count");
 
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(strBizId));
 
@@ -181,17 +199,54 @@ public class DMController {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
             //requestBody = testData();
-            return multiNumberModeController.hiDialerGetCustList(request, requestBody);
+            return multiNumberModeController.hiDialerGetCustList(Integer.valueOf(strBizId), Integer.valueOf(strCount));
         }
 
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/hiDialerDialResultNotify.srv", method= RequestMethod.POST, consumes="application/xml", produces="application/json")
+    /**
+     *
+     * @param request
+     * @param requestBody
+     *
+     *   <Msg DMBusinessId="1" IID="20171010P_0001" CID="4575046" TaskID="20171010T_0001" PhoneType="1" PhoneNum="013582329718" ResultCode="1" CustomerCallID="978355660"></Msg>
+     *
+     * @return
+     */
+
+    @RequestMapping(value="/srv/dm/hiDialerDialResultNotify.srv", method= RequestMethod.POST, consumes="application/xml")
     public String hiDialerDialResultNotify(HttpServletRequest request, @RequestBody String requestBody) {
 
-        Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
-        String strBizId = (String) map.get("bizId");
+        StringReader xmlString = new StringReader(requestBody);
+        InputSource source = new InputSource(xmlString);
+        // 创建一个新的SAXBuilder
+        SAXBuilder saxb = new SAXBuilder();
+        Document doc;
+
+        try {
+            doc = saxb.build(source);
+        } catch (JDOMException e) {
+            e.printStackTrace();
+            ServiceResult result = new ServiceResult();
+            result.setResultCode(ServiceResultCode.INVALID_PARAM);
+            return result.toJson();
+        } catch (IOException e) {
+            e.printStackTrace();
+            ServiceResult result = new ServiceResult();
+            result.setResultCode(ServiceResultCode.INVALID_PARAM);
+            return result.toJson();
+        }
+
+        // 取的根元素
+        Element root = doc.getRootElement();
+        String strBizId = root.getAttributeValue("DMBusinessId");
+        String importBatchId = root.getAttributeValue("IID");
+        String customerId = root.getAttributeValue("CID");
+        String shareBatchId = root.getAttributeValue("TaskID");
+        String phoneType = root.getAttributeValue("PhoneType");
+        String resultCode = root.getAttributeValue("ResultCode");
+        String customerCallID = root.getAttributeValue("CustomerCallID");
 
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(strBizId));
 
@@ -207,7 +262,8 @@ public class DMController {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
             //requestBody = testData();
-            return multiNumberModeController.hiDialerDialResultNotify(request, requestBody);
+            return multiNumberModeController.hiDialerDialResultNotify(Integer.valueOf(strBizId), importBatchId,
+                    customerId, shareBatchId, phoneType, resultCode, customerCallID);
         }
 
         return "";
