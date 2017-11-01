@@ -632,17 +632,20 @@ public class DmWorkSheetRepository extends BaseRepository {
 			DbUtil.DbCloseQuery(rs, stmt);
 		}
 		try {
-			String sql="select NAME from HASYS_WORKSHEET where ID='"+worksheetId+"'";
-			stmt = dbConn.prepareStatement(sql);
-			rs = stmt.executeQuery();
-			String workname="";
-			if (rs.next()) {
-				workname=rs.getString(1);
+			if (!columnLength.equals("-1")) {
+				String sql="select NAME from HASYS_WORKSHEET where ID='"+worksheetId+"'";
+				stmt = dbConn.prepareStatement(sql);
+				rs = stmt.executeQuery();
+				String workname="";
+				if (rs.next()) {
+					workname=rs.getString(1);
+				}
+				stmt.close();
+				szSql=String.format("alter table "+workname+" modify("+columnName+" varchar2("+columnLength+"))");
+				stmt = dbConn.prepareStatement(szSql);
+				stmt.execute();
 			}
-			stmt.close();
-			szSql=String.format("alter table "+workname+" modify("+columnName+" varchar2("+columnLength+"))");
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
