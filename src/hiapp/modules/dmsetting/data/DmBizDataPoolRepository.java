@@ -206,6 +206,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			try {
 				
 				String[] userids=userId.split(",");
+				dbConn =this.getDbConnection();
 				for(int row=0;row<userids.length;row++){
 					//判断是否有活动的共享批次
 					String selectsql=String.format("select count(*) from HASYS_DM_DATAPOOL where DataPoolName='"+dataPool.getDataPoolName()+"' and BusinessID="+dataPool.getBizId()+"");
@@ -222,7 +223,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 						return false;
 					}
 					
-					dbConn =this.getDbConnection();
+					
 					
 					String szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,PID,AreaType,isDelete,POOLTOPLIMIT)"+
 					" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0,0,0)",dataPool.getBizId(),userids[row],dataPool.getpId());
