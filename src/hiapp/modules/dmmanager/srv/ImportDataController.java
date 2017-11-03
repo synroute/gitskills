@@ -315,7 +315,6 @@ public class ImportDataController {
 			
 		}
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-		
 		dataImportJdbc.updateTempData(bizId, userId, tempIds, action);
 		Map<String,Object> resultMap = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, sheetColumnList, isnertData, tableName, userId,operationName);
 		String jsonObject=new Gson().toJson(resultMap);

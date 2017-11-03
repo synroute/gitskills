@@ -768,12 +768,6 @@ public class DataImportJdbc extends BaseRepository{
 		}
 		return resultMap;
     }
-	public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
-		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
-		Connection conn=null;
-		PreparedStatement pst = null;
-		return resultMap;
-	}
 
     /**
      * 获取字段类型
@@ -827,7 +821,6 @@ public class DataImportJdbc extends BaseRepository{
     /**
      * 创建中间表并保存数据
      */
-    @SuppressWarnings("resource")
 	public  Map<String,Object> createTepporaryImportTable(List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> dataList,Integer bizId,String userId){
     	Connection conn=null;
 		PreparedStatement pst = null;
