@@ -264,9 +264,30 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			dbConn =this.getDbConnection();
 			columns=columns.substring(0, columns.length()-1);
 			String repcolumn=columns.replaceAll("-","\\.");
+			/*String importsql="";
+			String resultsql="";
+			String presetsql="";
+			String [] imports=repcolumn.split(",");
+			for (int i = 0; i < imports.length; i++) {
+				if (imports[i].contains("HAU_DM_B"+bizId+"C_IMPORT")) {
+					importsql=importsql+imports[i]+",";
+				}
+				else if (imports[i].contains("HASYS_DM_B"+bizId+"C_PresetTime")) {
+					presetsql=presetsql+imports[i]+",";
+				}
+				else if (imports[i].contains("HAU_DM_B"+bizId+"C_RESULT")) {
+					resultsql=resultsql+imports[i]+",";
+				}
+			}
+			
+			importsql=importsql.substring(0, importsql.length()-1);
+			presetsql=presetsql.substring(0, presetsql.length()-1);
+			resultsql=resultsql.substring(0, resultsql.length()-1);
+			*/
 			//String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"'";
-			String szSelectSql="select "+repcolumn+" from HAU_DM_B"+bizId+"C_IMPORT,HASYS_DM_B"+bizId+"C_PresetTime,HAU_DM_B"+bizId+"C_RESULT "
-					+ " where HAU_DM_B"+bizId+"C_IMPORT.Cid=HAU_DM_B"+bizId+"C_RESULT.CID and HAU_DM_B"+bizId+"C_IMPORT.Cid=HASYS_DM_B"+bizId+"C_PresetTime.CID Cid='"+Cid+"'";
+			String szSelectSql="select "+repcolumn+"  from HAU_DM_B"+bizId+"C_IMPORT  left join (select * from HAU_DM_B"+bizId+"C_RESULT where modifylast=1) HAU_DM_B"+bizId+"C_RESULT on HAU_DM_B"+bizId+"C_IMPORT.cid=HAU_DM_B"+bizId+"C_RESULT.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HAU_DM_B"+bizId+"C_RESULT.iid"+
+					" left join (select * from HASYS_DM_B"+bizId+"C_PresetTime where modifylast=1) HASYS_DM_B"+bizId+"C_PresetTime on HAU_DM_B"+bizId+"C_IMPORT.cid=HASYS_DM_B"+bizId+"C_PresetTime.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HASYS_DM_B"+bizId+"C_PresetTime.iid"+
+					" where HAU_DM_B"+bizId+"C_IMPORT.Cid='"+Cid+"' and HAU_DM_B"+bizId+"C_IMPORT.modifylast=1";
 			stmt = dbConn.prepareStatement(szSelectSql);
 			rs = stmt.executeQuery();
 			String[] column=columns.split(",");
