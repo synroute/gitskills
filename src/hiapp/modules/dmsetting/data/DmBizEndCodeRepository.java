@@ -455,7 +455,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			stmt.executeUpdate();
 			stmt.close();
 			//删除字段表信息
-			String updatecode=String.format("delete HASYS_DIC_INDEX  where ITEMTEXT='"+dmEndCode.getEndCode()+"' and ITEMPARENT!=-1  and DICID=(select ID from HASYS_DIC_INDEX where NAME='业务"+dmEndCode.getBizId()+"结束码')");
+			String updatecode=String.format("delete HASYS_DIC_ITEM  where ITEMTEXT='"+dmEndCode.getEndCode()+"' and ITEMPARENT!=-1  and DICID=(select ID from HASYS_DIC_INDEX where NAME='业务"+dmEndCode.getBizId()+"结束码')");
 			stmt = conn.prepareStatement(updatecode);
 			stmt.executeUpdate();
 			
