@@ -174,6 +174,8 @@ public class CustomerRepository extends BaseRepository {
 			else if (ConfigPageEnume.ALLCUSTOMERS.getName().equals(configPage)) {
 				// 获取导入表中用户自定义的候选列
 				list.addAll(getInputTableColumn(bizId));
+				// 获取导入表中固定的候选列
+				list.addAll(TableNameEnume.INPUTTABLENAME.getCandidadeColumn());
 				// 获取预约表中用户自定义的候选列
 				list.addAll(getPresetTableColumn(bizId));
 				// 获取预约表中固定的候选列
