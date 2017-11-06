@@ -219,7 +219,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					}
 					if (count>0) {
 						
-						err.append("数据池名称重复！"+dataPool.getDataPoolName());
+						err.append("数据池名称重复！"+userids[row]);
 						return false;
 					}
 					
