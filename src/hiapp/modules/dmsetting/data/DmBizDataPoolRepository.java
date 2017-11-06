@@ -209,7 +209,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				dbConn =this.getDbConnection();
 				for(int row=0;row<userids.length;row++){
 					//判断是否有活动的共享批次
-					String selectsql=String.format("select count(*) from HASYS_DM_DATAPOOL where DataPoolName='"+dataPool.getDataPoolName()+"' and BusinessID="+dataPool.getBizId()+"");
+					String selectsql=String.format("select count(*) from HASYS_DM_DATAPOOL where DataPoolName='"+userids[row]+"' and BusinessID="+dataPool.getBizId()+"");
 					stmt = dbConn.prepareStatement(selectsql);
 					rs = stmt.executeQuery();
 					int count=0;
