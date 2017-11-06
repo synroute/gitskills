@@ -49,6 +49,13 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDataPool(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==2) {
+				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetResult(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPool(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataM2(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataM2_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				
 			} else if (dmBusiness.getModeId()==3) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -68,6 +75,13 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDuoDataM4_His(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==5) {
 				
+				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetResult(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPool(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataM5(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetDataM5_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==6) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -207,6 +221,149 @@ public class DmWorkSheetRepository extends BaseRepository {
 			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_POOLORE,errMessage);
 		}
+		
+		//hidialer预测外呼
+
+		private ServiceResultCode m_newWorkSheetDataM2(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+			creationInfoWorkSheet.setOwner(true);
+			String szWorkSheetName=String.format("HAU_DM_B%dC_DATAM2", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%dhidialer预测外拨模式共享数据状态表", dmBusiness.getBizId());
+			String szWorkSheetDescription=String.format("外拨业务%dhidialer预测外拨模式共享数据状态表，单号码预测外拨模式共享数据状态数据存入此工作表",dmBusiness.getBizId());
+			creationInfoWorkSheet.setName(szWorkSheetName);
+			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+			creationInfoWorkSheet.addColumn("业务ID", "BUSINESSID", "业务ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("共享ID", "SHAREID", "共享ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("状态", "STATE", "状态", WorkSheetDataType.TEXT, 50, false, true);	
+			creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改描述", "MODIFYDSP", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+			creationInfoWorkSheet.addColumn("是否追加", "ISAPPEND", "是否追加", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话号码", "PHONENUMBER", "电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			
+			
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
+		}
+		
+		//hidialer预测外呼历史
+		private ServiceResultCode m_newWorkSheetDataM2_his(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+			creationInfoWorkSheet.setOwner(true);
+			String szWorkSheetName=String.format("HAU_DM_B%dC_DATAM2_HIS", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%dhidialer预测外拨模式共享数据状态表", dmBusiness.getBizId());
+			String szWorkSheetDescription=String.format("外拨业务%dhidialer预测外拨模式共享数据状态表，单号码预测外拨模式共享数据状态数据存入此工作表",dmBusiness.getBizId());
+			creationInfoWorkSheet.setName(szWorkSheetName);
+			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+			creationInfoWorkSheet.addColumn("业务ID", "BUSINESSID", "业务ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("共享ID", "SHAREID", "共享ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("状态", "STATE", "状态", WorkSheetDataType.TEXT, 50, false, true);	
+			creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改描述", "MODIFYDSP", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+			creationInfoWorkSheet.addColumn("是否追加", "ISAPPEND", "是否追加", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("电话号码", "PHONENUMBER", "电话号码", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			
+			
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
+		}
+		
+		
+		//单号码预测
+		
+				private ServiceResultCode m_newWorkSheetDataM5(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+					CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+					creationInfoWorkSheet.setOwner(true);
+					String szWorkSheetName=String.format("HAU_DM_B%dC_DATAM5", dmBusiness.getBizId());
+					String szWorkSheetNameCh=String.format("外拨业务%ds单号码预测外拨模式共享数据状态表", dmBusiness.getBizId());
+					String szWorkSheetDescription=String.format("外拨业务%d单号码预测外拨模式共享数据状态表，单号码预测外拨模式共享数据状态数据存入此工作表",dmBusiness.getBizId());
+					creationInfoWorkSheet.setName(szWorkSheetName);
+					creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+					creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+					creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+					creationInfoWorkSheet.addColumn("业务ID", "BUSINESSID", "业务ID", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("共享ID", "SHAREID", "共享ID", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("状态", "STATE", "状态", WorkSheetDataType.TEXT, 50, false, true);	
+					creationInfoWorkSheet.addColumn("坐席使用状态", "USERUSESTATE", "坐席使用状态", WorkSheetDataType.TEXT, 20, false, true);
+					creationInfoWorkSheet.addColumn("是否内存加载", "ISMEMORYLOADIN", "是否内存加载", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改ID", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+					creationInfoWorkSheet.addColumn("修改描述", "MODIFYDSP", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+					creationInfoWorkSheet.addColumn("是否追加", "ISAPPEND", "是否追加", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("客户是否重拨", "CUSTSTOP", "客户是否重拨", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("重拨次数", "DIALCOUNT", "重拨次数", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("电话号码", "PHONENUMBER", "电话号码", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+					creationInfoWorkSheet.addColumn("最多拨打次数", "LASTDAYDIALCOUNT", "最多拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("是否再次拨打", "PHONESTOP", "是否再次拨打", WorkSheetDataType.INT, -1, false, true);
+					
+					
+					return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
+				}
+		//单号码预测历史
+				private ServiceResultCode m_newWorkSheetDataM5_his(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+					CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+					creationInfoWorkSheet.setOwner(true);
+					String szWorkSheetName=String.format("HAU_DM_B%dC_DATAM5_HIS", dmBusiness.getBizId());
+					String szWorkSheetNameCh=String.format("外拨业务%ds单号码预测外拨模式共享数据状态表", dmBusiness.getBizId());
+					String szWorkSheetDescription=String.format("外拨业务%d单号码预测外拨模式共享数据状态表，单号码预测外拨模式共享数据状态数据存入此工作表",dmBusiness.getBizId());
+					creationInfoWorkSheet.setName(szWorkSheetName);
+					creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+					creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+					creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+					creationInfoWorkSheet.addColumn("业务ID", "BUSINESSID", "业务ID", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("共享ID", "SHAREID", "共享ID", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("状态", "STATE", "状态", WorkSheetDataType.TEXT, 50, false, true);	
+					creationInfoWorkSheet.addColumn("坐席使用状态", "USERUSESTATE", "坐席使用状态", WorkSheetDataType.TEXT, 20, false, true);
+					creationInfoWorkSheet.addColumn("是否内存加载", "ISMEMORYLOADIN", "是否内存加载", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改ID", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+					creationInfoWorkSheet.addColumn("修改描述", "MODIFYDSP", "修改描述", WorkSheetDataType.TEXT, 1024, false, true);
+					creationInfoWorkSheet.addColumn("是否追加", "ISAPPEND", "是否追加", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("客户呼叫对象", "CUSTOMERCALLID", "客户呼叫对象", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("结束码类型", "ENDCODETYPE", "结束码类型", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("客户是否重拨", "CUSTSTOP", "客户是否重拨", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("重拨次数", "DIALCOUNT", "重拨次数", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("电话号码", "PHONENUMBER", "电话号码", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+					creationInfoWorkSheet.addColumn("最多拨打次数", "LASTDAYDIALCOUNT", "最多拨打次数", WorkSheetDataType.TEXT, 50, false, true);
+					creationInfoWorkSheet.addColumn("是否再次拨打", "PHONESTOP", "是否再次拨打", WorkSheetDataType.INT, -1, false, true);
+					
+					
+					return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
+				}
+		
+		
+		
+		
+		
 		//单号码重拨模式共享数据状态表
 		private ServiceResultCode m_newWorkSheetDataM3(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
 			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
