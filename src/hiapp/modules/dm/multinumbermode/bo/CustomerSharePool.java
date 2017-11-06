@@ -14,8 +14,16 @@ public class CustomerSharePool {
 
     // 客户共享池
     // ShareBatchID <==> PriorityBlockingQueue<MultiNumberCustomer>
-    Map<String, PriorityBlockingQueue<MultiNumberCustomer>> mapPreseCustomerSharePool;
-    Map<String, PriorityBlockingQueue<MultiNumberCustomer>> mapCustomerSharePool;
+    //Map<String, PriorityBlockingQueue<MultiNumberCustomer>> mapPreseCustomerSharePool;
+    //Map<String, PriorityBlockingQueue<MultiNumberCustomer>> mapCustomerSharePool;
+
+    PriorityBlockingQueue<MultiNumberCustomer> mapPreseCustomerSharePool;
+    PriorityBlockingQueue<MultiNumberCustomer> mapCustomerSharePool;
+
+    // 用于处理共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
+    // ShareBatchId <==> {ImportId + CustomerId <==> MultiNumberCustomer}
+    Map<String, Map<String, MultiNumberCustomer>> mapShareBatchWaitStopCustomerPool;
+
 
 
     int bizId = 0;
@@ -24,10 +32,16 @@ public class CustomerSharePool {
 
         this.bizId = bizId;
 
-        mapPreseCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
-        mapCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
+        //mapPreseCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
+        //mapCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
+
+        mapPreseCustomerSharePool = new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator);
+        mapCustomerSharePool = new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator);
+
+        mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
     }
 
+    /*
     public MultiNumberCustomer extractCustomer(String userId) {
 
         MultiNumberCustomer shareDataItem = null;
@@ -36,7 +50,6 @@ public class CustomerSharePool {
 
         // 根据userID，获取有权限访问的shareBatchIds
         List<String> shareBatchIdList = dmBizMangeShare.getSidUserPool(bizId, userId);
-
         PriorityBlockingQueue<MultiNumberCustomer> customerQueue = null;
 
         // TODO 目前取得就走了，其实可以PEEK遍后比较拨打时间，确定先取那个客户
@@ -73,7 +86,43 @@ public class CustomerSharePool {
 
         return shareDataItem;
     }
+    */
 
+    public MultiNumberCustomer extractCustomer(String userId) {
+        Date now = new Date();
+        MultiNumberCustomer shareDataItem = null;
+
+        while (true) {
+            shareDataItem = mapPreseCustomerSharePool.peek();
+            if (null == shareDataItem)
+                break;
+
+            if (shareDataItem.getInvalid()) {
+                mapPreseCustomerSharePool.poll();  // 扔掉已经停止共享批次的客户
+                continue;
+            }
+
+            if (null != shareDataItem && shareDataItem.getCurPresetDialTime().before(now)) {
+                shareDataItem = mapPreseCustomerSharePool.poll();
+                return shareDataItem;
+            }
+        }
+
+        while (true) {
+            shareDataItem = mapCustomerSharePool.poll();
+            if (null == shareDataItem)
+                break;
+
+            if (shareDataItem.getInvalid())
+                continue;
+
+            return shareDataItem;
+        }
+
+        return shareDataItem;
+    }
+
+    /*
     public void add(MultiNumberCustomer customer) {
         PriorityBlockingQueue<MultiNumberCustomer> queue;
         if (MultiNumberPredictStateEnum.PRESET_DIAL.equals(customer.getState())
@@ -94,7 +143,40 @@ public class CustomerSharePool {
 
         queue.put(customer);
     }
+    */
 
+    public void add(MultiNumberCustomer customer) {
+        PriorityBlockingQueue<MultiNumberCustomer> queue;
+        if (MultiNumberPredictStateEnum.PRESET_DIAL.equals(customer.getState())
+            || MultiNumberPredictStateEnum.WAIT_REDIAL.equals(customer.getState()) ) {
+            mapPreseCustomerSharePool.put(customer);
+        } else {
+            mapCustomerSharePool.put(customer);
+        }
+
+        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getBizId() + customer.getShareBatchId());
+        if (null == mapWaitStopPool) {
+            mapWaitStopPool = new HashMap<String, MultiNumberCustomer>();
+            mapShareBatchWaitStopCustomerPool.put(customer.getShareBatchId(), mapWaitStopPool);
+        }
+        mapWaitStopPool.put(customer.getImportBatchId() + customer.getCustomerId(), customer);
+    }
+
+    /**
+     * 仅标注已经停止共享，由于没办法直接从PriorityBlockingQueue里面移除。
+     * @param shareBatchIds
+     */
+    public void markShareBatchStop(List<String> shareBatchIds) {
+        for (String shareBatchId : shareBatchIds) {
+            Map<String, MultiNumberCustomer> mapWaitStopPool;
+            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+            for (MultiNumberCustomer item : mapWaitStopPool.values()) {
+                item.setInvalid(true);
+            }
+        }
+    }
+
+    /*
     public void removeShareCustomer(List<String> shareBatchIds) {
         removeFromCustomerSharePool(shareBatchIds, mapPreseCustomerSharePool);
         removeFromCustomerSharePool(shareBatchIds, mapCustomerSharePool);
@@ -108,7 +190,7 @@ public class CustomerSharePool {
                 queue = shareBatchIdVsCustomerMap.remove(shareBatchId);
             }
         }
-    }
+    }*/
 
     //////////////////////////////////////////////////////////
 

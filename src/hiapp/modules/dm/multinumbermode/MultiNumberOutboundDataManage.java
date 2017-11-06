@@ -65,11 +65,10 @@ public class MultiNumberOutboundDataManage {
     }
 
     public String hiDialerDialResultNotify(String userId, int bizId, String importBatchId, String customerId, int phoneType,
-                                           String resultCodeType, String resultCode) {
+                                           String resultCodeType, String resultCode, String customerCallId) {
         if (resultCodeType.equals("1") && resultCode.equals("1"))
         {
             String dialType = "dialType";
-            String customerCallId = "customerCallId";
 
             MultiNumberCustomer originCustomerItem = customerSharePool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
 
@@ -90,10 +89,16 @@ public class MultiNumberOutboundDataManage {
             item.setCurDialPhone(originCustomerItem.getCurDialPhone());
             item.setShareBatchStartTime(originCustomerItem.getShareBatchStartTime());
 
-            PhoneDialInfo originPhoneDialInfo = originCustomerItem.getDialInfo(originCustomerItem.getCurDialPhoneType());
-            //originPhoneDialInfo.setDialCount( originPhoneDialInfo.getDialCount() + 1);
-            originPhoneDialInfo.setLastDialTime(now);
-            item.setDialInfo(originCustomerItem.getCurDialPhoneType(), originPhoneDialInfo);
+            for (int phoneTypeIndex=1; phoneTypeIndex<=10; phoneTypeIndex++) {
+
+                PhoneDialInfo originPhoneDialInfo = originCustomerItem.getDialInfo(phoneTypeIndex);
+                if (phoneTypeIndex == originCustomerItem.getCurDialPhoneType()) {
+                    //originPhoneDialInfo.setDialCount( originPhoneDialInfo.getDialCount() + 1);
+                    originPhoneDialInfo.setLastDialTime(now);
+                }
+
+                item.setDialInfo(phoneTypeIndex, originPhoneDialInfo);
+            }
 
             multiNumberPredictModeDAO.updateCustomerShareState(item);
 
@@ -137,10 +142,19 @@ public class MultiNumberOutboundDataManage {
         item.setCurDialPhone(originCustomerItem.getCurDialPhone());
         item.setShareBatchStartTime(originCustomerItem.getShareBatchStartTime());
 
-        PhoneDialInfo originPhoneDialInfo = originCustomerItem.getDialInfo(originCustomerItem.getCurDialPhoneType());
-        //originPhoneDialInfo.setDialCount( originPhoneDialInfo.getDialCount() + 1);
-        //originPhoneDialInfo.setLastDialTime(now);
-        item.setDialInfo(originCustomerItem.getCurDialPhoneType(), originPhoneDialInfo);
+        Date lastDialTime = null;
+        for (int phoneTypeIndex=1; phoneTypeIndex<=10; phoneTypeIndex++) {
+
+            PhoneDialInfo originPhoneDialInfo = originCustomerItem.getDialInfo(phoneTypeIndex);
+            if (phoneTypeIndex == originCustomerItem.getCurDialPhoneType()) {
+                //originPhoneDialInfo.setDialCount( originPhoneDialInfo.getDialCount() + 1);
+                //originPhoneDialInfo.setLastDialTime(now);
+
+                lastDialTime = originPhoneDialInfo.getLastDialTime();
+            }
+
+            item.setDialInfo(phoneTypeIndex, originPhoneDialInfo);
+        }
 
         multiNumberPredictModeDAO.updateCustomerShareState(item);
 
@@ -150,7 +164,7 @@ public class MultiNumberOutboundDataManage {
         // 插入结果表
         dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
         dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
-                originCustomerItem.getModifyId() + 1, userId, dialType, originPhoneDialInfo.getLastDialTime(), customerCallId,
+                originCustomerItem.getModifyId() + 1, userId, dialType, lastDialTime, customerCallId,
                 item.getEndCodeType(), item.getEndCode());
 
         return "";
@@ -164,7 +178,8 @@ public class MultiNumberOutboundDataManage {
         String customerCallId = "xxx";
         Date dialTime = new Date();
 
-        MultiNumberCustomer originCustomerItem = customerSharePool.removeWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
+        MultiNumberCustomer originCustomerItem = customerSharePool.removeWaitCustomer(
+                Constants.HiDialerUserId, bizId, importBatchId, customerId, phoneType);
 
         // 经过 Outbound 策略处理器
         EndCodeRedialStrategyM6Item strategyItem = endCodeRedialStrategyM6.getEndCodeRedialStrategyItem(

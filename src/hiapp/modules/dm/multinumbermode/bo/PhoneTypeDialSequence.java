@@ -16,7 +16,7 @@ public class PhoneTypeDialSequence {
     DmBizPhoneTypeRepository dmBizPhoneTypeRepository;
 
     // BizId <==> {拨打顺序 <==> 号码类型}
-    Map<Integer, Map<Integer, Integer>> mapPhoneTypeDialSequence;
+    Map<Integer, Map<Integer, Integer>> mapPhoneTypeDialSequence = new HashMap<Integer, Map<Integer, Integer>>();
     
     public Integer getPhoneTypeNum(int bizId) {
         Map<Integer, Integer> mapOneBizPhoneTypeDialSeq = getBizPhoneTypeDialSequence(bizId);

@@ -13,4 +13,6 @@ public class Constants {
     public static String timeStart = "TimeStart";
     public static String timeEnd = "TimeEnd";
 
+    public static String HiDialerUserId = "0";
+
 }

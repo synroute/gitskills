@@ -158,11 +158,11 @@ public class MultiNumberCustomer {
         this.curPresetDialTime = curPresetDialTime;
     }
 
-    public int getNextDialPhoneType() {
+    public Integer getNextDialPhoneType() {
         return nextDialPhoneType;
     }
 
-    public void setNextDialPhoneType(int nextDialPhoneType) {
+    public void setNextDialPhoneType(Integer nextDialPhoneType) {
         this.nextDialPhoneType = nextDialPhoneType;
     }
 
@@ -174,7 +174,7 @@ public class MultiNumberCustomer {
         this.mapPhoneTypeVsPhoneInfo = dialInfo;
     }
 
-    public PhoneDialInfo getDialInfo(int phoneType) {
+    public PhoneDialInfo getDialInfo(Integer phoneType) {
         return mapPhoneTypeVsPhoneInfo.get(phoneType);
     }
 
@@ -215,8 +215,8 @@ public class MultiNumberCustomer {
 
     String curDialPhone;
     Date   curPresetDialTime;
-    int    curDialPhoneType;
-    int    nextDialPhoneType;
+    Integer    curDialPhoneType;
+    Integer    nextDialPhoneType;
     int    isAppend;
     Map<Integer, PhoneDialInfo> mapPhoneTypeVsPhoneInfo = new HashMap<Integer, PhoneDialInfo>();
 

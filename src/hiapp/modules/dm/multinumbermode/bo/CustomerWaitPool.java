@@ -20,7 +20,7 @@ public class CustomerWaitPool {
     Map<String, Map<String, MultiNumberCustomer>> mapUserWaitResultCustomerPool;
 
     // 等待共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
-    // ShareBatchId <==> {BizID + ImportId + CustomerId <==> MultiNumberCustomer}
+    // BizId + ShareBatchId <==> {ImportId + CustomerId <==> MultiNumberCustomer}
     Map<String, Map<String, MultiNumberCustomer>> mapShareBatchWaitStopCustomerPool;
 
     // 等待hidialer呼通超时的客户池，抽取时间的分钟SLOT维度
@@ -173,10 +173,10 @@ public class CustomerWaitPool {
      * 仅标注已经停止共享，不从等待池中移除。需要等待已拨打的结果。
      * @param shareBatchIds
      */
-    public void markShareBatchStopFromCustomerWaitPool(List<String> shareBatchIds) {
+    public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
             Map<String, MultiNumberCustomer> mapWaitStopPool;
-            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(bizId + shareBatchId);
             for (MultiNumberCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }

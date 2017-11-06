@@ -14,10 +14,10 @@ public class OnePhoneTypeCustomerPool {
     int bizId = 0;
     int phoneType;
 
-    public OnePhoneTypeCustomerPool(int bizId, int dialSequence) {
+    public OnePhoneTypeCustomerPool(int bizId, int dialType) {
 
         this.bizId = bizId;
-        this.phoneType = dialSequence;
+        this.phoneType = dialType;
 
         customerSharePool = new CustomerSharePool(bizId);
         //customerWaitPool = new CustomerWaitPool(bizId);
@@ -32,6 +32,8 @@ public class OnePhoneTypeCustomerPool {
         if (null != shareDataItem) {
             shareDataItem.setExtractTime(now);
             shareDataItem.setUserId(userId);
+
+            shareDataItem.setCurDialPhoneType(phoneType);
         }
 
         return shareDataItem;
@@ -42,7 +44,7 @@ public class OnePhoneTypeCustomerPool {
     }
 
     public void removeShareCustomer(List<String> shareBatchIds) {
-        customerSharePool.removeShareCustomer(shareBatchIds);
+        customerSharePool.markShareBatchStop(shareBatchIds);
     }
 
 /*

@@ -215,7 +215,7 @@ public class DMController {
      * @return
      */
 
-    @RequestMapping(value="/srv/dm/hiDialerDialResultNotify.srv", method= RequestMethod.POST, consumes="application/xml")
+    @RequestMapping(value="/srv/dm/hiDialerDialResultNotify.srv", method= RequestMethod.POST, consumes="application/xml", produces="application/xml")
     public String hiDialerDialResultNotify(HttpServletRequest request, @RequestBody String requestBody) {
 
         StringReader xmlString = new StringReader(requestBody);
@@ -272,8 +272,16 @@ public class DMController {
     @RequestMapping(value="/srv/dm/submitAgentScreenPopUp.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitScreenPopUp(HttpServletRequest request, @RequestBody String requestBody) {
 
-        Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
-        String strBizId = (String) map.get("bizId");
+        //HttpSession session = request.getSession();
+        //User user=(User) session.getAttribute("user");
+        String userId = "0"; // hiDialer 用户Id
+
+        Map<String, String> map = new Gson().fromJson(requestBody, Map.class);
+        String strBizId =  map.get("bizId");
+        String importBatchId = map.get("importBatchId");
+        //String shareBatchId = map.get("shareBatchId");
+        String strPhoneType = map.get("phoneType");
+        String customerId = map.get("customerId");
 
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(strBizId));
 
@@ -290,7 +298,7 @@ public class DMController {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
             //requestBody = testData();
-            return multiNumberModeController.submitScreenPopUp(request, requestBody);
+            return multiNumberModeController.submitScreenPopUp(userId, strBizId, importBatchId, customerId, strPhoneType);
         }
 
         return "";

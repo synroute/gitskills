@@ -75,9 +75,8 @@ public class MultiNumberModeController {
      */
     public String hiDialerGetCustList(int bizId, int count) {
 
-        String userId = "0"; // hiDialer 用户
-
-        List<MultiNumberCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, bizId, count);
+        List<MultiNumberCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(
+                Constants.HiDialerUserId, bizId, count);
 
         if (null == customerList) {
             Document doc = new Document();
@@ -117,35 +116,21 @@ public class MultiNumberModeController {
     public String hiDialerDialResultNotify(int bizId, String importBatchId, String customerId, String shareBatchId,
                                            String phoneType, String resultCode, String customerCallID)
     {
-        //hidialer userId : 0
-        String userId = "0";
-
         ServiceResult serviceresult = new ServiceResult();
 
-        multiNumberOutboundDataManage.hiDialerDialResultNotify(userId, bizId, importBatchId,
-                customerId, Integer.valueOf(phoneType), resultCode, resultCode);
+        multiNumberOutboundDataManage.hiDialerDialResultNotify(Constants.HiDialerUserId, bizId, importBatchId,
+                customerId, Integer.valueOf(phoneType), resultCode, resultCode, customerCallID);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();
     }
 
-    public String submitScreenPopUp(HttpServletRequest request, String requestBody) {
-
-        //
-        HttpSession session = request.getSession();
-        User user=(User) session.getAttribute("user");
-
-        Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
-        String strBizId = (String) map.get("bizId");
-        String importBatchId = (String)map.get("importBatchId");
-        //String shareBatchId = (String)map.get("shareBatchId");
-        int phoneType = (Integer)map.get("phoneType");
-        String customerId = (String)map.get("customerId");
+    public String submitScreenPopUp(String userId, String strBizId, String importBatchId, String customerId, String strPhoneType) {
 
         ServiceResult serviceresult = new ServiceResult();
 
-        multiNumberOutboundDataManage.submitAgentScreenPopUp(user.getId(), Integer.parseInt(strBizId), importBatchId,
-                customerId, phoneType);
+        multiNumberOutboundDataManage.submitAgentScreenPopUp(userId, Integer.parseInt(strBizId), importBatchId,
+                customerId, Integer.valueOf(strPhoneType));
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();
@@ -162,7 +147,7 @@ public class MultiNumberModeController {
         String resultCode = (String)map.get("resultCode");
         String importBatchId = (String)map.get("importBatchId");
         //String shareBatchId = (String)map.get("shareBatchId");
-        int phoneType = (Integer)map.get("phoneType");
+        String strPhoneType = (String)map.get("phoneType");
         String customerId = (String)map.get("customerId");
         String strPresetTime = (String) map.get("presetTime");
         Map<String, String> resultData = (Map<String, String>)map.get("resultData");
@@ -190,7 +175,7 @@ public class MultiNumberModeController {
         }
 
         multiNumberOutboundDataManage.submitOutboundResult(user.getId(), Integer.parseInt(strBizId), importBatchId,
-                customerId, phoneType, resultCodeType, resultCode, presetTime , jsonResultData, jsonCustomerInfo);
+                customerId, Integer.valueOf(strPhoneType), resultCodeType, resultCode, presetTime , jsonResultData, jsonCustomerInfo);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();

@@ -41,6 +41,11 @@ public class MultiNumberPredictCustomerSharePool {
 
     public void add(MultiNumberCustomer customer) {
 
+        if (null == customer.getNextDialPhoneType() || 0 == customer.getNextDialPhoneType()) {
+            int phoneType = phoneTypeDialSequence.getPhoneType(customer.getBizId(), 1);
+            customer.setNextDialPhoneType(phoneType);
+        }
+
         Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(customer.getBizId());
         if (null == oneBizCustomerSharePool) {
             oneBizCustomerSharePool = new HashMap<Integer, OnePhoneTypeCustomerPool>();
@@ -75,7 +80,7 @@ public class MultiNumberPredictCustomerSharePool {
 
 
     public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
-        customerWaitPool.markShareBatchStopFromCustomerWaitPool(shareBatchIds);
+        customerWaitPool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }
 
     public void removeShareCustomer(int bizId, List<String> shareBatchIds) {

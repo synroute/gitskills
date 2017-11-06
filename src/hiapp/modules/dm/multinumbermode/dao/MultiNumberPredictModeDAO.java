@@ -310,13 +310,19 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(item.getEndCode())).append(",");
 
         for (int i=1; i<=10; i++) {
-            int phoneType = phoneTypeDialSequence.getPhoneType(item.getBizId(), i);
+            Integer phoneType = phoneTypeDialSequence.getPhoneType(item.getBizId(), i);
+
             PhoneDialInfo phoneDialInfo = item.getDialInfo(phoneType);
-            sqlBuilder.append(", PT").append(i).append("_PHONENUMBER = ").append(SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber()));
-            sqlBuilder.append(", PT").append(i).append("_LASTDIALTIME = ").append(SQLUtil.getSqlString(phoneDialInfo.getLastDialTime()));
-            sqlBuilder.append(", PT").append(i).append("_CAUSEPRESETDIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount()));
-            sqlBuilder.append(", PT").append(i).append("_DIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getDialCount()));
+            sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber())).append(",");
+            sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getLastDialTime())).append(",");
+            sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount())).append(",");
+            sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getDialCount())).append(",");
         }
+
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCurDialPhone())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCurPresetDialTime())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCurDialPhoneType())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getNextDialPhoneType()));
 
         sqlBuilder.append(")");
 
