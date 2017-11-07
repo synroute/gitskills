@@ -319,7 +319,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 					creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 					creationInfoWorkSheet.addColumn("最多拨打次数", "LASTDAYDIALCOUNT", "最多拨打次数", WorkSheetDataType.TEXT, 50, false, true);
 					creationInfoWorkSheet.addColumn("是否再次拨打", "PHONESTOP", "是否再次拨打", WorkSheetDataType.INT, -1, false, true);
-					
+					creationInfoWorkSheet.addColumn("预约拨打时间", "CURPRESETDIALTIME", "预约拨打时间", WorkSheetDataType.TEXT, 50, false, true);
 					
 					return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 				}
@@ -355,7 +355,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 					creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 					creationInfoWorkSheet.addColumn("最多拨打次数", "LASTDAYDIALCOUNT", "最多拨打次数", WorkSheetDataType.TEXT, 50, false, true);
 					creationInfoWorkSheet.addColumn("是否再次拨打", "PHONESTOP", "是否再次拨打", WorkSheetDataType.INT, -1, false, true);
-					
+					creationInfoWorkSheet.addColumn("预约拨打时间", "CURPRESETDIALTIME", "预约拨打时间", WorkSheetDataType.TEXT, 50, false, true);
 					
 					return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 				}
