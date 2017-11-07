@@ -27,6 +27,9 @@ public class MultiNumberPredictCustomerSharePool {
             int phoneType = phoneTypeDialSequence.getPhoneType(bizId, dialIndex);
 
             Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(bizId);
+            if (null == oneBizCustomerSharePool)
+                continue;
+
             OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(phoneType);
             customer = onePhoneTypeCustomerPool.extractCustomer(userId);
             if (null != customer) {

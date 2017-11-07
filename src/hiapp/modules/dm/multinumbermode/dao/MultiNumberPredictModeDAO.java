@@ -171,10 +171,10 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
 
                 for (int i=0; i<10; i++) {
                     PhoneDialInfo phoneDialInfo = new PhoneDialInfo();
-                    phoneDialInfo.setPhoneNumber(rs.getString(15 + i));
-                    phoneDialInfo.setLastDialTime(rs.getTime(16 + i));
-                    phoneDialInfo.setCausePresetDialCount(rs.getInt(17 + i));
-                    phoneDialInfo.setDialCount(rs.getInt(18 + i));
+                    phoneDialInfo.setPhoneNumber(rs.getString(15 + i*4));
+                    phoneDialInfo.setLastDialTime(rs.getTime(16 + i*4));
+                    phoneDialInfo.setCausePresetDialCount(rs.getInt(17 + i*4));
+                    phoneDialInfo.setDialCount(rs.getInt(18 + i*4));
                     item.setDialInfo(i, phoneDialInfo);
                 }
 
