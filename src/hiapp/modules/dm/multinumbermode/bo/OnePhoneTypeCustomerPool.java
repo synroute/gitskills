@@ -30,9 +30,11 @@ public class OnePhoneTypeCustomerPool {
         Date now = new Date();
 
         if (null != shareDataItem) {
-            shareDataItem.setExtractTime(now);
-            shareDataItem.setUserId(userId);
-
+            shareDataItem.setState(MultiNumberPredictStateEnum.EXTRACTED);
+            shareDataItem.setModifyTime(now);
+            shareDataItem.setModifyId(shareDataItem.getModifyId() + 1);
+            shareDataItem.setModifyUserId(userId);
+            //shareDataItem.setModifyDesc("");
             shareDataItem.setCurDialPhoneType(phoneType);
         }
 

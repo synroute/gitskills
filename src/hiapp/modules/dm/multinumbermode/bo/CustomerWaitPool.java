@@ -89,7 +89,7 @@ public class CustomerWaitPool {
             mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(),
                     customerItem);
         } else {
-            Long timeSlot = customerItem.getExtractTime().getTime()/Constants.timeSlotSpan;
+            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
             Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
             if (null == mapWaitTimeOutPool) {
                 mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
@@ -101,7 +101,7 @@ public class CustomerWaitPool {
     }
 
     public void hidialerPhoneConnect(MultiNumberCustomer customerItem) {
-        Long timeSlot = customerItem.getExtractTime().getTime()/Constants.timeSlotSpan;
+        Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
         if (null == mapWaitTimeOutPool)
             return;
@@ -147,13 +147,13 @@ public class CustomerWaitPool {
 
 
         if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getExtractTime().getTime() / Constants.timeSlotSpan;
+            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             removeWaitScreenPopUpTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
         } else if (MultiNumberPredictStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getExtractTime().getTime() / Constants.timeSlotSpan;
+            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             removeWaitResultTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
         } else {
-            Long timeSlot = customerItem.getExtractTime().getTime() / Constants.timeSlotSpan;
+            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             removeWaitPhoneConnectTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
         }
 
@@ -238,7 +238,7 @@ public class CustomerWaitPool {
                     multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
                 }
 
-                removeWaitResultCustome(customerItem.getUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
 
                 removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());
@@ -259,7 +259,7 @@ public class CustomerWaitPool {
                     multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
                 }
 
-                removeWaitResultCustome(customerItem.getUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
 
                 removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());
@@ -279,7 +279,7 @@ public class CustomerWaitPool {
                     multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
                 }
 
-                removeWaitResultCustome(customerItem.getUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
 
                 removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());

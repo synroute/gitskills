@@ -41,25 +41,6 @@ public class MultiNumberModeController {
     @Autowired
     MultiNumberOutboundDataManage multiNumberOutboundDataManage;
 
-    public String extractNextCustomer(HttpServletRequest request,
-                                      String userId,
-                                      String bizId) {
-        System.out.println(userId + "。。。" + bizId);
-        Integer intBizId = Integer.valueOf(bizId);
-        List<MultiNumberCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId, 1);
-
-        NextOutboundCustomerResult result = new NextOutboundCustomerResult();
-        if (null == customerList) {
-            result.setResultCode(ServiceResultCode.CUSTOMER_NONE);
-        } else {
-            result.setResultCode(ServiceResultCode.SUCCESS);
-            result.setCustomerId(customerList.get(0).getCustomerId());
-            result.setImportBatchId(customerList.get(0).getImportBatchId());
-            result.setShareBatchId(customerList.get(0).getShareBatchId());
-            result.setPhoneType(customerList.get(0).getNextDialPhoneType());
-        }
-        return result.toJson();
-    }
 
     /**
      * @param bizId
@@ -138,8 +119,11 @@ public class MultiNumberModeController {
 
     public String submitOutboundResult(HttpServletRequest request, String requestBody) {
 
-        HttpSession session = request.getSession();
-        User user=(User) session.getAttribute("user");
+        //TODO JUST FOR TEST
+        //HttpSession session = request.getSession();
+        //User user=(User) session.getAttribute("user");
+        User user = new User();
+        user.setId("0000");
 
         Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
         String strBizId = (String) map.get("bizId");

@@ -8,7 +8,7 @@ public class EndCodeRedialStrategyM6ItemDB {
     String IsPhoneStop;
     String RedialMinutes;
     String RedialCount;
-    String PresetDial;
+    String isPresetDial;
     int SortNum;
 
     public String getEndCodeType() {
@@ -68,11 +68,11 @@ public class EndCodeRedialStrategyM6ItemDB {
     }
 
     public String getPresetDial() {
-        return PresetDial;
+        return isPresetDial;
     }
 
-    public void setPresetDial(String presetDial) {
-        PresetDial = presetDial;
+    public void setPresetDial(String isPresetDial) {
+        this.isPresetDial = isPresetDial;
     }
 
     public int  getSortNum() {

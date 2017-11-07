@@ -4,9 +4,10 @@ public enum MultiNumberPredictStateEnum {
 
     CREATED("CREATED"),
     APPENDED("APPENDED"),
-    WAIT_DIAL("WAIT_DIAL"),       // 等待拨打状态
+    EXTRACTED("EXTRACTED"),       // 已经被HiDialer抽取
+    NEXT_PHONETYPE_WAIT_DIAL("NEXT_PHONETYPE_WAIT_DIAL"), // 下个号码类型等待拨打状态
     PRESET_DIAL("PRESET_DIAL"),   // 预约拨打状态
-    WAIT_REDIAL("WAIT_REDIAL"),   // 等待重拨状态
+    WAIT_REDIAL("WAIT_REDIAL"),   // 等待重拨状态, 外呼策略处理结果
     LOSS_WAIT_REDIAL("LOSS_WAIT_REDIAL"),   //呼损重拨状态
     FINISHED("FINISHED"),      // 本客户拨打完成
     REVERT("REVERT"),         // 回退状态
@@ -31,8 +32,8 @@ public enum MultiNumberPredictStateEnum {
         if (MultiNumberPredictStateEnum.APPENDED.getName().equals(columnValue))
             return MultiNumberPredictStateEnum.APPENDED;
 
-        if (MultiNumberPredictStateEnum.WAIT_DIAL.getName().equals(columnValue))
-            return MultiNumberPredictStateEnum.WAIT_DIAL;
+        if (MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL.getName().equals(columnValue))
+            return MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL;
 
         if (MultiNumberPredictStateEnum.PRESET_DIAL.getName().equals(columnValue))
             return MultiNumberPredictStateEnum.PRESET_DIAL;

@@ -92,10 +92,10 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                     item.setDialInfo(i+1, phoneDialInfo);
                 }
 
-                item.setCurDialPhone(rs.getString(28));
-                item.setCurPresetDialTime(rs.getTime(29));
-                item.setCurDialPhoneType(rs.getInt(30));
-                item.setNextDialPhoneType(rs.getInt(31));
+                item.setCurDialPhone(rs.getString(55));
+                item.setCurPresetDialTime(rs.getTime(56));
+                item.setCurDialPhoneType(rs.getInt(57));
+                item.setNextDialPhoneType(rs.getInt(58));
 
                 item.setShareBatchStartTime(mapShareBatchIdVsShareBatchItem.get(item.getShareBatchId()).getStartTime());
 
@@ -178,10 +178,10 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                     item.setDialInfo(i, phoneDialInfo);
                 }
 
-                item.setCurDialPhone(rs.getString(28));
-                item.setCurPresetDialTime(rs.getTime(29));
-                item.setCurDialPhoneType(rs.getInt(30));
-                item.setNextDialPhoneType(rs.getInt(31));
+                item.setCurDialPhone(rs.getString(55));
+                item.setCurPresetDialTime(rs.getTime(56));
+                item.setCurDialPhoneType(rs.getInt(57));
+                item.setNextDialPhoneType(rs.getInt(58));
 
                 item.setShareBatchStartTime(mapShareBatchIdVsShareBatchItem.get(item.getShareBatchId()).getStartTime());
 
@@ -207,6 +207,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
         sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state.getName()));
         sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIdList)).append(")");
+        sqlBuilder.append("   AND BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -225,7 +226,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         return true;
     }
 
-    public Boolean updateCustomerShareState(MultiNumberCustomer item) {
+    public Boolean updateCustomerShareForOutboundResult(MultiNumberCustomer item) {
         String tableName = String.format("HAU_DM_B%dC_DATAM6", item.getBizId());
 
         //
@@ -243,15 +244,50 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         sqlBuilder.append(", CURDIALPHONETYPE = ").append(SQLUtil.getSqlString(item.getCurDialPhoneType()));
         sqlBuilder.append(", NEXTDIALPHONETYPE = ").append(SQLUtil.getSqlString(item.getNextDialPhoneType()));
         sqlBuilder.append(", CURPRESETDIALTIME = ").append(SQLUtil.getSqlString(item.getCurPresetDialTime()));
-        sqlBuilder.append(", ISAPPEND = ").append(SQLUtil.getSqlString(item.getIsAppend()));
+        //sqlBuilder.append(", ISAPPEND = ").append(SQLUtil.getSqlString(item.getIsAppend()));
 
-        int curPhoneDialSeq = phoneTypeDialSequence.getDialSequence(item.getBizId(), item.getCurDialPhoneType());
-        PhoneDialInfo phoneDialInfo = item.getDialInfo(item.getCurDialPhoneType());
-        sqlBuilder.append(", PT").append(curPhoneDialSeq).append("_PHONENUMBER = ").append(SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber()));
-        sqlBuilder.append(", PT").append(curPhoneDialSeq).append("_LASTDIALTIME = ").append(SQLUtil.getSqlString(phoneDialInfo.getLastDialTime()));
-        sqlBuilder.append(", PT").append(curPhoneDialSeq).append("_CAUSEPRESETDIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount()));
-        sqlBuilder.append(", PT").append(curPhoneDialSeq).append("_DIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getDialCount()));
+        int curPhoneType = item.getCurDialPhoneType();
+        //int curPhoneDialSeq = phoneTypeDialSequence.getDialSequence(item.getBizId(), item.getCurDialPhoneType());
+        PhoneDialInfo phoneDialInfo = item.getDialInfo(curPhoneType);
+        sqlBuilder.append(", PT").append(curPhoneType).append("_PHONENUMBER = ").append(SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber()));
+        sqlBuilder.append(", PT").append(curPhoneType).append("_LASTDIALTIME = ").append(SQLUtil.getSqlString(phoneDialInfo.getLastDialTime()));
+        sqlBuilder.append(", PT").append(curPhoneType).append("_CAUSEPRESETDIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount()));
+        sqlBuilder.append(", PT").append(curPhoneType).append("_DIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getDialCount()));
 
+        sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(item.getBizId()));
+        sqlBuilder.append("  AND IID = ").append(SQLUtil.getSqlString(item.getImportBatchId()));
+        sqlBuilder.append("  AND CID = ").append(SQLUtil.getSqlString(item.getCustomerId()));
+
+        System.out.println(sqlBuilder.toString());
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    public Boolean updateCustomerShareForExtract(MultiNumberCustomer item) {
+        String tableName = String.format("HAU_DM_B%dC_DATAM6", item.getBizId());
+
+        //
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET ");
+        sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(item.getState().getName()));
+        sqlBuilder.append(", MODIFYID = ").append(SQLUtil.getSqlString(item.getModifyId()));
+        sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
+        sqlBuilder.append(", MODIFYTIME = ").append(SQLUtil.getSqlString(item.getModifyTime()));
+        sqlBuilder.append(", MODIFYDESC = ").append(SQLUtil.getSqlString(item.getModifyDesc()));
         sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(item.getBizId()));
         sqlBuilder.append("  AND IID = ").append(SQLUtil.getSqlString(item.getImportBatchId()));
         sqlBuilder.append("  AND CID = ").append(SQLUtil.getSqlString(item.getCustomerId()));

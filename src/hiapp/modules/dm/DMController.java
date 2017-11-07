@@ -40,30 +40,6 @@ public class DMController {
     @Autowired
     MultiNumberModeController multiNumberModeController;
 
-    @RequestMapping(value="/srv/dm/extractNextCustomer.srv", method= RequestMethod.GET, produces="application/json")
-    public String extractNextCustomer(HttpServletRequest request,
-                                                          @RequestParam("userId") String userId,
-                                                          @RequestParam("bizId") String bizId) {
-        DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(bizId));
-
-        if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
-
-        } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-
-        } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-            return singleNumberModeController.extractNextCustomer(request, userId, bizId);
-
-        } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-
-        } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-
-        } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-            return multiNumberModeController.extractNextCustomer(request, userId, bizId);
-        }
-
-        return "";
-    }
-
     @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
 

@@ -14,22 +14,6 @@ public class MultiNumberCustomer {
         this.shareBatchStartTime = shareBatchStartTime;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Date getExtractTime() {
-        return extractTime;
-    }
-
-    public void setExtractTime(Date extractTime) {
-        this.extractTime = extractTime;
-    }
-
     public Boolean getInvalid() {
         return invalid;
     }
@@ -222,8 +206,6 @@ public class MultiNumberCustomer {
 
     // 非本表字段
     Date shareBatchStartTime;  //用于优先级控制
-    String userId;    // 抽取该客户的坐席人员
-    Date extractTime; // 用于记录抽取时间
     Boolean invalid = false;
 }
 
