@@ -104,10 +104,16 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			{
 				xml=rs.getString("xml");
 			}
-			
-			
-			String szSql ="";
-			
+			String typesql=String.format("select OutboundMddeId from HASYS_DM_Business where BusinessID="+bizId+"");
+			stmt = conn.prepareStatement(typesql);
+			rs = stmt.executeQuery();
+			int type=0;
+			while(rs.next())
+			{
+				type=rs.getInt(1);
+			}
+			if (type==3) {
+				
 				JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 				jsonObject.remove("RedialState");
 				JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
@@ -120,7 +126,21 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			     StringReader reader = new StringReader(clobContent);  
 			     stat.setCharacterStream(1, reader, clobContent.length());
 			     stat.executeUpdate();
-			
+			}else if (type==4) {
+				
+				JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
+				jsonObject.remove("MultiNumberDetail");
+				JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
+				
+				jsonObject.add("MultiNumberDetail", jsonArray_Map);
+				
+				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=?  where BusinessID="+bizId+"");
+				
+				String clobContent = jsonObject.toString();  
+			     StringReader reader = new StringReader(clobContent);  
+			     stat.setCharacterStream(1, reader, clobContent.length());
+			     stat.executeUpdate();
+			}
 			
 			  
 		} catch (SQLException e) {
@@ -189,7 +209,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			stmt = conn.prepareStatement(szSql);
 			stmt.executeUpdate();
 			}
-			if(type==6)
+			if(type==6||type==5)
 			{
 				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where BusinessID="+bizId+"");
 				
