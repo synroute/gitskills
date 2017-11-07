@@ -145,7 +145,10 @@ public class DmBizEndCodeRepository extends BaseRepository {
 					add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc);
 				}else if(type==6)
 				{
-					addModel6( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc);
+					addModel6( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc,type);
+				}else if(type==5)
+				{
+					addModel6( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc,type);
 				}
 			}
 		} catch (SQLException e) {
@@ -339,8 +342,104 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		
 	}
 	
+
 	//添加addsettingjson字符串
-		public void addModel6(int bizid,String EndCodeType,String EndCode,String Description) throws SQLException, IOException
+		public void addModel4(int bizid,String EndCodeType,String EndCode,String Description,int type) throws SQLException, IOException
+		{
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			int count=0;
+			String xml="";
+			try{
+				conn =this.getDbConnection();
+				String sql="select xml from HASYS_DM_BIZOUTBOUNDSETTING where BusinessID="+bizid+"";
+				stmt = conn.prepareStatement(sql);
+				rs = stmt.executeQuery();
+				while(rs.next())
+				{
+					xml=rs.getString("xml");
+					count+=1;
+				}
+				
+				//判断是否存在以前的配置
+				if (count==0) {
+					// 鍒涘缓XML鏂囨。鏍�  
+			        JsonObject jsonObject=new JsonObject();
+			        
+			        JsonArray jsonArray_EndCode= new JsonArray();
+			        
+			        JsonObject jsonObject_EndCode=new JsonObject();
+			        
+			        jsonObject_EndCode.addProperty("EndCodeType", EndCodeType);
+			        jsonObject_EndCode.addProperty("EndCode", EndCode);
+			        jsonObject_EndCode.addProperty("IsCustStop", "");
+			        jsonObject_EndCode.addProperty("IsPhoneStop", "");
+			       
+			        jsonArray_EndCode.add(jsonObject_EndCode);
+			        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
+			        	
+			        JsonObject jsonObject_MultiNumberDetail=new JsonObject();
+			        JsonObject jsonObject_Attribute=new JsonObject();
+			        jsonObject_Attribute.addProperty("StageCount", "");
+			        jsonObject_Attribute.addProperty("LoopType", "");
+			        jsonObject_Attribute.addProperty("StageDelayDays", "");
+			        jsonObject_MultiNumberDetail.add("Attribute", jsonObject_Attribute);
+			        
+			        JsonArray jsonArray_DayOrder=new JsonArray();
+			        JsonObject jsonObject_DayOrder=new JsonObject();
+			        jsonObject_DayOrder.addProperty("Index", "");
+			        jsonObject_DayOrder.addProperty("PhoneName", "");
+			        jsonObject_DayOrder.addProperty("DialCount", "");
+			        jsonArray_DayOrder.add(jsonObject_DayOrder);
+			        jsonObject_MultiNumberDetail.add("DayOrder", jsonArray_DayOrder);
+			        
+			        jsonObject.add("MultiNumberDetail", jsonObject_MultiNumberDetail);
+			        
+			        
+			            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
+			            stmt = conn.prepareStatement(insertsql);
+			            stmt.executeUpdate();
+			        
+				}else
+				{
+					
+					
+					JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
+					
+					JsonArray jsonArray=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
+					JsonObject jsonObject_EndCode=new JsonObject();
+					
+					 	jsonObject_EndCode.addProperty("EndCodeType", EndCodeType);
+				        jsonObject_EndCode.addProperty("EndCode", EndCode);
+				        jsonObject_EndCode.addProperty("IsCustStop", "");
+				        jsonObject_EndCode.addProperty("IsPhoneStop", "");
+				       
+				        jsonArray.add(jsonObject_EndCode);
+					
+			            String updatesql = "update HASYS_DM_BIZOUTBOUNDSETTING set XML='"+jsonObject.toString()+"' where BusinessId="+bizid+"";
+			            stmt = conn.prepareStatement(updatesql);
+			            stmt.executeUpdate();
+					
+				}
+				
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+				
+			} 
+			finally {
+				
+				DbUtil.DbCloseExecute(stmt);
+			}
+			
+			
+			
+		}
+	
+	
+	
+	//添加addsettingjson字符串
+		public void addModel6(int bizid,String EndCodeType,String EndCode,String Description,int type) throws SQLException, IOException
 		{
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
@@ -369,10 +468,14 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			        jsonObject_EndCode.addProperty("EndCodeType", EndCodeType);
 			        jsonObject_EndCode.addProperty("EndCode", EndCode);
 			        jsonObject_EndCode.addProperty("IsCustStop", "");
-			        jsonObject_EndCode.addProperty("IsPhoneStop", "");
+			        if (type==6) {
+				        jsonObject_EndCode.addProperty("isPresetDial", "");
+				        jsonObject_EndCode.addProperty("IsPhoneStop", "");
+					}
+			        
 			        jsonObject_EndCode.addProperty("RedialMinutes", "");
 			        jsonObject_EndCode.addProperty("RedialCount", "");
-			        jsonObject_EndCode.addProperty("isPresetDial", "");
+			        
 			        jsonArray_EndCode.add(jsonObject_EndCode);
 			        
 			        	
@@ -392,7 +495,10 @@ public class DmBizEndCodeRepository extends BaseRepository {
 					 jsonObject_EndCode.addProperty("EndCodeType", EndCodeType);
 				        jsonObject_EndCode.addProperty("EndCode", EndCode);
 				        jsonObject_EndCode.addProperty("IsCustStop", "");
-				        jsonObject_EndCode.addProperty("IsPhoneStop", "");
+				        if (type==6) {
+					        jsonObject_EndCode.addProperty("isPresetDial", "");
+					        jsonObject_EndCode.addProperty("IsPhoneStop", "");
+						}
 				        jsonObject_EndCode.addProperty("RedialMinutes", "");
 				        jsonObject_EndCode.addProperty("RedialCount", "");
 			        jsonArray.add(jsonObject_EndCode);
@@ -491,7 +597,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			     StringReader reader = new StringReader(clobContent);  
 			     stat.setCharacterStream(1, reader, clobContent.length());
 			     stat.executeUpdate();
-			}else if(type==6)
+			}else if(type==6||type==5)
 			{
 				
 				JsonArray jsonArray=new JsonParser().parse(xml).getAsJsonArray();
@@ -511,7 +617,31 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			     StringReader reader = new StringReader(clobContent);  
 			     stat.setCharacterStream(1, reader, clobContent.length());
 			     stat.executeUpdate();
+			}else if(type==4)
+			{
+				JsonObject jsonObject= new JsonParser().parse(xml).getAsJsonObject();
+				JsonArray jsonArray=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
+				
+				for(int i=0;i<jsonArray.size();i++)
+				{
+					JsonObject jsonObject_endcode=jsonArray.get(i).getAsJsonObject();
+					if (jsonObject_endcode.get("EndCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("EndCode").getAsString().equals(dmEndCode.getEndCode())) {
+						jsonArray.remove(i);
+					}
+				}
+				
+				//updateadd="update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where businessid="+dmEndCode.getBizId()+"";
+				
+				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where businessid="+dmEndCode.getBizId()+"");
+				
+				String clobContent = jsonObject.toString();  
+			     StringReader reader = new StringReader(clobContent);  
+			     stat.setCharacterStream(1, reader, clobContent.length());
+			     stat.executeUpdate();
 			}
+			
+			
+			
 			/*stmt = conn.prepareStatement(updateadd);
 			stmt.executeUpdate();*/
 			
