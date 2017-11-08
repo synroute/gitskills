@@ -120,4 +120,40 @@ public class EndCodeController {
 				return recordsetResult.toJson();
 		}
 		
+		@RequestMapping(value = "srv/dm/dmGetPersetByEndCode.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+		public String dmGetPersetByEndCode(@RequestParam("bizId") int bizId,
+				@RequestParam("endCodeType") String endCodeType,@RequestParam("endCode") String endCode) {
+			RecordsetResult recordsetResult = new RecordsetResult();
+			try{
+				DMEndCode dmEndCode =new DMEndCode();
+				dmEndCode.setBizId(bizId);
+				dmEndCode.setEndCodeType(endCodeType);
+				dmEndCode.setEndCode(endCode);
+				StringBuffer err=new StringBuffer();
+					if(dmBizEndCode.dmDeleteBizEndCode(dmEndCode,err))
+					{
+						if (err.toString().equals("1")) {
+							recordsetResult.setReturnCode(0);
+							recordsetResult.setReturnMessage("是");
+						}else {
+							recordsetResult.setReturnCode(0);
+							recordsetResult.setReturnMessage("否");
+						}
+						
+					}else
+					{
+						recordsetResult.setReturnCode(1);
+						recordsetResult.setReturnMessage(err.toString());
+					}
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					recordsetResult.setReturnCode(1);
+					recordsetResult.setReturnMessage("失败");
+				}
+				return recordsetResult.toJson();
+		}
+		
+		
+		
 }

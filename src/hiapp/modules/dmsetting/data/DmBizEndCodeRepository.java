@@ -376,7 +376,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			        jsonObject_EndCode.addProperty("EndCode", EndCode);
 			        jsonObject_EndCode.addProperty("IsCustStop", "");
 			        jsonObject_EndCode.addProperty("IsPhoneStop", "");
-			       
+			        jsonObject_EndCode.addProperty("isPresetDial", "");
 			        jsonArray_EndCode.add(jsonObject_EndCode);
 			        jsonObject.add("EndCodeRedialStrategy", jsonArray_EndCode);
 			        	
@@ -385,6 +385,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			        jsonObject_Attribute.addProperty("StageCount", "");
 			        jsonObject_Attribute.addProperty("LoopType", "");
 			        jsonObject_Attribute.addProperty("StageDelayDays", "");
+			        
 			        jsonObject_MultiNumberDetail.add("Attribute", jsonObject_Attribute);
 			        
 			        JsonArray jsonArray_DayOrder=new JsonArray();
@@ -415,6 +416,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				        jsonObject_EndCode.addProperty("EndCode", EndCode);
 				        jsonObject_EndCode.addProperty("IsCustStop", "");
 				        jsonObject_EndCode.addProperty("IsPhoneStop", "");
+				        jsonObject_EndCode.addProperty("isPresetDial", "");
 				       
 				        jsonArray.add(jsonObject_EndCode);
 					
@@ -702,4 +704,112 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		
 		return listDmEndCodes;
 	}
+	
+	
+	//删除结束码信息
+		public boolean dmGetPersetByEndCode(DMEndCode dmEndCode,StringBuffer err) throws SQLException
+		{
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			try {
+				conn =this.getDbConnection();
+				
+
+				String typesql=String.format("select OutboundMddeId from HASYS_DM_Business where BusinessID="+dmEndCode.getBizId()+"");
+				stmt = conn.prepareStatement(typesql);
+				rs = stmt.executeQuery();
+				int type=0;
+				while(rs.next())
+				{
+					type=rs.getInt(1);
+				}
+				
+				
+				String deletedadd="select xml from HASYS_DM_BIZOUTBOUNDSETTING where businessid="+dmEndCode.getBizId()+"";
+				stmt = conn.prepareStatement(deletedadd);
+				rs = stmt.executeQuery();
+				String xml="";
+				while(rs.next())
+				{
+					xml=rs.getString(1);
+				}
+				
+				
+				if(type==3)
+				{
+					JsonObject jsonObject= new JsonParser().parse(xml).getAsJsonObject();
+					JsonArray jsonArray=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
+					JsonObject jsonObject_endChild=jsonArray.get(0).getAsJsonObject();
+					JsonArray jsonArry_endChild=jsonObject_endChild.get("dataInfo").getAsJsonArray();
+					for(int i=0;i<jsonArry_endChild.size();i++)
+					{
+						JsonObject jsonObject_endcode=jsonArry_endChild.get(i).getAsJsonObject();
+						if (jsonObject_endcode.get("endCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("endCode").getAsString().equals(dmEndCode.getEndCode())) {
+							if(jsonObject_endcode.get("redialStateName").getAsString().equals("预约"))
+							{
+								err.append("1");
+							}else {
+								err.append("0");
+							}
+						}
+					}
+					
+				}else if(type==6||type==5)
+				{
+					
+					JsonArray jsonArray=new JsonParser().parse(xml).getAsJsonArray();
+					for(int i=0;i<jsonArray.size();i++)
+					{
+						JsonObject jsonObject_endcode=jsonArray.get(i).getAsJsonObject();
+						if (jsonObject_endcode.get("EndCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("EndCode").getAsString().equals(dmEndCode.getEndCode())) {
+							if(jsonObject_endcode.get("isPresetDial").getAsString().equals("true"))
+							{
+								err.append("1");
+							}else {
+								err.append("0");
+							}
+						}
+					}
+					
+					
+				}else if(type==4)
+				{
+					JsonObject jsonObject= new JsonParser().parse(xml).getAsJsonObject();
+					JsonArray jsonArray=jsonObject.get("EndCodeRedialStrategy").getAsJsonArray();
+					
+					for(int i=0;i<jsonArray.size();i++)
+					{
+						JsonObject jsonObject_endcode=jsonArray.get(i).getAsJsonObject();
+						if (jsonObject_endcode.get("EndCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("EndCode").getAsString().equals(dmEndCode.getEndCode())) {
+							if(jsonObject_endcode.get("isPresetDial").getAsString().equals("true"))
+							{
+								err.append("1");
+							}else {
+								err.append("0");
+							}
+						}
+					}
+					
+				}
+				
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+				err.append("失败！");
+				return false;
+			} 
+			finally {
+				DbUtil.DbCloseConnection(conn);
+				DbUtil.DbCloseExecute(stmt);
+			}
+			
+			
+			return true;
+			
+			
+			
+		}
+	
+	
+	
 }
