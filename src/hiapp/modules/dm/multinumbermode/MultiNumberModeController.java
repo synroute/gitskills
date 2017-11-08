@@ -94,13 +94,15 @@ public class MultiNumberModeController {
     public String hiDialerDialResultNotify(int bizId, String importBatchId, String customerId, String shareBatchId,
                                            String phoneType, String resultCode, String customerCallID)
     {
-        ServiceResult serviceresult = new ServiceResult();
-
         multiNumberOutboundDataManage.hiDialerDialResultNotify(Constants.HiDialerUserId, bizId, importBatchId,
                 customerId, Integer.valueOf(phoneType), resultCode, resultCode, customerCallID);
 
-        serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-        return serviceresult.toJson();
+        Document doc = new Document();
+        Element root = new Element("Msg");
+        root.setAttribute("Result", "1");
+        root.setAttribute("Description", "");
+        doc.setRootElement(root);
+        return XMLUtil.outputDocumentToString(doc);
     }
 
     public String submitScreenPopUp(String userId, String strBizId, String importBatchId, String customerId, String strPhoneType) {
