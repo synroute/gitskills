@@ -149,6 +149,8 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				}else if(type==5)
 				{
 					addModel6( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc,type);
+				}else if(type==4) {
+					addModel4( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc,type);
 				}
 			}
 		} catch (SQLException e) {
