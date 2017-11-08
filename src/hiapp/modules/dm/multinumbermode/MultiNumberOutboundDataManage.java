@@ -68,7 +68,8 @@ public class MultiNumberOutboundDataManage {
     }
 
     public String hiDialerDialResultNotify(String userId, int bizId, String importBatchId, String customerId, int phoneType,
-                                           String resultCodeType, String resultCode, String customerCallId) {
+                                           String resultCodeType, String resultCode, String customerCallId)
+    {
         if (resultCodeType.equals("1") && resultCode.equals("1"))
         {
             String dialType = "dialType";
@@ -102,6 +103,8 @@ public class MultiNumberOutboundDataManage {
 
                 item.setDialInfo(phoneTypeIndex, originPhoneDialInfo);
             }
+
+            customerSharePool.hidialerPhoneConnect(item);
 
             multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(item);
 
@@ -158,6 +161,8 @@ public class MultiNumberOutboundDataManage {
 
             item.setDialInfo(phoneTypeIndex, originPhoneDialInfo);
         }
+
+        customerSharePool.agentScreenPopUp(item);
 
         multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(item);
 
@@ -328,6 +333,7 @@ public class MultiNumberOutboundDataManage {
 
         } else if (strategyItem.getPresetDial()) {
             item.setState(MultiNumberPredictStateEnum.PRESET_DIAL);
+            item.setNextDialPhoneType(item.getCurDialPhoneType());
             PhoneDialInfo phoneDialInfo = item.getDialInfo(item.getCurDialPhoneType());
             phoneDialInfo.setCausePresetDialCount( phoneDialInfo.getCausePresetDialCount() + 1);
 
@@ -354,7 +360,7 @@ public class MultiNumberOutboundDataManage {
             presetItem.setPhoneType("xxx");
             dmDAO.insertPresetItem(originCustomerItem.getBizId(), presetItem);
 
-            // 不要移出候选池，预约在今天
+            // 放回候选池，预约在今天
             if (DateUtil.isSameDay(now, presetTime)) {
                 addCustomerToSharePool(item);
             }
@@ -428,9 +434,9 @@ public class MultiNumberOutboundDataManage {
         shareCustomerStateList.add(MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.REVERT);
 
-        List<MultiNumberPredictStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberPredictStateEnum>();
-        shareCustomerStateList2.add(MultiNumberPredictStateEnum.PRESET_DIAL);
-        shareCustomerStateList2.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
+        List<MultiNumberPredictStateEnum> shareStateListWithDialTime = new ArrayList<MultiNumberPredictStateEnum>();
+        shareStateListWithDialTime.add(MultiNumberPredictStateEnum.PRESET_DIAL);
+        shareStateListWithDialTime.add(MultiNumberPredictStateEnum.WAIT_REDIAL);
 
         List<MultiNumberCustomer> shareDataItems = new ArrayList<MultiNumberCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -446,7 +452,7 @@ public class MultiNumberOutboundDataManage {
 
             // 成批从DB取数据, 根据nextDialTime
             result = multiNumberPredictModeDAO.getGivenBizCustomersByStateAndNextDialTime(
-                    bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
+                    bizId, givenBizShareBatchItems, shareStateListWithDialTime, shareDataItems);
 
 
             // 收集客户共享状态为 MultiNumberPredictStateEnum.APPENDED 的客户信息
@@ -466,9 +472,10 @@ public class MultiNumberOutboundDataManage {
         }
 
         // 初始化等待池
-        List<MultiNumberPredictStateEnum> shareCustomerStateList3 = new ArrayList<MultiNumberPredictStateEnum>();
-        shareCustomerStateList3.add(MultiNumberPredictStateEnum.PHONECONNECTED);
-        shareCustomerStateList3.add(MultiNumberPredictStateEnum.SCREENPOPUP);
+        List<MultiNumberPredictStateEnum> waitPollStates = new ArrayList<MultiNumberPredictStateEnum>();
+        waitPollStates.add(MultiNumberPredictStateEnum.EXTRACTED);
+        waitPollStates.add(MultiNumberPredictStateEnum.PHONECONNECTED);
+        waitPollStates.add(MultiNumberPredictStateEnum.SCREENPOPUP);
 
         List<MultiNumberCustomer> waitResultCustoms = new ArrayList<MultiNumberCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -480,7 +487,7 @@ public class MultiNumberOutboundDataManage {
 
             // 成批从DB取数据
             Boolean result = multiNumberPredictModeDAO.getGivenBizCustomersByState(
-                    bizId, givenBizShareBatchItems, shareCustomerStateList3, waitResultCustoms);
+                    bizId, givenBizShareBatchItems, waitPollStates, waitResultCustoms);
 
             for (MultiNumberCustomer customerItem : waitResultCustoms) {
                 addCustomerToWaitPool(customerItem);

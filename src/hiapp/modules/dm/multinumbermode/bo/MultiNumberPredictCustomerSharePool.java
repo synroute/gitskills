@@ -31,6 +31,9 @@ public class MultiNumberPredictCustomerSharePool {
                 continue;
 
             OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(phoneType);
+            if (null == onePhoneTypeCustomerPool)
+                continue;
+
             customer = onePhoneTypeCustomerPool.extractCustomer(userId);
             if (null != customer) {
                 // 放入 客户等待池
@@ -125,6 +128,14 @@ public class MultiNumberPredictCustomerSharePool {
             //bizCustomerSharePool;
         }*/
 
+    }
+
+    public void hidialerPhoneConnect(MultiNumberCustomer customerItem) {
+        customerWaitPool.hidialerPhoneConnect(customerItem);
+    }
+
+    public void agentScreenPopUp(MultiNumberCustomer customerItem) {
+        customerWaitPool.agentScreenPopUp(customerItem);
     }
 
 }

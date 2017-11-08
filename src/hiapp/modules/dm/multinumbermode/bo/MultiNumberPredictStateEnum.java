@@ -57,6 +57,9 @@ public enum MultiNumberPredictStateEnum {
         if (MultiNumberPredictStateEnum.SCREENPOPUP.getName().equals(columnValue))
             return MultiNumberPredictStateEnum.SCREENPOPUP;
 
+        if (MultiNumberPredictStateEnum.EXTRACTED.getName().equals(columnValue))
+            return MultiNumberPredictStateEnum.EXTRACTED;
+
         return null;
     }
 

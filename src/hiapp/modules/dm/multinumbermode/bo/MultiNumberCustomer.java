@@ -198,7 +198,7 @@ public class MultiNumberCustomer {
     String endCode;
 
     String curDialPhone;
-    Date   curPresetDialTime;
+    Date   curPresetDialTime;          // NOTE: 预约拨打时间 或者 重拨时间
     Integer    curDialPhoneType;
     Integer    nextDialPhoneType;
     int    isAppend;

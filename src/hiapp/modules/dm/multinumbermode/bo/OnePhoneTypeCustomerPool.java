@@ -36,6 +36,8 @@ public class OnePhoneTypeCustomerPool {
             shareDataItem.setModifyUserId(userId);
             //shareDataItem.setModifyDesc("");
             shareDataItem.setCurDialPhoneType(phoneType);
+            PhoneDialInfo phoneDialInfo = shareDataItem.getDialInfo(phoneType);
+            shareDataItem.setCurDialPhone(phoneDialInfo.getPhoneNumber());
         }
 
         return shareDataItem;

@@ -69,7 +69,15 @@ public class CustomerWaitPool {
         }
         mapWaitStopPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
-        if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
+        if (MultiNumberPredictStateEnum.EXTRACTED.equals(customerItem.getState())) {
+            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
+            Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
+            if (null == mapWaitTimeOutPool) {
+                mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
+                mapTimeOutWaitPhoneConnectCustomerPool.put(timeSlot, mapWaitTimeOutPool);
+            }
+            mapWaitTimeOutPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        } else if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
             Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
             if (null == mapWaitTimeOutPool) {
@@ -88,14 +96,6 @@ public class CustomerWaitPool {
             }
             mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(),
                     customerItem);
-        } else {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
-            if (null == mapWaitTimeOutPool) {
-                mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
-                mapTimeOutWaitPhoneConnectCustomerPool.put(timeSlot, mapWaitTimeOutPool);
-            }
-            mapWaitTimeOutPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
         }
 
     }

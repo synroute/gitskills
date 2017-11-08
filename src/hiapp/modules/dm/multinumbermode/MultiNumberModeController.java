@@ -80,11 +80,8 @@ public class MultiNumberModeController {
             item.setAttribute("IID", customer.getImportBatchId());
             item.setAttribute("CID", customer.getCustomerId());
             item.setAttribute("TaskID", customer.getShareBatchId());
-
-            int nextDialPhoneType = customer.getNextDialPhoneType();
-            PhoneDialInfo phoneDialInfo = customer.getDialInfo(nextDialPhoneType);
-            item.setAttribute("PhoneType", String.valueOf(nextDialPhoneType));
-            item.setAttribute("PhoneNum", phoneDialInfo.getPhoneNumber());
+            item.setAttribute("PhoneType", String.valueOf(customer.getCurDialPhoneType()));
+            item.setAttribute("PhoneNum", customer.getCurDialPhone());
 
             custList.addContent(item);
         }
