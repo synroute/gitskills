@@ -130,20 +130,14 @@ public class EndCodeController {
 				dmEndCode.setEndCodeType(endCodeType);
 				dmEndCode.setEndCode(endCode);
 				StringBuffer err=new StringBuffer();
-					if(dmBizEndCode.dmDeleteBizEndCode(dmEndCode,err))
+					if(dmBizEndCode.dmGetPersetByEndCode(dmEndCode,err))
 					{
-						if (err.toString().equals("1")) {
-							recordsetResult.setReturnCode(0);
-							recordsetResult.setReturnMessage("是");
-						}else {
-							recordsetResult.setReturnCode(0);
-							recordsetResult.setReturnMessage("否");
-						}
-						
+						recordsetResult.setReturnCode(0);
+						recordsetResult.setReturnMessage("是");
 					}else
 					{
 						recordsetResult.setReturnCode(1);
-						recordsetResult.setReturnMessage(err.toString());
+						recordsetResult.setReturnMessage("否");
 					}
 					
 				} catch (Exception e) {

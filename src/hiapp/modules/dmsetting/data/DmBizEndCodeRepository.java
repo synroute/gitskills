@@ -711,6 +711,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 		{
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
+			boolean isperset=false;
 			try {
 				conn =this.getDbConnection();
 				
@@ -747,9 +748,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 						if (jsonObject_endcode.get("endCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("endCode").getAsString().equals(dmEndCode.getEndCode())) {
 							if(jsonObject_endcode.get("redialStateName").getAsString().equals("预约"))
 							{
-								err.append("1");
-							}else {
-								err.append("0");
+								isperset=true;
 							}
 						}
 					}
@@ -764,9 +763,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 						if (jsonObject_endcode.get("EndCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("EndCode").getAsString().equals(dmEndCode.getEndCode())) {
 							if(jsonObject_endcode.get("isPresetDial").getAsString().equals("true"))
 							{
-								err.append("1");
-							}else {
-								err.append("0");
+								isperset=true;
 							}
 						}
 					}
@@ -783,9 +780,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 						if (jsonObject_endcode.get("EndCodeType").getAsString().equals(dmEndCode.getEndCodeType())||jsonObject_endcode.get("EndCode").getAsString().equals(dmEndCode.getEndCode())) {
 							if(jsonObject_endcode.get("isPresetDial").getAsString().equals("true"))
 							{
-								err.append("1");
-							}else {
-								err.append("0");
+								isperset=true;
 							}
 						}
 					}
@@ -804,7 +799,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			}
 			
 			
-			return true;
+			return isperset;
 			
 			
 			
