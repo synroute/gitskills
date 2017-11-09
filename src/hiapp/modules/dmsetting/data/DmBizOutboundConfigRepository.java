@@ -198,7 +198,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			}
 			
 			
-			if(type==3)
+			if(type==3||type==4)
 			{
 			JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 			jsonObject.remove("EndCodeRedialStrategy");
