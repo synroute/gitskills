@@ -24,6 +24,11 @@ public class XMLUtil {
 //
 //        parseXml("<Msg JobId=\"13\" Count=\"10\"></Msg>");
 
+        Date now = new Date();
+        String str2 = String.format("%02d:%02d:%02d", now.getHours(), now.getMinutes(), now.getSeconds());
+        System.out.println(str2);
+
+
         BizConfig cfg = new BizConfig();
         cfg.setBusinessID("1");
         cfg.setDialMode("6");

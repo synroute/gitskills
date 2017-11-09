@@ -66,8 +66,7 @@ public class DateUtil {
 
     public static String getCurTimeString() {
         Date now = new Date();
-        return now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+        return String.format("%02d:%02d:%02d", now.getHours(), now.getMinutes(), now.getSeconds());
     }
-
 
 }

@@ -100,40 +100,40 @@ public class CustomerWaitPool {
 
     }
 
-    public void hidialerPhoneConnect(MultiNumberCustomer customerItem) {
-        Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
+    public void hidialerPhoneConnect(MultiNumberCustomer originCustomer) {
+        Long timeSlot = originCustomer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
         if (null == mapWaitTimeOutPool)
             return;
 
-        mapWaitTimeOutPool.remove(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        mapWaitTimeOutPool.remove(originCustomer.getImportBatchId() + originCustomer.getCustomerId(), originCustomer);
 
 
-        Long timeSlot2 = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
+        Long timeSlot2 = originCustomer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot2);
         if (null == mapWaitTimeOutPool2) {
             mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
             mapTimeOutWaitScreenPopUpCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
-        mapWaitTimeOutPool2.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        mapWaitTimeOutPool2.put(originCustomer.getImportBatchId() + originCustomer.getCustomerId(), originCustomer);
     }
 
-    public void agentScreenPopUp(MultiNumberCustomer customerItem) {
-        Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
+    public void agentScreenPopUp(MultiNumberCustomer originCustomer) {
+        Long timeSlot = originCustomer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
         if (null == mapWaitTimeOutPool)
             return;
 
-        mapWaitTimeOutPool.remove(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        mapWaitTimeOutPool.remove(originCustomer.getImportBatchId() + originCustomer.getCustomerId(), originCustomer);
 
 
-        Long timeSlot2 = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
+        Long timeSlot2 = originCustomer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitResultCustomerPool.get(timeSlot2);
         if (null == mapWaitTimeOutPool2) {
             mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
             mapTimeOutWaitResultCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
-        mapWaitTimeOutPool2.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        mapWaitTimeOutPool2.put(originCustomer.getImportBatchId() + originCustomer.getCustomerId(), originCustomer);
     }
 
     public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
