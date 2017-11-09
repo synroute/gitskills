@@ -44,7 +44,7 @@ public class DMBizMangeShare extends BaseRepository{
 			try {
 				dbConn = this.getDbConnection();
 				String getDataSql="select ID,BUSINESSID,SHAREID,SHAREID,CREATEUSERID,CREATETIME,DESCRIPTION,STATE,STARTTIME,ENDTIME from (";
-				String sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,rownum rn FROM HASYS_DM_SID A  where A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and (A.state='启动' or A.state is null) ";
+				String sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,rownum rn FROM HASYS_DM_SID A  where A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and (A.state='enable' or A.state is null) ";
 				getDataSql=getDataSql+sql+" and rownum<?) t where rn>=?";
 				stmt = dbConn.prepareStatement(getDataSql);
 				stmt.setInt(1,businessID); 
