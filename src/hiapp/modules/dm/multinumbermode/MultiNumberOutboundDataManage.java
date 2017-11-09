@@ -169,7 +169,6 @@ public class MultiNumberOutboundDataManage {
         procEndcode(userId, originCustomerItem, strategyItem, resultCodeType, resultCode, presetTime, resultData);
 
         // 插入结果表
-        //dataImportJdbc.insertDataToResultTable(bizId, shareBatchId, importBatchId, customerId, userId, resultData);
         dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
         dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
                 originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId,
@@ -288,6 +287,7 @@ public class MultiNumberOutboundDataManage {
         item.setModifyId(originCustomerItem.getModifyId() + 1);
         item.setCurDialPhoneType(originCustomerItem.getCurDialPhoneType());
         item.setCurDialPhone(originCustomerItem.getCurDialPhone());
+        item.setNextDialPhoneType(originCustomerItem.getNextDialPhoneType());
 
         PhoneDialInfo originPhoneDialInfo = originCustomerItem.getDialInfo(originCustomerItem.getCurDialPhoneType());
         originPhoneDialInfo.setDialCount( originPhoneDialInfo.getDialCount() + 1);
@@ -348,6 +348,10 @@ public class MultiNumberOutboundDataManage {
                 item.setState(MultiNumberPredictStateEnum.FINISHED);
             }
 
+            if (!MultiNumberPredictStateEnum.FINISHED.equals(item.getState())) {
+                addCustomerToSharePool(item);
+            }
+
             // 更新共享状态表
             multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(item);
 
@@ -359,15 +363,21 @@ public class MultiNumberOutboundDataManage {
             PhoneDialInfo phoneDialInfo = item.getDialInfo(item.getCurDialPhoneType());
 
             if ((phoneDialInfo.getDialCount() - phoneDialInfo.getCausePresetDialCount()) >= strategyItem.getMaxRedialNum()) {
-                item.setState(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
-                int nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());
-                item.setNextDialPhoneType(nextDialPhoneType);
+                Integer nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());
+                if (null != nextDialPhoneType) {
+                    item.setState(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
+                    item.setNextDialPhoneType(nextDialPhoneType);
+                } else {
+                    item.setState(MultiNumberPredictStateEnum.FINISHED);
+                }
             } else {
                 item.setState(MultiNumberPredictStateEnum.WAIT_REDIAL);
                 item.setCurPresetDialTime(DateUtil.getNextXMinute(strategyItem.getRedialDelayMinutes()));
             }
 
-            addCustomerToSharePool(item);
+            if (!MultiNumberPredictStateEnum.FINISHED.equals(item.getState())) {
+                addCustomerToSharePool(item);
+            }
 
             multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(item);
 

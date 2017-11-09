@@ -46,6 +46,7 @@ public class PhoneTypeDialSequence {
             if (curDialPhoneType != mapOneBizPhoneTypeDialSeq.get(dialIndex))
                 continue;
 
+            // 当前拨打类型已经是最后的号码类型，也就是已经都打完了
             if (dialIndex == mapOneBizPhoneTypeDialSeq.size())
                 return null;
 

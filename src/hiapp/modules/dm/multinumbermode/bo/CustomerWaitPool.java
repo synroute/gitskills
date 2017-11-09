@@ -20,7 +20,7 @@ public class CustomerWaitPool {
     Map<String, Map<String, MultiNumberCustomer>> mapUserWaitResultCustomerPool;
 
     // 等待共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
-    // BizId + ShareBatchId <==> {ImportId + CustomerId <==> MultiNumberCustomer}
+    // ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberCustomer}
     Map<String, Map<String, MultiNumberCustomer>> mapShareBatchWaitStopCustomerPool;
 
     // 等待hidialer呼通超时的客户池，抽取时间的分钟SLOT维度
@@ -60,14 +60,14 @@ public class CustomerWaitPool {
             mapWaitResultPool = new HashMap<String, MultiNumberCustomer>();
             mapUserWaitResultCustomerPool.put(userId, mapWaitResultPool);
         }
-        mapWaitResultPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        mapWaitResultPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
-        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customerItem.getBizId() + customerItem.getShareBatchId());
+        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customerItem.getShareBatchId());
         if (null == mapWaitStopPool) {
             mapWaitStopPool = new HashMap<String, MultiNumberCustomer>();
             mapShareBatchWaitStopCustomerPool.put(customerItem.getBizId() + customerItem.getShareBatchId(), mapWaitStopPool);
         }
-        mapWaitStopPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        mapWaitStopPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
         if (MultiNumberPredictStateEnum.EXTRACTED.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
@@ -76,7 +76,8 @@ public class CustomerWaitPool {
                 mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
                 mapTimeOutWaitPhoneConnectCustomerPool.put(timeSlot, mapWaitTimeOutPool);
             }
-            mapWaitTimeOutPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+            mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+
         } else if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
             Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
@@ -106,8 +107,7 @@ public class CustomerWaitPool {
         if (null == mapWaitTimeOutPool)
             return;
 
-        mapWaitTimeOutPool.remove(customer.getImportBatchId() + customer.getCustomerId());
-
+        mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
 
         Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot2);
@@ -115,7 +115,7 @@ public class CustomerWaitPool {
             mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
             mapTimeOutWaitScreenPopUpCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
-        mapWaitTimeOutPool2.put(customer.getImportBatchId() + customer.getCustomerId(), customer);
+        mapWaitTimeOutPool2.put(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId(), customer);
     }
 
     public void agentScreenPopUp(MultiNumberCustomer customer) {
@@ -124,7 +124,7 @@ public class CustomerWaitPool {
         if (null == mapWaitTimeOutPool)
             return;
 
-        mapWaitTimeOutPool.remove(customer.getImportBatchId() + customer.getCustomerId());
+        mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
 
 
         Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
@@ -133,7 +133,7 @@ public class CustomerWaitPool {
             mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
             mapTimeOutWaitResultCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
-        mapWaitTimeOutPool2.put(customer.getImportBatchId() + customer.getCustomerId(), customer);
+        mapWaitTimeOutPool2.put(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId(), customer);
     }
 
     public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
@@ -164,7 +164,7 @@ public class CustomerWaitPool {
         if (null == mapWaitResultPool)
             return null;
 
-        MultiNumberCustomer customerItem = mapWaitResultPool.get(importBatchId + customerId);
+        MultiNumberCustomer customerItem = mapWaitResultPool.get(bizId + importBatchId + customerId);
         return customerItem;
     }
 
@@ -175,7 +175,7 @@ public class CustomerWaitPool {
     public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
             Map<String, MultiNumberCustomer> mapWaitStopPool;
-            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(bizId + shareBatchId);
+            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
             for (MultiNumberCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }
@@ -210,7 +210,7 @@ public class CustomerWaitPool {
 
         Map<String, MultiNumberCustomer> mapWaitResultPool = mapUserWaitResultCustomerPool.get(userId);
         if (null != mapWaitResultPool) {
-            customerItem = mapWaitResultPool.remove(importBatchId + customerId);
+            customerItem = mapWaitResultPool.remove(bizId + importBatchId + customerId);
             if (mapWaitResultPool.isEmpty())
                 mapUserWaitResultCustomerPool.remove(userId);
         }
@@ -289,11 +289,11 @@ public class CustomerWaitPool {
 
 
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
-        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(bizId + shareBatchId);
+        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
         if (null != mapWaitStopPool) {
-            mapWaitStopPool.remove(importBatchId + customerId);
+            mapWaitStopPool.remove(bizId + importBatchId + customerId);
             if (mapWaitStopPool.isEmpty())
-                mapShareBatchWaitStopCustomerPool.remove(bizId + shareBatchId);
+                mapShareBatchWaitStopCustomerPool.remove(shareBatchId);
         }
     }
 
