@@ -118,11 +118,11 @@ public class MultiNumberModeController {
 
     public String submitOutboundResult(HttpServletRequest request, String requestBody) {
 
-        //TODO JUST FOR TEST
-        //HttpSession session = request.getSession();
-        //User user=(User) session.getAttribute("user");
-        User user = new User();
-        user.setId("0000");
+        HttpSession session = request.getSession();
+        User user=(User) session.getAttribute("user");
+
+        //User user = new User();
+        //user.setId("0000");
 
         Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
         String strBizId = (String) map.get("bizId");

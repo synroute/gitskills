@@ -445,7 +445,7 @@ public class DMDAO extends BaseRepository {
         return true;
     }
 
-    public ServiceResultCode updateShareBatchState(int bizId, List<String> shareBatchIds, String state) {
+    public Boolean updateShareBatchState(int bizId, List<String> shareBatchIds, String state) {
         PreparedStatement stmt = null;
         Connection dbConn = null;
         try {
@@ -453,17 +453,20 @@ public class DMDAO extends BaseRepository {
             StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
             sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(state));
             sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
-            sqlBuilder.append(" AND SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIds));
+            sqlBuilder.append("   AND SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIds)).append(")");
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             stmt.execute();
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
         }
-        return ServiceResultCode.SUCCESS;
+
+        return true;
     }
-
-
 
 }
 
