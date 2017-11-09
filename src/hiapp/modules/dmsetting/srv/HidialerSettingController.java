@@ -47,5 +47,23 @@ public class HidialerSettingController {
 						}
 					return serviceresult.toJson();
 				}
+				
+				
+				//修改hidialer外呼参数
+				@RequestMapping(value = "srv/dm/dmModifyHidialerSetting.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+				public String dmInsertEntityMap(@RequestParam("bizId") String bizId,@RequestParam("entityId") String entityId) {
+					
+					ServiceResult serviceresult = new ServiceResult();
+					
+						if(dmBizHidialerSetting.dmInsertEntityMap(bizId, entityId))
+						{
+							serviceresult.setReturnCode(0);
+							serviceresult.setReturnMessage("成功");
+						}else {
+							serviceresult.setReturnCode(1);
+							serviceresult.setReturnMessage("失败");
+						}
+					return serviceresult.toJson();
+				}
 		
 }

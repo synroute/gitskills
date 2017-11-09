@@ -130,7 +130,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 				
 				JsonObject jsonObject=new JsonParser().parse(xml).getAsJsonObject();
 				jsonObject.remove("MultiNumberDetail");
-				JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
+				JsonObject jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonObject();
 				
 				jsonObject.add("MultiNumberDetail", jsonArray_Map);
 				

@@ -34,6 +34,27 @@ public class DmBizHidialerSetting extends BaseRepository {
 		return true;
 	}
 	
+	public boolean dmInsertEntityMap(String bizid,String entityId)
+	{
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		
+		try {
+			dbConn =this.getDbConnection();
+			String sql = "insert into HASYS_ENTITY_MAP_MODULE values(S_HASYS_ENTITY_MAP_MODULE.nextval,'数据管理',"+bizid+",'"+entityId+"')";
+			stmt = dbConn.prepareStatement(sql);
+	        stmt.executeUpdate();
+	     	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseExecute(stmt);
+		}
+		return true;
+	}
+	
+	
 	public String dmGetBizHidialerSetting(String bizid)
 	{
 		PreparedStatement stmt = null;
