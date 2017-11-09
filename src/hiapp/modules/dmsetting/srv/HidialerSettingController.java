@@ -50,7 +50,7 @@ public class HidialerSettingController {
 				
 				
 				//修改hidialer外呼参数
-				@RequestMapping(value = "srv/dm/dmModifyHidialerSetting.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+				@RequestMapping(value = "srv/dm/dmInsertEntityMap.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 				public String dmInsertEntityMap(@RequestParam("bizId") String bizId,@RequestParam("entityId") String entityId) {
 					
 					ServiceResult serviceresult = new ServiceResult();
