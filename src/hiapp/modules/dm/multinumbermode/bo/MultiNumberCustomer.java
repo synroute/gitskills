@@ -94,6 +94,14 @@ public class MultiNumberCustomer {
         this.modifyTime = modifyTime;
     }
 
+    public Date getOriginModifyTime() {
+        return originModifyTime;
+    }
+
+    public void setOriginModifyTime(Date originModifyTime) {
+        this.originModifyTime = originModifyTime;
+    }
+
     public String getModifyDesc() {
         return modifyDesc;
     }
@@ -206,6 +214,7 @@ public class MultiNumberCustomer {
 
     // 非本表字段
     Date shareBatchStartTime;  //用于优先级控制
+    Date originModifyTime;
     Boolean invalid = false;
 }
 

@@ -130,12 +130,12 @@ public class MultiNumberPredictCustomerSharePool {
 
     }
 
-    public void hidialerPhoneConnect(MultiNumberCustomer customerItem) {
-        customerWaitPool.hidialerPhoneConnect(customerItem);
+    public void hidialerPhoneConnect(MultiNumberCustomer customer) {
+        customerWaitPool.hidialerPhoneConnect(customer);
     }
 
-    public void agentScreenPopUp(MultiNumberCustomer customerItem) {
-        customerWaitPool.agentScreenPopUp(customerItem);
+    public void agentScreenPopUp(MultiNumberCustomer customer) {
+        customerWaitPool.agentScreenPopUp(customer);
     }
 
 }

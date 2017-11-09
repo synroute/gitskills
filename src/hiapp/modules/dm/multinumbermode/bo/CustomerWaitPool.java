@@ -100,40 +100,40 @@ public class CustomerWaitPool {
 
     }
 
-    public void hidialerPhoneConnect(MultiNumberCustomer originCustomer) {
-        Long timeSlot = originCustomer.getModifyTime().getTime()/Constants.timeSlotSpan;
+    public void hidialerPhoneConnect(MultiNumberCustomer customer) {
+        Long timeSlot = customer.getOriginModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
         if (null == mapWaitTimeOutPool)
             return;
 
-        mapWaitTimeOutPool.remove(originCustomer.getImportBatchId() + originCustomer.getCustomerId(), originCustomer);
+        mapWaitTimeOutPool.remove(customer.getImportBatchId() + customer.getCustomerId());
 
 
-        Long timeSlot2 = originCustomer.getModifyTime().getTime()/Constants.timeSlotSpan;
+        Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot2);
         if (null == mapWaitTimeOutPool2) {
             mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
             mapTimeOutWaitScreenPopUpCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
-        mapWaitTimeOutPool2.put(originCustomer.getImportBatchId() + originCustomer.getCustomerId(), originCustomer);
+        mapWaitTimeOutPool2.put(customer.getImportBatchId() + customer.getCustomerId(), customer);
     }
 
-    public void agentScreenPopUp(MultiNumberCustomer originCustomer) {
-        Long timeSlot = originCustomer.getModifyTime().getTime()/Constants.timeSlotSpan;
+    public void agentScreenPopUp(MultiNumberCustomer customer) {
+        Long timeSlot = customer.getOriginModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
         if (null == mapWaitTimeOutPool)
             return;
 
-        mapWaitTimeOutPool.remove(originCustomer.getImportBatchId() + originCustomer.getCustomerId(), originCustomer);
+        mapWaitTimeOutPool.remove(customer.getImportBatchId() + customer.getCustomerId());
 
 
-        Long timeSlot2 = originCustomer.getModifyTime().getTime()/Constants.timeSlotSpan;
+        Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitResultCustomerPool.get(timeSlot2);
         if (null == mapWaitTimeOutPool2) {
             mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
             mapTimeOutWaitResultCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
-        mapWaitTimeOutPool2.put(originCustomer.getImportBatchId() + originCustomer.getCustomerId(), originCustomer);
+        mapWaitTimeOutPool2.put(customer.getImportBatchId() + customer.getCustomerId(), customer);
     }
 
     public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
@@ -145,16 +145,15 @@ public class CustomerWaitPool {
 
         removeWaitStopCustomer(bizId, customerItem.getShareBatchId(), importBatchId, customerId);
 
-
-        if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
+        if (MultiNumberPredictStateEnum.EXTRACTED.equals(customerItem.getState())) {
+            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
+            removeWaitPhoneConnectTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
+        } else if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             removeWaitScreenPopUpTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
         } else if (MultiNumberPredictStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             removeWaitResultTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
-        } else {
-            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
-            removeWaitPhoneConnectTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
         }
 
         return customerItem;
