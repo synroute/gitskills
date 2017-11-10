@@ -77,7 +77,6 @@ public class CustomerController {
 	/**
 	 * 保存配置好的筛选模板（包括普通筛选和高级筛选）
 	 * 
-	 * @param queryItem
 	 * @return
 	 */
 	@RequestMapping(value = "/srv/agent/saveFilterTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
@@ -98,7 +97,6 @@ public class CustomerController {
 	/**
 	 * 保存客户列表显示模板（在显示客户信息的时候显示哪些字段以及显示的样式）
 	 * 
-	 * @param queryItem
 	 * @return
 	 */
 	@RequestMapping(value = "/srv/agent/saveDisplayTemplate.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")

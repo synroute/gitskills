@@ -141,7 +141,6 @@ public class CustomerRepository extends BaseRepository {
 	 * 获取配置查询模板时需要使用的待选列
 	 * 
 	 * @param bizId
-	 * @param deployPage
 	 * @return
 	 * @throws HiAppException
 	 */
@@ -409,11 +408,6 @@ public class CustomerRepository extends BaseRepository {
 
 			}
 
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★queryMyCustomersCount★★★★★★★★★★★★★★★★★★★★");
-			System.out.println(sb.toString());
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
 
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
@@ -575,11 +569,6 @@ public class CustomerRepository extends BaseRepository {
 
 
 
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★queryMyNextCustomer★★★★★★★★★★★★★★★★★★★★");
-			System.out.println(sb.toString());
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
 
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
@@ -876,11 +865,6 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" >= ");
 			sb.append(queryRequest.getStart());
 
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★★★queryMyCustomers★★★★★★★★★★★★★★★★★★★★★★");
-			System.out.println(sb.toString());
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
 
 			
 			stmt = dbConn.prepareStatement(sb.toString());
@@ -1080,11 +1064,6 @@ public class CustomerRepository extends BaseRepository {
 
 			}
 
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★queryMyPresetCustomersCount★★★★★★★★★★★★★★★★★★");
-			System.out.println(sb.toString());
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
 
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
@@ -1326,11 +1305,6 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" >= ");
 			sb.append(queryRequest.getStart());
 
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★queryMyPresetCustomers★★★★★★★★★★★★★★★★★★★★");
-			System.out.println(sb.toString());
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
 
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
@@ -1548,11 +1522,6 @@ public class CustomerRepository extends BaseRepository {
 				}
 			}
 
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★queryAllCustomersCount★★★★★★★★★★★★★★★★★★★★");
-			System.out.println(sb.toString());
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
 
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
@@ -1819,12 +1788,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" >= ");
 			sb.append(queryRequest.getStart());
 	
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★queryAllCustomers★★★★★★★★★★★★★★★★★★★★");
-			System.out.println(sb.toString());
-			System.out
-					.println("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
-	
+
 			dbConn = this.getDbConnection();
 			stmt = dbConn.prepareStatement(sb.toString());
 			rs = stmt.executeQuery();
