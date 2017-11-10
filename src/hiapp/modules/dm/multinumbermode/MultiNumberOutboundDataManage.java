@@ -86,12 +86,8 @@ public class MultiNumberOutboundDataManage {
             customer.setOriginModifyTime(customer.getModifyTime());
             customer.setModifyTime(now);
 
-            for (int phoneTypeIndex=1; phoneTypeIndex<=10; phoneTypeIndex++) {
-                PhoneDialInfo originPhoneDialInfo = customer.getDialInfo(phoneTypeIndex);
-                if (phoneTypeIndex == customer.getCurDialPhoneType()) {
-                    originPhoneDialInfo.setLastDialTime(now);
-                }
-            }
+            PhoneDialInfo curPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
+            curPhoneDialInfo.setLastDialTime(now);
 
             customerSharePool.hidialerPhoneConnect(customer);
 
@@ -128,13 +124,8 @@ public class MultiNumberOutboundDataManage {
         customer.setOriginModifyTime(customer.getModifyTime());
         customer.setModifyTime(now);
 
-        Date lastDialTime = null;
-        for (int phoneTypeIndex=1; phoneTypeIndex<=10; phoneTypeIndex++) {
-            PhoneDialInfo originPhoneDialInfo = customer.getDialInfo(phoneTypeIndex);
-            if (phoneTypeIndex == customer.getCurDialPhoneType()) {
-                lastDialTime = originPhoneDialInfo.getLastDialTime();
-            }
-        }
+        PhoneDialInfo originPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
+        Date lastDialTime = originPhoneDialInfo.getLastDialTime();
 
         customerSharePool.agentScreenPopUp(customer);
 
@@ -191,7 +182,7 @@ public class MultiNumberOutboundDataManage {
         String customerCallId = "customerCallId";
 
         int originModifyId = item.getModifyId();
-        PhoneDialInfo originPhoneDialInfo = item.getDialInfo(item.getCurDialPhoneType());
+        PhoneDialInfo originPhoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
 
         Date now = new Date();
 
@@ -289,7 +280,7 @@ public class MultiNumberOutboundDataManage {
         item.setCurDialPhone(originCustomerItem.getCurDialPhone());
         item.setNextDialPhoneType(originCustomerItem.getNextDialPhoneType());
 
-        PhoneDialInfo originPhoneDialInfo = originCustomerItem.getDialInfo(originCustomerItem.getCurDialPhoneType());
+        PhoneDialInfo originPhoneDialInfo = originCustomerItem.getDialInfoByPhoneType(originCustomerItem.getCurDialPhoneType());
         originPhoneDialInfo.setDialCount( originPhoneDialInfo.getDialCount() + 1);
         originPhoneDialInfo.setLastDialTime(now);
         item.setDialInfo(originCustomerItem.getCurDialPhoneType(), originPhoneDialInfo);
@@ -308,7 +299,7 @@ public class MultiNumberOutboundDataManage {
         } else if (strategyItem.getPresetDial()) {
             item.setState(MultiNumberPredictStateEnum.PRESET_DIAL);
             item.setNextDialPhoneType(item.getCurDialPhoneType());
-            PhoneDialInfo phoneDialInfo = item.getDialInfo(item.getCurDialPhoneType());
+            PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
             phoneDialInfo.setCausePresetDialCount( phoneDialInfo.getCausePresetDialCount() + 1);
 
             // 更新共享状态表
@@ -360,7 +351,7 @@ public class MultiNumberOutboundDataManage {
 
         } else /*当前号码类型重拨*/ {
 
-            PhoneDialInfo phoneDialInfo = item.getDialInfo(item.getCurDialPhoneType());
+            PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
 
             if ((phoneDialInfo.getDialCount() - phoneDialInfo.getCausePresetDialCount()) >= strategyItem.getMaxRedialNum()) {
                 Integer nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());

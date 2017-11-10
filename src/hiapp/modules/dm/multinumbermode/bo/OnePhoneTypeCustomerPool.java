@@ -1,10 +1,7 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
-import hiapp.modules.dm.Constants;
-
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 public class OnePhoneTypeCustomerPool {
 
@@ -36,7 +33,7 @@ public class OnePhoneTypeCustomerPool {
             shareDataItem.setModifyUserId(userId);
             //shareDataItem.setModifyDesc("");
             shareDataItem.setCurDialPhoneType(phoneType);
-            PhoneDialInfo phoneDialInfo = shareDataItem.getDialInfo(phoneType);
+            PhoneDialInfo phoneDialInfo = shareDataItem.getDialInfoByPhoneType(phoneType);
             shareDataItem.setCurDialPhone(phoneDialInfo.getPhoneNumber());
         }
 

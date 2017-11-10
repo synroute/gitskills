@@ -59,14 +59,14 @@ public class MultiNumberModeController {
         List<MultiNumberCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(
                 Constants.HiDialerUserId, bizId, count);
 
-        if (null == customerList) {
+        /*if (null == customerList) {
             Document doc = new Document();
             Element root = new Element("Msg");
             root.setAttribute("Result", "0");
             root.setAttribute("CustomerCount", "0");
             doc.setRootElement(root);
             return XMLUtil.outputDocumentToString(doc);
-        }
+        }*/
 
         Document doc = new Document();
         Element root = new Element("Msg");

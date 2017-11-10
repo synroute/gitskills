@@ -158,7 +158,7 @@ public class MultiNumberCustomer {
         this.nextDialPhoneType = nextDialPhoneType;
     }
 
-    public Map<Integer, PhoneDialInfo> getDialInfo() {
+    public Map<Integer, PhoneDialInfo> getDialInfoByPhoneType() {
         return mapPhoneTypeVsPhoneInfo;
     }
 
@@ -166,7 +166,7 @@ public class MultiNumberCustomer {
         this.mapPhoneTypeVsPhoneInfo = dialInfo;
     }
 
-    public PhoneDialInfo getDialInfo(Integer phoneType) {
+    public PhoneDialInfo getDialInfoByPhoneType(Integer phoneType) {
         return mapPhoneTypeVsPhoneInfo.get(phoneType);
     }
 

@@ -5,8 +5,6 @@ import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
 import hiapp.modules.dm.multinumbermode.bo.PhoneDialInfo;
 import hiapp.modules.dm.multinumbermode.bo.PhoneTypeDialSequence;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.utils.DbUtil;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -248,7 +245,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
 
         int curPhoneType = item.getCurDialPhoneType();
         //int curPhoneDialSeq = phoneTypeDialSequence.getDialSequence(item.getBizId(), item.getCurDialPhoneType());
-        PhoneDialInfo phoneDialInfo = item.getDialInfo(curPhoneType);
+        PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(curPhoneType);
         sqlBuilder.append(", PT").append(curPhoneType).append("_PHONENUMBER = ").append(SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber()));
         sqlBuilder.append(", PT").append(curPhoneType).append("_LASTDIALTIME = ").append(SQLUtil.getSqlString(phoneDialInfo.getLastDialTime()));
         sqlBuilder.append(", PT").append(curPhoneType).append("_CAUSEPRESETDIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount()));
@@ -351,7 +348,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         for (int i=1; i<=10; i++) {
             Integer phoneType = phoneTypeDialSequence.getPhoneType(item.getBizId(), i);
 
-            PhoneDialInfo phoneDialInfo = item.getDialInfo(phoneType);
+            PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(phoneType);
             sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber())).append(",");
             sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getLastDialTime())).append(",");
             sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount())).append(",");
