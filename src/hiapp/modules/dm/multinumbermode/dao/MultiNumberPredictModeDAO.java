@@ -244,7 +244,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         //sqlBuilder.append(", ISAPPEND = ").append(SQLUtil.getSqlString(item.getIsAppend()));
 
         int curPhoneType = item.getCurDialPhoneType();
-        //int curPhoneDialSeq = phoneTypeDialSequence.getDialSequence(item.getBizId(), item.getCurDialPhoneType());
+        //int curPhoneDialSeq = phoneTypeDialSequence.getDialSequenceByPhoneType(item.getBizId(), item.getCurDialPhoneType());
         PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(curPhoneType);
         sqlBuilder.append(", PT").append(curPhoneType).append("_PHONENUMBER = ").append(SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber()));
         sqlBuilder.append(", PT").append(curPhoneType).append("_LASTDIALTIME = ").append(SQLUtil.getSqlString(phoneDialInfo.getLastDialTime()));
@@ -346,7 +346,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(item.getEndCode())).append(",");
 
         for (int i=1; i<=10; i++) {
-            Integer phoneType = phoneTypeDialSequence.getPhoneType(item.getBizId(), i);
+            Integer phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(item.getBizId(), i);
 
             PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(phoneType);
             sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber())).append(",");

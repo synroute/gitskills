@@ -103,10 +103,11 @@ public class CustomerWaitPool {
     public void hidialerPhoneConnect(MultiNumberCustomer customer, Date originModifyTime) {
         Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
-        if (null == mapWaitTimeOutPool)
-            return;
-
-        mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
+        if (null != mapWaitTimeOutPool) {
+            mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
+            if (mapWaitTimeOutPool.isEmpty())
+                mapTimeOutWaitPhoneConnectCustomerPool.remove(timeSlot);
+        }
 
         Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot2);
@@ -120,11 +121,12 @@ public class CustomerWaitPool {
     public void agentScreenPopUp(MultiNumberCustomer customer, Date originModifyTime) {
         Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
-        if (null == mapWaitTimeOutPool)
-            return;
-
-        mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
-
+        if (null != mapWaitTimeOutPool) {
+            mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
+            if (mapWaitTimeOutPool.isEmpty()) {
+                mapTimeOutWaitScreenPopUpCustomerPool.remove(timeSlot);
+            }
+        }
 
         Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
         Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot2);

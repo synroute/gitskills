@@ -23,12 +23,12 @@ public class PhoneTypeDialSequence {
         return mapOneBizPhoneTypeDialSeq.size();
     }
     
-    public Integer getPhoneType(int bizId, int phoneDialSequence) {
+    public Integer getPhoneTypeByPhoneDialSequence(int bizId, int phoneDialSequence) {
         Map<Integer, Integer> mapOneBizPhoneTypeDialSeq = getBizPhoneTypeDialSequence(bizId);
         return mapOneBizPhoneTypeDialSeq.get(phoneDialSequence);
     }
 
-    public Integer getDialSequence(int bizId, int phoneType) {
+    public Integer getDialSequenceByPhoneType(int bizId, int phoneType) {
         Map<Integer, Integer> mapOneBizPhoneTypeDialSeq = getBizPhoneTypeDialSequence(bizId);
 
         for (int i = 1; i <= 10; i++) {

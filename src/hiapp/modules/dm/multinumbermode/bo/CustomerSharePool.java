@@ -99,11 +99,13 @@ public class CustomerSharePool {
 
             if (shareDataItem.getInvalid()) {
                 mapPreseCustomerSharePool.poll();  // 扔掉已经停止共享批次的客户
+                removeFromShareBatchStopWaitPool(shareDataItem);
                 continue;
             }
 
             if (null != shareDataItem && shareDataItem.getCurPresetDialTime().before(now)) {
                 shareDataItem = mapPreseCustomerSharePool.poll();
+                removeFromShareBatchStopWaitPool(shareDataItem);
                 return shareDataItem;
             }
         }
@@ -112,6 +114,8 @@ public class CustomerSharePool {
             shareDataItem = mapCustomerSharePool.poll();
             if (null == shareDataItem)
                 break;
+
+            removeFromShareBatchStopWaitPool(shareDataItem);
 
             if (shareDataItem.getInvalid())
                 continue;
@@ -193,6 +197,13 @@ public class CustomerSharePool {
     }*/
 
     //////////////////////////////////////////////////////////
+
+    private void removeFromShareBatchStopWaitPool(MultiNumberCustomer customer) {
+        Map<String, MultiNumberCustomer> oneShareBatchPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareBatchId());
+        oneShareBatchPool.remove(customer.getImportBatchId() + customer.getCustomerId());
+        if (oneShareBatchPool.isEmpty())
+            mapShareBatchWaitStopCustomerPool.remove(customer.getShareBatchId());
+    }
 
     //匿名Comparator实现
     private static Comparator<MultiNumberCustomer> nextDialTimeComparator = new Comparator<MultiNumberCustomer>() {

@@ -1,6 +1,5 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
-import hiapp.modules.dm.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +14,8 @@ public class MultiNumberPredictCustomerSharePool {
     @Autowired
     PhoneTypeDialSequence phoneTypeDialSequence;
     
-    // bizId <==> {号码类型 <==> 相应拨打号码的客户池}
-    Map<Integer, Map<Integer, OnePhoneTypeCustomerPool>> mapCustomerManage;
+    // bizId <==> {号码类型 <==> 号码类型对应的客户池}
+    Map<Integer, Map<Integer, OnePhoneTypeCustomerPool>> customerSharePool;
 
     CustomerWaitPool customerWaitPool;
 
@@ -24,9 +23,9 @@ public class MultiNumberPredictCustomerSharePool {
         MultiNumberCustomer customer;
 
         for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
-            int phoneType = phoneTypeDialSequence.getPhoneType(bizId, dialIndex);
+            int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
 
-            Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(bizId);
+            Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = customerSharePool.get(bizId);
             if (null == oneBizCustomerSharePool)
                 continue;
 
@@ -48,14 +47,14 @@ public class MultiNumberPredictCustomerSharePool {
     public void add(MultiNumberCustomer customer) {
 
         if (null == customer.getNextDialPhoneType() || 0 == customer.getNextDialPhoneType()) {
-            int phoneType = phoneTypeDialSequence.getPhoneType(customer.getBizId(), 1);
+            int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(customer.getBizId(), 1);
             customer.setNextDialPhoneType(phoneType);
         }
 
-        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(customer.getBizId());
+        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = customerSharePool.get(customer.getBizId());
         if (null == oneBizCustomerSharePool) {
             oneBizCustomerSharePool = new HashMap<Integer, OnePhoneTypeCustomerPool>();
-            mapCustomerManage.put(customer.getBizId(), oneBizCustomerSharePool);
+            customerSharePool.put(customer.getBizId(), oneBizCustomerSharePool);
         }
 
         OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(customer.getNextDialPhoneType());
@@ -73,7 +72,7 @@ public class MultiNumberPredictCustomerSharePool {
 
 
     public void clear() {
-        mapCustomerManage.clear();
+        customerSharePool.clear();
     }
 
     public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
@@ -90,13 +89,13 @@ public class MultiNumberPredictCustomerSharePool {
     }
 
     public void removeShareCustomer(int bizId, List<String> shareBatchIds) {
-        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = mapCustomerManage.get(bizId);
+        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = customerSharePool.get(bizId);
         if (null == oneBizCustomerSharePool)
             return;
 
         // 号码类型遍历
         for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
-            int phoneType = phoneTypeDialSequence.getPhoneType(bizId, dialIndex);
+            int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
             OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(phoneType);
             if (null == onePhoneTypeCustomerPool)
                 continue;
@@ -117,13 +116,13 @@ public class MultiNumberPredictCustomerSharePool {
 
     public void initialize() {
 
-        mapCustomerManage = new HashMap<Integer, Map<Integer, OnePhoneTypeCustomerPool>>();
+        customerSharePool = new HashMap<Integer, Map<Integer, OnePhoneTypeCustomerPool>>();
         customerWaitPool = new CustomerWaitPool();
 
         /*
         for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.size(); dialIndex++) {
             OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = new OnePhoneTypeCustomerPool(bizId, dialIndex);
-            mapCustomerManage.put(dialIndex, onePhoneTypeCustomerPool);
+            customerSharePool.put(dialIndex, onePhoneTypeCustomerPool);
 
             //bizCustomerSharePool;
         }*/

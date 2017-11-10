@@ -76,6 +76,7 @@ public class MultiNumberOutboundDataManage {
 
             MultiNumberCustomer customer = customerSharePool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
             Date originModifyTime = customer.getModifyTime();
+            int  originModifyId = customer.getModifyId();
 
             Date now = new Date();
 
@@ -97,9 +98,9 @@ public class MultiNumberOutboundDataManage {
             multiNumberPredictModeDAO.insertCustomerShareStateHistory(customer);
 
             // 插入结果表
-            dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, customer.getModifyId()); // MODIFYLAST 0
+            dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, originModifyId); // MODIFYLAST 0
             dmDAO.insertDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId,
-                    customer.getModifyId() + 1, userId, dialType, now, customerCallId,
+                    customer.getModifyId(), userId, dialType, now, customerCallId,
                     resultCodeType, resultCode);
 
             return "";
@@ -116,6 +117,7 @@ public class MultiNumberOutboundDataManage {
 
         MultiNumberCustomer customer = customerSharePool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
         Date originModifyTime = customer.getModifyTime();
+        int  originModifyId = customer.getModifyId();
 
         Date now = new Date();
 
@@ -135,9 +137,9 @@ public class MultiNumberOutboundDataManage {
         multiNumberPredictModeDAO.insertCustomerShareStateHistory(customer);
 
         // 插入结果表
-        dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, customer.getModifyId()); // MODIFYLAST 0
+        dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, originModifyId); // MODIFYLAST 0
         dmDAO.insertDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId,
-                customer.getModifyId() + 1, userId, dialType, lastDialTime, customerCallId,
+                customer.getModifyId(), userId, dialType, lastDialTime, customerCallId,
                 customer.getEndCodeType(), customer.getEndCode());
 
         return "";
@@ -166,7 +168,7 @@ public class MultiNumberOutboundDataManage {
                 resultCodeType, resultCode);
 
         // 插入导入客户表
-        if (null == customerInfo) {
+        if (null != customerInfo) {
             dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomerItem.getModifyId() + 1);
         }
 
