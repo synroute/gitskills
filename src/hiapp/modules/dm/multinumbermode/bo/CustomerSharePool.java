@@ -154,7 +154,7 @@ public class CustomerSharePool {
             mapCustomerSharePool.put(customer);
         }
 
-        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getBizId() + customer.getShareBatchId());
+        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareBatchId());
         if (null == mapWaitStopPool) {
             mapWaitStopPool = new HashMap<String, MultiNumberCustomer>();
             mapShareBatchWaitStopCustomerPool.put(customer.getShareBatchId(), mapWaitStopPool);

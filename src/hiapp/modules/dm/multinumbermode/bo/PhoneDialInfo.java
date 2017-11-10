@@ -39,4 +39,13 @@ public class PhoneDialInfo {
     public void setDialCount(int dialCount) {
         DialCount = dialCount;
     }
+
+    public PhoneDialInfo clone() {
+        PhoneDialInfo cloneItem = new PhoneDialInfo();
+        cloneItem.setPhoneNumber(PhoneNumber);
+        cloneItem.setLastDialTime(LastDialTime);
+        cloneItem.setCausePresetDialCount(CausePresetDialCount);
+        cloneItem.setDialCount(DialCount);
+        return cloneItem;
+    }
 }

@@ -94,14 +94,6 @@ public class MultiNumberCustomer {
         this.modifyTime = modifyTime;
     }
 
-    public Date getOriginModifyTime() {
-        return originModifyTime;
-    }
-
-    public void setOriginModifyTime(Date originModifyTime) {
-        this.originModifyTime = originModifyTime;
-    }
-
     public String getModifyDesc() {
         return modifyDesc;
     }
@@ -190,6 +182,40 @@ public class MultiNumberCustomer {
         this.isAppend = isAppend;
     }
 
+    public MultiNumberCustomer deepClone() {
+        MultiNumberCustomer cloneItem = new MultiNumberCustomer();
+
+        cloneItem.setId(id);
+        cloneItem.setBizId(bizId);
+        cloneItem.setShareBatchId(shareBatchId);
+        cloneItem.setImportBatchId(importBatchId);
+        cloneItem.setCustomerId(customerId);
+        cloneItem.setState(state);
+        cloneItem.setModifyId(modifyId);
+        cloneItem.setModifyUserId(modifyUserId);
+        cloneItem.setModifyTime(modifyTime);
+        cloneItem.setModifyDesc(modifyDesc);
+        cloneItem.setCustomerCallId(customerCallId);
+        cloneItem.setEndCodeType(endCodeType);
+        cloneItem.setEndCode(endCode);
+        cloneItem.setCurDialPhone(curDialPhone);
+        cloneItem.setCurPresetDialTime(curPresetDialTime);
+        cloneItem.setCurDialPhoneType(curDialPhoneType);
+        cloneItem.setNextDialPhoneType(nextDialPhoneType);
+        cloneItem.setIsAppend(isAppend);
+
+        //
+        for (Map.Entry<Integer, PhoneDialInfo> entry : mapPhoneTypeVsPhoneInfo.entrySet()) {
+            Integer phoneType =  entry.getKey();
+            PhoneDialInfo phoneDialInfo = entry.getValue();
+            cloneItem.setDialInfo(phoneType, phoneDialInfo.clone());
+        }
+
+        cloneItem.setShareBatchStartTime(shareBatchStartTime);
+        cloneItem.setInvalid(invalid);
+        return cloneItem;
+    }
+
 
     int id;
     int bizId;
@@ -204,17 +230,16 @@ public class MultiNumberCustomer {
     String customerCallId;
     String endCodeType;
     String endCode;
-
     String curDialPhone;
     Date   curPresetDialTime;          // NOTE: 预约拨打时间 或者 重拨时间
     Integer    curDialPhoneType;
     Integer    nextDialPhoneType;
     int    isAppend;
+
     Map<Integer, PhoneDialInfo> mapPhoneTypeVsPhoneInfo = new HashMap<Integer, PhoneDialInfo>();
 
     // 非本表字段
     Date shareBatchStartTime;  //用于优先级控制
-    Date originModifyTime;
     Boolean invalid = false;
 }
 

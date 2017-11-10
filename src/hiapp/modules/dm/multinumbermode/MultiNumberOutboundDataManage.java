@@ -75,6 +75,7 @@ public class MultiNumberOutboundDataManage {
             String dialType = "dialType";
 
             MultiNumberCustomer customer = customerSharePool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
+            Date originModifyTime = customer.getModifyTime();
 
             Date now = new Date();
 
@@ -83,13 +84,12 @@ public class MultiNumberOutboundDataManage {
             customer.setEndCode(resultCode);
             customer.setModifyUserId(userId);
             customer.setModifyId(customer.getModifyId() + 1);
-            customer.setOriginModifyTime(customer.getModifyTime());
             customer.setModifyTime(now);
 
             PhoneDialInfo curPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
             curPhoneDialInfo.setLastDialTime(now);
 
-            customerSharePool.hidialerPhoneConnect(customer);
+            customerSharePool.hidialerPhoneConnect(customer, originModifyTime);
 
             multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(customer);
 
@@ -115,19 +115,19 @@ public class MultiNumberOutboundDataManage {
         String customerCallId = "customerCallId";
 
         MultiNumberCustomer customer = customerSharePool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
+        Date originModifyTime = customer.getModifyTime();
 
         Date now = new Date();
 
         customer.setState(MultiNumberPredictStateEnum.SCREENPOPUP);
         customer.setModifyUserId(userId);
         customer.setModifyId(customer.getModifyId() + 1);
-        customer.setOriginModifyTime(customer.getModifyTime());
         customer.setModifyTime(now);
 
         PhoneDialInfo originPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
         Date lastDialTime = originPhoneDialInfo.getLastDialTime();
 
-        customerSharePool.agentScreenPopUp(customer);
+        customerSharePool.agentScreenPopUp(customer, originModifyTime);
 
         multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(customer);
 
@@ -266,26 +266,16 @@ public class MultiNumberOutboundDataManage {
 
         Date now = new Date();
 
-        MultiNumberCustomer item = new MultiNumberCustomer();
-        item.setBizId(originCustomerItem.getBizId());
-        item.setShareBatchId(originCustomerItem.getShareBatchId());
-        item.setImportBatchId(originCustomerItem.getImportBatchId());
-        item.setCustomerId(originCustomerItem.getCustomerId());
+        MultiNumberCustomer item = originCustomerItem.deepClone();
         item.setEndCodeType(resultCodeType);
         item.setEndCode(resultCode);
         item.setModifyUserId(userId);
         item.setModifyTime(now);
         item.setModifyId(originCustomerItem.getModifyId() + 1);
-        item.setCurDialPhoneType(originCustomerItem.getCurDialPhoneType());
-        item.setCurDialPhone(originCustomerItem.getCurDialPhone());
-        item.setNextDialPhoneType(originCustomerItem.getNextDialPhoneType());
 
-        PhoneDialInfo originPhoneDialInfo = originCustomerItem.getDialInfoByPhoneType(originCustomerItem.getCurDialPhoneType());
-        originPhoneDialInfo.setDialCount( originPhoneDialInfo.getDialCount() + 1);
-        originPhoneDialInfo.setLastDialTime(now);
-        item.setDialInfo(originCustomerItem.getCurDialPhoneType(), originPhoneDialInfo);
-
-        item.setShareBatchStartTime(originCustomerItem.getShareBatchStartTime());
+        PhoneDialInfo curPhoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
+        curPhoneDialInfo.setDialCount( curPhoneDialInfo.getDialCount() + 1);
+        curPhoneDialInfo.setLastDialTime(now);
 
         if (strategyItem.getCustomerDialFinished()) {
             item.setState(MultiNumberPredictStateEnum.FINISHED);
