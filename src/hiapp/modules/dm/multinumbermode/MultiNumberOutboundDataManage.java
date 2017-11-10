@@ -89,7 +89,7 @@ public class MultiNumberOutboundDataManage {
             PhoneDialInfo curPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
             curPhoneDialInfo.setLastDialTime(now);
 
-            customerSharePool.hidialerPhoneConnect(customer, originModifyTime);
+            customerSharePool.hidialerPhoneConnect(customer, originModifyTime);  // NOTE: 使用原客户，等待池中一个客户有多个key
 
             multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(customer);
 
@@ -127,7 +127,7 @@ public class MultiNumberOutboundDataManage {
         PhoneDialInfo originPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
         Date lastDialTime = originPhoneDialInfo.getLastDialTime();
 
-        customerSharePool.agentScreenPopUp(customer, originModifyTime);
+        customerSharePool.agentScreenPopUp(customer, originModifyTime); // NOTE: 使用原客户，等待池中一个客户有多个key
 
         multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(customer);
 

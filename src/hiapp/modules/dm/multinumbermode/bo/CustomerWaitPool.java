@@ -1,7 +1,6 @@
 package hiapp.modules.dm.multinumbermode.bo;
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -17,7 +16,7 @@ public class CustomerWaitPool {
 
     // 等待拨打结果的客户池，坐席人员维度
     // UserID <==> {BizID + ImportID + CustomerID <==> MultiNumberCustomer}
-    Map<String, Map<String, MultiNumberCustomer>> mapUserWaitResultCustomerPool;
+    Map<String, Map<String, MultiNumberCustomer>> mapOutboundResultWaitSubmitCustomerPool;
 
     // 等待共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
     // ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberCustomer}
@@ -33,7 +32,7 @@ public class CustomerWaitPool {
 
     // 等待坐席拨打结果超时的客户池，坐席弹屏时间的分钟SLOT维度
     // 分钟Slot <==> {BizID + ImportId + CustomerId <==> MultiNumberCustomer}
-    Map<Long, Map<String, MultiNumberCustomer>> mapTimeOutWaitResultCustomerPool;
+    Map<Long, Map<String, MultiNumberCustomer>> mapTimeOutWaitOutboundResultCustomerPool;
 
     Long earliestPhoneConnectTimeSlot;
     Long earliestScreenPopUpTimeSlot;
@@ -45,20 +44,20 @@ public class CustomerWaitPool {
         earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
         earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
 
-        mapUserWaitResultCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
+        mapOutboundResultWaitSubmitCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
         mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
 
         mapTimeOutWaitPhoneConnectCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
         mapTimeOutWaitScreenPopUpCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
-        mapTimeOutWaitResultCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
+        mapTimeOutWaitOutboundResultCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
     }
 
 
     public void add(String userId, MultiNumberCustomer customerItem) {
-        Map<String, MultiNumberCustomer> mapWaitResultPool = mapUserWaitResultCustomerPool.get(userId);
+        Map<String, MultiNumberCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
         if (null == mapWaitResultPool) {
             mapWaitResultPool = new HashMap<String, MultiNumberCustomer>();
-            mapUserWaitResultCustomerPool.put(userId, mapWaitResultPool);
+            mapOutboundResultWaitSubmitCustomerPool.put(userId, mapWaitResultPool);
         }
         mapWaitResultPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
@@ -90,10 +89,10 @@ public class CustomerWaitPool {
 
         } else if (MultiNumberPredictStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitResultCustomerPool.get(timeSlot);
+            Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot);
             if (null == mapWaitTimeOutPool) {
                 mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
-                mapTimeOutWaitResultCustomerPool.put(timeSlot, mapWaitTimeOutPool);
+                mapTimeOutWaitOutboundResultCustomerPool.put(timeSlot, mapWaitTimeOutPool);
             }
             mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(),
                     customerItem);
@@ -128,10 +127,10 @@ public class CustomerWaitPool {
 
 
         Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitResultCustomerPool.get(timeSlot2);
+        Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot2);
         if (null == mapWaitTimeOutPool2) {
             mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
-            mapTimeOutWaitResultCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
+            mapTimeOutWaitOutboundResultCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
         mapWaitTimeOutPool2.put(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId(), customer);
     }
@@ -160,7 +159,7 @@ public class CustomerWaitPool {
     }
 
     public MultiNumberCustomer getWaitCustome(String userId, int bizId, String importBatchId, String customerId) {
-        Map<String, MultiNumberCustomer> mapWaitResultPool = mapUserWaitResultCustomerPool.get(userId);
+        Map<String, MultiNumberCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
         if (null == mapWaitResultPool)
             return null;
 
@@ -204,19 +203,6 @@ public class CustomerWaitPool {
         }*/
 
     }
-
-    private MultiNumberCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
-        MultiNumberCustomer customerItem = null;
-
-        Map<String, MultiNumberCustomer> mapWaitResultPool = mapUserWaitResultCustomerPool.get(userId);
-        if (null != mapWaitResultPool) {
-            customerItem = mapWaitResultPool.remove(bizId + importBatchId + customerId);
-            if (mapWaitResultPool.isEmpty())
-                mapUserWaitResultCustomerPool.remove(userId);
-        }
-        return customerItem;
-    }
-
 
     public void timeoutProc() {
         Date now =  new Date();
@@ -268,7 +254,7 @@ public class CustomerWaitPool {
         // 坐席递交结果 超时处理
         while (earliestResultTimeSlot < phoneConnectTimeoutTimeSlot) {
             Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitResultCustomerPool.get(earliestResultTimeSlot++);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitOutboundResultCustomerPool.get(earliestResultTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
@@ -286,7 +272,17 @@ public class CustomerWaitPool {
         }
     }
 
+    private MultiNumberCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
+        MultiNumberCustomer customerItem = null;
 
+        Map<String, MultiNumberCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
+        if (null != mapWaitResultPool) {
+            customerItem = mapWaitResultPool.remove(bizId + importBatchId + customerId);
+            if (mapWaitResultPool.isEmpty())
+                mapOutboundResultWaitSubmitCustomerPool.remove(userId);
+        }
+        return customerItem;
+    }
 
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
         Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
@@ -318,11 +314,11 @@ public class CustomerWaitPool {
     }
 
     private void removeWaitResultTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitResultCustomerPool.get(timeSlot);
+        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot);
         if (null != mapWaitTimeOutPool) {
             mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
             if (mapWaitTimeOutPool.isEmpty()) {
-                mapTimeOutWaitResultCustomerPool.remove(timeSlot);
+                mapTimeOutWaitOutboundResultCustomerPool.remove(timeSlot);
             }
         }
     }
