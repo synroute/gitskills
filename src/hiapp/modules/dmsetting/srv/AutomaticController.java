@@ -117,6 +117,28 @@ public class AutomaticController {
 
 	}
 	
+	@RequestMapping(value = "/srv/dm/dmGetBizResult.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmGetBizResult(@RequestParam("bizId") int bizId,@RequestParam("Cid") String Cid,@RequestParam("IID") String IID,
+			@RequestParam("columns") String columns) {
+		RecordsetResult recordsetResult = new RecordsetResult();
+		Map<String, String> map=new HashMap<String, String>(); 
+		try {
+			
+			map=dmBizAutomatic.dmGetBizResult(bizId,Cid,IID,columns);
+			
+			recordsetResult.setReturnCode(0);
+			recordsetResult.setReturnMessage("成功");
+			recordsetResult.getRows().add(map);
+		} catch (Exception e) {
+			e.printStackTrace();
+			recordsetResult.setReturnCode(1);
+			recordsetResult.setReturnMessage("失败");
+			recordsetResult.getRows().add(map);
+		}
+		return recordsetResult.toJson();
+
+	}
+	
 	
 	@RequestMapping(value = "/srv/dm/dmGetBizCustomerHis.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetBizCustomerHis(@RequestParam("bizId") int bizId,@RequestParam("Cid") String Cid,

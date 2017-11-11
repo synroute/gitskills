@@ -249,6 +249,48 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		return map;
 	}
 
+	//根据cid，iid获取客户信息
+		public Map<String,String> dmGetBizResult(int bizId,String Cid,String IID,String columns)
+		{
+			Connection dbConn = null;
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			Map<String,String> map=new HashMap<String, String>(); 
+			JsonObject jsonObject=new JsonObject();
+			try {
+				dbConn =this.getDbConnection();
+				//查询客户信息
+				columns=columns.substring(0, columns.length()-1);
+				String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_RESULT where Cid='"+Cid+"' and IID='"+IID+"' and MODIFYLAST=1";
+				stmt = dbConn.prepareStatement(szSelectSql);
+				rs = stmt.executeQuery();
+				String[] column=columns.split(",");
+				while(rs.next()){
+					for(int i=0;i<column.length;i++)
+					{
+						if (column[i].contains("TIME")) {
+							
+							String time=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(rs.getTimestamp(column[i]));
+							map.put(column[i],time);
+						}else{
+							
+							map.put(column[i], rs.getString(column[i]));
+						}
+						
+						//jsonObject.addProperty(column[i], rs.getString(column[i]));
+					}
+				}
+				stmt.close();
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				DbUtil.DbCloseConnection(dbConn);
+				DbUtil.DbCloseExecute(stmt);
+			}
+			return map;
+		}
+	
 	//根据cid查询前台所需信息
 	public List<Map<String,String>> dmGetBizCustomerHis(int bizId,String Cid,String columns)
 	{
