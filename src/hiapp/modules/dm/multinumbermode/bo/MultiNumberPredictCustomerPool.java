@@ -47,8 +47,9 @@ public class MultiNumberPredictCustomerPool {
     public void add(MultiNumberCustomer customer) {
 
         if (null == customer.getNextDialPhoneType() || 0 == customer.getNextDialPhoneType()) {
-            int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(customer.getBizId(), 1);
-            customer.setNextDialPhoneType(phoneType);
+            Integer phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(customer.getBizId(), 1);
+            if (null != phoneType)
+                customer.setNextDialPhoneType(phoneType);
         }
 
         Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = customerSharePool.get(customer.getBizId());
