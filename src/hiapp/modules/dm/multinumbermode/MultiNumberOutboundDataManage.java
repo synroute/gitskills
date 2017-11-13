@@ -26,7 +26,7 @@ public class MultiNumberOutboundDataManage {
     DMDAO dmDAO;
 
     @Autowired
-    MultiNumberPredictCustomerPool customerSharePool;
+    MultiNumberPredictCustomerPool customerPool;
 
     @Autowired
     private DataImportJdbc dataImportJdbc;
@@ -51,7 +51,7 @@ public class MultiNumberOutboundDataManage {
         List<MultiNumberCustomer> customerList = new ArrayList<MultiNumberCustomer>();
 
         for (int i=0; i<count; i++ ) {
-            MultiNumberCustomer customer = customerSharePool.extractCustomer(userId, bizId);
+            MultiNumberCustomer customer = customerPool.extractCustomer(userId, bizId);
             if (null == customer)
                 break;
 
@@ -73,7 +73,7 @@ public class MultiNumberOutboundDataManage {
         {
             String dialType = "dialType";
 
-            MultiNumberCustomer customer = customerSharePool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
+            MultiNumberCustomer customer = customerPool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
             Date originModifyTime = customer.getModifyTime();
             int  originModifyId = customer.getModifyId();
 
@@ -89,7 +89,7 @@ public class MultiNumberOutboundDataManage {
             PhoneDialInfo curPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
             curPhoneDialInfo.setLastDialTime(now);
 
-            customerSharePool.hidialerPhoneConnect(customer, originModifyTime);  // NOTE: 使用原客户，等待池中一个客户有多个key
+            customerPool.hidialerPhoneConnect(customer, originModifyTime);  // NOTE: 使用原客户，等待池中一个客户有多个key
 
             multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(customer);
 
@@ -114,7 +114,7 @@ public class MultiNumberOutboundDataManage {
         String dialType = "dialType";
         String customerCallId = "customerCallId";
 
-        MultiNumberCustomer customer = customerSharePool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
+        MultiNumberCustomer customer = customerPool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
         Date originModifyTime = customer.getModifyTime();
         int  originModifyId = customer.getModifyId();
 
@@ -128,7 +128,7 @@ public class MultiNumberOutboundDataManage {
         PhoneDialInfo originPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
         Date lastDialTime = originPhoneDialInfo.getLastDialTime();
 
-        customerSharePool.agentScreenPopUp(customer, originModifyTime); // NOTE: 使用原客户，等待池中一个客户有多个key
+        customerPool.agentScreenPopUp(customer, originModifyTime); // NOTE: 使用原客户，等待池中一个客户有多个key
 
         multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(customer);
 
@@ -152,7 +152,7 @@ public class MultiNumberOutboundDataManage {
         String customerCallId = "xxx";
         Date dialTime = new Date();
 
-        MultiNumberCustomer originCustomerItem = customerSharePool.removeWaitCustomer(
+        MultiNumberCustomer originCustomerItem = customerPool.removeWaitCustomer(
                 Constants.HiDialerUserId, bizId, importBatchId, customerId, phoneType);
 
         // 经过 Outbound 策略处理器
@@ -222,9 +222,9 @@ public class MultiNumberOutboundDataManage {
 
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
 
-        customerSharePool.removeShareCustomer(bizId, shareBatchIds);
+        customerPool.removeShareCustomer(bizId, shareBatchIds);
 
-        customerSharePool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
+        customerPool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }
 
     public Boolean appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
@@ -245,17 +245,17 @@ public class MultiNumberOutboundDataManage {
 
 
     public void initialize() {
-        customerSharePool.initialize();
+        customerPool.initialize();
     }
 
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {
-        customerSharePool.clear();
+        customerPool.clear();
 
         loadCustomersDaily(shareBatchItems);
     }
 
     public void timeoutProc() {
-        customerSharePool.timeoutProc();
+        customerPool.timeoutProc();
     }
 
 
@@ -513,7 +513,7 @@ public class MultiNumberOutboundDataManage {
     }
 
     public void addCustomerToSharePool(MultiNumberCustomer newCustomerItem) {
-        customerSharePool.add(newCustomerItem);
+        customerPool.add(newCustomerItem);
 
         System.out.println("share multinumber customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
@@ -521,7 +521,7 @@ public class MultiNumberOutboundDataManage {
     }
 
     private void addCustomerToWaitPool(MultiNumberCustomer newCustomerItem) {
-        customerSharePool.addWaitResultCustomer(newCustomerItem);
+        customerPool.addWaitResultCustomer(newCustomerItem);
 
         System.out.println("wait result multinumber customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
