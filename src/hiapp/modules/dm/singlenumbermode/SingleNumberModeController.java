@@ -139,21 +139,21 @@ public class SingleNumberModeController {
         return serviceresult.toJson();
     }
 
-    public String appendCustomersToShareBatch( int bizId, String strShareBatchIds) {
+    public Boolean appendCustomersToShareBatch( int bizId, List<String> shareBatchIds) {
 
-        ServiceResult serviceresult = new ServiceResult();
+        //ServiceResult serviceresult = new ServiceResult();
 
         //List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
-        List<String> shareBatchIds = new ArrayList<String>();
+        //List<String> shareBatchIds = new ArrayList<String>();
 
-        String[] arrayShareBatchId = strShareBatchIds.split(",");
-        for (String shareBatchId : arrayShareBatchId)
-            shareBatchIds.add(shareBatchId);
+        //String[] arrayShareBatchId = strShareBatchIds.split(",");
+        //for (String shareBatchId : arrayShareBatchId)
+        //    shareBatchIds.add(shareBatchId);
 
-        singleNumberOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
+        return singleNumberOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
 
-        serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-        return serviceresult.toJson();
+        //serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+        //return serviceresult.toJson();
     }
 
 }
