@@ -4,10 +4,12 @@ import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.modules.dm.util.DateUtil;
+import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -20,6 +22,9 @@ import java.util.List;
 
 @Repository
 public class DMDAO extends BaseRepository {
+
+    @Autowired
+    DataImportJdbc dataImportJdbc;
 
     /*
      *  所有业务的共享批次
@@ -342,6 +347,9 @@ public class DMDAO extends BaseRepository {
             DbUtil.DbCloseExecute(stmt);
             DbUtil.DbCloseConnection(dbConn);
         }
+
+        dataImportJdbc.insertDataToResultTable(bizId, sourceId, importBatchId, customerId, modifyUserId, modifyId,
+                dialType, dialTime, customerCallId, resultCodeType, resultCode);
 
         return true;
     }
