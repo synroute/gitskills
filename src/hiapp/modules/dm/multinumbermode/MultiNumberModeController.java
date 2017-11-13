@@ -199,7 +199,6 @@ public class MultiNumberModeController {
     }
 
     public String appendCustomersToShareBatch( int bizId,  String strShareBatchIds) {
-        /*
         ServiceResult serviceresult = new ServiceResult();
 
         //List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
@@ -209,11 +208,10 @@ public class MultiNumberModeController {
         for (String shareBatchId : arrayShareBatchId)
             shareBatchIds.add(shareBatchId);
 
-        singleNumberOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
+        multiNumberOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-        return serviceresult.toJson();*/
-        return "";
+        return serviceresult.toJson();
     }
 
 }

@@ -554,14 +554,14 @@ public class MultiNumberOutboundDataManage {
         Boolean result = multiNumberPredictModeDAO.getGivenBizCustomersByState(
                 bizId, shareBatchItems, shareCustomerStateList, shareDataItems);
 
-        // 记录客户共享状态为 SingleNumberModeShareCustomerStateEnum.APPENDED 的客户信息
-        // 后续需要更改状态为 SingleNumberModeShareCustomerStateEnum.CREATED
+        // 记录客户共享状态为 MultiNumberPredictStateEnum.APPENDED 的客户信息
+        // 后续需要更改状态为 MultiNumberPredictStateEnum.CREATED
         List<String> appendedStateCustomerIdList = new ArrayList<String>();
 
         for (MultiNumberCustomer customerItem : shareDataItems) {
             addCustomerToSharePool(customerItem);
 
-            if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
+            if (MultiNumberPredictStateEnum.APPENDED.equals(customerItem.getState())) {
                 appendedStateCustomerIdList.add(customerItem.getShareBatchId());
             }
         }

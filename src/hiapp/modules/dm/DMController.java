@@ -350,8 +350,15 @@ public class DMController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    public String appendCustomersToShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
+    /**
+     * 后台直接调用
+     * @param bizId
+     * @param strShareBatchIds
+     * @return
+     */
+    //@RequestMapping(value="/srv/dm/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")
+    //public String appendCustomersToShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
+    public String appendCustomersToShareBatch(int bizId, String strShareBatchIds) {
 
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(bizId);
 
@@ -371,27 +378,6 @@ public class DMController {
         }
 
         return "";
-    }
-
-    // TODO JUST FOR TEST
-    private String testData() {
-        Map<String, Object> map = new HashMap<String, Object>();
-
-        map.put("bizId", "1102");
-        map.put("resultCodeType", "结束类型1");
-        map.put("resultCode", "结束码");
-        map.put("importBatchId", "DM_IID_20171018_301");
-        //String shareBatchId = (String)map.get("shareBatchId");
-        map.put("phoneType", "1");
-        map.put("customerId", "DM_CID_20171018_30001");
-        map.put("presetTime", "2017-10-25 10:00:00");
-        //Map<String, String> resultData = (Map<String, String>)map.get("resultData");
-        //Map<String, String> customerInfo = (Map<String, String>)map.get("customerInfo");
-
-        //String jsonResultData=new Gson().toJson(resultData);
-        //String jsonCustomerInfo=new Gson().toJson(customerInfo);
-
-        return new Gson().toJson(map);
     }
 
     private boolean checkPermitCall(List<Map<String, String>> permitCallTimeList, String curTimeString) {
