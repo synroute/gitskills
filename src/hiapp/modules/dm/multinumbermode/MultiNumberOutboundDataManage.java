@@ -6,7 +6,6 @@ import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.multinumbermode.bo.*;
 import hiapp.modules.dm.multinumbermode.dao.MultiNumberPredictModeDAO;
-import hiapp.modules.dm.singlenumbermode.bo.*;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
@@ -27,7 +26,7 @@ public class MultiNumberOutboundDataManage {
     DMDAO dmDAO;
 
     @Autowired
-    MultiNumberPredictCustomerSharePool customerSharePool;
+    MultiNumberPredictCustomerPool customerSharePool;
 
     @Autowired
     private DataImportJdbc dataImportJdbc;

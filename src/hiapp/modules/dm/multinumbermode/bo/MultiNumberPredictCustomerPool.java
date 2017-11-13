@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class MultiNumberPredictCustomerSharePool {
+public class MultiNumberPredictCustomerPool {
 
     @Autowired
     PhoneTypeDialSequence phoneTypeDialSequence;

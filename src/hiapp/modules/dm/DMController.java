@@ -350,36 +350,6 @@ public class DMController {
         return "";
     }
 
-    /**
-     * 后台直接调用
-     * @param bizId
-     * @param shareBatchIds
-     * @return
-     */
-    //@RequestMapping(value="/srv/dm/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    //public String appendCustomersToShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
-    public Boolean appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
-
-        DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(bizId);
-
-        if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
-
-        } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-
-        } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-            return singleNumberModeController.appendCustomersToShareBatch(bizId, shareBatchIds);
-
-        } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-
-        } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-
-        } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-            return multiNumberModeController.appendCustomersToShareBatch(bizId, shareBatchIds);
-        }
-
-        return false;
-    }
-
     private boolean checkPermitCall(List<Map<String, String>> permitCallTimeList, String curTimeString) {
         for (Map<String, String> callTimeScope : permitCallTimeList) {
             if (curTimeString.compareTo(callTimeScope.get(Constants.timeStart)) > 0

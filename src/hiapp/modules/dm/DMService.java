@@ -2,8 +2,13 @@ package hiapp.modules.dm;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.dao.DMDAO;
+import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
+import hiapp.modules.dm.singlenumbermode.SingleNumberModeController;
 import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
+import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
+import hiapp.modules.dmsetting.DMBusiness;
+import hiapp.modules.dmsetting.data.DmBizRepository;
 import hiapp.utils.database.DBConnectionPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,6 +27,16 @@ public class DMService {
 
     @Autowired
     DMDAO dmDAO;
+
+
+    @Autowired
+    private DmBizRepository dmBizRepository;
+
+    @Autowired
+    SingleNumberModeController singleNumberModeController;
+
+    @Autowired
+    MultiNumberModeController multiNumberModeController;
 
 
 
@@ -44,6 +59,36 @@ public class DMService {
         setTimeOutRoutine(Constants.timeSlotSpan);
 
         dailyProc();
+    }
+
+    /**
+     * 后台直接调用
+     * @param bizId
+     * @param shareBatchIds
+     * @return
+     */
+    //@RequestMapping(value="/srv/dm/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")
+    //public String appendCustomersToShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
+    public Boolean appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
+
+        DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(bizId);
+
+        if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
+
+        } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+
+        } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
+            return singleNumberModeController.appendCustomersToShareBatch(bizId, shareBatchIds);
+
+        } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
+
+        } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+
+        } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            return multiNumberModeController.appendCustomersToShareBatch(bizId, shareBatchIds);
+        }
+
+        return false;
     }
 
     private Boolean shareBatchDailyProc(/*OUT*/List<ShareBatchItem> shareBatchItems) {

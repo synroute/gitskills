@@ -1,6 +1,6 @@
 package hiapp.modules.dmmanager.data;
 
-import hiapp.modules.dm.DMController;
+import hiapp.modules.dm.DMService;
 import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dmmanager.TreePool;
@@ -35,7 +35,8 @@ public class DataDistributeJdbc extends BaseRepository{
 	@Autowired
 	private SingleNumberOutboundDataManage singleNumberOutboundDataManage;
 	@Autowired
-	private  DMController dMController;
+	private DMService dMService;
+
 	/**
 	 * 获取所有分配模板
 	 * @param bizId
@@ -661,7 +662,7 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.execute();
 					List<String> shareIds=new ArrayList<String>();
 					shareIds.add(shareId);
-					result=dMController.appendCustomersToShareBatch(bizId, shareIds);
+					result= dMService.appendCustomersToShareBatch(bizId, shareIds);
 				}
 			
 			}else{
