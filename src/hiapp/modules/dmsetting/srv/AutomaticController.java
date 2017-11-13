@@ -119,12 +119,13 @@ public class AutomaticController {
 	
 	@RequestMapping(value = "/srv/dm/dmGetBizResult.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmGetBizResult(@RequestParam("bizId") int bizId,@RequestParam("Cid") String Cid,@RequestParam("IID") String IID,
+			@RequestParam("SID") String SID,@RequestParam("MODIFYID") String MODIFYID,
 			@RequestParam("columns") String columns) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		Map<String, String> map=new HashMap<String, String>(); 
 		try {
 			
-			map=dmBizAutomatic.dmGetBizResult(bizId,Cid,IID,columns);
+			map=dmBizAutomatic.dmGetBizResult(bizId,Cid,IID,SID,MODIFYID,columns);
 			
 			recordsetResult.setReturnCode(0);
 			recordsetResult.setReturnMessage("成功");

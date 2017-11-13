@@ -250,7 +250,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	}
 
 	//根据cid，iid获取客户信息
-		public Map<String,String> dmGetBizResult(int bizId,String Cid,String IID,String columns)
+		public Map<String,String> dmGetBizResult(int bizId,String Cid,String IID,String SID,String ModifyId,String columns)
 		{
 			Connection dbConn = null;
 			PreparedStatement stmt = null;
@@ -261,7 +261,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				dbConn =this.getDbConnection();
 				//查询客户信息
 				columns=columns.substring(0, columns.length()-1);
-				String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_RESULT where Cid='"+Cid+"' and IID='"+IID+"' and MODIFYLAST=1";
+				String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_RESULT where Cid='"+Cid+"' and IID='"+IID+"' and SOURCEID='"+SID+"' and MODIFYID='"+ModifyId+"' and MODIFYLAST=1";
 				stmt = dbConn.prepareStatement(szSelectSql);
 				rs = stmt.executeQuery();
 				String[] column=columns.split(",");
@@ -327,7 +327,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			resultsql=resultsql.substring(0, resultsql.length()-1);
 			*/
 			//String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"'";
-			String szSelectSql="select "+repcolumn+"  from HAU_DM_B"+bizId+"C_IMPORT  left join (select * from HAU_DM_B"+bizId+"C_RESULT where modifylast=1) HAU_DM_B"+bizId+"C_RESULT on HAU_DM_B"+bizId+"C_IMPORT.cid=HAU_DM_B"+bizId+"C_RESULT.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HAU_DM_B"+bizId+"C_RESULT.iid"+
+			String szSelectSql="select "+repcolumn+",HAU_DM_B"+bizId+"C_RESULT.SOURCEID as RESULTSOURCEID,HAU_DM_B"+bizId+"C_RESULT.IID as RESULTIID,HAU_DM_B"+bizId+"C_RESULT.CID as RESULTCID,HAU_DM_B"+bizId+"C_RESULT.MODIFYID as RESULTMODIFYID  from HAU_DM_B"+bizId+"C_IMPORT  left join (select * from HAU_DM_B"+bizId+"C_RESULT where modifylast=1) HAU_DM_B"+bizId+"C_RESULT on HAU_DM_B"+bizId+"C_IMPORT.cid=HAU_DM_B"+bizId+"C_RESULT.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HAU_DM_B"+bizId+"C_RESULT.iid"+
 					" left join (select * from HASYS_DM_B"+bizId+"C_PresetTime where modifylast=1) HASYS_DM_B"+bizId+"C_PresetTime on HAU_DM_B"+bizId+"C_IMPORT.cid=HASYS_DM_B"+bizId+"C_PresetTime.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HASYS_DM_B"+bizId+"C_PresetTime.iid"+
 					" where HAU_DM_B"+bizId+"C_IMPORT.Cid='"+Cid+"' and HAU_DM_B"+bizId+"C_IMPORT.modifylast=1";
 			stmt = dbConn.prepareStatement(szSelectSql);
@@ -342,6 +342,10 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					map.put(column[i], rs.getString(workColumn[1]));
 					
 				}
+				map.put("RESULTSID", rs.getString("RESULTSOURCEID"));
+				map.put("RESULTIID", rs.getString("RESULTIID"));
+				map.put("RESULTCID", rs.getString("RESULTCID"));
+				map.put("RESULTMODIFYID", rs.getString("RESULTMODIFYID"));
 				list.add(map);
 				jsonArray.add(jsonObject_row);
 			}
