@@ -2,12 +2,14 @@ package hiapp.modules.dm.multinumbermode.bo;
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class CustomerWaitPool {
 
     @Autowired
@@ -209,6 +211,7 @@ public class CustomerWaitPool {
     public void timeoutProc() {
         Date now =  new Date();
         Long curTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        System.out.println("cur time slot : " + curTimeSlot);
 
         // HiDialer 呼通超时处理
         Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2/Constants.timeSlotSpan;

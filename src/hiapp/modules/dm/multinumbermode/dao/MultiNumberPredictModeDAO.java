@@ -73,7 +73,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                 item.setState(MultiNumberPredictStateEnum.getFromString(rs.getString(6)));
                 item.setModifyId(rs.getInt(7));
                 item.setModifyUserId(rs.getString(8));
-                item.setModifyTime(rs.getTime(9));
+                item.setModifyTime(rs.getDate(9));
                 item.setModifyDesc(rs.getString(10));
                 item.setIsAppend(rs.getInt(11));
                 item.setCustomerCallId(rs.getString(12));
@@ -83,14 +83,14 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                 for (int i=0; i<10; i++) {
                     PhoneDialInfo phoneDialInfo = new PhoneDialInfo();
                     phoneDialInfo.setPhoneNumber(rs.getString(15 + i*4));
-                    phoneDialInfo.setLastDialTime(rs.getTime(16 + i*4));
+                    phoneDialInfo.setLastDialTime(rs.getDate(16 + i*4));
                     phoneDialInfo.setCausePresetDialCount(rs.getInt(17 + i*4));
                     phoneDialInfo.setDialCount(rs.getInt(18 + i*4));
                     item.setDialInfo(i + 1, phoneDialInfo);
                 }
 
                 item.setCurDialPhone(rs.getString(55));
-                item.setCurPresetDialTime(rs.getTime(56));
+                item.setCurPresetDialTime(rs.getDate(56));
                 item.setCurDialPhoneType(rs.getInt(57));
                 item.setNextDialPhoneType(rs.getInt(58));
 
@@ -159,7 +159,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                 item.setState(MultiNumberPredictStateEnum.getFromString(rs.getString(6)));
                 item.setModifyId(rs.getInt(7));
                 item.setModifyUserId(rs.getString(8));
-                item.setModifyTime(rs.getTime(9));
+                item.setModifyTime(rs.getDate(9));
                 item.setModifyDesc(rs.getString(10));
                 item.setIsAppend(rs.getInt(11));
                 item.setCustomerCallId(rs.getString(12));
@@ -169,14 +169,14 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                 for (int i=0; i<10; i++) {
                     PhoneDialInfo phoneDialInfo = new PhoneDialInfo();
                     phoneDialInfo.setPhoneNumber(rs.getString(15 + i*4));
-                    phoneDialInfo.setLastDialTime(rs.getTime(16 + i*4));
+                    phoneDialInfo.setLastDialTime(rs.getDate(16 + i*4));
                     phoneDialInfo.setCausePresetDialCount(rs.getInt(17 + i*4));
                     phoneDialInfo.setDialCount(rs.getInt(18 + i*4));
                     item.setDialInfo(i + 1, phoneDialInfo);
                 }
 
                 item.setCurDialPhone(rs.getString(55));
-                item.setCurPresetDialTime(rs.getTime(56));
+                item.setCurPresetDialTime(rs.getDate(56));
                 item.setCurDialPhoneType(rs.getInt(57));
                 item.setNextDialPhoneType(rs.getInt(58));
 

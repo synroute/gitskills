@@ -14,10 +14,12 @@ public class MultiNumberPredictCustomerPool {
     @Autowired
     PhoneTypeDialSequence phoneTypeDialSequence;
     
+    @Autowired
+    CustomerWaitPool customerWaitPool;
+
     // bizId <==> {号码类型 <==> 号码类型对应的客户池}
     Map<Integer, Map<Integer, OnePhoneTypeCustomerPool>> customerSharePool;
 
-    CustomerWaitPool customerWaitPool;
 
     public MultiNumberCustomer extractCustomer(String userId, int bizId) {
         MultiNumberCustomer customer;
@@ -118,7 +120,7 @@ public class MultiNumberPredictCustomerPool {
     public void initialize() {
 
         customerSharePool = new HashMap<Integer, Map<Integer, OnePhoneTypeCustomerPool>>();
-        customerWaitPool = new CustomerWaitPool();
+        //customerWaitPool = new CustomerWaitPool();
 
         /*
         for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.size(); dialIndex++) {

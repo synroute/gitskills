@@ -60,7 +60,7 @@ public class DMDAO extends BaseRepository {
                 item.setShareBatchId(rs.getString(3));
                 item.setShareBatchName(rs.getString(4));
                 item.setCreateUserId(rs.getString(5));
-                item.setCreateTime(rs.getTime(6));
+                item.setCreateTime(rs.getDate(6));
                 item.setDescription(rs.getString(7));
                 item.setState(ShareBatchStateEnum.getFromString(rs.getString(8)) );
                 item.setStartTime(rs.getDate(9));
@@ -110,7 +110,7 @@ public class DMDAO extends BaseRepository {
                 item.setShareBatchId(rs.getString(3));
                 item.setShareBatchName(rs.getString(4));
                 item.setCreateUserId(rs.getString(5));
-                item.setCreateTime(rs.getTime(6));
+                item.setCreateTime(rs.getDate(6));
                 item.setDescription(rs.getString(7));
                 item.setState(ShareBatchStateEnum.getFromString(rs.getString(8)) );
                 item.setStartTime(rs.getDate(9));
@@ -157,7 +157,7 @@ public class DMDAO extends BaseRepository {
                 item.setShareBatchId(rs.getString(3));
                 item.setShareBatchName(rs.getString(4));
                 item.setCreateUserId(rs.getString(5));
-                item.setCreateTime(rs.getTime(6));
+                item.setCreateTime(rs.getDate(6));
                 item.setDescription(rs.getString(7));
                 item.setState(ShareBatchStateEnum.getFromString(rs.getString(8)) );
                 item.setStartTime(rs.getDate(9));
@@ -204,7 +204,7 @@ public class DMDAO extends BaseRepository {
                 item.setShareBatchId(rs.getString(3));
                 item.setShareBatchName(rs.getString(4));
                 item.setCreateUserId(rs.getString(5));
-                item.setCreateTime(rs.getTime(6));
+                item.setCreateTime(rs.getDate(6));
                 item.setDescription(rs.getString(7));
                 item.setState(ShareBatchStateEnum.getFromString(rs.getString(8)) );
                 item.setStartTime(rs.getDate(9));
