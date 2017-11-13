@@ -19,7 +19,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -996,37 +998,23 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 	  
   }
    
-  @SuppressWarnings({ "unchecked", "unused" })
-public void insertDataToResultTable(Integer bizId,String sourceID,String importBatchId,String customerId,String userId,String customerInfo){
+public void insertDataToResultTable(Integer bizId,String sourceID,String importBatchId,String customerId,String userId,Integer modifyid,String dialType,Date dialTime,String customerCallId,String endcodeType,String endCode ){
 	  Connection conn=null;
 	  PreparedStatement pst = null;
-	  String tableName="HAU_DM_B"+bizId+"C_Result";
-	  Map<String,Object> columnMap=new Gson().fromJson(customerInfo, Map.class);
+	  String tableName="HAU_DM_Result";
+	  String dataTime=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dialTime);
 	  try {
 		conn=this.getDbConnection();
-		String columnSql="insert into "+tableName+"(id,sourceId,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,DialType";
-		String valueSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+sourceID+"','"+importBatchId+"','"+customerId+"',1,1,'"+userId+"',sysdate,'拨打提交',";
-		Iterator<Entry<String, Object>> it = columnMap.entrySet().iterator();
-		 for(Map.Entry<String, Object> entry : columnMap.entrySet()) {
-			   System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
-			   columnSql+=entry.getKey()+",";
-			   valueSql+="'"+entry.getValue()+"',";
-			 }
-		 columnSql=columnSql.substring(0,columnSql.length()-1)+")"+valueSql.substring(0,valueSql.length()-1)+")";
-		 pst=conn.prepareStatement(columnSql);
-		 pst.executeUpdate();
+		String columnSql="insert into "+tableName+"(id,sourceId,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,DialType,dialTime,CUSTOMERCALLID,ENDCODETYPE,ENDCODE)";
+		String valueSql=" values(S_HAU_DM_RESULT.nextval,'"+sourceID+"','"+importBatchId+"','"+customerId+"',1,"+modifyid+",'"+userId+"',sysdate,'"+dialType+"',to_date('"+dataTime+"','yyyy-mm-dd hh24:mi:ss'),'"+customerCallId+"','"+endcodeType+"','"+endCode+"')";
+		columnSql=columnSql+valueSql;
+		pst=conn.prepareStatement(columnSql);
+		pst.executeUpdate();
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}finally{
-		try {
-			if(pst!=null){
-				pst.close();
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		DbUtil.DbCloseExecute(pst);
 		DbUtil.DbCloseConnection(conn);
 	}
 	  
