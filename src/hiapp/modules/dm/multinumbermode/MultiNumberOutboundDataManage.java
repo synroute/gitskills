@@ -565,8 +565,10 @@ public class MultiNumberOutboundDataManage {
             }
         }
 
-        multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
-                MultiNumberPredictStateEnum.CREATED);
+        if (!appendedStateCustomerIdList.isEmpty()) {
+            multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
+                    MultiNumberPredictStateEnum.CREATED);
+        }
     }
 
 }
