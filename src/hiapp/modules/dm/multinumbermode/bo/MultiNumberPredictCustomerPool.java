@@ -90,7 +90,7 @@ public class MultiNumberPredictCustomerPool {
         customerWaitPool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }
 
-    public void removeShareCustomer(int bizId, List<String> shareBatchIds) {
+    public void stopShareBatch(int bizId, List<String> shareBatchIds) {
         Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = customerSharePool.get(bizId);
         if (null == oneBizCustomerSharePool)
             return;
@@ -102,7 +102,7 @@ public class MultiNumberPredictCustomerPool {
             if (null == onePhoneTypeCustomerPool)
                 continue;
 
-            onePhoneTypeCustomerPool.removeShareCustomer(shareBatchIds);
+            onePhoneTypeCustomerPool.stopShareBatch(shareBatchIds);
         }
     }
 

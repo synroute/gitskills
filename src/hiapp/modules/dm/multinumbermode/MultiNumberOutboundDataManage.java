@@ -222,7 +222,7 @@ public class MultiNumberOutboundDataManage {
 
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
 
-        customerPool.removeShareCustomer(bizId, shareBatchIds);
+        customerPool.stopShareBatch(bizId, shareBatchIds);
 
         customerPool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }

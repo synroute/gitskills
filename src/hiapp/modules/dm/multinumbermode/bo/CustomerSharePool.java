@@ -172,10 +172,10 @@ public class CustomerSharePool {
      * 仅标注已经停止共享，由于没办法直接从PriorityBlockingQueue里面移除。
      * @param shareBatchIds
      */
-    public void markShareBatchStop(List<String> shareBatchIds) {
+    public void stopShareBatch(List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
             Map<String, MultiNumberCustomer> mapWaitStopPool;
-            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.remove(shareBatchId);
             for (MultiNumberCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }
@@ -183,7 +183,7 @@ public class CustomerSharePool {
     }
 
     /*
-    public void removeShareCustomer(List<String> shareBatchIds) {
+    public void stopShareBatch(List<String> shareBatchIds) {
         removeFromCustomerSharePool(shareBatchIds, mapPreseCustomerSharePool);
         removeFromCustomerSharePool(shareBatchIds, mapCustomerSharePool);
     }

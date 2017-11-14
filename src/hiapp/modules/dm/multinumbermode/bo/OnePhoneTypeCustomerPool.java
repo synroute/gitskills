@@ -44,8 +44,8 @@ public class OnePhoneTypeCustomerPool {
         customerSharePool.add(customer);
     }
 
-    public void removeShareCustomer(List<String> shareBatchIds) {
-        customerSharePool.markShareBatchStop(shareBatchIds);
+    public void stopShareBatch(List<String> shareBatchIds) {
+        customerSharePool.stopShareBatch(shareBatchIds);
     }
 
 /*
