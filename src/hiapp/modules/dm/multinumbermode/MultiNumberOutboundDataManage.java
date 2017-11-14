@@ -323,7 +323,7 @@ public class MultiNumberOutboundDataManage {
             }
 
         } else if (strategyItem.getPhoneTypeDialFinished()) {
-            Integer nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());
+            Integer nextDialPhoneType = customerPool.calcNextDialPhoneType(item);
             if (null != nextDialPhoneType) {
                 item.setState(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
                 item.setNextDialPhoneType(nextDialPhoneType);
@@ -346,7 +346,7 @@ public class MultiNumberOutboundDataManage {
             PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
 
             if ((phoneDialInfo.getDialCount() - phoneDialInfo.getCausePresetDialCount()) >= strategyItem.getMaxRedialNum()) {
-                Integer nextDialPhoneType = phoneTypeDialSequence.getNextDialPhoneType(item.getBizId(), item.getCurDialPhoneType());
+                Integer nextDialPhoneType = customerPool.calcNextDialPhoneType(item);
                 if (null != nextDialPhoneType) {
                     item.setState(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
                     item.setNextDialPhoneType(nextDialPhoneType);
@@ -514,11 +514,11 @@ public class MultiNumberOutboundDataManage {
     }
 
     public void addCustomerToSharePool(MultiNumberCustomer newCustomerItem) {
-        customerPool.add(newCustomerItem);
+        Boolean ret = customerPool.add(newCustomerItem);
 
         System.out.println("share multinumber customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
-                + "] CID[" + newCustomerItem.getCustomerId() + "]");
+                + "] CID[" + newCustomerItem.getCustomerId() + "] " + ret);
     }
 
     private void addCustomerToWaitPool(MultiNumberCustomer newCustomerItem) {

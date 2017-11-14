@@ -46,13 +46,10 @@ public class MultiNumberPredictCustomerPool {
         return null;
     }
 
-    public void add(MultiNumberCustomer customer) {
-
-        if (null == customer.getNextDialPhoneType() || 0 == customer.getNextDialPhoneType()) {
-            Integer phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(customer.getBizId(), 1);
-            if (null != phoneType)
-                customer.setNextDialPhoneType(phoneType);
-        }
+    public Boolean add(MultiNumberCustomer customer) {
+        Integer nextDialPhoneType = initNextDialPhoneType(customer);
+        if (null == nextDialPhoneType)
+            return false;
 
         Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = customerSharePool.get(customer.getBizId());
         if (null == oneBizCustomerSharePool) {
@@ -60,13 +57,15 @@ public class MultiNumberPredictCustomerPool {
             customerSharePool.put(customer.getBizId(), oneBizCustomerSharePool);
         }
 
-        OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(customer.getNextDialPhoneType());
+        OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(nextDialPhoneType);
         if (null == onePhoneTypeCustomerPool) {
-            onePhoneTypeCustomerPool = new OnePhoneTypeCustomerPool(customer.getBizId(), customer.getNextDialPhoneType());
-            oneBizCustomerSharePool.put(customer.getNextDialPhoneType(), onePhoneTypeCustomerPool);
+            onePhoneTypeCustomerPool = new OnePhoneTypeCustomerPool(customer.getBizId(), nextDialPhoneType);
+            oneBizCustomerSharePool.put(nextDialPhoneType, onePhoneTypeCustomerPool);
         }
 
         onePhoneTypeCustomerPool.add(customer);
+
+        return true;
     }
 
     public void addWaitResultCustomer(MultiNumberCustomer customer) {
@@ -140,5 +139,46 @@ public class MultiNumberPredictCustomerPool {
         customerWaitPool.agentScreenPopUp(customer, originModifyTime);
     }
 
-}
+    public Integer calcNextDialPhoneType(MultiNumberCustomer customer) {
+        Integer curPhoneType = customer.getCurDialPhoneType();
+        if (null == curPhoneType || 0 == curPhoneType)
+            return  null;
 
+        for (int dialSeq = 1; dialSeq <= 10; dialSeq++) {
+            Integer nextPhoneType = phoneTypeDialSequence.getNextDialPhoneType(customer.getBizId(), curPhoneType);
+            if (null == nextPhoneType)
+                return null;
+
+            PhoneDialInfo nextPhoneDialInfo = customer.getDialInfoByPhoneType(nextPhoneType);
+            if (null != nextPhoneDialInfo.getPhoneNumber() && !nextPhoneDialInfo.getPhoneNumber().isEmpty()) {
+                return nextPhoneType;
+            }
+
+            curPhoneType = nextPhoneType;
+        }
+
+        return null;
+    }
+
+    public Integer initNextDialPhoneType(MultiNumberCustomer customer) {
+        Integer nextPhoneType = customer.getNextDialPhoneType();
+        if (null != nextPhoneType && 0 != nextPhoneType)
+            return nextPhoneType;
+
+        for (int dialSeq=1; dialSeq<=10; dialSeq++) {
+            nextPhoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(customer.getBizId(), dialSeq);
+            if (null == nextPhoneType)
+                break;
+
+            PhoneDialInfo nextPhoneDialInfo = customer.getDialInfoByPhoneType(nextPhoneType);
+            if (null != nextPhoneDialInfo.getPhoneNumber() && !nextPhoneDialInfo.getPhoneNumber().isEmpty())
+                break;
+
+            nextPhoneType = null;  // NOTE: 需要清除
+        }
+
+        customer.setNextDialPhoneType(nextPhoneType);
+        return nextPhoneType;
+    }
+
+}

@@ -166,11 +166,11 @@ public class MultiNumberCustomer {
         mapPhoneTypeVsPhoneInfo.put(phoneType, dialInfo);
     }
 
-    public int getCurDialPhoneType() {
+    public Integer getCurDialPhoneType() {
         return curDialPhoneType;
     }
 
-    public void setCurDialPhoneType(int curDialPhoneType) {
+    public void setCurDialPhoneType(Integer curDialPhoneType) {
         this.curDialPhoneType = curDialPhoneType;
     }
 
