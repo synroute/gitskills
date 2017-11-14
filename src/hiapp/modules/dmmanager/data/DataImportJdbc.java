@@ -1005,8 +1005,8 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 	  String dataTime=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dialTime);
 	  try {
 		conn=this.getDbConnection();
-		String columnSql="insert into "+tableName+"(id,sourceId,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,DialType,dialTime,CUSTOMERCALLID,ENDCODETYPE,ENDCODE)";
-		String valueSql=" values(S_HAU_DM_RESULT.nextval,'"+sourceID+"','"+importBatchId+"','"+customerId+"',1,"+modifyid+",'"+userId+"',sysdate,'"+dialType+"',to_date('"+dataTime+"','yyyy-mm-dd hh24:mi:ss'),'"+customerCallId+"','"+endcodeType+"','"+endCode+"')";
+		String columnSql="insert into "+tableName+"(id,BUSINESSID,sourceId,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,DialType,dialTime,CUSTOMERCALLID,ENDCODETYPE,ENDCODE)";
+		String valueSql=" values(S_HAU_DM_RESULT.nextval,'"+bizId+"','"+sourceID+"','"+importBatchId+"','"+customerId+"',1,"+modifyid+",'"+userId+"',sysdate,'"+dialType+"',to_date('"+dataTime+"','yyyy-mm-dd hh24:mi:ss'),'"+customerCallId+"','"+endcodeType+"','"+endCode+"')";
 		columnSql=columnSql+valueSql;
 		pst=conn.prepareStatement(columnSql);
 		pst.executeUpdate();
