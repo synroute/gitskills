@@ -108,6 +108,8 @@ public class CustomerSharePool {
                 removeFromShareBatchStopWaitPool(shareDataItem);
                 return shareDataItem;
             }
+
+            break;   //NOTE: 取不到合适的，就跳出
         }
 
         while (true) {
