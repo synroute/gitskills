@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static hiapp.modules.dm.Constants.HiDialerUserId;
+
 @Service
 public class MultiNumberOutboundDataManage {
 
@@ -97,10 +99,10 @@ public class MultiNumberOutboundDataManage {
             multiNumberPredictModeDAO.insertCustomerShareStateHistory(customer);
 
             // 插入结果表
-            dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, originModifyId); // MODIFYLAST 0
-            dmDAO.insertDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId,
-                    customer.getModifyId(), userId, dialType, now, customerCallId,
-                    resultCodeType, resultCode);
+            //dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, originModifyId); // MODIFYLAST 0
+            //dmDAO.insertDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId,
+            //        customer.getModifyId(), userId, dialType, now, customerCallId,
+            //        resultCodeType, resultCode);
 
             return "";
         }
@@ -136,10 +138,10 @@ public class MultiNumberOutboundDataManage {
         multiNumberPredictModeDAO.insertCustomerShareStateHistory(customer);
 
         // 插入结果表
-        dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, originModifyId); // MODIFYLAST 0
-        dmDAO.insertDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId,
-                customer.getModifyId(), userId, dialType, lastDialTime, customerCallId,
-                customer.getEndCodeType(), customer.getEndCode());
+        //dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, originModifyId); // MODIFYLAST 0
+        //dmDAO.insertDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId,
+        //        customer.getModifyId(), userId, dialType, lastDialTime, customerCallId,
+        //        customer.getEndCodeType(), customer.getEndCode());
 
         return "";
     }
@@ -153,22 +155,24 @@ public class MultiNumberOutboundDataManage {
         Date dialTime = new Date();
 
         MultiNumberCustomer originCustomerItem = customerPool.removeWaitCustomer(
-                Constants.HiDialerUserId, bizId, importBatchId, customerId, phoneType);
+                HiDialerUserId, bizId, importBatchId, customerId, phoneType);
 
         // 经过 Outbound 策略处理器
         EndCodeRedialStrategyM6Item strategyItem = endCodeRedialStrategyM6.getEndCodeRedialStrategyItem(
                                                         originCustomerItem.getBizId(), resultCodeType, resultCode);
         procEndcode(userId, originCustomerItem, strategyItem, resultCodeType, resultCode, presetTime, resultData);
 
-        // 插入结果表
-        dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
-        dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
-                originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId,
-                resultCodeType, resultCode);
+        if (!HiDialerUserId.equals(userId)) {
+            // 插入结果表
+            dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
+            dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
+                    originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId,
+                    resultCodeType, resultCode);
 
-        // 插入导入客户表
-        if (null != customerInfo) {
-            dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomerItem.getModifyId() + 1);
+            // 插入导入客户表
+            if (null != customerInfo) {
+                dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomerItem.getModifyId() + 1);
+            }
         }
 
         return "";
@@ -198,11 +202,11 @@ public class MultiNumberOutboundDataManage {
         multiNumberPredictModeDAO.insertCustomerShareStateHistory(item);
 
         // 插入结果表
-        dmDAO.updateDMResult(item.getBizId(), item.getShareBatchId(), item.getImportBatchId(), item.getCustomerId(),
-                originModifyId); // MODIFYLAST 0
-        dmDAO.insertDMResult(item.getBizId(), item.getShareBatchId(), item.getImportBatchId(), item.getCustomerId(),
-                originModifyId + 1, item.getModifyUserId(), dialType, originPhoneDialInfo.getLastDialTime(), customerCallId,
-                item.getEndCodeType(), item.getEndCode());
+        //dmDAO.updateDMResult(item.getBizId(), item.getShareBatchId(), item.getImportBatchId(), item.getCustomerId(),
+        //        originModifyId); // MODIFYLAST 0
+        //dmDAO.insertDMResult(item.getBizId(), item.getShareBatchId(), item.getImportBatchId(), item.getCustomerId(),
+        //        originModifyId + 1, item.getModifyUserId(), dialType, originPhoneDialInfo.getLastDialTime(), customerCallId,
+        //        item.getEndCodeType(), item.getEndCode());
     }
 
     /*
