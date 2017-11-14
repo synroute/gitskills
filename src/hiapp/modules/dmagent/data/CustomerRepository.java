@@ -619,7 +619,432 @@ public class CustomerRepository extends BaseRepository {
 
 		return result;
 	}
+	//查询待处理工单
+	public List<List<Map<String, Object>>> queryPending(
+			QueryRequest queryRequest, String userId) throws HiAppException {
 
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<List<Map<String, Object>>> result = new ArrayList<List<Map<String, Object>>>();
+
+		StringBuffer sb = new StringBuffer();
+		try {
+			String bizId = queryRequest.getBizId();
+			dbConn = this.getDbConnection();
+			QueryTemplate queryTemplate = new QueryTemplate();
+			queryTemplate.setBizId(bizId);
+			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
+			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
+			String template = getTemplate(queryTemplate);
+
+			sb.append("SELECT * FROM (SELECT ");
+
+			// 要查哪些字段
+			List<Map<String, String>> list = new Gson().fromJson(template,
+					List.class);
+			// IID,CID,SourceID必须查
+			int flag1 = 0;
+			int flag2 = 0;
+			int flag3 = 0;
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				if (columnName != null) {
+					if (columnName.equals(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + "." + "IID")) {
+						flag1 = 1;
+					} else if (columnName.equals(TableNameEnume.INPUTTABLENAME
+							.getAbbr() + "." + "CID")) {
+						flag2 = 1;
+					} else if (columnName.equals(TableNameEnume.RESULTTABLENAME
+							.getAbbr() + "." + "SOURCEID")) {
+						flag3 = 1;
+					}
+				}
+			}
+			if (flag1 == 0) {
+				HashMap<String, String> hashMap1 = new HashMap<String, String>();
+				hashMap1.put("columnName",
+						TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "IID");
+				list.add(hashMap1);
+			}
+			if (flag2 == 0) {
+				HashMap<String, String> hashMap2 = new HashMap<String, String>();
+				hashMap2.put("columnName",
+						TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "CID");
+				list.add(hashMap2);
+			}
+			if (flag3 == 0) {
+				HashMap<String, String> hashMap3 = new HashMap<String, String>();
+				hashMap3.put("columnName",
+						TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+								+ "SOURCEID");
+				list.add(hashMap3);
+			}
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				sb.append(columnName);
+				sb.append(",");
+			}
+
+			sb.append("ROWNUM RN");
+
+			sb.append(" FROM ");
+
+			
+				// 要查哪些表
+				sb.append("HAU_DM_B"+bizId+"C_IMPORT a left join hau_dm_b"+bizId+"c_result b on a.iid=b.iid and a.cid=b.cid and a.modifyid=b.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on A.IID=C.IID AND A.CID=C.CID where a.modifylast=1 AND c.sourceid not in (select sourceid from hau_dm_b"+bizId+"c_result where modifyid=1)");
+				
+	
+				sb.append(" WHERE ");
+	
+				// 查询条件
+				sb.append("ROWNUM");
+				sb.append(" <= ");
+				sb.append(queryRequest.getEnd());
+	
+				/*sb.append(" AND ");
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append("1");
+	
+				
+				sb.append("and a1.datapoolname='"+userId+"'");*/
+			
+			List<Map<String, String>> queryCondition = queryRequest
+					.getQueryCondition();
+
+			if (queryCondition != null) {
+				if (queryCondition.size() > 0) {
+					sb.append(" AND ");
+				}
+
+				Map<String, String> map1 = new HashMap<String, String>();
+				Map<String, String> map2 = new HashMap<String, String>();
+
+				for (Map<String, String> map : queryCondition) {
+					String field = map.get("field");
+					String value = map.get("value");
+					String type = map.get("dataType");
+					if (!field.equals("")) {
+						
+					
+						if (value != null) {
+							// 时间字段使用范围查询
+							if (type != null && type.toLowerCase().contains("date")) {
+								try {
+									new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
+											.parse(value);
+									if (map1.get(field) == null) {
+										map1.put(field, value);
+									} else {
+										map2.put(field, value);
+									}
+								} catch (ParseException e) {
+									e.printStackTrace();
+								}
+							} else {
+	
+								// 非时间字段使用模糊查询
+								sb.append(field);
+								sb.append(" LIKE '%");
+								sb.append(value);
+								sb.append("%' AND ");
+							}
+						}
+					}
+				}
+
+				if (map1.isEmpty()) {
+					sb = new StringBuffer(sb.substring(0, sb.length() - 5));
+				}
+
+				// 时间字段使用范围查询
+				for (Entry<String, String> entry : map1.entrySet()) {
+					String key = entry.getKey();
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
+					sb.append(" OR ");
+					sb.append("(" + key);
+					sb.append(" BETWEEN ");
+					sb.append("TO_DATE('" + map2.get(key) + "','"
+							+ INPUT_TIME_TEMPLATE + "')");
+					sb.append(" AND ");
+					sb.append("TO_DATE('" + entry.getValue() + "','"
+							+ INPUT_TIME_TEMPLATE + "'))");
+				}
+			}
+
+			sb.append(" ORDER BY ");
+			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+					+ "MODIFYTIME");
+			sb.append(" DESC,");
+			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+					+ "MODIFYTIME");
+			sb.append(" DESC)");
+
+			sb.append(" WHERE ");
+			sb.append("RN");
+			sb.append(" >= ");
+			sb.append(queryRequest.getStart());
+
+
+			
+			stmt = dbConn.prepareStatement(sb.toString());
+			rs = stmt.executeQuery();
+
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+					OUTPUT_TIME_TEMPLATE);
+
+			// 获取查询结果
+			while (rs.next()) {
+				List<Map<String, Object>> record = new ArrayList<Map<String, Object>>();
+				ListIterator<Map<String, String>> listIterator = list
+						.listIterator();
+				AtomicInteger atomicInteger = new AtomicInteger(1);
+				while (listIterator.hasNext()) {
+					Map<String, Object> map = new HashMap<String, Object>();
+					Map<String, String> next = listIterator.next();
+					String rowNumber = next.get("rowNumber");
+					String colNumber = next.get("colNumber");
+					String fontColor = next.get("fontColor");
+					String columnName = next.get("columnName");
+					String bgColor = next.get("bgColor");
+					String type = next.get("dataType");
+					if (type != null && type.toLowerCase().contains("date")) {
+						map.put("value", simpleDateFormat.format(rs
+								.getDate(atomicInteger.getAndIncrement())));
+					} else {
+						map.put("value",
+								rs.getObject(atomicInteger.getAndIncrement()));
+					}
+					map.put("rowNumber", rowNumber);
+					map.put("colNumber", colNumber);
+					map.put("fontColor", fontColor);
+					map.put("columnName", columnName);
+					map.put("bgColor", bgColor);
+					record.add(map);
+				}
+				result.add(record);
+			}
+		} catch (Exception e) {
+			System.out.println(sb);
+			e.printStackTrace();
+			throw new HiAppException("queryMyCustomers Exception", 1);
+		} finally {
+			DbUtil.DbCloseQuery(rs, stmt);
+			DbUtil.DbCloseConnection(dbConn);
+		}
+
+		return result;
+	}
+	//查询有多少条数据
+	//查询待处理工单
+		public int queryPendingCount(
+				QueryRequest queryRequest, String userId) throws HiAppException {
+
+			Connection dbConn = null;
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			List<List<Map<String, Object>>> result = new ArrayList<List<Map<String, Object>>>();
+			int count=0;
+			StringBuffer sb = new StringBuffer();
+			try {
+				String bizId = queryRequest.getBizId();
+				dbConn = this.getDbConnection();
+				QueryTemplate queryTemplate = new QueryTemplate();
+				queryTemplate.setBizId(bizId);
+				queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
+				queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
+				String template = getTemplate(queryTemplate);
+
+				sb.append("SELECT count(*) FROM (SELECT ");
+
+				// 要查哪些字段
+				List<Map<String, String>> list = new Gson().fromJson(template,
+						List.class);
+				// IID,CID,SourceID必须查
+				int flag1 = 0;
+				int flag2 = 0;
+				int flag3 = 0;
+				for (Map<String, String> map : list) {
+					String columnName = map.get("columnName");
+					if (columnName != null) {
+						if (columnName.equals(TableNameEnume.INPUTTABLENAME
+								.getAbbr() + "." + "IID")) {
+							flag1 = 1;
+						} else if (columnName.equals(TableNameEnume.INPUTTABLENAME
+								.getAbbr() + "." + "CID")) {
+							flag2 = 1;
+						} else if (columnName.equals(TableNameEnume.RESULTTABLENAME
+								.getAbbr() + "." + "SOURCEID")) {
+							flag3 = 1;
+						}
+					}
+				}
+				if (flag1 == 0) {
+					HashMap<String, String> hashMap1 = new HashMap<String, String>();
+					hashMap1.put("columnName",
+							TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "IID");
+					list.add(hashMap1);
+				}
+				if (flag2 == 0) {
+					HashMap<String, String> hashMap2 = new HashMap<String, String>();
+					hashMap2.put("columnName",
+							TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "CID");
+					list.add(hashMap2);
+				}
+				if (flag3 == 0) {
+					HashMap<String, String> hashMap3 = new HashMap<String, String>();
+					hashMap3.put("columnName",
+							TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+									+ "SOURCEID");
+					list.add(hashMap3);
+				}
+				for (Map<String, String> map : list) {
+					String columnName = map.get("columnName");
+					sb.append(columnName);
+					sb.append(",");
+				}
+
+				sb.append("ROWNUM RN");
+
+				sb.append(" FROM ");
+
+				
+					// 要查哪些表
+					sb.append("HAU_DM_B"+bizId+"C_IMPORT a left join hau_dm_b"+bizId+"c_result b on a.iid=b.iid and a.cid=b.cid and a.modifyid=b.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on A.IID=C.IID AND A.CID=C.CID where a.modifylast=1 AND c.sourceid not in (select sourceid from hau_dm_b"+bizId+"c_result where modifyid=1)");
+					
+		
+					sb.append(" WHERE ");
+		
+					// 查询条件
+					sb.append("ROWNUM");
+					sb.append(" <= ");
+					sb.append(queryRequest.getEnd());
+		
+					/*sb.append(" AND ");
+					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+							+ "MODIFYLAST");
+					sb.append(" = ");
+					sb.append("1");
+		
+					
+					sb.append("and a1.datapoolname='"+userId+"'");*/
+				
+				List<Map<String, String>> queryCondition = queryRequest
+						.getQueryCondition();
+
+				if (queryCondition != null) {
+					if (queryCondition.size() > 0) {
+						sb.append(" AND ");
+					}
+
+					Map<String, String> map1 = new HashMap<String, String>();
+					Map<String, String> map2 = new HashMap<String, String>();
+
+					for (Map<String, String> map : queryCondition) {
+						String field = map.get("field");
+						String value = map.get("value");
+						String type = map.get("dataType");
+						if (!field.equals("")) {
+							
+						
+							if (value != null) {
+								// 时间字段使用范围查询
+								if (type != null && type.toLowerCase().contains("date")) {
+									try {
+										new SimpleDateFormat(INPUT_TIME_JTEMPLATE)
+												.parse(value);
+										if (map1.get(field) == null) {
+											map1.put(field, value);
+										} else {
+											map2.put(field, value);
+										}
+									} catch (ParseException e) {
+										e.printStackTrace();
+									}
+								} else {
+		
+									// 非时间字段使用模糊查询
+									sb.append(field);
+									sb.append(" LIKE '%");
+									sb.append(value);
+									sb.append("%' AND ");
+								}
+							}
+						}
+					}
+
+					if (map1.isEmpty()) {
+						sb = new StringBuffer(sb.substring(0, sb.length() - 5));
+					}
+
+					// 时间字段使用范围查询
+					for (Entry<String, String> entry : map1.entrySet()) {
+						String key = entry.getKey();
+						sb.append("(" + key);
+						sb.append(" BETWEEN ");
+						sb.append("TO_DATE('" + entry.getValue() + "','"
+								+ INPUT_TIME_TEMPLATE + "')");
+						sb.append(" AND ");
+						sb.append("TO_DATE('" + map2.get(key) + "','"
+								+ INPUT_TIME_TEMPLATE + "'))");
+						sb.append(" OR ");
+						sb.append("(" + key);
+						sb.append(" BETWEEN ");
+						sb.append("TO_DATE('" + map2.get(key) + "','"
+								+ INPUT_TIME_TEMPLATE + "')");
+						sb.append(" AND ");
+						sb.append("TO_DATE('" + entry.getValue() + "','"
+								+ INPUT_TIME_TEMPLATE + "'))");
+					}
+				}
+
+				sb.append(" ORDER BY ");
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+						+ "MODIFYTIME");
+				sb.append(" DESC,");
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+						+ "MODIFYTIME");
+				sb.append(" DESC)");
+
+				sb.append(" WHERE ");
+				sb.append("RN");
+				sb.append(" >= ");
+				sb.append(queryRequest.getStart());
+
+
+				
+				stmt = dbConn.prepareStatement(sb.toString());
+				rs = stmt.executeQuery();
+
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+						OUTPUT_TIME_TEMPLATE);
+
+				// 获取查询结果
+				while (rs.next()) {
+					count = rs.getInt(1);
+				}
+			} catch (Exception e) {
+				System.out.println(sb);
+				e.printStackTrace();
+				throw new HiAppException("queryMyCustomers Exception", 1);
+			} finally {
+				DbUtil.DbCloseQuery(rs, stmt);
+				DbUtil.DbCloseConnection(dbConn);
+			}
+
+			return count;
+		}
+		
+	
 	/**
 	 * 根据条件查询前台页面上“我的客户”模块下符合条件的客户
 	 * 
@@ -907,7 +1332,7 @@ public class CustomerRepository extends BaseRepository {
 		} catch (Exception e) {
 			System.out.println(sb);
 			e.printStackTrace();
-			throw new HiAppException("queryMyCustomers Exception", 1);
+			
 		} finally {
 			DbUtil.DbCloseQuery(rs, stmt);
 			DbUtil.DbCloseConnection(dbConn);

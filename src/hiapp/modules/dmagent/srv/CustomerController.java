@@ -358,6 +358,70 @@ public class CustomerController {
 	}
 
 	/**
+	 * 根据条件查询前台页面上“待处理”模块下符合条件的客户
+	 * 
+	 * @param queryRequest
+	 * @return
+	 */
+	@RequestMapping(value = "/srv/agent/queryPending.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public Map<String, Object> queryPending(QueryRequest queryRequest,
+			HttpSession session) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();
+		List<List<Map<String, Object>>> list1 = new ArrayList<List<Map<String, Object>>>();
+		String userId = ((User) session.getAttribute("user")).getId();
+
+		int pageSize = queryRequest.getPageSize();
+		int pageNum = queryRequest.getPageNum();
+
+		int count = 0;
+		try {
+			count = customerRepository.queryPendingCount(queryRequest,
+					userId);
+		} catch (HiAppException e) {
+			e.printStackTrace();
+			result.put("result", 1);
+			result.put("reason", e.getMessage());
+			return result;
+		}
+
+		if (queryRequest.hasQueryNext()) {
+			pageNum = 1;
+			try {
+				list = customerRepository.queryMyNextCustomer(queryRequest,
+						userId);
+				count += list.size();
+			} catch (HiAppException e) {
+				e.printStackTrace();
+				result.put("total", 1);
+				result.put("reason", e.getMessage());
+				return result;
+			}
+		}
+
+		try {
+			list1 = customerRepository.queryPending(queryRequest, userId);
+			list.addAll(list1);
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("total", 1);
+			result.put("reason", e.getMessage());
+			return result;
+		}
+
+		result.put("rows", listToHtml(list));
+		result.put("total", 0);
+		result.put("pageSize", pageSize);
+		result.put("pageNum", pageNum);
+		result.put("recordCount", count);
+		int pageCount = count / pageSize;
+		result.put("pageCount", (count % pageSize == 0) ? pageCount
+				: pageCount + 1);
+		return result;
+	}
+	
+	
+	/**
 	 * 根据条件查询前台页面上“我的客户”模块下符合条件的客户
 	 * 
 	 * @param queryRequest
