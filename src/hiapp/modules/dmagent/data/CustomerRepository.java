@@ -164,6 +164,11 @@ public class CustomerRepository extends BaseRepository {
 			}
 			// 联系计划
 			else if (ConfigPageEnume.CONTACTPLAN.getName().equals(configPage)) {
+				
+				// 获取导入表中用户自定义的候选列
+				list.addAll(getInputTableColumn(bizId));
+				// 获取导入表中固定的候选列
+				list.addAll(TableNameEnume.INPUTTABLENAME.getCandidadeColumn());
 				// 获取预约表中用户自定义的候选列
 				list.addAll(getPresetTableColumn(bizId));
 				// 获取预约表中固定的候选列
@@ -619,6 +624,9 @@ public class CustomerRepository extends BaseRepository {
 
 		return result;
 	}
+	
+	
+	
 	//查询待处理工单
 	public List<List<Map<String, Object>>> queryPending(
 			QueryRequest queryRequest, String userId) throws HiAppException {
@@ -637,7 +645,17 @@ public class CustomerRepository extends BaseRepository {
 			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
 			String template = getTemplate(queryTemplate);
-
+			
+			String sql="select OutboundID from HASYS_DM_Business a left join Hasys_DM_BIZTypeMode b on a.outboundmddeid=b.OutboundMode where businessid="+bizId+"";
+			stmt = dbConn.prepareStatement(sql);
+			rs = stmt.executeQuery();
+			int outid=0;
+			while (rs.next()) {
+				outid=rs.getInt(1);
+			}
+			if (outid==2) {
+				return result;
+			}
 			sb.append("SELECT * FROM (SELECT ");
 
 			// 要查哪些字段
@@ -693,10 +711,10 @@ public class CustomerRepository extends BaseRepository {
 
 			
 				// 要查哪些表
-				sb.append("HAU_DM_B"+bizId+"C_IMPORT a left join hau_dm_b"+bizId+"c_result b on a.iid=b.iid and a.cid=b.cid and a.modifyid=b.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on A.IID=C.IID AND A.CID=C.CID where a.modifylast=1 AND c.sourceid not in (select sourceid from hau_dm_b"+bizId+"c_result where modifyid=1)");
+				sb.append("HAU_DM_B"+bizId+"C_IMPORT DR left join hau_dm_b"+bizId+"c_result JG on DR.iid=JG.iid and DR.cid=JG.cid and DR.modifyid=JG.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on DR.IID=C.IID AND DR.CID=C.CID where DR.modifylast=1 AND c.sourceid not in (select sourceid from hau_dm_b"+bizId+"c_result where modifyid=1)");
 				
 	
-				sb.append(" WHERE ");
+				sb.append(" AND ");
 	
 				// 查询条件
 				sb.append("ROWNUM");
@@ -919,10 +937,10 @@ public class CustomerRepository extends BaseRepository {
 
 				
 					// 要查哪些表
-					sb.append("HAU_DM_B"+bizId+"C_IMPORT a left join hau_dm_b"+bizId+"c_result b on a.iid=b.iid and a.cid=b.cid and a.modifyid=b.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on A.IID=C.IID AND A.CID=C.CID where a.modifylast=1 AND c.sourceid not in (select sourceid from hau_dm_b"+bizId+"c_result where modifyid=1)");
+					sb.append("HAU_DM_B"+bizId+"C_IMPORT DR left join hau_dm_b"+bizId+"c_result JG on DR.iid=JG.iid and DR.cid=JG.cid and DR.modifyid=JG.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on DR.IID=C.IID AND DR.CID=C.CID where DR.modifylast=1 AND c.sourceid not in (select sourceid from hau_dm_b"+bizId+"c_result where modifyid=1)");
 					
 		
-					sb.append(" WHERE ");
+					sb.append(" AND ");
 		
 					// 查询条件
 					sb.append("ROWNUM");
