@@ -17,6 +17,7 @@ public class ManualOutboundDataManage {
     @Autowired
     ManualModeDAO manualModeDAO;
 
+    @Autowired
     ManualModeCustomerPool customerPool;
 
     public void initialize() {

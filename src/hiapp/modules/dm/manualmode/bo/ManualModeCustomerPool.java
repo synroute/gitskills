@@ -7,11 +7,13 @@ import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.modules.dmmanager.DataPoolRecord;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class ManualModeCustomerPool {
 
     @Autowired

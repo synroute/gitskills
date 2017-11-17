@@ -65,7 +65,7 @@ public class ManualModeDAO extends BaseRepository {
             e.printStackTrace();
             return false;
         } finally {
-2            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseExecute(stmt);
             DbUtil.DbCloseConnection(dbConn);
         }
 
