@@ -552,5 +552,31 @@ public class DMBizMangeShare extends BaseRepository{
 		}
 		
 		
+		public  Integer getDataPoolId(Integer bizId,String userId,Integer pid){
+			PreparedStatement pst = null;
+	        Connection conn=null;
+			ResultSet rs=null;
+			Integer dataPoolId=null;
+			try {
+				conn=this.getDbConnection();
+				String sql="select t.id from HASYS_DM_DATAPOOL t where t.businessid=? and t.datapoolname=? and t.pid=?";
+				pst=conn.prepareStatement(sql);
+				pst.setInt(1,bizId);
+				pst.setString(2,userId);
+				pst.setInt(3,pid);
+				rs=pst.executeQuery();
+				while(rs.next()){
+					dataPoolId=rs.getInt(1);
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs,pst);
+				DbUtil.DbCloseConnection(conn);
+			}
+			
+			return dataPoolId;
+		}
 		
 }
