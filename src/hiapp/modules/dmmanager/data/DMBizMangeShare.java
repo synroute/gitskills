@@ -520,23 +520,20 @@ public class DMBizMangeShare extends BaseRepository{
 		}	
 		
 		
-		public List<Map<String,Object>> getSidUserPool(Integer bizId,String userId){
+		public List<String> getSidUserPool(Integer bizId,String userId){
 			PreparedStatement pst = null;
 	        Connection conn=null;
 			ResultSet rs=null;
-			List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
+			List<String> dataList=new ArrayList<String>();
 			try {
 				conn=this.getDbConnection();
-				String  sql="select ShareID,DataPoolID from Hasys_DM_SIDUserPool where BusinessID=? and DataPoolName=?";
+				String  sql="select ShareID from Hasys_DM_SIDUserPool where BusinessID=? and DataPoolName=?";
 				pst=conn.prepareStatement(sql);
 				pst.setInt(1,bizId);
 				pst.setString(2,userId);
 				rs=pst.executeQuery();
 				while(rs.next()){
-					Map<String,Object> map=new HashMap<String, Object>();
-					map.put("shareId", rs.getObject(1));
-					map.put("dataPoolId",rs.getObject(2));
-					dataList.add(map);
+					dataList.add(rs.getString(1));
 				}
 				
 			} catch (SQLException e) {
