@@ -1,7 +1,7 @@
 package hiapp.modules.dmmanager;
 
 public enum AreaTypeEnum {
-    DA(1),SA(2),NO(3);
+    DA(0),SA(1),NO(2);
 	
 	private Integer id;
 	public Integer getId() {
@@ -12,11 +12,11 @@ public enum AreaTypeEnum {
 	}
 
 	public static  AreaTypeEnum getFromInt(int areaType) {
-		if (1 == areaType)
+		if (0 == areaType)
 			return AreaTypeEnum.DA;
-		else if (2 == areaType)
+		else if (1== areaType)
 			return AreaTypeEnum.SA;
-		else if (3 == areaType)
+		else if (2== areaType)
 			return AreaTypeEnum.NO;
 
 		return AreaTypeEnum.NO;
