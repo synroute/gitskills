@@ -1,6 +1,7 @@
 package hiapp.modules.dm;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.manualmode.ManualModeController;
 import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
 import hiapp.modules.dm.multinumbermode.bo.BizConfig;
 import hiapp.modules.dm.singlenumbermode.SingleNumberModeController;
@@ -33,6 +34,8 @@ public class DMController {
     @Autowired
     private DmBizRepository dmBizRepository;
 
+    @Autowired
+    ManualModeController manualModeController;
 
     @Autowired
     SingleNumberModeController singleNumberModeController;
@@ -47,11 +50,12 @@ public class DMController {
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(bizId));
 
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
+            return manualModeController.extractNextCustomer(userId, bizId);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-            return singleNumberModeController.extractNextCustomer(request, userId, bizId);
+            return singleNumberModeController.extractNextCustomer(userId, bizId);
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
 
@@ -75,6 +79,7 @@ public class DMController {
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(strBizId));
 
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
+            return manualModeController.submitOutboundResult(request, requestBody);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
@@ -310,6 +315,7 @@ public class DMController {
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(bizId);
 
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
+            return manualModeController.startShareBatch(bizId, strShareBatchIds);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
@@ -333,6 +339,7 @@ public class DMController {
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(bizId);
 
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
+            return manualModeController.stopShareBatch(bizId, strShareBatchIds);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 

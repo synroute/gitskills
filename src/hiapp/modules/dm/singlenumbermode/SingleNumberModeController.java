@@ -26,8 +26,7 @@ public class SingleNumberModeController {
     @Autowired
     SingleNumberOutboundDataManage singleNumberOutboundDataManage;
 
-    public /*OutboundCustomer*/String extractNextCustomer(HttpServletRequest request,
-                                                          String userId,
+    public /*OutboundCustomer*/String extractNextCustomer(String userId,
                                                           String bizId) {
 
 /*        HttpSession session = request.getSession();

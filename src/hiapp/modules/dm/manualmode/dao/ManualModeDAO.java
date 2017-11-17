@@ -1,8 +1,6 @@
 package hiapp.modules.dm.manualmode.dao;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.modules.dmmanager.AreaTypeEnum;
 import hiapp.modules.dmmanager.DataPoolRecord;
@@ -67,7 +65,7 @@ public class ManualModeDAO extends BaseRepository {
             e.printStackTrace();
             return false;
         } finally {
-            DbUtil.DbCloseExecute(stmt);
+2            DbUtil.DbCloseExecute(stmt);
             DbUtil.DbCloseConnection(dbConn);
         }
 

@@ -2,20 +2,20 @@ package hiapp.modules.dm.manualmode;
 
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
+import java.util.List;
 
-@RestController
+@Component
 public class ManualModeController {
 
     @Autowired
     ManualOutboundDataManage manualOutboundDataManage;
 
-    @RequestMapping(value="/srv/dm1/extractNextCustomer.srv", method= RequestMethod.GET, produces="application/json")
-    public String extractNextCustomer(HttpServletRequest request,
-                                      @RequestParam("userId") String userId,
-                                      @RequestParam("bizId") String bizId) {
+    public String extractNextCustomer(String userId, String bizId) {
         /*System.out.println(userId + "。。。" + bizId);
         Integer intBizId = Integer.valueOf(bizId);
         SingleNumberModeShareCustomerItem item = singleNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId);
@@ -34,14 +34,7 @@ public class ManualModeController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm1/submitHiDialerOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
-    public String submitHiDialerOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
-        //TODO
-        return "";
-    }
-
-    @RequestMapping(value="/srv/dm1/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
-    public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
+    public String submitOutboundResult(HttpServletRequest request, String requestBody) {
         /*
         HttpSession session = request.getSession();
         User user=(User) session.getAttribute("user");
@@ -86,9 +79,7 @@ public class ManualModeController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm1/startShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    public String startShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
-
+    public String startShareBatch(int bizId, String shareBatchIds) {
         /*ServiceResult serviceresult = new ServiceResult();
 
         //List<String> shareBatchIds = new Gson().fromJson(jsonShareBatchIds, List.class);
@@ -105,9 +96,7 @@ public class ManualModeController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm1/stopShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    public String stopShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
-        /*
+    public String stopShareBatch(int bizId, String shareBatchIds) {        /*
         ServiceResult serviceresult = new ServiceResult();
 
         //List<String> shareBatchIds = new Gson().fromJson(strShareBatchIds, List.class);
@@ -124,8 +113,7 @@ public class ManualModeController {
         return "";
     }
 
-    @RequestMapping(value="/srv/dm1/appendCustomersToShareBatch.srv", method= RequestMethod.GET, produces="application/json")
-    public String appendCustomersToShareBatch(@RequestParam("bizId") int bizId, @RequestParam("shareBatchIDs") String strShareBatchIds) {
+    public Boolean appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
         /*
         ServiceResult serviceresult = new ServiceResult();
 
@@ -140,7 +128,7 @@ public class ManualModeController {
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();*/
-        return "";
+        return true;
     }
 
 }
