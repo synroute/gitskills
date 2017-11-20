@@ -2,9 +2,11 @@ package hiapp.modules.dm.manualmode.dao;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.modules.dmmanager.AreaTypeEnum;
 import hiapp.modules.dmmanager.DataPoolRecordOperation;
+import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import org.springframework.stereotype.Repository;
@@ -78,26 +80,58 @@ public class ManualModeDAO extends BaseRepository {
         return true;
     }
 
+    public Boolean updatePool(ManualModeCustomer item) {
 
-    public Boolean insertPoolOperation(DataPoolRecordOperation item) {
+        String tableName = String.format("HAU_DM_B%dC_POOL", item.getBizId());
 
-        String tableName = String.format("HAU_DM_B%dC_POOL_ORE", item.getSourceId());
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET ");
+        sqlBuilder.append("  DATAPOOlIDLAST = ").append(SQLUtil.getSqlString(item.getDataPoolIdLast()));
+        sqlBuilder.append(", DATAPOOlIDCUR = ").append(SQLUtil.getSqlString(item.getDataPoolIdCur()));
+        sqlBuilder.append(", AREALAST = ").append(SQLUtil.getSqlString(item.getAreaTypeLast().getId()));
+        sqlBuilder.append(", AREACUR = ").append(SQLUtil.getSqlString(item.getAreaTypeCur().getId()));
+        sqlBuilder.append(", ISRECOVER = ").append(SQLUtil.getSqlString(item.getIsRecover()));
+        sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
+        sqlBuilder.append(", MODIFYTIME = ").append(SQLUtil.getSqlString(item.getModifyTime()));
+        sqlBuilder.append(" WHERE ID = ").append(SQLUtil.getSqlString(item.getId()));
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    public Boolean insertPoolOperation(ManualModeCustomer item, OperationNameEnum operationType) {
+
+        String tableName = String.format("HAU_DM_B%dC_POOL_ORE", item.getBizId());
 
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
-        sqlBuilder.append(" (ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime ) VALUES ( ");
+        sqlBuilder.append(" (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR," +
+                "AREALAST,AREACUR,ISRECOVER, MODIFYUSERID,MODIFYTIME ) VALUES ( ");
 
         sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getSourceId())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getImportId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getImportBatchId())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getCustomerId())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getOperationName().getName())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getDataPoolIDLast())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getDataPoolIDCur())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getAreaLast())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getAreaCur())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getiSRecover())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyUserID())).append(",");
-        sqlBuilder.append("sysdate").append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(operationType.getName())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getDataPoolIdLast())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getDataPoolIdCur())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getAreaTypeLast().getId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getAreaTypeCur().getId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getIsRecover())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyUserId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyTime()));
         sqlBuilder.append(")");
 
         System.out.println(sqlBuilder.toString());

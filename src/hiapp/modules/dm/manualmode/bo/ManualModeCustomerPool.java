@@ -75,6 +75,9 @@ public class ManualModeCustomerPool {
 
         for (String shareBatchId : shareBatchIdList) {
             PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerPool = oneBizCustomerSharePool.get(shareBatchId);
+            if (null == oneShareBatchCustomerPool)
+                continue;
+
             ManualModeCustomer customer = oneShareBatchCustomerPool.poll();
             if (null == customer) {
                 oneBizCustomerSharePool.remove(shareBatchId);
