@@ -503,7 +503,7 @@ public class CustomerRepository extends BaseRepository {
 				String columnName = map.get("columnName");
 				if (columnName.equals(TableNameEnume.RESULTTABLENAME
 						.getAbbr() + "." + "SOURCEID")) {
-					columnName = queryRequest.getSourceId() +" as "+columnName;
+					columnName = queryRequest.getSourceId() +" as SOURCEID";
 				}
 				sb.append(columnName);
 				sb.append(",");
@@ -620,7 +620,7 @@ public class CustomerRepository extends BaseRepository {
 		} catch (Exception e) {
 			System.out.println(sb);
 			e.printStackTrace();
-			throw new HiAppException("queryMyCustomers Exception", 1);
+			
 		} finally {
 			DbUtil.DbCloseQuery(rs, stmt);
 			DbUtil.DbCloseConnection(dbConn);
