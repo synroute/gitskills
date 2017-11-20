@@ -1,6 +1,7 @@
 package hiapp.modules.dmmanager.data;
 
 import hiapp.modules.dmmanager.bean.Business;
+import hiapp.modules.dmmanager.bean.ExcelUtils;
 import hiapp.modules.dmmanager.bean.ImportTemplate;
 import hiapp.modules.dmmanager.bean.WorkSheet;
 import hiapp.modules.dmmanager.bean.WorkSheetColumn;
@@ -28,6 +29,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -458,7 +462,7 @@ public class DataImportJdbc extends BaseRepository{
 				dataPoolNumber=rs.getInt(1);
 			}
 			if("Excel".equals(operationName)){
-				resultMap=insertExcelData(jsonData,workSheetId,tableName,isnertData,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
+				resultMap=insertExcelData(jsonData,workSheetId,tableName,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
 			}else{
 				resultMap=insertDbData(bizId,jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
 			}
@@ -497,7 +501,7 @@ public class DataImportJdbc extends BaseRepository{
      * @param uId
      */
     @SuppressWarnings("resource")
-	public Map<String,Object> insertExcelData(String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,Integer bizId,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+	public Map<String,Object> insertExcelData(String jsonData,String workSheetId,String tableName,Integer bizId,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
     	Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -506,8 +510,6 @@ public class DataImportJdbc extends BaseRepository{
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
 		String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
 		String resultTableName="HAU_DM_B"+bizId+"C_Result";//结果表
-		Map<String,String> dataTypeList=new HashMap<String,String>();
-		List<Map<String,Object>> repeatColumns=new ArrayList<Map<String,Object>>();//重复字段的集合
 		List<Map<String,String>> tableHeaders=new ArrayList<Map<String,String>>();
  		try {
 			conn=this.getDbConnection();
@@ -527,47 +529,27 @@ public class DataImportJdbc extends BaseRepository{
 			}else{
 				distinctSql="select a."+RepetitionColumn+" from "+tableName+" a,"+resultTableName+" b where a.iid=b.iid and a.cid=b.cid and b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
 			}
+			pst=conn.prepareStatement(distinctSql);
+			rs=pst.executeQuery();
+			resultMap.put("ifRepeat",0);
+			while(rs.next()){
+				resultMap.put("ifRepeat",1);
+			}
 			if(!"ID".equals(RepetitionColumn.toUpperCase())){
 		    	dintincColumn=" and "+RepetitionColumn +" not in("+distinctSql+")";
-		    }
-			String getTypeSql="select dataType from HASYS_WORKSHEETCOLUMN	where COLUMNNAME=? and  workSheetId=?";
-			pst=conn.prepareStatement(getTypeSql);
-			pst.setString(1, RepetitionColumn);
-			pst.setString(2, workSheetId);
-			rs=pst.executeQuery();
-			
-			if(!"ID".equals(RepetitionColumn.toUpperCase())){
-				getDataType(dataTypeList, dataArray, workSheetId, 1);
-				String selectRepColumnSql="select ";
-				for (int i = 0; i < dataArray.size(); i++) {
+		    	for (int i = 0; i < dataArray.size(); i++) {
 					String cName=dataArray.get(i).getAsJsonObject().get("DbFieldName").getAsString();
 					String excelName=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
-					Map<String,String> map=new HashMap<String, String>();
-					if(dataTypeList.keySet().contains(cName)){
-						String type=dataTypeList.get(cName);
-						if("datetime".equals(type.toLowerCase())){
-							selectRepColumnSql+="to_char("+cName+",'yyyy-mm-dd') "+cName+",";
-						}else{
-							selectRepColumnSql+=cName+",";
-						}
+					if(excelName!=null&&!"".equals(excelName)){
+						Map<String,String> map=new HashMap<String, String>();
 						map.put("field", cName);
 						map.put("title",excelName);
 						tableHeaders.add(map);
 					}
-					
 				}
-				selectRepColumnSql=selectRepColumnSql.substring(0,selectRepColumnSql.length()-1)+" from "+tempTableName+" where ifchecked=1 and "+RepetitionColumn+" in("+distinctSql+")";
-				pst=conn.prepareStatement(selectRepColumnSql);
-				rs=pst.executeQuery();
-				while(rs.next()){
-					Map<String,Object> map=new HashMap<String, Object>();
-					 for(Map.Entry<String, String> entry : dataTypeList.entrySet()) {
-						 String key=entry.getKey();
-						 map.put(key,rs.getObject(key));
-					 }
-					 repeatColumns.add(map);
-				}
-			}
+		    	
+		    }
+			
 			//不自动提交数据
 			conn.setAutoCommit(false);
 			//导入表里面添加数据
@@ -618,7 +600,6 @@ public class DataImportJdbc extends BaseRepository{
 			pst.execute();
 			//提交
 			conn.commit();
-			resultMap.put("repeatColumn", repeatColumns);
 			resultMap.put("tableHeaders", tableHeaders);
 			resultMap.put("flag", 1);
 			resultMap.put("result",true);
@@ -631,6 +612,165 @@ public class DataImportJdbc extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
     	return resultMap;
+    }
+    
+    @SuppressWarnings("resource")
+	public Map<String,Object>  getRepeatData(Integer tempId,Integer bizId,String workSheetId,String userId,Integer num,Integer pageSize){
+    	Connection conn=null;
+    	PreparedStatement pst=null;
+    	ResultSet rs=null;
+    	String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
+    	Map<String,String> dataTypeList=new HashMap<String,String>();
+		List<Map<String,Object>> repeatColumns=new ArrayList<Map<String,Object>>();//重复字段的集合
+		Map<String,Object> resultMap=new HashMap<String, Object>();
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+     	try {
+			conn=this.getDbConnection();
+			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
+			pst=conn.prepareStatement(getXmlSql);
+			pst.setInt(1, tempId);
+			pst.setInt(2,bizId);
+			rs = pst.executeQuery();
+			String jsonData=null;
+			while(rs.next()){
+				jsonData=rs.getString(1);	
+			}
+			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
+			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
+			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
+			String RepetitionColumn=excelTemplate.get("RepetitionExcludeWorkSheetColumn").getAsString();
+			if(!"ID".equals(RepetitionColumn.toUpperCase())){
+				getDataType(dataTypeList, dataArray, workSheetId, 1);
+				String selectRepColumnSql1="select ";
+				String selectRepColumnSql2="select ";
+				String selectRepColumnSql="select ";
+				for (int i = 0; i < dataArray.size(); i++) {
+					String cName=dataArray.get(i).getAsJsonObject().get("DbFieldName").getAsString();
+					if(dataTypeList.keySet().contains(cName)){
+						String type=dataTypeList.get(cName);
+						if("datetime".equals(type.toLowerCase())){
+							selectRepColumnSql+="to_char("+cName+",'yyyy-mm-dd') "+cName+",";
+						}else{
+							selectRepColumnSql+=cName+",";
+						}
+						selectRepColumnSql1+=cName+",";
+						selectRepColumnSql2+=cName+",";
+					}
+					
+				}
+				selectRepColumnSql=selectRepColumnSql.substring(0,selectRepColumnSql.length()-1)+" from "+tempTableName+" where ifchecked=1";
+				selectRepColumnSql1=selectRepColumnSql1+"rownum rn from ("+selectRepColumnSql+") where rownum<?";
+				selectRepColumnSql2=selectRepColumnSql2.substring(0,selectRepColumnSql2.length()-1)+" from ("+selectRepColumnSql1+") where rn>=?";
+				pst=conn.prepareStatement(selectRepColumnSql2);
+				pst.setInt(1,endNum);
+				pst.setInt(2,startNum);
+				rs=pst.executeQuery();
+				while(rs.next()){
+					Map<String,Object> map=new HashMap<String, Object>();
+					 for(Map.Entry<String, String> entry : dataTypeList.entrySet()) {
+						 String key=entry.getKey();
+						 map.put(key,rs.getObject(key));
+					 }
+					 repeatColumns.add(map);
+				}
+			}
+			String getCountSql="select count(*)  from "+tempTableName+" where ifchecked=1";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=null;
+			while(rs.next()){
+				total=rs.getInt(1);
+			}
+			resultMap.put("total",total);
+			resultMap.put("rows",repeatColumns);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+    	return resultMap;
+    }
+    
+    /**
+     * 导出重复数据
+     * @param bizId
+     * @param userId
+     * @param tempId
+     * @param workSheetId
+     * @param request
+     * @param response
+     */
+    @SuppressWarnings("resource")
+	public void exportRepeatData(Integer bizId,String userId,Integer tempId,String workSheetId,HttpServletRequest request, HttpServletResponse response){
+    	Connection conn=null;
+    	PreparedStatement pst=null;
+    	ResultSet rs=null;
+    	String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
+    	Map<String,String> dataTypeList=new HashMap<String,String>();
+		List<Map<String,Object>> repeatColumns=new ArrayList<Map<String,Object>>();//重复字段的集合
+		List<String> excelHeaders=new ArrayList<String>();
+		List<String> sheetColumns=new ArrayList<String>();
+		try {
+			conn=this.getDbConnection();
+			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
+			pst=conn.prepareStatement(getXmlSql);
+			pst.setInt(1, tempId);
+			pst.setInt(2,bizId);
+			rs = pst.executeQuery();
+			String jsonData=null;
+			while(rs.next()){
+				jsonData=rs.getString(1);	
+			}
+			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
+			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
+			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
+			String RepetitionColumn=excelTemplate.get("RepetitionExcludeWorkSheetColumn").getAsString();
+			if(!"ID".equals(RepetitionColumn.toUpperCase())){
+				getDataType(dataTypeList, dataArray, workSheetId, 1);
+				String selectRepColumnSql="select ";
+				for (int i = 0; i < dataArray.size(); i++) {
+					String cName=dataArray.get(i).getAsJsonObject().get("DbFieldName").getAsString();
+					String excelName=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
+					if(dataTypeList.keySet().contains(cName)){
+						String type=dataTypeList.get(cName);
+						if("datetime".equals(type.toLowerCase())){
+							selectRepColumnSql+="to_char("+cName+",'yyyy-mm-dd') "+cName+",";
+						}else{
+							selectRepColumnSql+=cName+",";
+						}
+						excelHeaders.add(excelName);
+						sheetColumns.add(cName);
+					}
+					
+				}
+				selectRepColumnSql=selectRepColumnSql.substring(0,selectRepColumnSql.length()-1)+" from "+tempTableName+" where ifchecked=1";
+				pst=conn.prepareStatement(selectRepColumnSql);
+				rs=pst.executeQuery();
+				while(rs.next()){
+					Map<String,Object> map=new HashMap<String, Object>();
+					 for(Map.Entry<String, String> entry : dataTypeList.entrySet()) {
+						 String key=entry.getKey();
+						 map.put(key,rs.getObject(key));
+					 }
+					 repeatColumns.add(map);
+				}
+			}
+			
+			ExcelUtils excelUtils=new ExcelUtils();
+			excelUtils.exportExcel(excelHeaders, repeatColumns, sheetColumns, request, response);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
     }
     /**
      * 将数据库来源数据插入到导入表中

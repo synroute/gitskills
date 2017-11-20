@@ -322,7 +322,47 @@ public class ImportDataController {
 		printWriter.print(jsonObject);
 		 
 	};
-
+	/**
+	 * 得到所有重复数据
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/ImportDataController/getRepetaData.srv")
+	public void getRepeatData(HttpServletRequest request, HttpServletResponse response){
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
+		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		Integer pageNum=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		Map<String, Object> resultMap = dataImportJdbc.getRepeatData(temPlateId, bizId, workSheetId, userId, pageNum, pageSize);
+		String jsonObject=new Gson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 导出重复数据
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/ImportDataController/exportRepeatData.srv")
+	public void exportRepeatData(HttpServletRequest request, HttpServletResponse response){
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
+		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
+		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		dataImportJdbc.exportRepeatData(bizId, userId, temPlateId, workSheetId, request, response);
+	}
+	
 	public String getStringcell(Cell cell){
 		String value=null;
 		if("yyyy/mm/dd".equals(cell.getCellStyle().getDataFormatString()) || "m/d/yy".equals(cell.getCellStyle().getDataFormatString())

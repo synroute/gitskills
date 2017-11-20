@@ -40,6 +40,7 @@ public class DMBizShareController {
     @Autowired
     private DmWorkSheetRepository dmWorkSheetRepository;
 	//根据时间筛选导入批次号查询出没有被共享的客户批次数据
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value="/srv/DataShareController/getNotShareDataByTime.srv")
 	public void getNotShareDataByTime(@RequestParam(value="startTime") String StartTime,
 			                            @RequestParam(value="endTime") String EndTime,
