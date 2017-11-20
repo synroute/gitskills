@@ -452,7 +452,7 @@ public class CustomerRepository extends BaseRepository {
 
 			QueryTemplate queryTemplate = new QueryTemplate();
 			queryTemplate.setBizId(bizId);
-			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
+			queryTemplate.setConfigPage(ConfigPageEnume.CONTACTPLAN.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
 			String template = getTemplate(queryTemplate);
 
@@ -642,7 +642,7 @@ public class CustomerRepository extends BaseRepository {
 			dbConn = this.getDbConnection();
 			QueryTemplate queryTemplate = new QueryTemplate();
 			queryTemplate.setBizId(bizId);
-			queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
+			queryTemplate.setConfigPage(ConfigPageEnume.CONTACTPLAN.getName());
 			queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
 			String template = getTemplate(queryTemplate);
 			
