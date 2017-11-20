@@ -222,21 +222,21 @@ public class CustomerController {
         String s1 = "<tr>" + "<th style='width:33.3%;font-size:14px;color:"
                 + data[0][0].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[0][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[0][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[0][0].get("value")
                 + "</p>"
                 + "</th>"
                 + "<th style='width:33.3%;font-size:14px;color:"
                 + data[0][1].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[0][1].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[0][1].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[0][1].get("value")
                 + "</p>"
                 + "</th>"
                 + "<th style='width:33.3%;font-size:14px;color:"
                 + data[0][2].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[0][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[0][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[0][2].get("value")
                 + "</p>"
                 + "</th>"
@@ -245,20 +245,20 @@ public class CustomerController {
                 + "<th style='width:33.3%;font-size:14px;color:"
                 + data[1][0].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[1][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[1][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[1][0].get("value")
                 + "</p>"
                 + "<th style='width:33.3%;font-size:14px;color:"
                 + data[1][1].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[1][1].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[1][1].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[1][1].get("value")
                 + "</p>"
                 + "</th>"
                 + "<th style='width:33.3%;font-size:14px;color:"
                 + data[1][2].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[1][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[1][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[1][2].get("value")
                 + "</p>"
                 + "</th>"
@@ -267,21 +267,21 @@ public class CustomerController {
                 + "<th style='width:33.3%;font-size:14px;color:"
                 + data[2][0].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[2][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[2][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[2][0].get("value")
                 + "</p>"
                 + "</th>"
                 + "<th style='width:33.3%;font-size:14px;color:"
                 + data[2][1].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[2][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[2][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[2][1].get("value")
                 + "</p>"
                 + "</th>"
                 + "<th style='width:33.3%;font-size:14px;color:"
                 + data[2][2].get("fontColor")
                 + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[2][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;'>"
+                + "<p style='background:" + data[2][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;text-overflow:ellipsis;white-space:nowrap;'>"
                 + data[2][2].get("value")
                 + "</p>"
                 + "</th>"
