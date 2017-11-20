@@ -529,11 +529,13 @@ public class DataImportJdbc extends BaseRepository{
 			}else{
 				distinctSql="select a."+RepetitionColumn+" from "+tableName+" a,"+resultTableName+" b where a.iid=b.iid and a.cid=b.cid and b.DialTime <sysdate and b.DialTime>sysdate-"+RepetitionCount;
 			}
-			pst=conn.prepareStatement(distinctSql);
+			String sql=" select "+RepetitionColumn+" from "+tempTableName+" where ifchecked=1 and "+RepetitionColumn+" in("+distinctSql+")";
+			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
 			resultMap.put("ifRepeat",0);
 			while(rs.next()){
 				resultMap.put("ifRepeat",1);
+				break;
 			}
 			if(!"ID".equals(RepetitionColumn.toUpperCase())){
 		    	dintincColumn=" and "+RepetitionColumn +" not in("+distinctSql+")";
