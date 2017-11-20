@@ -217,7 +217,7 @@ public class MultiNumberOutboundDataManage {
         // 设置共享批次状态
         dmDAO.updateShareBatchState(bizId, shareBatchIds, ShareBatchStateEnum.ENABLE.getName());
 
-        List<ShareBatchItem> shareBatchItems = shareBatchIncrementalProc();
+        List<ShareBatchItem> shareBatchItems = shareBatchIncrementalProc(bizId, shareBatchIds);
 
         loadCustomersIncremental(shareBatchItems);
 
@@ -533,14 +533,18 @@ public class MultiNumberOutboundDataManage {
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
     }
 
-    private List<ShareBatchItem> shareBatchIncrementalProc() {
+    /**
+     * 过滤出当天需要激活的共享批次
+     * @param bizId
+     * @param shareBatchIds
+     */
+    private List<ShareBatchItem> shareBatchIncrementalProc(int bizId, /*IN,OUT*/List<String> shareBatchIds) {
         //List<String> expiredShareBatchIds = new ArrayList<String>();
         dmDAO.expireShareBatchsByEndTime(/*expiredShareBatchIds*/);
 
-        List<ShareBatchItem> shareBatchItems = new ArrayList<ShareBatchItem>();
-        dmDAO.getCurDayNeedActiveShareBatchItems(shareBatchItems);
+        List<ShareBatchItem> shareBatchItems = dmDAO.getCurDayNeedActiveShareBatchItems(bizId, shareBatchIds);
 
-        dmDAO.activateShareBatchByStartTime();
+        dmDAO.activateShareBatchByStartTime(bizId, shareBatchItems);
 
         return shareBatchItems;
     }

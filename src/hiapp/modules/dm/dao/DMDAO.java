@@ -179,7 +179,9 @@ public class DMDAO extends BaseRepository {
     /*
      *  取得当天启用 且未处理的共享批次, 处理后续启用的共享批次
      */
-    public Boolean getCurDayNeedActiveShareBatchItems( /*OUT*/List<ShareBatchItem> shareBatchItems) {
+    public List<ShareBatchItem> getCurDayNeedActiveShareBatchItems( int bizId, List<String> shareBatchIds) {
+
+        List<ShareBatchItem> shareBatchItems = new ArrayList<ShareBatchItem>();
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -189,9 +191,11 @@ public class DMDAO extends BaseRepository {
 
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, SHARENAME, CREATEUSERID, " +
-                    "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID WHERE ");
-            sqlBuilder.append(" STARTTIME <= ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
-            sqlBuilder.append(" AND STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ENABLE.getName()));
+                    "CREATETIME, DESCRIPTION, STATE, STARTTIME, ENDTIME FROM HASYS_DM_SID");
+            sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
+            sqlBuilder.append("   AND STARTTIME <= ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
+            sqlBuilder.append("   AND STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ENABLE.getName()));
+            sqlBuilder.append("   AND SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIds)).append(")");
 
             System.out.println(sqlBuilder.toString());
 
@@ -214,13 +218,13 @@ public class DMDAO extends BaseRepository {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return shareBatchItems;
         } finally {
             DbUtil.DbCloseExecute(stmt);
             DbUtil.DbCloseConnection(dbConn);
         }
 
-        return true;
+        return shareBatchItems;
     }
 
     public  Boolean activateShareBatchByStartTime() {
@@ -231,10 +235,40 @@ public class DMDAO extends BaseRepository {
             dbConn = this.getDbConnection();
 
             // 激活共享批次
+            StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID ");
+            sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ACTIVE.getName()));
+            sqlBuilder.append(" WHERE STARTTIME <= ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
+            sqlBuilder.append("   AND STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ENABLE.getName()));
+
+            System.out.println(sqlBuilder.toString());
+
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    public  Boolean activateShareBatchByStartTime(int bizId, List<ShareBatchItem> shareBatchItems) {
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+
+            // 激活共享批次
             StringBuilder sqlBuilder = new StringBuilder("UPDATE HASYS_DM_SID SET ");
             sqlBuilder.append(" STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ACTIVE.getName()));
-            sqlBuilder.append(" WHERE STARTTIME <= ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
-            sqlBuilder.append(" AND STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ENABLE.getName()));
+            sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
+            sqlBuilder.append("   AND STARTTIME <= ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
+            sqlBuilder.append("   AND STATE = ").append(SQLUtil.getSqlString(ShareBatchStateEnum.ENABLE.getName()));
+            sqlBuilder.append("   AND SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(shareBatchItems)).append(")");
 
             System.out.println(sqlBuilder.toString());
 
