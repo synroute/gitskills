@@ -205,9 +205,13 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			JsonArray jsonArray_Map=new JsonParser().parse(MapColumns).getAsJsonArray();
 			
 			jsonObject.add("EndCodeRedialStrategy", jsonArray_Map);
-			String szSql = String.format("update HASYS_DM_BIZOUTBOUNDSETTING set xml='"+jsonObject.toString()+"' where BusinessID="+bizId+"");
-			stmt = conn.prepareStatement(szSql);
-			stmt.executeUpdate();
+			PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where BusinessID="+bizId+"");
+			String clobContent = jsonObject.toString();  
+		     StringReader reader = new StringReader(clobContent);  
+		     stat.setCharacterStream(1, reader, clobContent.length());
+		     stat.executeUpdate();
+			
+			
 			}
 			if(type==6||type==5)
 			{
