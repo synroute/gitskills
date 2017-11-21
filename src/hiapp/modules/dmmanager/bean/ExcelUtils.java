@@ -58,7 +58,7 @@ public class ExcelUtils extends BaseRepository{
          
          // 定义所需列数
          int columnNum = excelHeader.size();
-         HSSFRow rowRowName = sheet.createRow(0);                // 在索引2的位置创建行(最顶端的行开始的第二行)
+         HSSFRow rowRowName = sheet.createRow(0);               
           
          // 将列头设置到sheet的单元格中
          for(int n=0;n<columnNum;n++){

@@ -12,6 +12,8 @@ import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.sql.Clob;
@@ -29,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -358,7 +361,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource","unchecked","rawtypes" })
-	public List<Map<String,Object>> getAllDbData(Integer temPlateId,Integer bizId) throws IOException{
+	public List<Map<String,Object>> getAllDbData(Integer temPlateId,Integer bizId,String contextPath) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -381,6 +384,9 @@ public class DataImportJdbc extends BaseRepository{
 			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
+			Properties properties = new Properties();
+			properties.load(new FileInputStream(contextPath));
+			String importTime = properties.getProperty("maxTime");
 			for (int i = 0; i < dataArray.size(); i++) {
 				String value=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
 				if(value!=null&&!"".equals(value)){
@@ -393,8 +399,10 @@ public class DataImportJdbc extends BaseRepository{
 				getDbDataSql1+=newList.get(i)+",";
 			}
 			getDbDataSql1=getDbDataSql1.substring(0, getDbDataSql1.length()-1)+" from "+sourceTableName;
+			if(importTime!=null){
+				getDbDataSql1+=" where importTime>to_date('"+importTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
 			pst=conn.prepareStatement(getDbDataSql1);
-		
 			rs = pst.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
@@ -413,6 +421,15 @@ public class DataImportJdbc extends BaseRepository{
 				dataList.add(map);
 			}
 			
+			String sql="select to_char(max(t.importTime),'yyyy-mm-dd hh24:mi:ss') importTime from "+sourceTableName+" t";
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			String maxTime=null;
+			while(rs.next()){
+				maxTime=rs.getString(1);
+			}
+			properties.setProperty("maxTime",maxTime);
+			properties.store(new FileOutputStream(contextPath),"最大时间");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -788,8 +805,7 @@ public class DataImportJdbc extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
-		String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
-		//String deleteTempSql="delete from "+tempTableName+" where tempId in(";
+		List<String> customerBatchIds=idfactory.newIds("DM_CID", isnertData.size());
 		try {
 			conn=this.getDbConnection();
 			//不自动提交数据
@@ -809,9 +825,8 @@ public class DataImportJdbc extends BaseRepository{
 			//向导入表插数据
 			statement=conn.createStatement();
 			for (int i = 0; i < isnertData.size(); i++) {
-				String customerBatchId=idfactory.newId("DM_CID");//客户号
+				String customerBatchId=customerBatchIds.get(i);//客户号
 				String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-				//deleteTempSql+=isnertData.get(i).get("tempId")+",";
 				
 				pst.setString(1,disBatchId);
 				pst.setString(2, importBatchId);
@@ -865,9 +880,6 @@ public class DataImportJdbc extends BaseRepository{
 			pst.executeBatch();
 			pst1.executeBatch();
 			statement.executeBatch();
-			/*deleteTempSql=deleteTempSql.substring(0,deleteTempSql.length()-1)+")";
-			pst=conn.prepareStatement(deleteTempSql);
-			pst.executeUpdate();*/
 			//导入批次表里面插数据
 			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertImportBatchSql);
@@ -976,9 +988,9 @@ public class DataImportJdbc extends BaseRepository{
 			createTable(tableName, sheetColumnList);
 			//临时表插数据 
 			statement=conn.createStatement();
-			
+			List<String> customerBatchIds=idfactory.newIds("DM_CID", dataList.size());
 			for(int i=0;i<dataList.size();i++){
-				String customerBatchId=idfactory.newId("DM_CID");//客户号
+				String customerBatchId=customerBatchIds.get(i);//客户号
 				String insertDataSql="insert into "+tableName+"(TEMPID,CUSTOMERID,";
 				String valuesSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+customerBatchId+"',";
 				for (int j = 0; j < sheetColumnList.size(); j++) {

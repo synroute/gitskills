@@ -290,13 +290,11 @@ public class ImportDataController {
 	 * @param response
 	 * @throws IOException 
 	 */
-	@SuppressWarnings("unchecked")
 	@RequestMapping(value="/srv/ImportDataController/saveCustomerDataToDB.srv")
 	public void saveCustomerDataToDB(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
-		String importData=request.getParameter("importData");
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
@@ -307,17 +305,12 @@ public class ImportDataController {
 		Integer action=Integer.valueOf(request.getParameter("action"));
 		List<Map<String,Object>> isnertData=null;
 		if(!"Excel".equals(operationName)){
-			if(action==0){
-				isnertData=dataImportJdbc.getAllDbData(temPlateId, bizId);
-			}else{
-				isnertData=new Gson().fromJson(importData, List.class);
-			}
-			
+			String contextPath = request.getSession().getServletContext().getRealPath("maxTime/maxTime.properties");
+			isnertData=dataImportJdbc.getAllDbData(temPlateId, bizId,contextPath);
 		}else{
 			dataImportJdbc.updateTempData(bizId, userId, tempIds, action);
 		}
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-		
 		Map<String,Object> resultMap = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, sheetColumnList, isnertData, tableName, userId,operationName);
 		String jsonObject=new Gson().toJson(resultMap);
 		PrintWriter printWriter = response.getWriter();
