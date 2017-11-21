@@ -1156,29 +1156,29 @@ public class CustomerRepository extends BaseRepository {
 			if(outid==1)
 			{
 				// 要查哪些表
-				sb.append("HAU_DM_B"+bizId+"C_POOL a left join HAU_DM_B"+bizId+"C_IMPORT DR on a.iid=DR.iid and a.cid=DR.cid left join (select * from HASYS_DM_DATAPOOL where businessid="+bizId+") a1 on a.DataPoolIDCur=a1.id left join HAU_DM_B"+bizId+"C_Result JG on a.iid=JG.iid and a.cid=JG.cid ");
+				sb.append("HAU_DM_B"+bizId+"C_IMPORT DR left join hau_dm_b"+bizId+"c_result JG on DR.iid = JG.iid and DR.cid = JG.cid and DR.modifyid = JG.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on  DR.IID = C.IID AND DR.CID = C.CID where C.DATAPOOLIDCUR in (select id from HASYS_DM_DATAPOOL where businessid="+bizId+" and datapoolname='"+userId+"') and DR.modifylast = 1 AND nvl(JG.MODIFYUSERID,00)<>"+userId+"");
 				
 	
-				sb.append(" WHERE ");
+				sb.append(" AND ");
 	
 				// 查询条件
 				sb.append("ROWNUM");
 				sb.append(" <= ");
 				sb.append(queryRequest.getEnd());
 	
-				sb.append(" AND ");
+			/*	sb.append(" AND ");
 				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");
 				sb.append(" = ");
-				sb.append("1");
+				sb.append("1");*/
 	
 				/*sb.append(" AND ");
 				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYUSERID");
 				sb.append(" = ");
 				sb.append(userId);*/
-				
-				sb.append("and a1.datapoolname='"+userId+"'");
+				/*
+				sb.append("and a1.datapoolname='"+userId+"'");*/
 			}else
 			{
 				// 要查哪些表
