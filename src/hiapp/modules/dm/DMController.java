@@ -10,6 +10,7 @@ import hiapp.modules.dm.util.XMLUtil;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.modules.dmsetting.data.DmBizRepository;
+import hiapp.system.buinfo.User;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
 import org.jdom.Document;
@@ -23,9 +24,12 @@ import org.springframework.web.bind.annotation.*;
 import org.xml.sax.InputSource;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
@@ -47,6 +51,9 @@ public class DMController {
     public String extractNextCustomer(HttpServletRequest request,
                                       @RequestParam("userId") String userId,
                                       @RequestParam("bizId") String bizId) {
+
+        System.out.println("extractNextCustomer ...");
+
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(bizId));
 
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
@@ -70,28 +77,55 @@ public class DMController {
 
     @RequestMapping(value="/srv/dm/submitOutboundResult.srv", method= RequestMethod.POST, consumes="application/json", produces="application/json")
     public String submitOutboundResult(HttpServletRequest request, @RequestBody String requestBody) {
-
-        //String requestBody = testData();
+        HttpSession session = request.getSession();
+        User user=(User) session.getAttribute("user");
 
         Map<String, Object> map = new Gson().fromJson(requestBody, Map.class);
         String strBizId = (String) map.get("bizId");
+        String importBatchId = (String)map.get("importBatchId");
+        String shareBatchId = (String)map.get("shareBatchId");
+        String customerId = (String)map.get("customerId");
+        String resultCodeType = (String)map.get("resultCodeType");
+        String resultCode = (String)map.get("resultCode");
+
+        //
+        Map<String, Object> resultData = (Map<String, Object>)map.get("resultData");
+        Boolean isPreset = (Boolean) resultData.get("ISPRESET");
+        Date presetTime = DateUtil.parseDateTimeString((String)resultData.get("PRESETTIME"));
+        String dialType = (String)resultData.get("DIALTYPE");
+        Date dialTime = DateUtil.parseDateTimeString((String)resultData.get("DIALTIME"));
+        if (null == dialTime)
+            dialTime = new Date();
+
+        String customerCallId = (String) resultData.get("CUSTOMERCALLID");
+
+        //
+        Map<String, String> customerInfo = (Map<String, String>)map.get("customerInfo");
+        String jsonCustomerInfo=new Gson().toJson(customerInfo);
 
         DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(strBizId));
 
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
-            return manualModeController.submitOutboundResult(request, requestBody);
+            return manualModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
+                    shareBatchId, importBatchId, customerId, resultCodeType, resultCode,
+                    isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-            return singleNumberModeController.submitOutboundResult(request, requestBody);
+            return singleNumberModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
+                    shareBatchId, importBatchId, customerId, resultCodeType, resultCode,
+                    isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-            return multiNumberModeController.submitOutboundResult(request, requestBody);
+            String strPhoneType = (String)map.get("phoneType");
+            return multiNumberModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
+                    shareBatchId, importBatchId, customerId, strPhoneType, resultCodeType, resultCode,
+                    isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
         }
 
         return "";

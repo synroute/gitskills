@@ -63,18 +63,13 @@ public class ManualOutboundDataManage {
         return customer;
     }
 
-    public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId,
-                                       String resultCodeType, String resultCode, Date presetTime, String resultData,
-                                       String customerInfo) {
+    public String submitOutboundResult(String userId, int bizId, String shareBatchId, String importBatchId, String customerId,
+                                       String resultCodeType, String resultCode, Boolean isPreset, Date presetTime, String dialType,
+                                       Date dialTime, String customerCallId, String customerInfo) {
 
         //提交：insert导入表、结果表、预约表（如果外呼页面有预约勾选）
 
         int modifyId = 1;
-        String dialType = "dialType";
-        Date dialTime = new Date();
-        String customerCallId = "xxx";
-
-        String shareBatchId = "";
 
         dmDAO.insertDMResult(bizId, shareBatchId, importBatchId, customerId,
                 modifyId, userId, dialType, dialTime,
@@ -83,21 +78,23 @@ public class ManualOutboundDataManage {
         // 插入导入客户表
         dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, modifyId);
 
-        // 插入预约表
-        DMBizPresetItem presetItem = new DMBizPresetItem();
-        presetItem.setSourceId(shareBatchId);
-        presetItem.setImportId(importBatchId);
-        presetItem.setCustomerId(customerId);
-        presetItem.setPresetTime(presetTime);
-        presetItem.setState(DMPresetStateEnum.InUse.getStateName());
-        presetItem.setComment("xxx");
-        presetItem.setModifyId(modifyId);
-        presetItem.setModifyLast(1);
-        presetItem.setModifyUserId(userId);
-        presetItem.setModifyTime(new Date());
-        presetItem.setModifyDesc("xxx");
-        presetItem.setPhoneType("xxx");
-        dmDAO.insertPresetItem(bizId, presetItem);
+        if (isPreset) {
+            // 插入预约表
+            DMBizPresetItem presetItem = new DMBizPresetItem();
+            presetItem.setSourceId(shareBatchId);
+            presetItem.setImportId(importBatchId);
+            presetItem.setCustomerId(customerId);
+            presetItem.setPresetTime(presetTime);
+            presetItem.setState(DMPresetStateEnum.InUse.getStateName());
+            presetItem.setComment("xxx");
+            presetItem.setModifyId(modifyId);
+            presetItem.setModifyLast(1);
+            presetItem.setModifyUserId(userId);
+            presetItem.setModifyTime(new Date());
+            presetItem.setModifyDesc("xxx");
+            presetItem.setPhoneType("xxx");
+            dmDAO.insertPresetItem(bizId, presetItem);
+        }
 
         return "";
     }
@@ -239,7 +236,6 @@ public class ManualOutboundDataManage {
 //
 //        List<MultiNumberCustomer> shareDataItems = new ArrayList<MultiNumberCustomer>();
 //
-//        // TODO 成批从DB取数据
 //        Boolean result = multiNumberPredictModeDAO.getGivenBizCustomersByState(
 //                bizId, shareBatchItems, shareCustomerStateList, shareDataItems);
 //

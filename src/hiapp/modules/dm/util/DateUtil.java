@@ -1,5 +1,10 @@
 package hiapp.modules.dm.util;
 
+import com.sun.javafx.binding.StringFormatter;
+import hiapp.utils.serviceresult.ServiceResultCode;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -67,6 +72,19 @@ public class DateUtil {
     public static String getCurTimeString() {
         Date now = new Date();
         return String.format("%02d:%02d:%02d", now.getHours(), now.getMinutes(), now.getSeconds());
+    }
+
+    public static Date parseDateTimeString(String strDateTime) {
+        if (null == strDateTime || strDateTime.isEmpty())
+            return  null;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            return sdf.parse(strDateTime);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

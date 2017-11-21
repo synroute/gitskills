@@ -108,7 +108,7 @@ public class MultiNumberOutboundDataManage {
         }
 
         return submitOutboundResult(userId, bizId, importBatchId, customerId, phoneType, resultCodeType, resultCode,
-                null, null, null);
+                null, null, null, null, null, null);
     }
 
     public String submitAgentScreenPopUp(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
@@ -147,12 +147,8 @@ public class MultiNumberOutboundDataManage {
     }
 
     public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId, int phoneType,
-                                       String resultCodeType, String resultCode, Date presetTime, String resultData,
-                                       String customerInfo) {
-        // TODO
-        String dialType = "xxx";
-        String customerCallId = "xxx";
-        Date dialTime = new Date();
+                                       String resultCodeType, String resultCode, Boolean isPreset, Date presetTime,
+                                       String dialType, Date dialTime, String customerCallId, String customerInfo) {
 
         MultiNumberCustomer originCustomerItem = customerPool.removeWaitCustomer(
                 HiDialerUserId, bizId, importBatchId, customerId, phoneType);
@@ -160,7 +156,7 @@ public class MultiNumberOutboundDataManage {
         // 经过 Outbound 策略处理器
         EndCodeRedialStrategyM6Item strategyItem = endCodeRedialStrategyM6.getEndCodeRedialStrategyItem(
                                                         originCustomerItem.getBizId(), resultCodeType, resultCode);
-        procEndcode(userId, originCustomerItem, strategyItem, resultCodeType, resultCode, presetTime, resultData);
+        procEndcode(userId, originCustomerItem, strategyItem, resultCodeType, resultCode, presetTime);
 
         if (!HiDialerUserId.equals(userId)) {
             // 插入结果表
@@ -268,7 +264,7 @@ public class MultiNumberOutboundDataManage {
 
     private void procEndcode(String userId, MultiNumberCustomer originCustomerItem,
                              EndCodeRedialStrategyM6Item strategyItem,
-                             String resultCodeType, String resultCode, Date presetTime, String resultData) {
+                             String resultCodeType, String resultCode, Date presetTime) {
 
         Date now = new Date();
 

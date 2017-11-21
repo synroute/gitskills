@@ -144,13 +144,10 @@ public class SingleNumberOutboundDataManage {
         return shareDataItem;
     }
 
-    public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId,
-                                       String resultCodeType, String resultCode, Date presetTime, String resultData,
-                                       String customerInfo) {
-
-        String dialType = "xxx";
-        String customerCallId = "xxx";
-        Date dialTime = new Date();
+    public String submitOutboundResult(String userId, int bizId,
+                       String shareBatchId, String importBatchId, String customerId,
+                       String resultCodeType, String resultCode, Boolean isPreset, Date presetTime,
+                       String dialType, Date dialTime, String customerCallId, String customerInfo) {
 
         SingleNumberModeShareCustomerItem originCustomerItem = removeWaitCustomer(userId, bizId, importBatchId, customerId);
 
@@ -161,7 +158,7 @@ public class SingleNumberOutboundDataManage {
         }
 
         // 经过 Outbound 策略处理器
-        procEndcode(userId, originCustomerItem, endCodeRedialStrategy, resultCodeType, resultCode, presetTime, resultData);
+        procEndcode(userId, originCustomerItem, endCodeRedialStrategy, resultCodeType, resultCode, isPreset, presetTime);
 
         // 插入结果表
         //dataImportJdbc.insertDataToResultTable(bizId, shareBatchId, importBatchId, customerId, userId, resultData);
@@ -475,7 +472,7 @@ public class SingleNumberOutboundDataManage {
 
     private void procEndcode(String userId, SingleNumberModeShareCustomerItem originCustomerItem,
                              EndCodeRedialStrategy endCodeRedialStrategy,
-                             String resultCodeType, String resultCode, Date presetTime, String resultData) {
+                             String resultCodeType, String resultCode, Boolean isPreset, Date presetTime) {
 
         Date now = new Date();
 
