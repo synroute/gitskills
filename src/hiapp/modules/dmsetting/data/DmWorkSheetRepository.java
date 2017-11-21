@@ -192,7 +192,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 		creationInfoWorkSheet.addColumn("是否被回收", "ISRECOVER", "是否被回收", WorkSheetDataType.INT, -1, false, true);	
 		creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
 		creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
-		creationInfoWorkSheet.addColumn("当前操作", "OPERATIONNAMECUR", "当前操作", WorkSheetDataType.TEXT, 50, false, true);
+		creationInfoWorkSheet.addColumn("当前操作", "OPERATIONNAME", "当前操作", WorkSheetDataType.TEXT, 50, false, true);
 		return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_POOL,errMessage);
 	}
 	
