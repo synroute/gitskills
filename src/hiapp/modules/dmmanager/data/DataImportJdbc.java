@@ -558,8 +558,8 @@ public class DataImportJdbc extends BaseRepository{
 			String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
 			String selectSql="select S_"+tableName+".nextval,'"+importBatchId+"',CUSTOMERID,1,0,'"+userId+"',sysdate,";
 			//数据池记录表里面插数据
-			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-									+" select S_"+poolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
+			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+									+" select S_"+poolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(isnertDataPoolSql);
 			pst.execute();
 			//数据池操作记录表里面插数据
@@ -789,16 +789,18 @@ public class DataImportJdbc extends BaseRepository{
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
 		String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
-		String deleteTempSql="delete from "+tempTableName+" where tempId in(";
+		//String deleteTempSql="delete from "+tempTableName+" where tempId in(";
 		try {
 			conn=this.getDbConnection();
+			//不自动提交数据
+			conn.setAutoCommit(false);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			//获取导入表字段所属类型
 			getDataType(dataTypeList,dataArray,workSheetId,2);
 			//数据池记录表里面插数据
-			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
-									+" values(S_"+poolName+".nextval,?,?,?,?,?,?,?,?,?,sysdate)";
+			String isnertDataPoolSql="insert into "+poolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime) "
+									+" values(S_"+poolName+".nextval,?,?,?,?,?,?,?,?,?,?,sysdate)";
 			pst=conn.prepareStatement(isnertDataPoolSql);
 			//数据池操作记录表里面插数据
 			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
@@ -809,17 +811,18 @@ public class DataImportJdbc extends BaseRepository{
 			for (int i = 0; i < isnertData.size(); i++) {
 				String customerBatchId=idfactory.newId("DM_CID");//客户号
 				String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-				deleteTempSql+=isnertData.get(i).get("tempId")+",";
+				//deleteTempSql+=isnertData.get(i).get("tempId")+",";
 				
 				pst.setString(1,disBatchId);
 				pst.setString(2, importBatchId);
 				pst.setString(3,customerBatchId);
-				pst.setInt(4, dataPoolNumber);
+				pst.setString(4,operationName);
 				pst.setInt(5, dataPoolNumber);
-				pst.setInt(6, 0);
+				pst.setInt(6, dataPoolNumber);
 				pst.setInt(7, 0);
 				pst.setInt(8, 0);
-				pst.setString(9, userId);
+				pst.setInt(9, 0);
+				pst.setString(10, userId);
 			
 				pst1.setString(1,disBatchId);
 				pst1.setString(2, importBatchId);
@@ -862,9 +865,9 @@ public class DataImportJdbc extends BaseRepository{
 			pst.executeBatch();
 			pst1.executeBatch();
 			statement.executeBatch();
-			deleteTempSql=deleteTempSql.substring(0,deleteTempSql.length()-1)+")";
+			/*deleteTempSql=deleteTempSql.substring(0,deleteTempSql.length()-1)+")";
 			pst=conn.prepareStatement(deleteTempSql);
-			pst.executeUpdate();
+			pst.executeUpdate();*/
 			//导入批次表里面插数据
 			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertImportBatchSql);
@@ -883,6 +886,7 @@ public class DataImportJdbc extends BaseRepository{
 			pst.setString(4,userId);
 			pst.setString(5,"分配批次");
 			pst.executeUpdate();
+			conn.commit();
 			resultMap.put("flag", 2);
 			resultMap.put("result",true);
 		} catch (SQLException e) {
