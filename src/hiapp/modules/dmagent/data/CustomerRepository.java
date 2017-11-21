@@ -503,7 +503,7 @@ public class CustomerRepository extends BaseRepository {
 				String columnName = map.get("columnName");
 				if (columnName.equals(TableNameEnume.RESULTTABLENAME
 						.getAbbr() + "." + "SOURCEID")) {
-					columnName = queryRequest.getSourceId() +" as SOURCEID";
+					columnName = "'"+queryRequest.getSourceId()+"'" +" as SOURCEID";
 				}
 				sb.append(columnName);
 				sb.append(",");
