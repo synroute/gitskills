@@ -705,11 +705,12 @@ public class CustomerRepository extends BaseRepository {
 			}
 			for (Map<String, String> map : list) {
 				String columnName = map.get("columnName");
-				sb.append(columnName);
 				if (columnName.equals(TableNameEnume.RESULTTABLENAME
 						.getAbbr() + "." + "SOURCEID")) {
 					columnName = "C.SOURCEID";
 				}
+				sb.append(columnName);
+				
 				sb.append(",");
 			}
 
