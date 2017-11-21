@@ -3,6 +3,7 @@ package hiapp.modules.dmmanager.data;
 import hiapp.modules.dm.DMService;
 import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
+import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.bean.DistributeTemplate;
@@ -537,13 +538,16 @@ public class DataDistributeJdbc extends BaseRepository{
 		String shareId = idfactory.newId("DM_SID");
 		String appendIds=null;
 		String state=null;
+		String state1=null;
 		Integer ifAppend=0;
 		if(appendId==null||"".equals(appendId)){
 			ifAppend=0;
 			state=SingleNumberModeShareCustomerStateEnum.CREATED.getName();
+			state1=OperationNameEnum.Sharing.getName();
 		}else{
 			shareId=appendId;
 			state=SingleNumberModeShareCustomerStateEnum.APPENDED.getName();
+			state1=OperationNameEnum.APPERND.getName();
 			ifAppend=1;
 		}
 		String[] arrDataPoolId=dataPoolIds.split(",");
@@ -563,13 +567,13 @@ public class DataDistributeJdbc extends BaseRepository{
 			}
 			//不自动提交数据
 			conn.setAutoCommit(false);
-			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime)"
-					+ " = (select '"+shareId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,1,'"+userId+"',sysdate from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1)"
+			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime,OperationName)"
+					+ " = (select '"+shareId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,1,'"+userId+"',sysdate,'"+state1+"' from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1)"
 					+ " where exists(select 1 from "+tempTableName+" b where a.IID = b.IID AND a.CID = b.CID and b.ifchecked=1)";;
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.execute();
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
-									" select S_"+orePoolName+".nextval,'"+shareId+"',IID,CID,'共享',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 ";
+									" select S_"+orePoolName+".nextval,'"+shareId+"',IID,CID,'"+state1+"',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 ";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.execute();
 			if(model==3){

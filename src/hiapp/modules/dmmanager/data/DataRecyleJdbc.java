@@ -438,8 +438,8 @@ public class DataRecyleJdbc extends BaseRepository{
 			}
 			//不自动提交数据
 			conn.setAutoCommit(false);
-			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime,ISRecover)"
-					+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate,1 from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1) "
+			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime,ISRecover,OperationName)"
+					+ " = (select '"+disBatchId+"',DATAPOOLIDCUR,'"+dataPoolId+"',AreaCur,0,'"+userId+"',sysdate,1,'回收' from "+tempTableName+" b where a.IID=b.IID AND a.CID=b.CID and b.ifchecked=1) "
 							+ " where exists(select 1 from "+tempTableName+" b where a.IID = b.IID AND a.CID = b.CID and b.ifchecked=1)";
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.execute();
@@ -498,7 +498,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			conn.setAutoCommit(false);
 			for (int i = 0; i < shareIdArr.length; i++) {
 				String shareId=shareIdArr[i];
-				String updatePoolSql="update "+poolName+" set SourceID=?,DataPoolIDLast=DataPoolIDCur,DataPoolIDCur=?,AreaLast=AreaCur,AreaCur=0,ISRecover=1,ModifyUserID=?,ModifyTime=sysdate where SourceID=?";
+				String updatePoolSql="update "+poolName+" set SourceID=?,DataPoolIDLast=DataPoolIDCur,DataPoolIDCur=?,AreaLast=AreaCur,AreaCur=0,ISRecover=1,ModifyUserID=?,ModifyTime=sysdate,OperationName='回收' where SourceID=?";
 				pst=conn.prepareStatement(updatePoolSql);
 				pst.setString(1,disBatchId);
 				pst.setInt(2, dataPoolId);
