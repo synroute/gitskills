@@ -35,7 +35,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -297,17 +296,10 @@ public class ImportDataController {
 		String operationName=request.getParameter("operationName");
 		WorkSheet workSheet=dataImportJdbc.getWorkSheet(workSheetId);
 		String tableName=workSheet.getName();
-		List<Map<String,Object>> isnertData=null;
-		if(!"Excel".equals(operationName)){
-			String contextPath = request.getSession().getServletContext().getRealPath("maxTime/maxTime.properties");
-			isnertData=dataImportJdbc.getAllDbData(temPlateId, bizId,contextPath);
-		}else{
-			String tempIds=request.getParameter("tempIds");
-			Integer action=Integer.valueOf(request.getParameter("action"));
-			dataImportJdbc.updateTempData(bizId, userId, tempIds, action);
-		}
-		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);
-		Map<String,Object> resultMap = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, sheetColumnList, isnertData, tableName, userId,operationName);
+		String tempIds=request.getParameter("tempIds");
+		Integer action=Integer.valueOf(request.getParameter("action"));
+		dataImportJdbc.updateTempData(bizId, userId, tempIds, action);
+		Map<String,Object> resultMap = dataImportJdbc.insertImportData(temPlateId, bizId,workSheetId, null, tableName, userId,operationName);
 		String jsonObject=new Gson().toJson(resultMap);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
@@ -363,5 +355,4 @@ public class ImportDataController {
 		}
 		return value;
 	}
-	
 }

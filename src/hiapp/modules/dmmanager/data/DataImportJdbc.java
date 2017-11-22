@@ -361,7 +361,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource","unchecked","rawtypes" })
-	public List<Map<String,Object>> getAllDbData(Integer templateId,Integer bizId,String contextPath) throws IOException{
+	public List<Map<String,Object>> getAllDbData(Integer templateId,Integer bizId,String contextPath,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -370,6 +370,8 @@ public class DataImportJdbc extends BaseRepository{
 		String maxTimeKey="maxTime"+bizId+templateId;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		String tableName="HAU_DM_B"+bizId+"C_IMPORT";
 		try {
 			conn= this.getDbConnection();
 			jsonData=getJsonData(bizId, templateId);
@@ -424,6 +426,8 @@ public class DataImportJdbc extends BaseRepository{
 			}
 			properties.setProperty(maxTimeKey,maxTime);
 			properties.store(new FileOutputStream(contextPath),"最大时间");
+			//保存数据
+			insertImportData(templateId, bizId, workSheetId, dataList, tableName, userId, operationName);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -444,7 +448,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "unused" })
-	public Map<String,Object> insertImportData(Integer tempId,Integer bizId,String workSheetId,List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> isnertData,String tableName,String userId,String operationName) throws IOException{
+	public Map<String,Object> insertImportData(Integer tempId,Integer bizId,String workSheetId,List<Map<String,Object>> isnertData,String tableName,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
