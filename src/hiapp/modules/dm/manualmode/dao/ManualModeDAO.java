@@ -39,7 +39,7 @@ public class ManualModeDAO extends BaseRepository {
 
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, SOURCEID, IID, CID, DATAPOOlIDLAST, DATAPOOlIDCUR, " +
-                                  "AREALAST, AREACUR, ISRECOVER, MODIFYUSERID, MODIFYTIME FROM " + tableName);
+                                  "AREALAST, AREACUR, ISRECOVER, OPERATIONNAME, MODIFYUSERID, MODIFYTIME FROM " + tableName);
             sqlBuilder.append(" WHERE SOURCEID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append("   AND AREACUR = ").append(AreaTypeEnum.SA.getId());
 
@@ -58,8 +58,72 @@ public class ManualModeDAO extends BaseRepository {
                 item.setAreaTypeLast(AreaTypeEnum.getFromInt(rs.getInt(7)));
                 item.setAreaTypeCur(AreaTypeEnum.getFromInt(rs.getInt(8)));
                 item.setIsRecover(rs.getInt(9));
-                item.setModifyUserId(rs.getString(10));
-                item.setModifyTime(rs.getDate(11));
+                item.setOperationName(OperationNameEnum.getFromString(rs.getString(10)));
+                item.setModifyUserId(rs.getString(11));
+                item.setModifyTime(rs.getDate(12));
+
+                item.setBizId(bizId);
+
+                ShareBatchItem shareBatchItem = mapShareBatchIdVsShareBatchItem.get(item.getSourceId());
+                item.setShareBatchStartTime(shareBatchItem.getStartTime());
+
+                shareCustomerItems.add(item);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    public Boolean getGivenBizShareCustomersByOperationType(int bizId,
+                                                            List<ShareBatchItem> ShareBatchItems,
+                                            OperationNameEnum operationName,
+                                            /*OUT*/ List<ManualModeCustomer> shareCustomerItems) {
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+
+        Map<String, ShareBatchItem> mapShareBatchIdVsShareBatchItem = new HashMap<String, ShareBatchItem>();
+        for (ShareBatchItem shareBatchItem : ShareBatchItems) {
+            mapShareBatchIdVsShareBatchItem.put(shareBatchItem.getShareBatchId(), shareBatchItem);
+        }
+
+        String tableName = String.format("HAU_DM_B%dC_POOL", bizId);
+
+        try {
+            dbConn = this.getDbConnection();
+
+            //
+            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, SOURCEID, IID, CID, DATAPOOlIDLAST, DATAPOOlIDCUR, " +
+                    "AREALAST, AREACUR, ISRECOVER, OPERATIONNAME, MODIFYUSERID, MODIFYTIME FROM " + tableName);
+            sqlBuilder.append(" WHERE SOURCEID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
+            sqlBuilder.append("   AND AREACUR = ").append(SQLUtil.getSqlString(AreaTypeEnum.SA.getId()));
+            sqlBuilder.append("   AND OPERATIONNAME = ").append(SQLUtil.getSqlString(operationName.getName()));
+
+            System.out.println(sqlBuilder.toString());
+
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ManualModeCustomer item = new ManualModeCustomer();
+                item.setId(rs.getInt(1));
+                item.setSourceId(rs.getString(2));
+                item.setImportBatchId(rs.getString(3));
+                item.setCustomerId(rs.getString(4));
+                item.setDataPoolIdLast(rs.getInt(5));
+                item.setDataPoolIdCur(rs.getInt(6));
+                item.setAreaTypeLast(AreaTypeEnum.getFromInt(rs.getInt(7)));
+                item.setAreaTypeCur(AreaTypeEnum.getFromInt(rs.getInt(8)));
+                item.setIsRecover(rs.getInt(9));
+                item.setOperationName(OperationNameEnum.getFromString(rs.getString(10)));
+                item.setModifyUserId(rs.getString(11));
+                item.setModifyTime(rs.getDate(12));
 
                 item.setBizId(bizId);
 
@@ -91,9 +155,35 @@ public class ManualModeDAO extends BaseRepository {
         sqlBuilder.append(", AREALAST = ").append(SQLUtil.getSqlString(item.getAreaTypeLast().getId()));
         sqlBuilder.append(", AREACUR = ").append(SQLUtil.getSqlString(item.getAreaTypeCur().getId()));
         sqlBuilder.append(", ISRECOVER = ").append(SQLUtil.getSqlString(item.getIsRecover()));
+        sqlBuilder.append(", OPERATIONNAME = ").append(SQLUtil.getSqlString(item.getOperationName().getName()));
         sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
         sqlBuilder.append(", MODIFYTIME = ").append(SQLUtil.getSqlString(item.getModifyTime()));
         sqlBuilder.append(" WHERE ID = ").append(SQLUtil.getSqlString(item.getId()));
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    public Boolean updateCustomerOperationName(int bizId, List<Integer> appendedCustomerIdList, OperationNameEnum operationName) {
+
+        String tableName = String.format("HAU_DM_B%dC_POOL", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET OPERATIONNAME = ").append(SQLUtil.getSqlString(operationName.getName()));
+        sqlBuilder.append(" WHERE ID IN (").append(SQLUtil.integerListToSqlString(appendedCustomerIdList)).append(")");
 
         Connection dbConn = null;
         PreparedStatement stmt = null;

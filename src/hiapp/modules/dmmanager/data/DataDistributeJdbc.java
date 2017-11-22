@@ -664,9 +664,6 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.setString(6,description);
 					pst.setString(7,"入库成功");
 					pst.execute();
-					List<String> shareIds=new ArrayList<String>();
-					shareIds.add(shareId);
-					result= dMService.appendCustomersToShareBatch(bizId, shareIds);
 				}
 			
 			}else{
@@ -704,20 +701,20 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.execute();
 				}
 			}
-			if(result==null){
-				conn.commit();	
-			}else{
-				if(result){
-					conn.commit();
-					String updateSql="update HASYS_DM_AID a set a.state='通知分配器成功' where a.BusinessID="+bizId+" and a.ShareID='"+shareId+"' and a.AdditionalID='"+appendIds+"'";
-					pst=conn.prepareStatement(updateSql);
-					pst.execute();
-					conn.commit();
-				}else{
-					conn.rollback();
+			conn.commit();
+			if(startTime==null||"".equals(startTime)){
+				if(appendId!=null&&!"".equals(appendId)){
+					List<String> shareIds=new ArrayList<String>();
+					shareIds.add(shareId);
+					result= dMService.appendCustomersToShareBatch(bizId, shareIds);
+					if(result){
+						String updateSql="update HASYS_DM_AID a set a.state='通知分配器成功' where a.BusinessID="+bizId+" and a.ShareID='"+shareId+"' and a.AdditionalID='"+appendIds+"'";
+						pst=conn.prepareStatement(updateSql);
+						pst.execute();
+						conn.commit();
+					}
 				}
 			}
-			
 			resultMap.put("result",true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

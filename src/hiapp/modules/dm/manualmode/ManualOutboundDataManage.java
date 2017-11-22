@@ -163,52 +163,36 @@ public class ManualOutboundDataManage {
         // 初始化共享池
         List<ManualModeCustomer> shareCustomerItems = new ArrayList<ManualModeCustomer>();
 
+        // 记录客户共享状态为 OperationNameEnum.APPERND 的客户信息
+        // 后续需要更改状态为 OperationNameEnum.Sharing
+        List<Integer> appendedCustomerIdList = new ArrayList<Integer>();
+
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
             int bizId = entry.getKey();
             List<ShareBatchItem> givenBizShareBatchItems = entry.getValue();
 
             shareCustomerItems.clear();
+            appendedCustomerIdList.clear();
+
             manualModeDAO.getGivenBizShareCustomers(bizId, givenBizShareBatchItems, shareCustomerItems);
 
             for (ManualModeCustomer customer : shareCustomerItems) {
                 customerPool.addCustomer(customer);
 
+                if (OperationNameEnum.APPERND.equals(customer.getOperationName())) {
+                    appendedCustomerIdList.add(customer.getId());
+                }
+            }
+
+            if (!appendedCustomerIdList.isEmpty()) {
+                manualModeDAO.updateCustomerOperationName(bizId, appendedCustomerIdList, OperationNameEnum.Sharing);
             }
         }
     }
 
     // 用于共享批次的启用，根据共享批次，不会导致重复加载
     private void loadCustomersIncremental(List<ShareBatchItem> shareBatchItems) {
-
-        Date now = new Date();
-
-        // 根据BizId, 归类共享客户数据
-        Map<Integer, List<ShareBatchItem>> mapBizIdVsShareBatchItem = new HashMap<Integer, List<ShareBatchItem>>();
-        for (ShareBatchItem shareBatchItem : shareBatchItems) {
-            List<ShareBatchItem> shareBatchItemList = mapBizIdVsShareBatchItem.get(shareBatchItem.getBizId());
-            if (null == shareBatchItemList) {
-                shareBatchItemList = new ArrayList<ShareBatchItem>();
-                mapBizIdVsShareBatchItem.put(shareBatchItem.getBizId(), shareBatchItemList);
-            }
-            shareBatchItemList.add(shareBatchItem);
-        }
-
-
-        // 初始化共享池
-        List<ManualModeCustomer> shareCustomerItems = new ArrayList<ManualModeCustomer>();
-
-        for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
-            int bizId = entry.getKey();
-            List<ShareBatchItem> givenBizShareBatchItems = entry.getValue();
-
-            shareCustomerItems.clear();
-            manualModeDAO.getGivenBizShareCustomers(bizId, givenBizShareBatchItems, shareCustomerItems);
-
-            for (ManualModeCustomer customer : shareCustomerItems) {
-                customerPool.addCustomer(customer);
-
-            }
-        }
+        loadCustomersDaily(shareBatchItems);
     }
 
     /**
@@ -229,33 +213,27 @@ public class ManualOutboundDataManage {
 
     // 处理追加客户的情形
     private void loadCustomersAppend(int bizId, List<ShareBatchItem> shareBatchItems) {
-        System.out.println("bizId : " + bizId);
 
-//        List<MultiNumberPredictStateEnum> shareCustomerStateList = new ArrayList<MultiNumberPredictStateEnum>();
-//        shareCustomerStateList.add(MultiNumberPredictStateEnum.APPENDED);
-//
-//        List<MultiNumberCustomer> shareDataItems = new ArrayList<MultiNumberCustomer>();
-//
-//        Boolean result = multiNumberPredictModeDAO.getGivenBizCustomersByState(
-//                bizId, shareBatchItems, shareCustomerStateList, shareDataItems);
-//
-//        // 记录客户共享状态为 MultiNumberPredictStateEnum.APPENDED 的客户信息
-//        // 后续需要更改状态为 MultiNumberPredictStateEnum.CREATED
-//        List<String> appendedStateCustomerIdList = new ArrayList<String>();
-//
-//        for (MultiNumberCustomer customerItem : shareDataItems) {
-//            addCustomerToSharePool(customerItem);
-//
-//            if (MultiNumberPredictStateEnum.APPENDED.equals(customerItem.getState())) {
-//                appendedStateCustomerIdList.add(customerItem.getShareBatchId());
-//            }
-//        }
-//
-//        if (!appendedStateCustomerIdList.isEmpty()) {
-//            multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
-//                    MultiNumberPredictStateEnum.CREATED);
-//        }
+        List<ManualModeCustomer> customerList = new ArrayList<ManualModeCustomer>();
+
+        Boolean result = manualModeDAO.getGivenBizShareCustomersByOperationType(
+                                bizId, shareBatchItems, OperationNameEnum.APPERND, customerList);
+
+        // 记录客户共享状态为 OperationNameEnum.APPERND 的客户信息
+        // 后续需要更改状态为 OperationNameEnum.Sharing
+        List<Integer> appendedCustomerIdList = new ArrayList<Integer>();
+
+        for (ManualModeCustomer customer : customerList) {
+            customerPool.addCustomer(customer);
+
+            if (OperationNameEnum.APPERND.equals(customer.getOperationName())) {
+                appendedCustomerIdList.add(customer.getId());
+            }
+        }
+
+        if (!appendedCustomerIdList.isEmpty()) {
+            manualModeDAO.updateCustomerOperationName(bizId, appendedCustomerIdList, OperationNameEnum.Sharing);
+        }
     }
-
 
 }

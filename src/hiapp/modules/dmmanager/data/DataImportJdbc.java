@@ -12,6 +12,8 @@ import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.sql.Clob;
@@ -29,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -358,29 +361,28 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource","unchecked","rawtypes" })
-	public List<Map<String,Object>> getAllDbData(Integer temPlateId,Integer bizId) throws IOException{
+	public List<Map<String,Object>> insertDataByDb(Integer templateId,Integer bizId,String contextPath,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String jsonData=null;
 		String getDbDataSql1="select ";
+		String maxTimeKey="maxTime"+bizId+templateId;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		String tableName="HAU_DM_B"+bizId+"C_IMPORT";
 		try {
 			conn= this.getDbConnection();
-			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
-			pst=conn.prepareStatement(getXmlSql);
-			pst.setInt(1, temPlateId);
-			pst.setInt(2,bizId);
-			rs = pst.executeQuery();
-			while(rs.next()){
-				jsonData=ClobToString(rs.getClob(1));	
-			}
+			jsonData=getJsonData(bizId, templateId);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
 			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
+			Properties properties = new Properties();
+			properties.load(new FileInputStream(contextPath));
+			String importTime = properties.getProperty(maxTimeKey);
 			for (int i = 0; i < dataArray.size(); i++) {
 				String value=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
 				if(value!=null&&!"".equals(value)){
@@ -393,8 +395,10 @@ public class DataImportJdbc extends BaseRepository{
 				getDbDataSql1+=newList.get(i)+",";
 			}
 			getDbDataSql1=getDbDataSql1.substring(0, getDbDataSql1.length()-1)+" from "+sourceTableName;
+			if(importTime!=null){
+				getDbDataSql1+=" where importTime>to_date('"+importTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
 			pst=conn.prepareStatement(getDbDataSql1);
-		
 			rs = pst.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
@@ -413,6 +417,17 @@ public class DataImportJdbc extends BaseRepository{
 				dataList.add(map);
 			}
 			
+			String sql="select to_char(max(t.importTime),'yyyy-mm-dd hh24:mi:ss') importTime from "+sourceTableName+" t";
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			String maxTime=null;
+			while(rs.next()){
+				maxTime=rs.getString(1);
+			}
+			properties.setProperty(maxTimeKey,maxTime);
+			properties.store(new FileOutputStream(contextPath),"最大时间");
+			//保存数据
+			insertImportData(templateId, bizId, workSheetId, dataList, tableName, userId, operationName);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -432,8 +447,8 @@ public class DataImportJdbc extends BaseRepository{
 	 * @param userId
 	 * @throws IOException
 	 */
-	@SuppressWarnings({ "resource", "unused" })
-	public Map<String,Object> insertImportData(Integer tempId,Integer bizId,String workSheetId,List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> isnertData,String tableName,String userId,String operationName) throws IOException{
+	@SuppressWarnings({ "unused" })
+	public Map<String,Object> insertImportData(Integer tempId,Integer bizId,String workSheetId,List<Map<String,Object>> isnertData,String tableName,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -443,14 +458,7 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> stringList=new ArrayList<String>();
 		try {
 			conn= this.getDbConnection();
-			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
-			pst=conn.prepareStatement(getXmlSql);
-			pst.setInt(1, tempId);
-			pst.setInt(2,bizId);
-			rs = pst.executeQuery();
-			while(rs.next()){
-				jsonData=ClobToString(rs.getClob(1));	
-			}
+			jsonData=getJsonData(bizId, tempId);
 			String importBatchId=idfactory.newId("DM_IID");//饶茹批次号
 			String disBatchId=idfactory.newId("DM_DID");//分配号
 			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
@@ -476,21 +484,7 @@ public class DataImportJdbc extends BaseRepository{
 		return resultMap;
 	}
 	
-    // CLOB转换成String
-    public String ClobToString(Clob sc) throws SQLException, IOException {  
-        String reString = "";  
-        Reader is = sc.getCharacterStream();
-        BufferedReader br = new BufferedReader(is);  
-        String s = br.readLine();  
-        StringBuffer sb = new StringBuffer();  
-        while (s != null) {
-            sb.append(s);  
-            s = br.readLine();  
-        }  
-        reString = sb.toString();  
-        return reString;  
-    }  
-    
+
     /**
      * 导入Excel数据
      * @param jsonData
@@ -788,8 +782,7 @@ public class DataImportJdbc extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();//返回结果集 
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
-		String tempTableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
-		//String deleteTempSql="delete from "+tempTableName+" where tempId in(";
+		List<String> customerBatchIds=idfactory.newIds("DM_CID", isnertData.size());
 		try {
 			conn=this.getDbConnection();
 			//不自动提交数据
@@ -809,9 +802,8 @@ public class DataImportJdbc extends BaseRepository{
 			//向导入表插数据
 			statement=conn.createStatement();
 			for (int i = 0; i < isnertData.size(); i++) {
-				String customerBatchId=idfactory.newId("DM_CID");//客户号
+				String customerBatchId=customerBatchIds.get(i);//客户号
 				String insertImportDataSql="insert into "+tableName+"(ID,IID,CID,modifylast,modifyid,modifyuserid,modifytime,";
-				//deleteTempSql+=isnertData.get(i).get("tempId")+",";
 				
 				pst.setString(1,disBatchId);
 				pst.setString(2, importBatchId);
@@ -865,9 +857,6 @@ public class DataImportJdbc extends BaseRepository{
 			pst.executeBatch();
 			pst1.executeBatch();
 			statement.executeBatch();
-			/*deleteTempSql=deleteTempSql.substring(0,deleteTempSql.length()-1)+")";
-			pst=conn.prepareStatement(deleteTempSql);
-			pst.executeUpdate();*/
 			//导入批次表里面插数据
 			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertImportBatchSql);
@@ -976,9 +965,9 @@ public class DataImportJdbc extends BaseRepository{
 			createTable(tableName, sheetColumnList);
 			//临时表插数据 
 			statement=conn.createStatement();
-			
+			List<String> customerBatchIds=idfactory.newIds("DM_CID", dataList.size());
 			for(int i=0;i<dataList.size();i++){
-				String customerBatchId=idfactory.newId("DM_CID");//客户号
+				String customerBatchId=customerBatchIds.get(i);//客户号
 				String insertDataSql="insert into "+tableName+"(TEMPID,CUSTOMERID,";
 				String valuesSql=" values(S_HAU_DM_B101C_IMPORT.nextval,'"+customerBatchId+"',";
 				for (int j = 0; j < sheetColumnList.size(); j++) {
@@ -1297,5 +1286,54 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 		}
 		
 	}
+    
+	/**
+	 * 根据业务Id和模板Id获取JSON数据
+	 * @param bizId
+	 * @param templateId
+	 * @return
+	 */
+	public String getJsonData(Integer bizId,Integer templateId){
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		String jsonData=null;
+		try {
+			conn=this.getDbConnection();
+			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
+			pst=conn.prepareStatement(getXmlSql);
+			pst.setInt(1, templateId);
+			pst.setInt(2,bizId);
+			rs = pst.executeQuery();
+			while(rs.next()){
+				jsonData=ClobToString(rs.getClob(1));	
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch(IOException e){
+			
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return jsonData;
+	}
+	
+    // CLOB转换成String
+    public String ClobToString(Clob sc) throws SQLException, IOException {  
+        String reString = "";  
+        Reader is = sc.getCharacterStream();
+        BufferedReader br = new BufferedReader(is);  
+        String s = br.readLine();  
+        StringBuffer sb = new StringBuffer();  
+        while (s != null) {
+            sb.append(s);  
+            s = br.readLine();  
+        }  
+        reString = sb.toString();  
+        return reString;  
+    }  
     
 }
