@@ -1,6 +1,7 @@
 package hiapp.modules.dm.manualmode.bo;
 
 import hiapp.modules.dmmanager.AreaTypeEnum;
+import hiapp.modules.dmmanager.OperationNameEnum;
 
 import java.util.Date;
 
@@ -14,6 +15,7 @@ public class ManualModeCustomer {
     private AreaTypeEnum areaTypeLast;  //上次所在数据池分区
     private AreaTypeEnum areaTypeCur;    //当前所在数据池分区
     private Integer isRecover;      //是否被回收
+    private OperationNameEnum operationName;
     private String modifyUserId;    //修改人工号
     private Date modifyTime;        //修改时间
 
@@ -94,6 +96,14 @@ public class ManualModeCustomer {
 
     public void setIsRecover(Integer isRecover) {
         this.isRecover = isRecover;
+    }
+
+    public OperationNameEnum getOperationName() {
+        return operationName;
+    }
+
+    public void setOperationName(OperationNameEnum operationName) {
+        this.operationName = operationName;
     }
 
     public String getModifyUserId() {
