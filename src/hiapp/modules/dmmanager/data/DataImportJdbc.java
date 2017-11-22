@@ -361,25 +361,18 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource","unchecked","rawtypes" })
-	public List<Map<String,Object>> getAllDbData(Integer temPlateId,Integer bizId,String contextPath) throws IOException{
+	public List<Map<String,Object>> getAllDbData(Integer templateId,Integer bizId,String contextPath) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String jsonData=null;
 		String getDbDataSql1="select ";
-		String maxTimeKey="maxTime"+bizId+temPlateId;
+		String maxTimeKey="maxTime"+bizId+templateId;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
 		try {
 			conn= this.getDbConnection();
-			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
-			pst=conn.prepareStatement(getXmlSql);
-			pst.setInt(1, temPlateId);
-			pst.setInt(2,bizId);
-			rs = pst.executeQuery();
-			while(rs.next()){
-				jsonData=ClobToString(rs.getClob(1));	
-			}
+			jsonData=getJsonData(bizId, templateId);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
 			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
@@ -450,7 +443,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @param userId
 	 * @throws IOException
 	 */
-	@SuppressWarnings({ "resource", "unused" })
+	@SuppressWarnings({ "unused" })
 	public Map<String,Object> insertImportData(Integer tempId,Integer bizId,String workSheetId,List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> isnertData,String tableName,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -461,14 +454,7 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> stringList=new ArrayList<String>();
 		try {
 			conn= this.getDbConnection();
-			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
-			pst=conn.prepareStatement(getXmlSql);
-			pst.setInt(1, tempId);
-			pst.setInt(2,bizId);
-			rs = pst.executeQuery();
-			while(rs.next()){
-				jsonData=ClobToString(rs.getClob(1));	
-			}
+			jsonData=getJsonData(bizId, tempId);
 			String importBatchId=idfactory.newId("DM_IID");//饶茹批次号
 			String disBatchId=idfactory.newId("DM_DID");//分配号
 			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
@@ -494,21 +480,7 @@ public class DataImportJdbc extends BaseRepository{
 		return resultMap;
 	}
 	
-    // CLOB转换成String
-    public String ClobToString(Clob sc) throws SQLException, IOException {  
-        String reString = "";  
-        Reader is = sc.getCharacterStream();
-        BufferedReader br = new BufferedReader(is);  
-        String s = br.readLine();  
-        StringBuffer sb = new StringBuffer();  
-        while (s != null) {
-            sb.append(s);  
-            s = br.readLine();  
-        }  
-        reString = sb.toString();  
-        return reString;  
-    }  
-    
+
     /**
      * 导入Excel数据
      * @param jsonData
@@ -1310,5 +1282,54 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 		}
 		
 	}
+    
+	/**
+	 * 根据业务Id和模板Id获取JSON数据
+	 * @param bizId
+	 * @param templateId
+	 * @return
+	 */
+	public String getJsonData(Integer bizId,Integer templateId){
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		String jsonData=null;
+		try {
+			conn=this.getDbConnection();
+			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
+			pst=conn.prepareStatement(getXmlSql);
+			pst.setInt(1, templateId);
+			pst.setInt(2,bizId);
+			rs = pst.executeQuery();
+			while(rs.next()){
+				jsonData=ClobToString(rs.getClob(1));	
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch(IOException e){
+			
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return jsonData;
+	}
+	
+    // CLOB转换成String
+    public String ClobToString(Clob sc) throws SQLException, IOException {  
+        String reString = "";  
+        Reader is = sc.getCharacterStream();
+        BufferedReader br = new BufferedReader(is);  
+        String s = br.readLine();  
+        StringBuffer sb = new StringBuffer();  
+        while (s != null) {
+            sb.append(s);  
+            s = br.readLine();  
+        }  
+        reString = sb.toString();  
+        return reString;  
+    }  
     
 }
