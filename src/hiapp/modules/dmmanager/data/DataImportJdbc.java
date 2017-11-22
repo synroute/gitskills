@@ -361,7 +361,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource","unchecked","rawtypes" })
-	public List<Map<String,Object>> getAllDbData(Integer templateId,Integer bizId,String contextPath,String userId,String operationName) throws IOException{
+	public List<Map<String,Object>> insertDataByDb(Integer templateId,Integer bizId,String contextPath,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
