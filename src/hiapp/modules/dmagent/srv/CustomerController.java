@@ -219,7 +219,7 @@ public class CustomerController {
             }
         }
         HashMap<String, String> hashMap = new HashMap<String, String>();
-        String s1 = "<tr>" + "<td style='width:33.3%;font-size:14px;color:"
+        String s1 = "<tr>" + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[0][0].get("fontColor")
                 +";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[0][0].get("fontFamily")
@@ -235,7 +235,7 @@ public class CustomerController {
                 + data[0][0].get("value")
                 + "</p>"
                 + "</td>"
-                + "<td style='width:33.3%;font-size:14px;color:"
+                + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[0][1].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[0][1].get("fontFamily")
@@ -251,7 +251,7 @@ public class CustomerController {
                 + data[0][1].get("value")
                 + "</p>"
                 + "</td>"
-                + "<td style='width:33.3%;font-size:14px;color:"
+                + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[0][2].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[0][2].get("fontFamily")
@@ -267,7 +267,7 @@ public class CustomerController {
                 + data[0][2].get("value")
                 + "</p>"
                 + "</td>";
-        String s2 =  "<tr>" + "<td style='width:33.3%;font-size:14px;color:"
+        String s2 =  "<tr>" + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[1][0].get("fontColor")
                 +";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[1][0].get("fontFamily")
@@ -283,7 +283,7 @@ public class CustomerController {
                 + data[1][0].get("value")
                 + "</p>"
                 + "</td>"
-                + "<td style='width:33.3%;font-size:14px;color:"
+                + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[1][1].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[1][1].get("fontFamily")
@@ -299,7 +299,7 @@ public class CustomerController {
                 + data[1][1].get("value")
                 + "</p>"
                 + "</td>"
-                + "<td style='width:33.3%;font-size:14px;color:"
+                + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[1][2].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[1][2].get("fontFamily")
@@ -315,7 +315,7 @@ public class CustomerController {
                 + data[1][2].get("value")
                 + "</p>"
                 + "</td>";
-        String s3 =  "<tr>" + "<td style='width:33.3%;font-size:14px;color:"
+        String s3 =  "<tr>" + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[2][0].get("fontColor")
                 +";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[2][0].get("fontFamily")
@@ -331,7 +331,7 @@ public class CustomerController {
                 + data[2][0].get("value")
                 + "</p>"
                 + "</td>"
-                + "<td style='width:33.3%;font-size:14px;color:"
+                + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[2][1].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[2][1].get("fontFamily")
@@ -347,7 +347,7 @@ public class CustomerController {
                 + data[2][1].get("value")
                 + "</p>"
                 + "</td>"
-                + "<td style='width:33.3%;font-size:14px;color:"
+                + "<td style='width:33.3%;font-size:14px;border: none;color:"
                 + data[2][2].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[2][2].get("fontFamily")
