@@ -600,6 +600,9 @@ public class CustomerRepository extends BaseRepository {
 					String fontColor = next.get("fontColor");
 					String columnName = next.get("columnName");
 					String bgColor=next.get("bgColor");
+					String fontFamily=next.get("fontFamily");
+					String fontSize=next.get("fontSize");
+					String fontWeight=next.get("fontWeight");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -613,6 +616,9 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontColor", fontColor);
 					map.put("columnName", columnName);
 					map.put("bgColor", bgColor);
+					map.put("fontFamily", fontFamily);
+					map.put("fontSize", fontSize);
+					map.put("fontWeight", fontWeight);
 					record.add(map);
 				}
 				result.add(record);
@@ -843,6 +849,9 @@ public class CustomerRepository extends BaseRepository {
 					String fontColor = next.get("fontColor");
 					String columnName = next.get("columnName");
 					String bgColor = next.get("bgColor");
+					String fontFamily=next.get("fontFamily");
+					String fontSize=next.get("fontSize");
+					String fontWeight=next.get("fontWeight");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -856,6 +865,9 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontColor", fontColor);
 					map.put("columnName", columnName);
 					map.put("bgColor", bgColor);
+					map.put("fontFamily", fontFamily);
+					map.put("fontSize", fontSize);
+					map.put("fontWeight", fontWeight);
 					record.add(map);
 				}
 				result.add(record);
@@ -1339,6 +1351,9 @@ public class CustomerRepository extends BaseRepository {
 					String fontColor = next.get("fontColor");
 					String columnName = next.get("columnName");
 					String bgColor = next.get("bgColor");
+					String fontFamily=next.get("fontFamily");
+					String fontSize=next.get("fontSize");
+					String fontWeight=next.get("fontWeight");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -1352,6 +1367,9 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontColor", fontColor);
 					map.put("columnName", columnName);
 					map.put("bgColor", bgColor);
+					map.put("fontFamily", fontFamily);
+					map.put("fontSize", fontSize);
+					map.put("fontWeight", fontWeight);
 					record.add(map);
 				}
 				result.add(record);
@@ -1779,6 +1797,9 @@ public class CustomerRepository extends BaseRepository {
 					String fontColor = next.get("fontColor");
 					String columnName = next.get("columnName");
 					String bgColor = next.get("bgColor");
+					String fontFamily=next.get("fontFamily");
+					String fontSize=next.get("fontSize");
+					String fontWeight=next.get("fontWeight");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -1792,6 +1813,9 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontColor", fontColor);
 					map.put("columnName", columnName);
 					map.put("bgColor", bgColor);
+					map.put("fontFamily", fontFamily);
+					map.put("fontSize", fontSize);
+					map.put("fontWeight", fontWeight);
 					record.add(map);
 				}
 				result.add(record);
@@ -2262,6 +2286,9 @@ public class CustomerRepository extends BaseRepository {
 					String fontColor = next.get("fontColor");
 					String columnName = next.get("columnName");
 					String bgColor = next.get("bgColor");
+					String fontFamily=next.get("fontFamily");
+					String fontSize=next.get("fontSize");
+					String fontWeight=next.get("fontWeight");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -2275,6 +2302,9 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontColor", fontColor);
 					map.put("columnName", columnName);
 					map.put("bgColor", bgColor);
+					map.put("fontFamily", fontFamily);
+					map.put("fontSize", fontSize);
+					map.put("fontWeight", fontWeight);
 					record.add(map);
 				}
 				result.add(record);

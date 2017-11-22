@@ -214,78 +214,155 @@ public class CustomerController {
         for(int i=0;i<3;i++){
             for(int j=0;j<3;j++){
                 if (data[i][j].get("value") == null || "null".equals(data[i][j].get("value"))){
-                    data[i][j].put("value","空");
+                    data[i][j].put("value","");
                 }
             }
         }
         HashMap<String, String> hashMap = new HashMap<String, String>();
-        String s1 = "<tr>" + "<th style='width:33.3%;font-size:14px;color:"
+        String s1 = "<tr>" + "<td style='width:33.3%;font-size:14px;color:"
                 + data[0][0].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[0][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                +";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[0][0].get("fontFamily")
+                + ";font-size:"
+                +data[0][0].get("fontSize")
+                +";font-weight:"
+                +data[0][0].get("fontWeight")
+                + ";'><p style='background:"
+                +data[0][0].get("bgColor")
+                +";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[0][0].get("value")
+                +">"
                 + data[0][0].get("value")
                 + "</p>"
-                + "</th>"
-                + "<th style='width:33.3%;font-size:14px;color:"
+                + "</td>"
+                + "<td style='width:33.3%;font-size:14px;color:"
                 + data[0][1].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[0][1].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[0][1].get("fontFamily")
+                +";font-size:"
+                + data[0][1].get("fontSize")
+                +";font-weight:"
+                + data[0][1].get("fontWeight")
+                + ";'><p style='background:"
+                + data[0][1].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[0][1].get("value")
+                +">"
                 + data[0][1].get("value")
                 + "</p>"
-                + "</th>"
-                + "<th style='width:33.3%;font-size:14px;color:"
+                + "</td>"
+                + "<td style='width:33.3%;font-size:14px;color:"
                 + data[0][2].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[0][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[0][2].get("fontFamily")
+                +";font-size:"
+                + data[0][2].get("fontSize")
+                +";font-weight:"
+                + data[0][2].get("fontWeight")
+                + ";'><p style='background:"
+                + data[0][2].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[0][2].get("value")
+                +">"
                 + data[0][2].get("value")
                 + "</p>"
-                + "</th>"
-                + "</tr>";
-        String s2 = "<tr>"
-                + "<th style='width:33.3%;font-size:14px;color:"
+                + "</td>";
+        String s2 =  "<tr>" + "<td style='width:33.3%;font-size:14px;color:"
                 + data[1][0].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[1][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                +";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[1][0].get("fontFamily")
+                + ";font-size:"
+                +data[1][0].get("fontSize")
+                +";font-weight:"
+                +data[1][0].get("fontWeight")
+                + ";'><p style='background:"
+                +data[1][0].get("bgColor")
+                +";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[1][0].get("value")
+                +">"
                 + data[1][0].get("value")
                 + "</p>"
-                + "<th style='width:33.3%;font-size:14px;color:"
+                + "</td>"
+                + "<td style='width:33.3%;font-size:14px;color:"
                 + data[1][1].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[1][1].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[1][1].get("fontFamily")
+                +";font-size:"
+                + data[1][1].get("fontSize")
+                +";font-weight:"
+                + data[1][1].get("fontWeight")
+                + ";'><p style='background:"
+                + data[1][1].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[1][1].get("value")
+                +">"
                 + data[1][1].get("value")
                 + "</p>"
-                + "</th>"
-                + "<th style='width:33.3%;font-size:14px;color:"
+                + "</td>"
+                + "<td style='width:33.3%;font-size:14px;color:"
                 + data[1][2].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[1][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[1][2].get("fontFamily")
+                +";font-size:"
+                + data[1][2].get("fontSize")
+                +";font-weight:"
+                + data[1][2].get("fontWeight")
+                + ";'><p style='background:"
+                + data[1][2].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[1][2].get("value")
+                +">"
                 + data[1][2].get("value")
                 + "</p>"
-                + "</th>"
-                + "</tr>";
-        String s3 = "<tr>"
-                + "<th style='width:33.3%;font-size:14px;color:"
+                + "</td>";
+        String s3 =  "<tr>" + "<td style='width:33.3%;font-size:14px;color:"
                 + data[2][0].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[2][0].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                +";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[2][0].get("fontFamily")
+                + ";font-size:"
+                +data[2][0].get("fontSize")
+                +";font-weight:"
+                +data[2][0].get("fontWeight")
+                + ";'><p style='background:"
+                +data[2][0].get("bgColor")
+                +";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[2][0].get("value")
+                +">"
                 + data[2][0].get("value")
                 + "</p>"
-                + "</th>"
-                + "<th style='width:33.3%;font-size:14px;color:"
+                + "</td>"
+                + "<td style='width:33.3%;font-size:14px;color:"
                 + data[2][1].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[2][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[2][1].get("fontFamily")
+                +";font-size:"
+                + data[2][1].get("fontSize")
+                +";font-weight:"
+                + data[2][1].get("fontWeight")
+                + ";'><p style='background:"
+                + data[2][1].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[2][1].get("value")
+                +">"
                 + data[2][1].get("value")
                 + "</p>"
-                + "</th>"
-                + "<th style='width:33.3%;font-size:14px;color:"
+                + "</td>"
+                + "<td style='width:33.3%;font-size:14px;color:"
                 + data[2][2].get("fontColor")
-                + ";text-align:left;display: inline-block;height: 20px;'>"
-                + "<p style='background:" + data[2][2].get("bgColor") + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
+                + data[2][2].get("fontFamily")
+                +";font-size:"
+                + data[2][2].get("fontSize")
+                +";font-weight:"
+                + data[2][2].get("fontWeight")
+                + ";'><p style='background:"
+                + data[2][2].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[2][2].get("value")
+                +">"
                 + data[2][2].get("value")
                 + "</p>"
-                + "</th>"
-                + "</tr>";
+                + "</td>";
 
         String result = "<table width=376px height=50px cellpadding=0 cellspacing=0>";
         Set<Integer> rows = new HashSet<>();
