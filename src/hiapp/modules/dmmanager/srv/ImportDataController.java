@@ -301,13 +301,13 @@ public class ImportDataController {
 		String operationName=request.getParameter("operationName");
 		WorkSheet workSheet=dataImportJdbc.getWorkSheet(workSheetId);
 		String tableName=workSheet.getName();
-		String tempIds=request.getParameter("tempIds");
-		Integer action=Integer.valueOf(request.getParameter("action"));
 		List<Map<String,Object>> isnertData=null;
 		if(!"Excel".equals(operationName)){
 			String contextPath = request.getSession().getServletContext().getRealPath("maxTime/maxTime.properties");
 			isnertData=dataImportJdbc.getAllDbData(temPlateId, bizId,contextPath);
 		}else{
+			String tempIds=request.getParameter("tempIds");
+			Integer action=Integer.valueOf(request.getParameter("action"));
 			dataImportJdbc.updateTempData(bizId, userId, tempIds, action);
 		}
 		List<WorkSheetColumn> sheetColumnList=dataImportJdbc.getWorkSeetColumnList(workSheetId);

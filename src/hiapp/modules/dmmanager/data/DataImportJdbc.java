@@ -367,6 +367,7 @@ public class DataImportJdbc extends BaseRepository{
 		ResultSet rs = null;
 		String jsonData=null;
 		String getDbDataSql1="select ";
+		String maxTimeKey="maxTime"+bizId+temPlateId;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
 		try {
@@ -386,7 +387,7 @@ public class DataImportJdbc extends BaseRepository{
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
 			Properties properties = new Properties();
 			properties.load(new FileInputStream(contextPath));
-			String importTime = properties.getProperty("maxTime");
+			String importTime = properties.getProperty(maxTimeKey);
 			for (int i = 0; i < dataArray.size(); i++) {
 				String value=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
 				if(value!=null&&!"".equals(value)){
@@ -428,7 +429,7 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				maxTime=rs.getString(1);
 			}
-			properties.setProperty("maxTime",maxTime);
+			properties.setProperty(maxTimeKey,maxTime);
 			properties.store(new FileOutputStream(contextPath),"最大时间");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
