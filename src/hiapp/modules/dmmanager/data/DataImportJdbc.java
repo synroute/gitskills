@@ -371,7 +371,7 @@ public class DataImportJdbc extends BaseRepository{
 		String maxTimeKey="maxTime"+bizId+templateId;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
-		String workSheetId =getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType(),Connection conn);
+		String workSheetId =getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType(),conn);
 		String tableName="HAU_DM_B"+bizId+"C_IMPORT";
 		try {
 			//conn= this.getDbConnection();
