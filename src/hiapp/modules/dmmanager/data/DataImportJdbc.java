@@ -47,8 +47,8 @@ import com.google.gson.JsonParser;
 public class DataImportJdbc extends BaseRepository{
 	@Autowired
 	private IdFactory idfactory;
-	
-	 DmWorkSheetRepository dmWorkSheetRepository=new DmWorkSheetRepository();
+	@Autowired
+	private DmWorkSheetRepository dmWorkSheetRepository;
 	
 	/**
 	 * 获取所有业务
@@ -362,8 +362,8 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource","unchecked","rawtypes" })
-	public List<Map<String,Object>> insertDataByDb(Integer templateId,Integer bizId,String contextPath,String userId,String operationName,Connection conn) throws IOException{
-		//Connection conn=null;
+	public List<Map<String,Object>> insertDataByDb(Integer templateId,Integer bizId,String contextPath,String userId,String operationName) throws IOException{
+		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String jsonData=null;
@@ -371,13 +371,13 @@ public class DataImportJdbc extends BaseRepository{
 		String maxTimeKey="maxTime"+bizId+templateId;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
-		String workSheetId =getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType(),conn);
+		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());;
 		String tableName="HAU_DM_B"+bizId+"C_IMPORT";
 		String importBatchId=idfactory.newId("DM_IID");//饶茹批次号
 		String disBatchId=idfactory.newId("DM_DID");//分配号
 		try {
-			//conn= this.getDbConnection();
-			jsonData=getJsonData(bizId, templateId,conn);
+			conn= this.getDbConnection();
+			jsonData=getJsonData(bizId, templateId);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
 			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
@@ -438,7 +438,7 @@ public class DataImportJdbc extends BaseRepository{
 				dataPoolNumber=rs.getInt(1);
 			}
 			//保存数据
-			insertDbData(bizId,jsonData, workSheetId, tableName, dataList,userId,importBatchId,dataPoolNumber, operationName,disBatchId,conn);
+			insertDbData(bizId,jsonData, workSheetId, tableName, dataList,userId,importBatchId,dataPoolNumber, operationName,disBatchId);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -468,7 +468,7 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> stringList=new ArrayList<String>();
 		try {
 			conn= this.getDbConnection();
-			jsonData=getJsonData(bizId, tempId,conn);
+			jsonData=getJsonData(bizId, tempId);
 			String importBatchId=idfactory.newId("DM_IID");//饶茹批次号
 			String disBatchId=idfactory.newId("DM_DID");//分配号
 			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
@@ -779,8 +779,8 @@ public class DataImportJdbc extends BaseRepository{
      * 将数据库来源数据插入到导入表中
      */
     @SuppressWarnings("resource")
-	public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId,Connection conn){
-    	//Connection conn=null;
+	public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
+    	Connection conn=null;
 		Statement statement=null;
 		PreparedStatement pst = null;
 		PreparedStatement pst1 = null;
@@ -791,7 +791,7 @@ public class DataImportJdbc extends BaseRepository{
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
 		List<String> customerBatchIds=idfactory.newIds("DM_CID", isnertData.size());
 		try {
-			//conn=this.getDbConnection();
+			conn=this.getDbConnection();
 			//不自动提交数据
 			conn.setAutoCommit(false);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
@@ -1300,8 +1300,8 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 	 * @param templateId
 	 * @return
 	 */
-	public String getJsonData(Integer bizId,Integer templateId,Connection conn){
-		//Connection conn=null;
+	public String getJsonData(Integer bizId,Integer templateId){
+		Connection conn=null;
 		PreparedStatement pst=null;
 		ResultSet rs=null;
 		String jsonData=null;
@@ -1323,6 +1323,7 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 			e.printStackTrace();
 		}finally{
 			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
 		}
 		return jsonData;
 	}
@@ -1341,25 +1342,4 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
         reString = sb.toString();  
         return reString;  
     }  
-   public String getWorkSheetIdByType(int bizId,String worksheetType,Connection dbConn){
-		String worksheetId = "";
-		//Connection dbConn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		try {
-			//dbConn = this.getDbConnection();
-			String szSql = String.format("select WORKSHEETID from HASYS_DM_BIZWORKSHEET where BIZID='%S' and TYPE='%s' ",bizId,worksheetType);
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
-			while(rs.next()){
-				worksheetId = rs.getString(1);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		} finally{
-			DbUtil.DbCloseQuery(rs,stmt);
-		}
-		return worksheetId;
-	}
 }
