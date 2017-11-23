@@ -47,8 +47,9 @@ import com.google.gson.JsonParser;
 public class DataImportJdbc extends BaseRepository{
 	@Autowired
 	private IdFactory idfactory;
-	@Autowired
-	private DmWorkSheetRepository dmWorkSheetRepository;
+	
+	 DmWorkSheetRepository dmWorkSheetRepository=new DmWorkSheetRepository();
+	
 	/**
 	 * 获取所有业务
 	 * @param userId
