@@ -362,8 +362,8 @@ public class DataImportJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "resource","unchecked","rawtypes" })
-	public List<Map<String,Object>> insertDataByDb(Integer templateId,Integer bizId,String contextPath,String userId,String operationName) throws IOException{
-		Connection conn=null;
+	public List<Map<String,Object>> insertDataByDb(Integer templateId,Integer bizId,String contextPath,String userId,String operationName,Connection conn) throws IOException{
+		//Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		String jsonData=null;
@@ -371,10 +371,10 @@ public class DataImportJdbc extends BaseRepository{
 		String maxTimeKey="maxTime"+bizId+templateId;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
-		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
+		String workSheetId =getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType(),Connection conn);
 		String tableName="HAU_DM_B"+bizId+"C_IMPORT";
 		try {
-			conn= this.getDbConnection();
+			//conn= this.getDbConnection();
 			jsonData=getJsonData(bizId, templateId);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
@@ -1336,5 +1336,26 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
         reString = sb.toString();  
         return reString;  
     }  
-    
+   public String getWorkSheetIdByType(int bizId,String worksheetType,Connection dbConn){
+		String worksheetId = "";
+		//Connection dbConn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			//dbConn = this.getDbConnection();
+			String szSql = String.format("select WORKSHEETID from HASYS_DM_BIZWORKSHEET where BIZID='%S' and TYPE='%s' ",bizId,worksheetType);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				worksheetId = rs.getString(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseQuery(rs, stmt);
+		}
+		return worksheetId;
+	}
 }
