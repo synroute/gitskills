@@ -373,9 +373,11 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> sourceColumns=new ArrayList<String>();
 		String workSheetId =getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType(),conn);
 		String tableName="HAU_DM_B"+bizId+"C_IMPORT";
+		String importBatchId=idfactory.newId("DM_IID");//饶茹批次号
+		String disBatchId=idfactory.newId("DM_DID");//分配号
 		try {
 			//conn= this.getDbConnection();
-			jsonData=getJsonData(bizId, templateId);
+			jsonData=getJsonData(bizId, templateId,conn);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
 			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
@@ -427,14 +429,21 @@ public class DataImportJdbc extends BaseRepository{
 			}
 			properties.setProperty(maxTimeKey,maxTime);
 			properties.store(new FileOutputStream(contextPath),"最大时间");
+			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
+			pst=conn.prepareStatement(getDataSourceSql);
+			pst.setInt(1,bizId);
+			rs=pst.executeQuery();
+			Integer dataPoolNumber=null;
+			while(rs.next()){
+				dataPoolNumber=rs.getInt(1);
+			}
 			//保存数据
-			insertImportData(templateId, bizId, workSheetId, dataList, tableName, userId, operationName);
+			insertDbData(bizId,jsonData, workSheetId, tableName, dataList,userId,importBatchId,dataPoolNumber, operationName,disBatchId,conn);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally{
 			DbUtil.DbCloseQuery(rs,pst);
-			DbUtil.DbCloseConnection(conn);
 		}
 		return dataList;
 	}
@@ -459,7 +468,7 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> stringList=new ArrayList<String>();
 		try {
 			conn= this.getDbConnection();
-			jsonData=getJsonData(bizId, tempId);
+			jsonData=getJsonData(bizId, tempId,conn);
 			String importBatchId=idfactory.newId("DM_IID");//饶茹批次号
 			String disBatchId=idfactory.newId("DM_DID");//分配号
 			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
@@ -470,11 +479,8 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				dataPoolNumber=rs.getInt(1);
 			}
-			if("Excel".equals(operationName)){
-				resultMap=insertExcelData(jsonData,workSheetId,tableName,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
-			}else{
-				resultMap=insertDbData(bizId,jsonData,workSheetId,tableName,isnertData,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
-			}
+			resultMap=insertExcelData(jsonData,workSheetId,tableName,bizId,userId,importBatchId,dataPoolNumber,operationName,disBatchId);
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -773,8 +779,8 @@ public class DataImportJdbc extends BaseRepository{
      * 将数据库来源数据插入到导入表中
      */
     @SuppressWarnings("resource")
-	public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
-    	Connection conn=null;
+	public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId,Connection conn){
+    	//Connection conn=null;
 		Statement statement=null;
 		PreparedStatement pst = null;
 		PreparedStatement pst1 = null;
@@ -785,7 +791,7 @@ public class DataImportJdbc extends BaseRepository{
 		String orePoolName="HAU_DM_B"+bizId+"C_POOL_ORE";
 		List<String> customerBatchIds=idfactory.newIds("DM_CID", isnertData.size());
 		try {
-			conn=this.getDbConnection();
+			//conn=this.getDbConnection();
 			//不自动提交数据
 			conn.setAutoCommit(false);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
@@ -1294,13 +1300,13 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 	 * @param templateId
 	 * @return
 	 */
-	public String getJsonData(Integer bizId,Integer templateId){
-		Connection conn=null;
+	public String getJsonData(Integer bizId,Integer templateId,Connection conn){
+		//Connection conn=null;
 		PreparedStatement pst=null;
 		ResultSet rs=null;
 		String jsonData=null;
 		try {
-			conn=this.getDbConnection();
+			//conn=this.getDbConnection();
 			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
 			pst=conn.prepareStatement(getXmlSql);
 			pst.setInt(1, templateId);
@@ -1317,7 +1323,6 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 			e.printStackTrace();
 		}finally{
 			DbUtil.DbCloseQuery(rs,pst);
-			DbUtil.DbCloseConnection(conn);
 		}
 		return jsonData;
 	}
@@ -1352,9 +1357,8 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
-		} finally {
-			DbUtil.DbCloseConnection(dbConn);
-			DbUtil.DbCloseQuery(rs, stmt);
+		} finally{
+			DbUtil.DbCloseQuery(rs,stmt);
 		}
 		return worksheetId;
 	}
