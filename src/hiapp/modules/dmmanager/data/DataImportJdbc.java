@@ -382,7 +382,7 @@ public class DataImportJdbc extends BaseRepository{
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
 			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
-			JsonObject importConfig= jsonObject.get("mportConfig").getAsJsonObject();
+			JsonObject importConfig= jsonObject.get("ImportConfig").getAsJsonObject();
 			String icrement=importConfig.get("IncrementalIdentifier").getAsString();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
 			Properties properties = new Properties();
