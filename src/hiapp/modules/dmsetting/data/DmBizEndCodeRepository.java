@@ -399,10 +399,14 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			        jsonObject.add("MultiNumberDetail", jsonObject_MultiNumberDetail);
 			        
 			        
-			            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonObject.toString()+"')";
-			            stmt = conn.prepareStatement(insertsql);
-			            stmt.executeUpdate();
-			        
+			        PreparedStatement stat=conn.prepareStatement("INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",?)");
+
+						String clobContent = jsonObject.toString();  
+					     StringReader reader = new StringReader(clobContent);  
+					     stat.setCharacterStream(1, reader, clobContent.length());
+					     stat.executeUpdate();
+			            
+			            
 				}else
 				{
 					
@@ -420,9 +424,11 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				       
 				        jsonArray.add(jsonObject_EndCode);
 					
-			            String updatesql = "update HASYS_DM_BIZOUTBOUNDSETTING set XML='"+jsonObject.toString()+"' where BusinessId="+bizid+"";
-			            stmt = conn.prepareStatement(updatesql);
-			            stmt.executeUpdate();
+				        PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set XML=? where BusinessId="+bizid+"");
+			            String clobContent = jsonObject.toString();  
+					     StringReader reader = new StringReader(clobContent);  
+					     stat.setCharacterStream(1, reader, clobContent.length());
+					     stat.executeUpdate();
 					
 				}
 				
@@ -483,9 +489,12 @@ public class DmBizEndCodeRepository extends BaseRepository {
 			        jsonArray_EndCode.add(jsonObject_EndCode);
 			        
 			        	
-			            String insertsql = "INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",'"+jsonArray_EndCode.toString()+"')";
-			            stmt = conn.prepareStatement(insertsql);
-			            stmt.executeUpdate();
+			        PreparedStatement stat=conn.prepareStatement("INSERT INTO HASYS_DM_BIZOUTBOUNDSETTING (ID,BusinessId,XML) values(S_HASYS_DM_BIZOUTBOUNDSETTING.nextval,"+bizid+",?)");
+			           
+			            String clobContent =jsonArray_EndCode.toString();  
+					     StringReader reader = new StringReader(clobContent);  
+					     stat.setCharacterStream(1, reader, clobContent.length());
+					     stat.executeUpdate();
 			        
 				}else
 				{
@@ -507,9 +516,11 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				        jsonObject_EndCode.addProperty("RedialCount", "");
 			        jsonArray.add(jsonObject_EndCode);
 					
-			            String updatesql = "update HASYS_DM_BIZOUTBOUNDSETTING set XML='"+jsonArray.toString()+"' where BusinessId="+bizid+"";
-			            stmt = conn.prepareStatement(updatesql);
-			            stmt.executeUpdate();
+			        PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set XML=? where BusinessId="+bizid+"");
+			            String clobContent =jsonArray.toString();  
+					     StringReader reader = new StringReader(clobContent);  
+					     stat.setCharacterStream(1, reader, clobContent.length());
+					     stat.executeUpdate();
 					
 				}
 				

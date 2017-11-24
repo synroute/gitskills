@@ -1,6 +1,7 @@
 package hiapp.modules.dmsetting.data;
 
 import java.io.InputStream;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,10 +23,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import hiapp.modules.dm.dbImport.bean.ImportConfig;
+import hiapp.modules.dm.dbImport.data.DMDbImport;
 import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.result.DMBizTemplateExcelColums;
 import hiapp.modules.dmsetting.result.DMBizTemplateImportTableColumns;
 import hiapp.modules.dmsetting.result.DMBizTemplateImportTableName;
+import hiapp.system.dictionary.dicItemsTreeBranch;
 import hiapp.system.dictionary.data.DictRepository;
 import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.system.worksheet.bean.WorkSheetColumn;
@@ -38,6 +42,9 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	
 	@Autowired
 	 private WorkSheet workSheet;
+	
+	@Autowired
+	private DMDbImport dmDbImport;
 	//获取所有导入模板接口
 	public   List<DMBizImportTemplate> getAllTemplates(int bizId){
 		PreparedStatement stmt = null;
@@ -322,6 +329,12 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 					jsonObject_row.addProperty("ServerAutoImportFieldLatestSource", "");
 					jsonArray_Import.add(jsonObject_row);
 					jsonObject.add("ImportExcelTemplate", jsonArray_Import);
+					
+					JsonObject jsonObject_ImportConfig=new JsonObject();
+					jsonObject_ImportConfig.addProperty("Time", "0");
+					jsonObject_ImportConfig.addProperty("IncrementalIdentifier", "");
+					jsonObject_ImportConfig.addProperty("IsStart", "0");
+					jsonObject.add("ImportConfig", jsonObject_ImportConfig);
 				}
 				JsonArray jsonArray=new JsonArray();
 				
@@ -388,12 +401,22 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		JsonObject jsonObject=new JsonParser().parse(mapColumns).getAsJsonObject();
+		JsonObject jsonObject_ImportConfig=jsonObject.get("ImportConfig").getAsJsonObject();
+		
+		if(jsonObject_ImportConfig.get("IsStart").getAsInt()==1)
+		{
+			dmDbImport.add(dmBizImportTemplate.getBizId(), dmBizImportTemplate.getTemplateId(), jsonObject_ImportConfig.get("Time").getAsInt());
+		}else{
+			dmDbImport.delete(dmBizImportTemplate.getBizId(), dmBizImportTemplate.getTemplateId());
+		}
 		try {
-			dbConn =this.getDbConnection();
-			String szSql =String.format( "update  HASYS_DM_BIZTEMPLATEIMPORT set xml='"+jsonObject.toString()+"' WHERE TemplateID="+dmBizImportTemplate.getTemplateId()+" AND BusinessId="+dmBizImportTemplate.getBizId()+" ");
-			stmt = dbConn.prepareStatement(szSql);
 			
-			stmt.execute();
+			dbConn =this.getDbConnection();
+			PreparedStatement stat=dbConn.prepareStatement( "update  HASYS_DM_BIZTEMPLATEIMPORT set xml=? WHERE TemplateID="+dmBizImportTemplate.getTemplateId()+" AND BusinessId="+dmBizImportTemplate.getBizId()+" ");
+			 String clobContent =jsonObject.toString();  
+		     StringReader reader = new StringReader(clobContent);  
+		     stat.setCharacterStream(1, reader, clobContent.length());
+		     stat.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -402,6 +425,9 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		}
 		return true;
 	}	
+	
+	
+	
 	
 	//获取单个导出导入模板配置excel数据信息
 	public List<DMBizTemplateExcelColums> dmGetBizExcel(MultipartFile file) throws Exception

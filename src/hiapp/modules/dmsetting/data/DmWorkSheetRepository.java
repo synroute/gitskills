@@ -249,8 +249,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("电话号码", "PHONENUMBER", "电话号码", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
-			
-			
+			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("呼损次数", "CALLLOSSCOUNT", "呼损次数", WorkSheetDataType.INT, -1, false, true);
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
 		
@@ -280,6 +280,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("结束码", "ENDCODE", "结束码", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("电话号码", "PHONENUMBER", "电话号码", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("呼损次数", "CALLLOSSCOUNT", "呼损次数", WorkSheetDataType.INT, -1, false, true);
 			
 			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
