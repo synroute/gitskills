@@ -382,6 +382,8 @@ public class DataImportJdbc extends BaseRepository{
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
 			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
+			JsonObject importConfig= new JsonParser().parse("mportConfig").getAsJsonObject();
+			String icrement=importConfig.get("IncrementalIdentifier").getAsString();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
 			Properties properties = new Properties();
 			properties.load(new FileInputStream(contextPath));
@@ -399,7 +401,7 @@ public class DataImportJdbc extends BaseRepository{
 			}
 			getDbDataSql1=getDbDataSql1.substring(0, getDbDataSql1.length()-1)+" from "+sourceTableName;
 			if(importTime!=null){
-				getDbDataSql1+=" where importTime>to_date('"+importTime+"','yyyy-mm-dd hh24:mi:ss')";
+				getDbDataSql1+=" where "+icrement+">to_date('"+importTime+"','yyyy-mm-dd hh24:mi:ss')";
 			}
 			pst=conn.prepareStatement(getDbDataSql1);
 			rs = pst.executeQuery();
@@ -420,7 +422,7 @@ public class DataImportJdbc extends BaseRepository{
 				dataList.add(map);
 			}
 			
-			String sql="select to_char(max(t.importTime),'yyyy-mm-dd hh24:mi:ss') importTime from "+sourceTableName+" t";
+			String sql="select to_char(max(t."+icrement+"),'yyyy-mm-dd hh24:mi:ss') importTime from "+sourceTableName+" t";
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
 			String maxTime=null;
