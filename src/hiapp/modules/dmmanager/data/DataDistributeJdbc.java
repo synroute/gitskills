@@ -629,12 +629,13 @@ public class DataDistributeJdbc extends BaseRepository{
 			}else if(model==2){
 				String datamTableName2="HAU_DM_B"+bizId+"C_DATAM2";
 				String hisTableName2="HAU_DM_B"+bizId+"C_DATAM2_HIS";
-				String insertDatamSql="insert into "+datamTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
-						  "where b.ifchecked=1 ";
+				String phoneColumn=getHidPhoneNum(bizId);
+				String insertDatamSql="insert into "+datamTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+datamTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,n."+phoneColumn+" from "+tempTableName+" m "+
+									  "left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.execute();
-				String insertHisDatamSql="insert into "+hisTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
-										 "where b.ifchecked=1 ";
+				String insertHisDatamSql="insert into "+hisTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+hisTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate n."+phoneColumn+" from "+tempTableName+" m "+
+										 "left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.execute();
 			}
@@ -940,6 +941,29 @@ public class DataDistributeJdbc extends BaseRepository{
 		return resultMap;
 	}
 	
+	public String getHidPhoneNum(Integer bizId){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String phoneNum=null;
+		try {
+			conn=this.getDbConnection();
+			String sql="select CustomerColumnMap from hasys_DM_BizPhoneType where BusinessId=?";
+			pst=conn.prepareStatement(sql);
+			pst.setInt(1,bizId);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				phoneNum=rs.getString(1);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return phoneNum;
+	}
 	public String getColumnName(Integer num,Map<Integer,String> phoneNumMap){
 		String columName=null;
 		if(phoneNumMap.keySet().contains(num)){
