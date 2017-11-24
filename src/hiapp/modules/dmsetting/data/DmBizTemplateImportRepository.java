@@ -401,17 +401,30 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		JsonObject jsonObject=new JsonParser().parse(mapColumns).getAsJsonObject();
-		JsonObject jsonObject_ImportConfig=jsonObject.get("ImportConfig").getAsJsonObject();
-		
-		if(jsonObject_ImportConfig.get("IsStart").getAsInt()==1)
-		{
-			dmDbImport.add(dmBizImportTemplate.getBizId(), dmBizImportTemplate.getTemplateId(), jsonObject_ImportConfig.get("Time").getAsInt());
-		}else{
-			dmDbImport.delete(dmBizImportTemplate.getBizId(), dmBizImportTemplate.getTemplateId());
-		}
 		try {
-			
 			dbConn =this.getDbConnection();
+			String szSql = String.format("select SourceType from HASYS_DM_BIZTEMPLATEIMPORT where BusinessID="+dmBizImportTemplate.getBizId()+" and TemplateID="+dmBizImportTemplate.getTemplateId()+"");
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			String SourceType="";
+			while(rs.next()){
+				
+				SourceType=rs.getString(1);
+			}
+			if(SourceType.equals("DB"))
+			{
+				JsonObject jsonObject_ImportConfig=jsonObject.get("ImportConfig").getAsJsonObject();
+				
+				if(jsonObject_ImportConfig.get("IsStart").getAsInt()==1)
+				{
+					dmDbImport.add(dmBizImportTemplate.getBizId(), dmBizImportTemplate.getTemplateId(), jsonObject_ImportConfig.get("Time").getAsInt());
+				}else{
+					dmDbImport.delete(dmBizImportTemplate.getBizId(), dmBizImportTemplate.getTemplateId());
+				}
+			}
+			
+				
+			
 			PreparedStatement stat=dbConn.prepareStatement( "update  HASYS_DM_BIZTEMPLATEIMPORT set xml=? WHERE TemplateID="+dmBizImportTemplate.getTemplateId()+" AND BusinessId="+dmBizImportTemplate.getBizId()+" ");
 			 String clobContent =jsonObject.toString();  
 		     StringReader reader = new StringReader(clobContent);  
