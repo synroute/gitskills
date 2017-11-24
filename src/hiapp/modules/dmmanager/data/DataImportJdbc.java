@@ -1306,7 +1306,7 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 		ResultSet rs=null;
 		String jsonData=null;
 		try {
-			//conn=this.getDbConnection();
+			conn=this.getDbConnection();
 			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
 			pst=conn.prepareStatement(getXmlSql);
 			pst.setInt(1, templateId);
