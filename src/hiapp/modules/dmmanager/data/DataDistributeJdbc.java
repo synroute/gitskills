@@ -634,7 +634,7 @@ public class DataDistributeJdbc extends BaseRepository{
 									  "left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.execute();
-				String insertHisDatamSql="insert into "+hisTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+hisTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate n."+phoneColumn+" from "+tempTableName+" m "+
+				String insertHisDatamSql="insert into "+hisTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+hisTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,n."+phoneColumn+" from "+tempTableName+" m "+
 										 "left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.execute();
