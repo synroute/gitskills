@@ -630,11 +630,11 @@ public class DataDistributeJdbc extends BaseRepository{
 				String datamTableName2="HAU_DM_B"+bizId+"C_DATAM2";
 				String hisTableName2="HAU_DM_B"+bizId+"C_DATAM2_HIS";
 				String phoneColumn=getHidPhoneNum(bizId);
-				String insertDatamSql="insert into "+datamTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+datamTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,n."+phoneColumn+" from "+tempTableName+" m "+
+				String insertDatamSql="insert into "+datamTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+datamTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,"+phoneColumn+" from "+tempTableName+" m "+
 									  "left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.execute();
-				String insertHisDatamSql="insert into "+hisTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+hisTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,n."+phoneColumn+" from "+tempTableName+" m "+
+				String insertHisDatamSql="insert into "+hisTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+hisTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,"+phoneColumn+" from "+tempTableName+" m "+
 										 "left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.execute();
@@ -953,7 +953,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst.setInt(1,bizId);
 			rs=pst.executeQuery();
 			while(rs.next()){
-				phoneNum=rs.getString(1);
+				phoneNum="n."+rs.getString(1);
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
