@@ -22,6 +22,11 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
+/**
+ * M3 单号码重复外呼
+ * 坐席 抽取数据，客户信息需要按照共享批次分类，由于存在访问权限问题
+ */
+
 @Service
 public class SingleNumberOutboundDataManage {
 

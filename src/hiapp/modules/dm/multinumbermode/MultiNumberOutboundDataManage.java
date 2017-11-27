@@ -18,6 +18,11 @@ import java.util.*;
 
 import static hiapp.modules.dm.Constants.HiDialerUserId;
 
+/**
+ * M6 多号码预测外呼
+ * Hidialer 抽取数据，客户信息不需要按照共享批次分类，由于不存在访问权限问题
+ */
+
 @Service
 public class MultiNumberOutboundDataManage {
 

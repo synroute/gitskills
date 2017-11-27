@@ -19,6 +19,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * M1 手动分配模式
+ * 坐席 抽取数据，客户信息需要按照共享批次分类，由于存在访问权限问题
+ */
+
 @Service
 public class ManualOutboundDataManage {
 
