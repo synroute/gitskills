@@ -1,6 +1,7 @@
 package hiapp.modules.dm;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.hidialermode.HidialerModeController;
 import hiapp.modules.dm.manualmode.ManualModeController;
 import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
 import hiapp.modules.dm.multinumbermode.bo.BizConfig;
@@ -40,6 +41,9 @@ public class DMController {
 
     @Autowired
     ManualModeController manualModeController;
+
+    @Autowired
+    HidialerModeController hidialerModeController;
 
     @Autowired
     SingleNumberModeController singleNumberModeController;
@@ -111,6 +115,10 @@ public class DMController {
                     isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            return hidialerModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
+                    shareBatchId, importBatchId, customerId, resultCodeType, resultCode,
+                    isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
+
 
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
             return singleNumberModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
@@ -229,7 +237,7 @@ public class DMController {
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-
+            return hidialerModeController.hiDialerGetCustList(Integer.valueOf(strBizId), Integer.valueOf(strCount));
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
@@ -292,7 +300,8 @@ public class DMController {
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-
+            return hidialerModeController.hiDialerDialResultNotify(Integer.valueOf(strBizId), importBatchId,
+                    customerId, shareBatchId, phoneType, resultCode, customerCallID);
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
@@ -300,7 +309,6 @@ public class DMController {
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-            //requestBody = testData();
             return multiNumberModeController.hiDialerDialResultNotify(Integer.valueOf(strBizId), importBatchId,
                     customerId, shareBatchId, phoneType, resultCode, customerCallID);
         }
@@ -327,7 +335,7 @@ public class DMController {
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-
+            return hidialerModeController.submitScreenPopUp(userId, strBizId, importBatchId, customerId, strPhoneType);
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
             //return singleNumberModeController.submitOutboundResult(request, requestBody);
 
@@ -336,7 +344,6 @@ public class DMController {
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-            //requestBody = testData();
             return multiNumberModeController.submitScreenPopUp(userId, strBizId, importBatchId, customerId, strPhoneType);
         }
 
@@ -352,6 +359,7 @@ public class DMController {
             return manualModeController.startShareBatch(bizId, strShareBatchIds);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            return hidialerModeController.startShareBatch(bizId, strShareBatchIds);
 
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
             return singleNumberModeController.startShareBatch(bizId, strShareBatchIds);
@@ -376,7 +384,7 @@ public class DMController {
             return manualModeController.stopShareBatch(bizId, strShareBatchIds);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
-
+            return hidialerModeController.stopShareBatch(bizId, strShareBatchIds);
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
             return singleNumberModeController.stopShareBatch(bizId, strShareBatchIds);
 

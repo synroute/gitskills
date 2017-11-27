@@ -2,6 +2,7 @@ package hiapp.modules.dm.util;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
+import hiapp.modules.dm.hidialermode.bo.HidialerModeCustomerStateEnum;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 
@@ -77,6 +78,17 @@ public class SQLUtil {
             MultiNumberPredictStateEnum state = shareCustomerStateList.get(indx);
             sb.append("'").append(state.getName()).append("'");
             if (indx < (shareCustomerStateList.size() - 1))
+                sb.append(",");
+        }
+        return sb.toString();
+    }
+
+    public static String hidialerModeCustomerStatelistToSqlString(List<HidialerModeCustomerStateEnum> customerStateList) {
+        StringBuilder sb = new StringBuilder();
+        for (int indx = 0; indx < customerStateList.size(); indx++) {
+            HidialerModeCustomerStateEnum state = customerStateList.get(indx);
+            sb.append("'").append(state.getName()).append("'");
+            if (indx < (customerStateList.size() - 1))
                 sb.append(",");
         }
         return sb.toString();
