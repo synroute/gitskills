@@ -6,8 +6,10 @@ public enum HidialerModeCustomerStateEnum {
     APPENDED("APPENDED"),
     EXTRACTED("EXTRACTED"),       // 已经被HiDialer抽取
     WAIT_REDIAL("WAIT_REDIAL"),   // 等待重拨状态, 外呼策略处理结果
-    LOSS_WAIT_REDIAL("LOSS_WAIT_REDIAL"),   //呼损重拨状态
-    FINISHED("FINISHED"),      // 本客户拨打完成
+    LOSS_WAIT_REDIAL("LOSS_WAIT_REDIAL"),   //呼损重拨
+    HIDIALER_LOSS_WAIT_REDIAL("HIDIALER_LOSS_WAIT_REDIAL"),   //HiDialer呼损重拨
+
+    FINISHED("FINISHED"),     // 本客户拨打完成
     REVERT("REVERT"),         // 回退状态
 
     PHONECONNECTED("PHONECONNECTED"),
@@ -35,6 +37,9 @@ public enum HidialerModeCustomerStateEnum {
 
         if (HidialerModeCustomerStateEnum.LOSS_WAIT_REDIAL.getName().equals(columnValue))
             return HidialerModeCustomerStateEnum.LOSS_WAIT_REDIAL;
+
+        if (HidialerModeCustomerStateEnum.HIDIALER_LOSS_WAIT_REDIAL.getName().equals(columnValue))
+            return HidialerModeCustomerStateEnum.HIDIALER_LOSS_WAIT_REDIAL;
 
         if (HidialerModeCustomerStateEnum.FINISHED.getName().equals(columnValue))
             return HidialerModeCustomerStateEnum.FINISHED;

@@ -3,11 +3,14 @@ package hiapp.modules.dm.hidialermode.dao;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.hidialermode.bo.HidialerModeCustomer;
 import hiapp.modules.dm.hidialermode.bo.HidialerModeCustomerStateEnum;
+import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
 import hiapp.modules.dm.multinumbermode.bo.PhoneDialInfo;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dm.util.SQLUtil;
+import hiapp.modules.dmmanager.AreaTypeEnum;
+import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import org.springframework.stereotype.Repository;
@@ -40,8 +43,8 @@ public class HidialerModeDAO extends BaseRepository {
 
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
-                    " MODIFYUSERID, MODIFYTIME, MODIFYDESC, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
-                    " PHONENUMBER, LASTDIALTIME, NEXTDIALTIME, CALLLOSSCOUNT FROM " + tableName);
+                    " MODIFYUSERID, MODIFYTIME, MODIFYDSP, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
+                    " PHONENUMBER, LASTDIALDAY, NEXTDIALTIME, CALLLOSSCOUNT FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append("   AND STATE IN (").append(SQLUtil.hidialerModeCustomerStatelistToSqlString(shareDataStateList)).append(")");
 
@@ -104,11 +107,11 @@ public class HidialerModeDAO extends BaseRepository {
 
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
-                    " MODIFYUSERID, MODIFYTIME, MODIFYDESC, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
-                    " PHONENUMBER, LASTDIALTIME, NEXTDIALTIME, CALLLOSSCOUNT FROM " + tableName);
+                    " MODIFYUSERID, MODIFYTIME, MODIFYDSP, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
+                    " PHONENUMBER, LASTDIALDAY, NEXTDIALTIME, CALLLOSSCOUNT FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append("   AND STATE IN (").append(SQLUtil.hidialerModeCustomerStatelistToSqlString(shareDataStateList)).append(")");
-            sqlBuilder.append("   AND CURPRESETDIALTIME < ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
+            sqlBuilder.append("   AND NEXTDIALTIME < ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
 
             System.out.println(sqlBuilder.toString());
 
@@ -307,5 +310,131 @@ public class HidialerModeDAO extends BaseRepository {
 
         return true;
     }
+
+    public ManualModeCustomer getPoolItem(int bizId, String sourceId, String importBatchId, String customerId)
+    {
+        ManualModeCustomer item = new ManualModeCustomer();
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+
+        String tableName = String.format("HAU_DM_B%dC_POOL", bizId);
+
+        try {
+            dbConn = this.getDbConnection();
+
+            //
+            StringBuilder sqlBuilder = new StringBuilder("SELECT ID, SOURCEID, IID, CID, DATAPOOlIDLAST, DATAPOOlIDCUR, " +
+                    "AREALAST, AREACUR, ISRECOVER, OPERATIONNAME, MODIFYUSERID, MODIFYTIME FROM " + tableName);
+            sqlBuilder.append(" WHERE SOURCEID = ").append(SQLUtil.getSqlString(sourceId));
+            sqlBuilder.append("   AND IID = ").append(SQLUtil.getSqlString(importBatchId));
+            sqlBuilder.append("   AND CID = ").append(SQLUtil.getSqlString(customerId));
+
+            System.out.println(sqlBuilder.toString());
+
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                item.setId(rs.getInt(1));
+                item.setSourceId(rs.getString(2));
+                item.setImportBatchId(rs.getString(3));
+                item.setCustomerId(rs.getString(4));
+                item.setDataPoolIdLast(rs.getInt(5));
+                item.setDataPoolIdCur(rs.getInt(6));
+                item.setAreaTypeLast(AreaTypeEnum.getFromInt(rs.getInt(7)));
+                item.setAreaTypeCur(AreaTypeEnum.getFromInt(rs.getInt(8)));
+                item.setIsRecover(rs.getInt(9));
+                item.setOperationName(OperationNameEnum.getFromString(rs.getString(10)));
+                item.setModifyUserId(rs.getString(11));
+                item.setModifyTime(rs.getDate(12));
+
+                item.setBizId(bizId);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return item;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return item;
+    }
+
+    public Boolean updatePool(ManualModeCustomer item) {
+
+        String tableName = String.format("HAU_DM_B%dC_POOL", item.getBizId());
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET ");
+        sqlBuilder.append("  DATAPOOlIDLAST = ").append(SQLUtil.getSqlString(item.getDataPoolIdLast()));
+        sqlBuilder.append(", DATAPOOlIDCUR = ").append(SQLUtil.getSqlString(item.getDataPoolIdCur()));
+        sqlBuilder.append(", AREALAST = ").append(SQLUtil.getSqlString(item.getAreaTypeLast().getId()));
+        sqlBuilder.append(", AREACUR = ").append(SQLUtil.getSqlString(item.getAreaTypeCur().getId()));
+        sqlBuilder.append(", ISRECOVER = ").append(SQLUtil.getSqlString(item.getIsRecover()));
+        sqlBuilder.append(", OPERATIONNAME = ").append(SQLUtil.getSqlString(item.getOperationName().getName()));
+        sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
+        sqlBuilder.append(", MODIFYTIME = ").append(SQLUtil.getSqlString(item.getModifyTime()));
+        sqlBuilder.append(" WHERE ID = ").append(SQLUtil.getSqlString(item.getId()));
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    public Boolean insertPoolOperation(ManualModeCustomer item, OperationNameEnum operationType) {
+
+        String tableName = String.format("HAU_DM_B%dC_POOL_ORE", item.getBizId());
+
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
+        sqlBuilder.append(" (ID,SOURCEID,IID,CID,OPERATIONNAME,DATAPOOLIDLAST,DATAPOOLIDCUR," +
+                "AREALAST,AREACUR,ISRECOVER, MODIFYUSERID,MODIFYTIME ) VALUES ( ");
+
+        sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getSourceId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getImportBatchId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCustomerId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(operationType.getName())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getDataPoolIdLast())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getDataPoolIdCur())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getAreaTypeLast().getId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getAreaTypeCur().getId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getIsRecover())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyUserId())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getModifyTime()));
+        sqlBuilder.append(")");
+
+        System.out.println(sqlBuilder.toString());
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
 
 }

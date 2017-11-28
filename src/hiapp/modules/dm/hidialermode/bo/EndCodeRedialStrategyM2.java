@@ -49,8 +49,6 @@ public class EndCodeRedialStrategyM2 {
             item.setDescription(dbItem.getDescription());
             item.setMaxRedialNum(dbItem.getRedialCount().isEmpty()?0:Integer.valueOf(dbItem.getRedialCount()));
             item.setRedialDelayMinutes(dbItem.getRedialMinutes().isEmpty()?0:Integer.valueOf(dbItem.getRedialMinutes()));
-            item.setPresetDial(dbItem.getPresetDial().equals("true")?true:false);
-            item.setPhoneTypeDialFinished(dbItem.getIsPhoneStop().equals("true")?true:false);
             item.setCustomerDialFinished(dbItem.getIsCustStop().equals("true")?true:false);
 
             mapEndCodeRedialStrategy.put(item.getResultCodeType() + item.getResultCode(), item);

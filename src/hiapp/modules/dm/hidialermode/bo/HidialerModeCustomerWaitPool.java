@@ -1,8 +1,7 @@
 package hiapp.modules.dm.hidialermode.bo;
 import hiapp.modules.dm.Constants;
-import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
+import hiapp.modules.dm.hidialermode.HidialerOutboundDataManage;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
-import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,28 +14,28 @@ import java.util.Map;
 public class HidialerModeCustomerWaitPool {
 
     @Autowired
-    MultiNumberOutboundDataManage multiNumberOutboundDataManage;
+    HidialerOutboundDataManage hidialerOutboundDataManage;
 
 
     // 等待拨打结果的客户池，坐席人员维度
-    // UserID <==> {BizID + ImportID + CustomerID <==> MultiNumberCustomer}
-    Map<String, Map<String, MultiNumberCustomer>> mapOutboundResultWaitSubmitCustomerPool;
+    // UserID <==> {BizID + ImportID + CustomerID <==> HidialerModeCustomer}
+    Map<String, Map<String, HidialerModeCustomer>> mapOutboundResultWaitSubmitCustomerPool;
 
     // 等待共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
-    // ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberCustomer}
-    Map<String, Map<String, MultiNumberCustomer>> mapShareBatchWaitStopCustomerPool;
+    // ShareBatchId <==> {BizId + ImportId + CustomerId <==> HidialerModeCustomer}
+    Map<String, Map<String, HidialerModeCustomer>> mapShareBatchWaitStopCustomerPool;
 
     // 等待hidialer呼通超时的客户池，抽取时间的分钟SLOT维度
-    // 分钟Slot <==> {BizID + ImportId + CustomerId <==> MultiNumberCustomer}
-    Map<Long, Map<String, MultiNumberCustomer>> mapTimeOutWaitPhoneConnectCustomerPool;
+    // 分钟Slot <==> {BizID + ImportId + CustomerId <==> HidialerModeCustomer}
+    Map<Long, Map<String, HidialerModeCustomer>> mapTimeOutWaitPhoneConnectCustomerPool;
 
     // 等待坐席弹屏超时的客户池，hidialer呼通时间的分钟SLOT维度
-    // 分钟Slot <==> {BizID + ImportId + CustomerId <==> MultiNumberCustomer}
-    Map<Long, Map<String, MultiNumberCustomer>> mapTimeOutWaitScreenPopUpCustomerPool;
+    // 分钟Slot <==> {BizID + ImportId + CustomerId <==> HidialerModeCustomer}
+    Map<Long, Map<String, HidialerModeCustomer>> mapTimeOutWaitScreenPopUpCustomerPool;
 
     // 等待坐席拨打结果超时的客户池，坐席弹屏时间的分钟SLOT维度
-    // 分钟Slot <==> {BizID + ImportId + CustomerId <==> MultiNumberCustomer}
-    Map<Long, Map<String, MultiNumberCustomer>> mapTimeOutWaitOutboundResultCustomerPool;
+    // 分钟Slot <==> {BizID + ImportId + CustomerId <==> HidialerModeCustomer}
+    Map<Long, Map<String, HidialerModeCustomer>> mapTimeOutWaitOutboundResultCustomerPool;
 
     Long earliestPhoneConnectTimeSlot;
     Long earliestScreenPopUpTimeSlot;
@@ -48,54 +47,54 @@ public class HidialerModeCustomerWaitPool {
         earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
         earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
 
-        mapOutboundResultWaitSubmitCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
-        mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
+        mapOutboundResultWaitSubmitCustomerPool = new HashMap<String, Map<String, HidialerModeCustomer>>();
+        mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, HidialerModeCustomer>>();
 
-        mapTimeOutWaitPhoneConnectCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
-        mapTimeOutWaitScreenPopUpCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
-        mapTimeOutWaitOutboundResultCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
+        mapTimeOutWaitPhoneConnectCustomerPool = new HashMap<Long, Map<String, HidialerModeCustomer>>();
+        mapTimeOutWaitScreenPopUpCustomerPool = new HashMap<Long, Map<String, HidialerModeCustomer>>();
+        mapTimeOutWaitOutboundResultCustomerPool = new HashMap<Long, Map<String, HidialerModeCustomer>>();
     }
 
 
-    public void add(String userId, MultiNumberCustomer customerItem) {
-        Map<String, MultiNumberCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
+    public void add(String userId, HidialerModeCustomer customerItem) {
+        Map<String, HidialerModeCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
         if (null == mapWaitResultPool) {
-            mapWaitResultPool = new HashMap<String, MultiNumberCustomer>();
+            mapWaitResultPool = new HashMap<String, HidialerModeCustomer>();
             mapOutboundResultWaitSubmitCustomerPool.put(userId, mapWaitResultPool);
         }
         mapWaitResultPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
-        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customerItem.getShareBatchId());
+        Map<String, HidialerModeCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customerItem.getShareBatchId());
         if (null == mapWaitStopPool) {
-            mapWaitStopPool = new HashMap<String, MultiNumberCustomer>();
+            mapWaitStopPool = new HashMap<String, HidialerModeCustomer>();
             mapShareBatchWaitStopCustomerPool.put(customerItem.getShareBatchId(), mapWaitStopPool);
         }
         mapWaitStopPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
-        if (MultiNumberPredictStateEnum.EXTRACTED.equals(customerItem.getState())) {
+        if (HidialerModeCustomerStateEnum.EXTRACTED.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
+            Map<String, HidialerModeCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
             if (null == mapWaitTimeOutPool) {
-                mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
+                mapWaitTimeOutPool = new HashMap<String, HidialerModeCustomer>();
                 mapTimeOutWaitPhoneConnectCustomerPool.put(timeSlot, mapWaitTimeOutPool);
             }
             mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
-        } else if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
+        } else if (HidialerModeCustomerStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
+            Map<String, HidialerModeCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
             if (null == mapWaitTimeOutPool) {
-                mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
+                mapWaitTimeOutPool = new HashMap<String, HidialerModeCustomer>();
                 mapTimeOutWaitScreenPopUpCustomerPool.put(timeSlot, mapWaitTimeOutPool);
             }
             mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(),
                     customerItem);
 
-        } else if (MultiNumberPredictStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
+        } else if (HidialerModeCustomerStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot);
+            Map<String, HidialerModeCustomer> mapWaitTimeOutPool = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot);
             if (null == mapWaitTimeOutPool) {
-                mapWaitTimeOutPool = new HashMap<String, MultiNumberCustomer>();
+                mapWaitTimeOutPool = new HashMap<String, HidialerModeCustomer>();
                 mapTimeOutWaitOutboundResultCustomerPool.put(timeSlot, mapWaitTimeOutPool);
             }
             mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(),
@@ -104,9 +103,9 @@ public class HidialerModeCustomerWaitPool {
 
     }
 
-    public void hidialerPhoneConnect(MultiNumberCustomer customer, Date originModifyTime) {
+    public void hidialerPhoneConnect(HidialerModeCustomer customer, Date originModifyTime) {
         Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
+        Map<String, HidialerModeCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
         if (null != mapWaitTimeOutPool) {
             mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
             if (mapWaitTimeOutPool.isEmpty())
@@ -114,17 +113,17 @@ public class HidialerModeCustomerWaitPool {
         }
 
         Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot2);
+        Map<String, HidialerModeCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot2);
         if (null == mapWaitTimeOutPool2) {
-            mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
+            mapWaitTimeOutPool2 = new HashMap<String, HidialerModeCustomer>();
             mapTimeOutWaitScreenPopUpCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
         mapWaitTimeOutPool2.put(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId(), customer);
     }
 
-    public void agentScreenPopUp(MultiNumberCustomer customer, Date originModifyTime) {
+    public void agentScreenPopUp(HidialerModeCustomer customer, Date originModifyTime) {
         Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
+        Map<String, HidialerModeCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
         if (null != mapWaitTimeOutPool) {
             mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
             if (mapWaitTimeOutPool.isEmpty()) {
@@ -133,30 +132,30 @@ public class HidialerModeCustomerWaitPool {
         }
 
         Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot2);
+        Map<String, HidialerModeCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot2);
         if (null == mapWaitTimeOutPool2) {
-            mapWaitTimeOutPool2 = new HashMap<String, MultiNumberCustomer>();
+            mapWaitTimeOutPool2 = new HashMap<String, HidialerModeCustomer>();
             mapTimeOutWaitOutboundResultCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
         }
         mapWaitTimeOutPool2.put(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId(), customer);
     }
 
-    public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
+    public HidialerModeCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
 
-        MultiNumberCustomer customerItem = removeWaitResultCustome(userId, bizId, importBatchId, customerId);
+        HidialerModeCustomer customerItem = removeWaitResultCustome(userId, bizId, importBatchId, customerId);
         if (null == customerItem)
             return customerItem;
 
 
         removeWaitStopCustomer(bizId, customerItem.getShareBatchId(), importBatchId, customerId);
 
-        if (MultiNumberPredictStateEnum.EXTRACTED.equals(customerItem.getState())) {
+        if (HidialerModeCustomerStateEnum.EXTRACTED.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             removeWaitPhoneConnectTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
-        } else if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
+        } else if (HidialerModeCustomerStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             removeWaitScreenPopUpTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
-        } else if (MultiNumberPredictStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
+        } else if (HidialerModeCustomerStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
             Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             removeWaitResultTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
         }
@@ -164,12 +163,12 @@ public class HidialerModeCustomerWaitPool {
         return customerItem;
     }
 
-    public MultiNumberCustomer getWaitCustome(String userId, int bizId, String importBatchId, String customerId) {
-        Map<String, MultiNumberCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
+    public HidialerModeCustomer getWaitCustome(String userId, int bizId, String importBatchId, String customerId) {
+        Map<String, HidialerModeCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
         if (null == mapWaitResultPool)
             return null;
 
-        MultiNumberCustomer customerItem = mapWaitResultPool.get(bizId + importBatchId + customerId);
+        HidialerModeCustomer customerItem = mapWaitResultPool.get(bizId + importBatchId + customerId);
         return customerItem;
     }
 
@@ -179,12 +178,21 @@ public class HidialerModeCustomerWaitPool {
      */
     public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
-            Map<String, MultiNumberCustomer> mapWaitStopPool;
+            Map<String, HidialerModeCustomer> mapWaitStopPool;
             mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
-            for (MultiNumberCustomer item : mapWaitStopPool.values()) {
+            for (HidialerModeCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }
         }
+    }
+
+    public HidialerModeCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
+        Map<String, HidialerModeCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
+        if (null == mapWaitResultPool)
+            return null;
+
+        HidialerModeCustomer customerItem = mapWaitResultPool.get(bizId + importBatchId + customerId);
+        return customerItem;
     }
 
     public void onLogin(String userId) {
@@ -219,15 +227,15 @@ public class HidialerModeCustomerWaitPool {
         Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2/Constants.timeSlotSpan;
 
         while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
-            Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
+            Map<String, HidialerModeCustomer> mapTimeSlotWaitTimeOutPool;
             mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitPhoneConnectCustomerPool.get(earliestPhoneConnectTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
-            for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
+            for (HidialerModeCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
+                    hidialerOutboundDataManage.addCustomerToSharePool(customerItem);
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -239,16 +247,16 @@ public class HidialerModeCustomerWaitPool {
 
         // 坐席弹屏 超时处理 ==> 呼损处理
         while (earliestScreenPopUpTimeSlot < phoneConnectTimeoutTimeSlot) {
-            Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
+            Map<String, HidialerModeCustomer> mapTimeSlotWaitTimeOutPool;
             mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitScreenPopUpCustomerPool.get(earliestScreenPopUpTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
-            for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
+            for (HidialerModeCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.lostProc(customerItem);  // 呼损处理
-                    multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
+                    hidialerOutboundDataManage.lostProc(customerItem);  // 呼损处理
+                    hidialerOutboundDataManage.addCustomerToSharePool(customerItem);
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -260,15 +268,15 @@ public class HidialerModeCustomerWaitPool {
 
         // 坐席递交结果 超时处理
         while (earliestResultTimeSlot < phoneConnectTimeoutTimeSlot) {
-            Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
+            Map<String, HidialerModeCustomer> mapTimeSlotWaitTimeOutPool;
             mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitOutboundResultCustomerPool.get(earliestResultTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
-            for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
+            for (HidialerModeCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
+                    hidialerOutboundDataManage.addCustomerToSharePool(customerItem);
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -279,10 +287,10 @@ public class HidialerModeCustomerWaitPool {
         }
     }
 
-    private MultiNumberCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
-        MultiNumberCustomer customerItem = null;
+    private HidialerModeCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
+        HidialerModeCustomer customerItem = null;
 
-        Map<String, MultiNumberCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
+        Map<String, HidialerModeCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
         if (null != mapWaitResultPool) {
             customerItem = mapWaitResultPool.remove(bizId + importBatchId + customerId);
             if (mapWaitResultPool.isEmpty())
@@ -292,7 +300,7 @@ public class HidialerModeCustomerWaitPool {
     }
 
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
-        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+        Map<String, HidialerModeCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
         if (null != mapWaitStopPool) {
             mapWaitStopPool.remove(bizId + importBatchId + customerId);
             if (mapWaitStopPool.isEmpty())
@@ -301,7 +309,7 @@ public class HidialerModeCustomerWaitPool {
     }
 
     private void removeWaitPhoneConnectTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
+        Map<String, HidialerModeCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
         if (null != mapWaitTimeOutPool) {
             mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
             if (mapWaitTimeOutPool.isEmpty()) {
@@ -311,7 +319,7 @@ public class HidialerModeCustomerWaitPool {
     }
 
     private void removeWaitScreenPopUpTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
+        Map<String, HidialerModeCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
         if (null != mapWaitTimeOutPool) {
             mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
             if (mapWaitTimeOutPool.isEmpty()) {
@@ -321,7 +329,7 @@ public class HidialerModeCustomerWaitPool {
     }
 
     private void removeWaitResultTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<String, MultiNumberCustomer> mapWaitTimeOutPool = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot);
+        Map<String, HidialerModeCustomer> mapWaitTimeOutPool = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot);
         if (null != mapWaitTimeOutPool) {
             mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
             if (mapWaitTimeOutPool.isEmpty()) {

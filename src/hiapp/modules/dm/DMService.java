@@ -2,6 +2,7 @@ package hiapp.modules.dm;
 
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.dao.DMDAO;
+import hiapp.modules.dm.hidialermode.HidialerOutboundDataManage;
 import hiapp.modules.dm.manualmode.ManualOutboundDataManage;
 import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
@@ -30,6 +31,9 @@ public class DMService {
     ManualOutboundDataManage manualOutboundDataManage;
 
     @Autowired
+    HidialerOutboundDataManage hidialerOutboundDataManage;
+
+    @Autowired
     DMDAO dmDAO;
 
 
@@ -52,6 +56,7 @@ public class DMService {
         singleNumberOutboundDataManage.initialize();
         multiNumberOutboundDataManage.initialize();
         manualOutboundDataManage.initialize();
+        hidialerOutboundDataManage.initialize();
 
         setDailyRoutine();
         setTimeOutRoutine(Constants.timeSlotSpan);
@@ -74,6 +79,7 @@ public class DMService {
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
             return manualOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            return hidialerOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
 
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
             return singleNumberOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
@@ -121,7 +127,9 @@ public class DMService {
             Integer modeId = entry.getKey();
             oneModeShareBatchItems = entry.getValue();
 
-            if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == modeId) {
+            if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == modeId) {
+                hidialerOutboundDataManage.dailyProc(oneModeShareBatchItems);
+            } else if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == modeId) {
                 manualOutboundDataManage.dailyProc(oneModeShareBatchItems);
             } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == modeId) {
                 singleNumberOutboundDataManage.dailyProc(oneModeShareBatchItems);
@@ -159,6 +167,7 @@ public class DMService {
                 singleNumberOutboundDataManage.timeoutProc();
                 multiNumberOutboundDataManage.timeoutProc();
                 manualOutboundDataManage.timeoutProc();
+                hidialerOutboundDataManage.timeoutProc();
             }
         };
 

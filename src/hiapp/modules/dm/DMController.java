@@ -1,6 +1,7 @@
 package hiapp.modules.dm;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.hidialermode.HidialerModeController;
 import hiapp.modules.dm.manualmode.ManualModeController;
 import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
@@ -38,6 +39,9 @@ public class DMController {
 
     @Autowired
     private DmBizRepository dmBizRepository;
+
+    @Autowired
+    DMDAO dmDao;
 
     @Autowired
     ManualModeController manualModeController;
@@ -153,7 +157,7 @@ public class DMController {
 
         // step 1: 取数据库记录
         List<DMBusiness> listDMBusiness = new ArrayList<DMBusiness>();
-        dmBizRepository.getAllDMBusinessforper(listDMBusiness);
+        dmDao.getAllDMBusiness(listDMBusiness);
 
         // step 2: 转成 XML 格式数据
         String curTimeString = DateUtil.getCurTimeString();
@@ -326,7 +330,7 @@ public class DMController {
         Map<String, String> map = new Gson().fromJson(requestBody, Map.class);
         String strBizId =  map.get("bizId");
         String importBatchId = map.get("importBatchId");
-        //String shareBatchId = map.get("shareBatchId");
+        String shareBatchId = map.get("shareBatchId");
         String strPhoneType = map.get("phoneType");
         String customerId = map.get("customerId");
 

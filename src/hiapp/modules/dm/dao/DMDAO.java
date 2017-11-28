@@ -5,7 +5,9 @@ import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
+import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBizPresetItem;
+import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -507,6 +509,43 @@ public class DMDAO extends BaseRepository {
             DbUtil.DbCloseConnection(dbConn);
         }
 
+        return true;
+    }
+
+    public boolean getAllDMBusiness(List<DMBusiness> listDMBusiness) {
+        Connection dbConn = null;
+        String szSql = "";
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            dbConn = this.getDbConnection();
+            szSql = String.format("SELECT BUSINESSID,NAME,DESCRIPTION,OWNERGROUPID,OUTBOUNDMDDEID,CONFIGJSON FROM HASYS_DM_BUSINESS " +
+                    "WHERE ISDELETE=0 AND OUTBOUNDMDDEID in (2,5,6) ORDER BY BUSINESSID ");
+            stmt = dbConn.prepareStatement(szSql);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                DMBusiness DMBusiness = new DMBusiness();
+                DMBusiness.setBizId(rs.getInt(1));
+                DMBusiness.setName(rs.getString(2));
+                DMBusiness.setDesc(rs.getString(3));
+                DMBusiness.setOwnerGroupId(rs.getString(4));
+
+
+                DMBusiness.setModeId(rs.getInt(5));
+                DMBizOutboundModelEnum modelEnum = DMBizOutboundModelEnum.values()[DMBusiness.getModeId()-1];
+                DMBusiness.setModeInfo(modelEnum.getOutboundID()+";"+modelEnum.getOutboundType()+";"+modelEnum.getOutboundMode());
+
+                DMBusiness.setConfigJson(rs.getString(6));
+
+                listDMBusiness.add(DMBusiness);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseConnection(dbConn);
+            DbUtil.DbCloseQuery(rs, stmt);
+        }
         return true;
     }
 

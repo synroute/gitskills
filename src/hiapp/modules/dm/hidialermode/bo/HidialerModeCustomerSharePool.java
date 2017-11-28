@@ -9,6 +9,11 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
+/**
+ * M2 Hidialer自动外呼
+ * Hidialer 抽取数据，客户信息不需要按照共享批次分类，由于不存在访问权限问题
+ */
+
 @Component
 public class HidialerModeCustomerSharePool {
 
@@ -29,9 +34,6 @@ public class HidialerModeCustomerSharePool {
         mapPreseCustomerSharePool = new HashMap<Integer, PriorityBlockingQueue<HidialerModeCustomer>>();
         mapCustomerSharePool = new HashMap<Integer, PriorityBlockingQueue<HidialerModeCustomer>>();
 
-        //mapPreseCustomerSharePool = new PriorityBlockingQueue<HidialerModeCustomer>(1, nextDialTimeComparator);
-        //mapCustomerSharePool = new PriorityBlockingQueue<HidialerModeCustomer>(1, shareBatchBeginTimeComparator);
-
         mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, HidialerModeCustomer>>();
     }
 
@@ -40,11 +42,9 @@ public class HidialerModeCustomerSharePool {
     }
 
     public void clear() {
-
-    }
-
-    public void timeoutProc() {
-        //customerWaitPool.timeoutProc();
+        mapPreseCustomerSharePool.clear();
+        mapCustomerSharePool.clear();
+        mapShareBatchWaitStopCustomerPool.clear();
     }
 
     public HidialerModeCustomer extractCustomer(String userId, Integer bizId) {
@@ -53,7 +53,7 @@ public class HidialerModeCustomerSharePool {
 
         PriorityBlockingQueue<HidialerModeCustomer> oneBizPresetCustomerPool = mapPreseCustomerSharePool.get(bizId);
 
-        while (true) {
+        while (null != oneBizPresetCustomerPool) {
             shareDataItem = oneBizPresetCustomerPool.peek();
             if (null == shareDataItem)
                 break;
@@ -75,7 +75,7 @@ public class HidialerModeCustomerSharePool {
 
         PriorityBlockingQueue<HidialerModeCustomer> oneBizCustomerPool = mapCustomerSharePool.get(bizId);
 
-        while (true) {
+        while (null != oneBizCustomerPool) {
             shareDataItem = oneBizCustomerPool.poll();
             if (null == shareDataItem)
                 break;
@@ -115,11 +115,21 @@ public class HidialerModeCustomerSharePool {
     */
 
     public void add(HidialerModeCustomer customer) {
-        PriorityBlockingQueue<HidialerModeCustomer> queue;
+        PriorityBlockingQueue<HidialerModeCustomer> queue = null;
         if (HidialerModeCustomerStateEnum.WAIT_REDIAL.equals(customer.getState()) ) {
-            mapPreseCustomerSharePool.get(customer.getBizId()).put(customer);
+            queue = mapPreseCustomerSharePool.get(customer.getBizId());
+            if (null == queue) {
+                queue = new PriorityBlockingQueue<HidialerModeCustomer>(1, nextDialTimeComparator);
+                mapPreseCustomerSharePool.put(customer.getBizId(), queue);
+            }
+            queue.put(customer);
         } else {
-            mapCustomerSharePool.get(customer.getBizId()).put(customer);
+            queue = mapCustomerSharePool.get(customer.getBizId());
+            if (null == queue) {
+                queue = new PriorityBlockingQueue<HidialerModeCustomer>(1, shareBatchBeginTimeComparator);
+                mapCustomerSharePool.put(customer.getBizId(), queue);
+            }
+            queue.put(customer);
         }
 
         Map<String, HidialerModeCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareBatchId());
@@ -159,30 +169,6 @@ public class HidialerModeCustomerSharePool {
             }
         }
     }*/
-
-    public HidialerModeCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
-        //return customerWaitPool.removeWaitCustomer(userId, bizId, importBatchId, customerId);
-        return null;
-    }
-
-    public HidialerModeCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
-        //TODO
-        //return customerWaitPool.getWaitCustome(userId, bizId, importBatchId, customerId);
-        return null;
-    }
-
-    public void hidialerPhoneConnect(HidialerModeCustomer customer, Date originModifyTime) {
-        //customerWaitPool.hidialerPhoneConnect(customer, originModifyTime);
-    }
-
-    public void agentScreenPopUp(HidialerModeCustomer customer, Date originModifyTime) {
-        //customerWaitPool.agentScreenPopUp(customer, originModifyTime);
-    }
-
-    public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
-        // TODO
-        //customerWaitPool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
-    }
 
 
     //////////////////////////////////////////////////////////

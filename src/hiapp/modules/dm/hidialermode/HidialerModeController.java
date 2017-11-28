@@ -66,7 +66,7 @@ public class HidialerModeController {
                                            String phoneType, String resultCode, String customerCallID)
     {
         hidialerOutboundDataManage.hiDialerDialResultNotify(Constants.HiDialerUserId, bizId, importBatchId,
-                customerId, Integer.valueOf(phoneType), resultCode, resultCode, customerCallID);
+                customerId, shareBatchId, resultCode, resultCode, customerCallID);
 
         Document doc = new Document();
         Element root = new Element("Msg");
@@ -81,7 +81,7 @@ public class HidialerModeController {
         ServiceResult serviceresult = new ServiceResult();
 
         hidialerOutboundDataManage.submitAgentScreenPopUp(userId, Integer.parseInt(strBizId), importBatchId,
-                customerId, Integer.valueOf(strPhoneType));
+                customerId);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();
@@ -95,8 +95,9 @@ public class HidialerModeController {
         ServiceResult serviceresult = new ServiceResult();
 
         hidialerOutboundDataManage.submitOutboundResult(userId, bizId, importBatchId, customerId,
-                resultCodeType, resultCode, isPreset, presetTime,
+                resultCodeType, resultCode,
                 dialType, dialTime, customerCallId, jsonCustomerInfo);
+
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();

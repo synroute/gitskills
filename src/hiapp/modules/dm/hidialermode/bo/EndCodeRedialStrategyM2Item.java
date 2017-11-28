@@ -33,14 +33,6 @@ public class EndCodeRedialStrategyM2Item {
         this.customerDialFinished = customerDialFinished;
     }
 
-    public Boolean getPhoneTypeDialFinished() {
-        return phoneTypeDialFinished;
-    }
-
-    public void setPhoneTypeDialFinished(Boolean phoneTypeDialFinished) {
-        this.phoneTypeDialFinished = phoneTypeDialFinished;
-    }
-
     public int getRedialDelayMinutes() {
         return redialDelayMinutes;
     }
@@ -57,21 +49,10 @@ public class EndCodeRedialStrategyM2Item {
         this.maxRedialNum = maxRedialNum;
     }
 
-    public Boolean getPresetDial() {
-        return presetDial;
-    }
-
-    public void setPresetDial(Boolean presetDial) {
-        this.presetDial = presetDial;
-    }
-
-
     String resultCodeType;
     String resultCode;
     String description;
     Boolean customerDialFinished;
-    Boolean phoneTypeDialFinished;
     int redialDelayMinutes;
     int maxRedialNum;
-    Boolean presetDial;
 }
