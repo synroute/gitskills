@@ -132,7 +132,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param pageSize
 	 * @return
 	 */
-	@SuppressWarnings({ "unused", "resource", "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unused","unchecked", "rawtypes" })
 	public void getNotDisDatByTime(String userId,Integer bizId,Integer templateId,String startTime,String endTime,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -151,6 +151,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			while(rs.next()){
 				dbTableName=rs.getString(1);
 			}
+			DbUtil.DbCloseQuery(rs,pst);
 			String configJson=getConfigJson(bizId, templateId);
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			String getDataSql2="select S_HAU_DM_B101C_IMPORT.nextval,b.IID,b.CID,b.DataPoolIDCur,b.AreaCur,";
@@ -218,16 +219,20 @@ public class DataDistributeJdbc extends BaseRepository{
 			if(dbTableName==null){
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
 			}else{
 				//删除数据
 				String delteSql="delete from "+tempTableName;
 				pst=conn.prepareStatement(delteSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
 				String dropTableSql="drop table "+tempTableName;
 				pst=conn.prepareStatement(dropTableSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
 			}
 			//向临时表添加数据
 			pst=conn.prepareStatement(insertSql);
@@ -253,7 +258,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param num
 	 * @param pageSize
 	 */
-	@SuppressWarnings({ "resource", "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Map<String,Object> getTempNotDisData(Integer bizId,Integer templateId ,String userId,Integer num,Integer pageSize,String tempTableName){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -329,6 +334,7 @@ public class DataDistributeJdbc extends BaseRepository{
 				
 				dataList.add(map);
 			}
+			DbUtil.DbCloseQuery(rs, pst);
 			//查询临时表数据总数
 			String getCountSql="select count(*) from "+tempTableName;
 			pst=conn.prepareStatement(getCountSql);
@@ -516,7 +522,6 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param dataPoolIds
 	 * @param dataPoolNames
 	 */
-	@SuppressWarnings({ "resource"})
 	public Map<String,Object> saveShareDataToDB(Integer bizId,String userId,String shareName,String description,String startTime,String endTime,String dataPoolIds,String dataPoolNames,Integer model,String appendId,int permissionId ){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -565,6 +570,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			while(rs.next()){
 				dataPoolId=rs.getInt(1);
 			}
+			DbUtil.DbCloseQuery(rs,pst);
 			//不自动提交数据
 			conn.setAutoCommit(false);
 			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime,OperationName)"
@@ -572,20 +578,24 @@ public class DataDistributeJdbc extends BaseRepository{
 					+ " where exists(select 1 from "+tempTableName+" b where a.IID = b.IID AND a.CID = b.CID and b.ifchecked=1)";;
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
 									" select S_"+orePoolName+".nextval,'"+shareId+"',IID,CID,'"+state1+"',DataPoolIDCur,'"+dataPoolId+"',AreaCur,1,0,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1 ";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			if(model==3){
 				
 				String insertDatamSql="insert into "+datamTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+datamTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 									  "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 				String insertHisDatamSql="insert into "+hisTableName+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 										 "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 			}else if(model==6){
 				Map<Integer,String> phoneNumMap=getPhoneNum(bizId);
 				String insertDatamSql6="insert into "+datamTableName6+" a (ID,BusinessID,SHAREID,IID,CID,State,ModifyID,ModifyUserID,ModifyTime,IsAppend,Pt1_PhoneNumber,Pt2_PhoneNumber,Pt3_PhoneNumber,Pt4_PhoneNumber,Pt5_PhoneNumber,Pt6_PhoneNumber,Pt7_PhoneNumber,Pt8_PhoneNumber,Pt9_PhoneNumber,Pt10_PhoneNumber)"+
@@ -593,12 +603,13 @@ public class DataDistributeJdbc extends BaseRepository{
 									   ","+getColumnName(6,phoneNumMap)+","+getColumnName(7,phoneNumMap)+","+getColumnName(8,phoneNumMap)+","+getColumnName(9,phoneNumMap)+","+getColumnName(10,phoneNumMap)+" from "+tempTableName+" m left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertDatamSql6);
 				pst.execute();
-				
+				DbUtil.DbCloseExecute(pst);
 				String insertHisDatamSql6="insert into "+hisTableName6+" a (ID,BusinessID,SHAREID,IID,CID,State,ModifyID,ModifyUserID,ModifyTime,IsAppend,Pt1_PhoneNumber,Pt2_PhoneNumber,Pt3_PhoneNumber,Pt4_PhoneNumber,Pt5_PhoneNumber,Pt6_PhoneNumber,Pt7_PhoneNumber,Pt8_PhoneNumber,Pt9_PhoneNumber,Pt10_PhoneNumber)"+
 						   " select S_"+hisTableName6+".nextval,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,"+ifAppend+","+getColumnName(1,phoneNumMap)+","+getColumnName(2,phoneNumMap)+","+getColumnName(3,phoneNumMap)+","+getColumnName(4,phoneNumMap)+","+getColumnName(5,phoneNumMap)+
 						   ","+getColumnName(6,phoneNumMap)+","+getColumnName(7,phoneNumMap)+","+getColumnName(8,phoneNumMap)+","+getColumnName(9,phoneNumMap)+","+getColumnName(10,phoneNumMap)+" from "+tempTableName+" m left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertHisDatamSql6);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 			}else if(model==4){
 				Map<Integer,String> phoneNumMap=getPhoneNum(bizId);
 				String dataTableName4="HAU_DM_B"+bizId+"C_DATAM4";
@@ -609,12 +620,13 @@ public class DataDistributeJdbc extends BaseRepository{
 									   ","+getColumnName(6,phoneNumMap)+","+getColumnName(7,phoneNumMap)+","+getColumnName(8,phoneNumMap)+","+getColumnName(9,phoneNumMap)+","+getColumnName(10,phoneNumMap)+" from "+tempTableName+" m left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertDatamSql4);
 				pst.execute();
-				
+				DbUtil.DbCloseExecute(pst);
 				String insertHisDatamSql4="insert into "+hisTableName4+" a (ID,BusinessID,SHAREID,IID,CID,State,ModifyID,ModifyUserID,ModifyTime,IsAppend,Pt1_PhoneNumber,Pt2_PhoneNumber,Pt3_PhoneNumber,Pt4_PhoneNumber,Pt5_PhoneNumber,Pt6_PhoneNumber,Pt7_PhoneNumber,Pt8_PhoneNumber,Pt9_PhoneNumber,Pt10_PhoneNumber)"+
 						   " select S_"+hisTableName4+".nextval,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,"+ifAppend+","+getColumnName(1,phoneNumMap)+","+getColumnName(2,phoneNumMap)+","+getColumnName(3,phoneNumMap)+","+getColumnName(4,phoneNumMap)+","+getColumnName(5,phoneNumMap)+
 						   ","+getColumnName(6,phoneNumMap)+","+getColumnName(7,phoneNumMap)+","+getColumnName(8,phoneNumMap)+","+getColumnName(9,phoneNumMap)+","+getColumnName(10,phoneNumMap)+" from "+tempTableName+" m left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertHisDatamSql4);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 			}else if(model==5){
 				String datamTableName5="HAU_DM_B"+bizId+"C_DATAM5";
 				String hisTableName5="HAU_DM_B"+bizId+"C_DATAM5_HIS";
@@ -622,10 +634,12 @@ public class DataDistributeJdbc extends BaseRepository{
 						  "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 				String insertHisDatamSql="insert into "+hisTableName5+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME) select S_"+hisTableName5+".NEXTVAL,"+bizId+",'"+shareId+"',IID,CID,'"+state+"',0,'"+userId+"',sysdate from "+tempTableName+" b "+
 										 "where b.ifchecked=1 ";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 			}else if(model==2){
 				String datamTableName2="HAU_DM_B"+bizId+"C_DATAM2";
 				String hisTableName2="HAU_DM_B"+bizId+"C_DATAM2_HIS";
@@ -634,14 +648,17 @@ public class DataDistributeJdbc extends BaseRepository{
 									  "left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertDatamSql);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 				String insertHisDatamSql="insert into "+hisTableName2+" a (ID,BUSINESSID,SHAREID,IID,CID,STATE,MODIFYID,MODIFYUSERID,MODIFYTIME,PhoneNumber) select S_"+hisTableName2+".NEXTVAL,"+bizId+",'"+shareId+"',m.IID,m.CID,'"+state+"',0,'"+userId+"',sysdate,"+phoneColumn+" from "+tempTableName+" m "+
 										 "left join "+importTableName+" n on m.IID=n.IID and m.CID=n.CID where m.ifchecked=1";
 				pst=conn.prepareStatement(insertHisDatamSql);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 			}
 			String deleteTempSql=" delete from "+tempTableName+" a where a.ifchecked=1";
 			pst=conn.prepareStatement(deleteTempSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			String insertShareSql=null;
 			if(startTime==null||"".equals(startTime)){
 				if(appendId==null||"".equals(appendId)){
@@ -653,6 +670,7 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.setString(4,userId);
 					pst.setString(5,description);
 					pst.execute();
+					DbUtil.DbCloseExecute(pst);
 				}else{
 					appendIds=idfactory.newId("DM_AID");
 					insertShareSql="INSERT INTO HASYS_DM_AID (ID,BUSINESSID,SHAREID,AdditionalID,AdditionalName,CreatUserID,CreateTime,Description,State) VALUES(S_HASYS_DM_AID.nextval,?,?,?,?,?,sysdate,?,?)";
@@ -665,6 +683,7 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.setString(6,description);
 					pst.setString(7,"入库成功");
 					pst.execute();
+					DbUtil.DbCloseExecute(pst);
 				}
 			
 			}else{
@@ -678,12 +697,13 @@ public class DataDistributeJdbc extends BaseRepository{
 				pst.setString(6,startTime);
 				pst.setString(7,endTime);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 				String deleteSql="delete from HASYS_DM_SIDUSERPOOl where SHAREID=? and BUSINESSID=?";
 				pst=conn.prepareStatement(deleteSql);
 				pst.setString(1,shareId);
 				pst.setInt(2,bizId);
 				pst.execute();
-				
+				DbUtil.DbCloseExecute(pst);
 				for (int i = 0; i < arrDataPoolName.length; i++) {
 					String dataPoolName=arrDataPoolName[i];
 					String dataPoolId1=arrDataPoolId[i];
@@ -700,6 +720,7 @@ public class DataDistributeJdbc extends BaseRepository{
 					pst.setString(3,dataPoolName);
 					pst.setInt(4,Integer.valueOf(dataPoolId1));
 					pst.execute();
+					DbUtil.DbCloseExecute(pst);
 				}
 			}
 			conn.commit();
@@ -712,6 +733,7 @@ public class DataDistributeJdbc extends BaseRepository{
 						String updateSql="update HASYS_DM_AID a set a.state='通知分配器成功' where a.BusinessID="+bizId+" and a.ShareID='"+shareId+"' and a.AdditionalID='"+appendIds+"'";
 						pst=conn.prepareStatement(updateSql);
 						pst.execute();
+						DbUtil.DbCloseExecute(pst);
 						conn.commit();
 					}
 				}

@@ -22,9 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -272,7 +270,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	@SuppressWarnings({ "resource","unchecked","rawtypes" })
+	@SuppressWarnings({ "unchecked","rawtypes" })
 	public Map<String,Object> getDbData(Integer temPlateId,Integer bizId,Integer num,Integer pageSize) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -295,6 +293,8 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				jsonData=ClobToString(rs.getClob(1));	
 			}
+			DbUtil.DbCloseQuery(rs, pst);
+			
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
 			JsonObject excelTemplate=excelTemplateArray.get(0).getAsJsonObject();
@@ -361,7 +361,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	@SuppressWarnings({ "resource","unchecked","rawtypes" })
+	@SuppressWarnings({"unchecked","rawtypes" })
 	public List<Map<String,Object>> insertDataByDb(Integer templateId,Integer bizId,String contextPath,String userId,String operationName) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -421,7 +421,7 @@ public class DataImportJdbc extends BaseRepository{
 				
 				dataList.add(map);
 			}
-			
+			DbUtil.DbCloseQuery(rs,pst);
 			String sql="select to_char(max(t."+icrement+"),'yyyy-mm-dd hh24:mi:ss') importTime from "+sourceTableName+" t";
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
@@ -429,6 +429,7 @@ public class DataImportJdbc extends BaseRepository{
 			while(rs.next()){
 				maxTime=rs.getString(1);
 			}
+			DbUtil.DbCloseQuery(rs,pst);
 			properties.setProperty(maxTimeKey,maxTime);
 			properties.store(new FileOutputStream(contextPath),"最大时间");
 			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
@@ -446,6 +447,7 @@ public class DataImportJdbc extends BaseRepository{
 			e.printStackTrace();
 		}finally{
 			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
 		}
 		return dataList;
 	}
@@ -503,7 +505,6 @@ public class DataImportJdbc extends BaseRepository{
      * @param bizId
      * @param uId
      */
-    @SuppressWarnings("resource")
 	public Map<String,Object> insertExcelData(String jsonData,String workSheetId,String tableName,Integer bizId,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
     	Connection conn=null;
 		PreparedStatement pst = null;
@@ -540,6 +541,7 @@ public class DataImportJdbc extends BaseRepository{
 				resultMap.put("ifRepeat",1);
 				break;
 			}
+			DbUtil.DbCloseQuery(rs,pst);
 			if(!"ID".equals(RepetitionColumn.toUpperCase())){
 		    	dintincColumn=" and "+RepetitionColumn +" not in("+distinctSql+")";
 		    	for (int i = 0; i < dataArray.size(); i++) {
@@ -565,11 +567,13 @@ public class DataImportJdbc extends BaseRepository{
 									+" select S_"+poolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(isnertDataPoolSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			//数据池操作记录表里面插数据
 			String dataPoolOperationSql="insert into "+orePoolName+"(ID,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"
 										+" select S_"+orePoolName+".nextval,'"+disBatchId+"','"+importBatchId+"',CUSTOMERID,'"+operationName+"',"+dataPoolNumber+","+dataPoolNumber+",0,0,0,'"+userId+"',sysdate from "+tempTableName+" where ifchecked=1"+dintincColumn;
 			pst=conn.prepareStatement(dataPoolOperationSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			for (int k = 0; k < dataArray.size(); k++) {
 				String excelHeader=dataArray.get(k).getAsJsonObject().get("ExcelHeader").getAsString();
 				if(excelHeader!=null&&!"".equals(excelHeader)){
@@ -581,10 +585,14 @@ public class DataImportJdbc extends BaseRepository{
 			insertImportDataSql=insertImportDataSql.substring(0,insertImportDataSql.length()-1)+") "+selectSql;
 			pst=conn.prepareStatement(insertImportDataSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
+
 			//从临时表中删除数据
 			String deleteTempSql="delete from "+tempTableName+" b where ifChecked=1"+dintincColumn;	
 			pst=conn.prepareStatement(deleteTempSql);	
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
+
 			//导入批次表里面插数据
 			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertImportBatchSql);
@@ -595,6 +603,7 @@ public class DataImportJdbc extends BaseRepository{
 			pst.setString(5, "导入批次");
 			pst.setString(6, operationName);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
 			pst=conn.prepareStatement(insertDisBatchSql);
 			pst.setInt(1,bizId);
@@ -619,7 +628,6 @@ public class DataImportJdbc extends BaseRepository{
     	return resultMap;
     }
     
-    @SuppressWarnings("resource")
 	public Map<String,Object>  getRepeatData(Integer tempId,Integer bizId,String workSheetId,String userId,Integer num,Integer pageSize){
     	Connection conn=null;
     	PreparedStatement pst=null;
@@ -632,15 +640,7 @@ public class DataImportJdbc extends BaseRepository{
 		Integer endNum=num*pageSize+1;
      	try {
 			conn=this.getDbConnection();
-			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
-			pst=conn.prepareStatement(getXmlSql);
-			pst.setInt(1, tempId);
-			pst.setInt(2,bizId);
-			rs = pst.executeQuery();
-			String jsonData=null;
-			while(rs.next()){
-				jsonData=rs.getString(1);	
-			}
+			String jsonData=getJsonData(bizId, tempId);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
@@ -681,6 +681,7 @@ public class DataImportJdbc extends BaseRepository{
 					 repeatColumns.add(map);
 				}
 			}
+			DbUtil.DbCloseQuery(rs,pst);
 			String getCountSql="select count(*)  from "+tempTableName+" where ifchecked=1";
 			pst=conn.prepareStatement(getCountSql);
 			rs=pst.executeQuery();
@@ -709,7 +710,6 @@ public class DataImportJdbc extends BaseRepository{
      * @param request
      * @param response
      */
-    @SuppressWarnings("resource")
 	public void exportRepeatData(Integer bizId,String userId,Integer tempId,String workSheetId,HttpServletRequest request, HttpServletResponse response){
     	Connection conn=null;
     	PreparedStatement pst=null;
@@ -721,15 +721,7 @@ public class DataImportJdbc extends BaseRepository{
 		List<String> sheetColumns=new ArrayList<String>();
 		try {
 			conn=this.getDbConnection();
-			String getXmlSql="select xml from HASYS_DM_BIZTEMPLATEIMPORT where TEMPLATEID=? and BUSINESSID=?";
-			pst=conn.prepareStatement(getXmlSql);
-			pst.setInt(1, tempId);
-			pst.setInt(2,bizId);
-			rs = pst.executeQuery();
-			String jsonData=null;
-			while(rs.next()){
-				jsonData=rs.getString(1);	
-			}
+			String jsonData=getJsonData(bizId, tempId);
 			JsonObject jsonObject= new JsonParser().parse(jsonData).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			JsonArray excelTemplateArray=jsonObject.get("ImportExcelTemplate").getAsJsonArray();
@@ -780,7 +772,6 @@ public class DataImportJdbc extends BaseRepository{
     /**
      * 将数据库来源数据插入到导入表中
      */
-    @SuppressWarnings("resource")
 	public Map<String,Object> insertDbData(Integer bizId,String jsonData,String workSheetId,String tableName,List<Map<String,Object>> isnertData,String userId,String importBatchId,Integer dataPoolNumber,String operationName,String disBatchId){
     	Connection conn=null;
 		Statement statement=null;
@@ -866,6 +857,7 @@ public class DataImportJdbc extends BaseRepository{
 			pst.executeBatch();
 			pst1.executeBatch();
 			statement.executeBatch();
+			DbUtil.DbCloseExecute(pst);
 			//导入批次表里面插数据
 			String insertImportBatchSql="insert into HASYS_DM_IID(id,iid,BusinessId,ImportTime,UserID,Name,Description,ImportType) values(SEQ_HASYS_DM_IID.nextval,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertImportBatchSql);
@@ -876,6 +868,7 @@ public class DataImportJdbc extends BaseRepository{
 			pst.setString(5, "导入批次");
 			pst.setString(6, operationName);
 			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
 			pst=conn.prepareStatement(insertDisBatchSql);
 			pst.setInt(1,bizId);
@@ -963,9 +956,7 @@ public class DataImportJdbc extends BaseRepository{
      */
 	public  Map<String,Object> createTepporaryImportTable(List<WorkSheetColumn> sheetColumnList,List<Map<String,Object>> dataList,Integer bizId,String userId){
     	Connection conn=null;
-		PreparedStatement pst = null;
 		Statement statement=null;
-		ResultSet rs=null;
 		Map<String,Object>  resultMap=new HashMap<String, Object>();
 		String tableName="HAU_DM_B"+bizId+"C_IMPORT_"+userId;
 		try {
@@ -1006,7 +997,6 @@ public class DataImportJdbc extends BaseRepository{
 			e.printStackTrace();
 			resultMap.put("result", false);
 		}finally{
-			DbUtil.DbCloseQuery(rs,pst);
 			try {
 				if(statement!=null){
 					statement.close();
@@ -1059,7 +1049,7 @@ public class DataImportJdbc extends BaseRepository{
 				}
 				dataList.add(map);
 			}
-			
+			DbUtil.DbCloseQuery(rs,pst);
 			String  countSql="select count(*) from "+tableName;
 			pst=conn.prepareStatement(countSql);
 			rs=pst.executeQuery();
@@ -1084,7 +1074,7 @@ public class DataImportJdbc extends BaseRepository{
      * @param userId
      * @param customerInfo
      */
-  @SuppressWarnings({ "unchecked", "unused", "resource" })
+  @SuppressWarnings({ "unchecked", "unused"})
 public void insertDataToImPortTable(Integer bizId,String importBatchId,String customerId,String userId,String customerInfo,Integer Modifyid){
 	  Connection conn=null;
 	  PreparedStatement pst = null;
@@ -1096,6 +1086,7 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 		String updateSql="update "+tableName+" set MODIFYLAST=0 where IID='"+importBatchId+"' and CID='"+customerId+"'";
 		pst=conn.prepareStatement(updateSql);
 		pst.executeUpdate();
+		DbUtil.DbCloseExecute(pst);
 		String columnSql="insert into "+tableName+"(ID,IID,CID,Modifyuserid,Modifylast,Modifyid,Modifytime,";
 		String valueSql=" values(S_"+tableName+".nextval,'"+importBatchId+"','"+customerId+"','"+userId+"',1,"+Modifyid+",sysdate,";
 		Iterator<Entry<String, Object>> it = columnMap.entrySet().iterator();
@@ -1131,41 +1122,6 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		DbUtil.DbCloseConnection(conn);
-	}
-	  
-  }
-   /**
-    * 向结果表插一条数据
-    * @param bizId
-    * @param sourceID
-    * @param importBatchId
-    * @param customerId
-    * @param userId
-    * @param modifyid
-    * @param dialType
-    * @param dialTime
-    * @param customerCallId
-    * @param endcodeType
-    * @param endCode
-    */
-public void insertDataToResultTable(Integer bizId,String sourceID,String importBatchId,String customerId,String userId,Integer modifyid,String dialType,Date dialTime,String customerCallId,String endcodeType,String endCode ){
-	  Connection conn=null;
-	  PreparedStatement pst = null;
-	  String tableName="HAU_DM_Result";
-	  String dataTime=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dialTime);
-	  try {
-		conn=this.getDbConnection();
-		String columnSql="insert into "+tableName+"(id,BUSINESSID,sourceId,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,DialType,dialTime,CUSTOMERCALLID,ENDCODETYPE,ENDCODE)";
-		String valueSql=" values(S_HAU_DM_RESULT.nextval,'"+bizId+"','"+sourceID+"','"+importBatchId+"','"+customerId+"',1,"+modifyid+",'"+userId+"',sysdate,'"+dialType+"',to_date('"+dataTime+"','yyyy-mm-dd hh24:mi:ss'),'"+customerCallId+"','"+endcodeType+"','"+endCode+"')";
-		columnSql=columnSql+valueSql;
-		pst=conn.prepareStatement(columnSql);
-		pst.executeUpdate();
-	} catch (SQLException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}finally{
-		DbUtil.DbCloseExecute(pst);
 		DbUtil.DbCloseConnection(conn);
 	}
 	  
@@ -1237,7 +1193,6 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 		return dataType;
 	}
 	
-	@SuppressWarnings("resource")
 	public void createTable(String tableName,List<WorkSheetColumn> sheetColumnList){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -1252,6 +1207,7 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 			while(rs.next()){
 				dbTableName=rs.getString(1);
 			}
+			DbUtil.DbCloseQuery(rs, pst);
 			//创建临时表sql
 			String createTableSql="create table "+tableName+"(TEMPID NUMBER,IFCHECKED NUMBER,CUSTOMERID VARCHAR2(50),";
 			for (int i = 0; i < sheetColumnList.size(); i++) {
@@ -1278,10 +1234,12 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 				String delteSql="delete from "+tableName;
 				pst=conn.prepareStatement(delteSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
 				//删除表
 				String dropTableSql="drop table "+tableName;
 				pst=conn.prepareStatement(dropTableSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
 				//创建表
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();

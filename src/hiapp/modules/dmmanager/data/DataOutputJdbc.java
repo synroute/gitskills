@@ -125,7 +125,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	@SuppressWarnings({ "resource", "unchecked", "unused", "rawtypes" })
+	@SuppressWarnings({"unchecked", "unused", "rawtypes" })
 	public Map<String,Object> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId,Integer num,Integer pageSize) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -150,6 +150,7 @@ public class DataOutputJdbc extends BaseRepository{
 			while(rs.next()){
 				workSheets=ClobToString(rs.getClob(1));
 			}
+			DbUtil.DbCloseQuery(rs, pst);
 			JsonObject jsonObject= new JsonParser().parse(workSheets).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
@@ -252,7 +253,7 @@ public class DataOutputJdbc extends BaseRepository{
 				}
 				outDataList.add(map);
 			}
-			
+			DbUtil.DbCloseQuery(rs,pst);
 			String getCountSql="select count(1) from ("+getOutDataSql+getOutDataSql2+") t";
 			pst=conn.prepareStatement(getCountSql);
 			pst.setString(1, startTime);
@@ -283,7 +284,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException
 	 */
-	@SuppressWarnings({ "resource", "unchecked" })
+	@SuppressWarnings({"unchecked", "rawtypes" })
 	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -305,6 +306,7 @@ public class DataOutputJdbc extends BaseRepository{
 			while(rs.next()){
 				workSheets=ClobToString(rs.getClob(1));
 			}
+			DbUtil.DbCloseQuery(rs,pst);
 			JsonObject jsonObject= new JsonParser().parse(workSheets).getAsJsonObject();
 			JsonArray dataArray=jsonObject.get("FieldMaps").getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
@@ -321,7 +323,7 @@ public class DataOutputJdbc extends BaseRepository{
 			//对workSheetNameList去重
 			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
 			//查询数据Sql
-			String getOutDataSql="select b.IID,";
+			String getOutDataSql="select b.IID,b.CID,";
 			String getOutDataSql2="";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName1=null;

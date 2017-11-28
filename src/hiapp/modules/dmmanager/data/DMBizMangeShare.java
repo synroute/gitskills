@@ -32,7 +32,6 @@ public class DMBizMangeShare extends BaseRepository{
 	@Autowired
 	private UserRepository userRepository;
 	    //根据用户的权限 获取到所有的共享批次数据
-		@SuppressWarnings("resource")
 		public Map<String,Object> getUserShareBatch(String id,int businessID,Integer num,Integer pageSize) {
 			PreparedStatement stmt = null;
 			Connection dbConn = null;
@@ -78,7 +77,7 @@ public class DMBizMangeShare extends BaseRepository{
 					shareBatchItems.setEndTime(rs.getDate(10));
 					shareBatchItem.add(shareBatchItems);
 				}
-				
+				DbUtil.DbCloseQuery(rs, stmt);
 				String getCountSql="select count(1) from ("+sql+")";
 				stmt=dbConn.prepareStatement(getCountSql);
 				stmt.setInt(1,businessID);
@@ -98,82 +97,81 @@ public class DMBizMangeShare extends BaseRepository{
 			return resultMap;
 		}
 		//根据userid的权限 获取到规定时间内的共享批次数据，通过业务id
-				@SuppressWarnings("resource")
-				public Map<String,Object> getUserShareBatchByTime(String businessID,
-						String startTime, String endTime,List<ShareBatchItemS> shareBatchItem,Integer num,Integer pageSize) {
-					String sql = "";
-					String sql1="";
-					PreparedStatement stmt = null;
-					Connection dbConn = null;
-					ResultSet rs = null;
-					int bizid=Integer.valueOf(businessID);
-					Integer startNum=(num-1)*pageSize+1;
-					Integer endNum=num*pageSize+1;
-					String dataPoolName="HAU_DM_B"+businessID+"C_POOL";
-					Map<String,Object> resultMap=new HashMap<String, Object>();
-					try {
-						dbConn = this.getDbConnection();
-						sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,to_char(A.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,A.DESCRIPTION,A.STATE,to_char(A.STARTTIME,'yyyy-mm-dd') STARTTIME,to_char(A.ENDTIME,'yyyy-mm-dd') ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B WHERE A.SHAREID=B.SourceID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY CREATETIME";
-						sql1="SELECT DISTINCT ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION,STATE,STARTTIME,ENDTIME,ABC from (";
-						sql=sql1+sql+") m where rn>=?";
-						stmt = dbConn.prepareStatement(sql);
-						stmt.setString(1,startTime);
-						stmt.setString(2,endTime);
-						stmt.setInt(3,bizid);
-						stmt.setInt(4,endNum);
-						stmt.setInt(5,startNum);
-						rs = stmt.executeQuery();
-						while (rs.next()) {
-							ShareBatchItemS shareBatchItems = new ShareBatchItemS();
-							shareBatchItems.setId(rs.getInt(1));
-							shareBatchItems.setBizId(rs.getInt(2));
-							shareBatchItems.setShareBatchId(rs.getString(3));
-							shareBatchItems.setShareBatchName(rs.getString(4));
-							shareBatchItems.setCreateUserId(rs.getString(5));
-							shareBatchItems.setCreateTime(rs.getString(6));
-							shareBatchItems.setDescription(rs.getString(7));
-							String state = (String)rs.getObject(8);
-							String shareBatchStateEnum = null;
-							if("enable".equals(state)){
-								shareBatchStateEnum ="启用";
-							}else if("active".equals(state)){
-								shareBatchStateEnum ="激活";
-							}else if("pause".equals(state)){
-								shareBatchStateEnum ="暂停";
-							}else if("stop".equals(state)){
-								shareBatchStateEnum ="停止";
-							}else if("expired".equals(state)){
-								shareBatchStateEnum ="过期";
-							}else{
-								shareBatchStateEnum ="";
-							}
-							shareBatchItems.setState(shareBatchStateEnum);
-							shareBatchItems.setStartTime(rs.getString(9));
-							shareBatchItems.setEndTime(rs.getString(10));
-							shareBatchItems.setAbc(rs.getInt(11));
-							shareBatchItem.add(shareBatchItems);
-						}
-						
-						String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B where  A.SHAREID=B.SourceID  AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME)";
-						stmt=dbConn.prepareStatement(getCountSql);
-						stmt.setString(1,startTime);
-						stmt.setString(2,endTime);
-						stmt.setInt(3,bizid);
-						rs=stmt.executeQuery();
-						Integer total=null;
-						while(rs.next()){
-							total=rs.getInt(1);
-						}
-						resultMap.put("total", total);
-						resultMap.put("rows",shareBatchItem);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}finally{
-						DbUtil.DbCloseQuery(rs,stmt);
-						DbUtil.DbCloseConnection(dbConn);
+		public Map<String,Object> getUserShareBatchByTime(String businessID,
+				String startTime, String endTime,List<ShareBatchItemS> shareBatchItem,Integer num,Integer pageSize) {
+			String sql = "";
+			String sql1="";
+			PreparedStatement stmt = null;
+			Connection dbConn = null;
+			ResultSet rs = null;
+			int bizid=Integer.valueOf(businessID);
+			Integer startNum=(num-1)*pageSize+1;
+			Integer endNum=num*pageSize+1;
+			String dataPoolName="HAU_DM_B"+businessID+"C_POOL";
+			Map<String,Object> resultMap=new HashMap<String, Object>();
+			try {
+				dbConn = this.getDbConnection();
+				sql="SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,to_char(A.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,A.DESCRIPTION,A.STATE,to_char(A.STARTTIME,'yyyy-mm-dd') STARTTIME,to_char(A.ENDTIME,'yyyy-mm-dd') ENDTIME,B.ABC,rownum rn FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B WHERE A.SHAREID=B.SourceID AND A.CREATETIME >to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-mm-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) and rownum<? ORDER BY CREATETIME";
+				sql1="SELECT DISTINCT ID,BUSINESSID,SHAREID,SHARENAME,CREATEUSERID,CREATETIME,DESCRIPTION,STATE,STARTTIME,ENDTIME,ABC from (";
+				sql=sql1+sql+") m where rn>=?";
+				stmt = dbConn.prepareStatement(sql);
+				stmt.setString(1,startTime);
+				stmt.setString(2,endTime);
+				stmt.setInt(3,bizid);
+				stmt.setInt(4,endNum);
+				stmt.setInt(5,startNum);
+				rs = stmt.executeQuery();
+				while (rs.next()) {
+					ShareBatchItemS shareBatchItems = new ShareBatchItemS();
+					shareBatchItems.setId(rs.getInt(1));
+					shareBatchItems.setBizId(rs.getInt(2));
+					shareBatchItems.setShareBatchId(rs.getString(3));
+					shareBatchItems.setShareBatchName(rs.getString(4));
+					shareBatchItems.setCreateUserId(rs.getString(5));
+					shareBatchItems.setCreateTime(rs.getString(6));
+					shareBatchItems.setDescription(rs.getString(7));
+					String state = (String)rs.getObject(8);
+					String shareBatchStateEnum = null;
+					if("enable".equals(state)){
+						shareBatchStateEnum ="启用";
+					}else if("active".equals(state)){
+						shareBatchStateEnum ="激活";
+					}else if("pause".equals(state)){
+						shareBatchStateEnum ="暂停";
+					}else if("stop".equals(state)){
+						shareBatchStateEnum ="停止";
+					}else if("expired".equals(state)){
+						shareBatchStateEnum ="过期";
+					}else{
+						shareBatchStateEnum ="";
 					}
-					return resultMap;
+					shareBatchItems.setState(shareBatchStateEnum);
+					shareBatchItems.setStartTime(rs.getString(9));
+					shareBatchItems.setEndTime(rs.getString(10));
+					shareBatchItems.setAbc(rs.getInt(11));
+					shareBatchItem.add(shareBatchItems);
 				}
+				DbUtil.DbCloseQuery(rs, stmt);
+				String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B where  A.SHAREID=B.SourceID  AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME)";
+				stmt=dbConn.prepareStatement(getCountSql);
+				stmt.setString(1,startTime);
+				stmt.setString(2,endTime);
+				stmt.setInt(3,bizid);
+				rs=stmt.executeQuery();
+				Integer total=null;
+				while(rs.next()){
+					total=rs.getInt(1);
+				}
+				resultMap.put("total", total);
+				resultMap.put("rows",shareBatchItem);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}finally{
+				DbUtil.DbCloseQuery(rs,stmt);
+				DbUtil.DbCloseConnection(dbConn);
+			}
+			return resultMap;
+		}
 		//接收一个共享批次号 设置共享批次的启动时间和结束时间  
 		public ServiceResultCode setShareDataTime(String[] shareID, String startTime,
 				String endTime, User user) throws Exception {
@@ -454,7 +452,6 @@ public class DMBizMangeShare extends BaseRepository{
 		}
 		
 		
-		@SuppressWarnings("resource")
 		public ServiceResultCode DeleteShareBatchDataByShareId(String[] shareId,int businessID) throws Exception {
 			String deSidSql="";
 			String deDataM3Sql="";
@@ -483,26 +480,32 @@ public class DMBizMangeShare extends BaseRepository{
 				deSidSql=String.format("DELETE FROM HASYS_DM_SID WHERE SHAREID='%s'",shareid);
 				stmt = dbConn.prepareStatement(deSidSql);
 				stmt.execute();
+				DbUtil.DbCloseExecute(stmt);
 				//单号码重播共享表
 				deDataM3Sql=String.format("DELETE FROM "+HASYS_DM_BC_DATAM3+" WHERE SHAREID='%s'",shareid);
 				stmt = dbConn.prepareStatement(deDataM3Sql);
 				stmt.execute();
+				DbUtil.DbCloseExecute(stmt);
 				//单号码重播共享表历史表dePoolSql
 				deDataM3HisSql=String.format("DELETE FROM "+HAU_DM_BC_DATAM3_HIS+" WHERE SHAREID='%s'",shareid);
 				stmt = dbConn.prepareStatement(deDataM3HisSql);
 				stmt.execute();
+				DbUtil.DbCloseExecute(stmt);
 				//更改数据池记录表数据
 				dePoolSql=String.format("DELETE FROM "+HAU_DM_BC_POOL+" WHERE SourceID='%s'",shareid);
 				stmt = dbConn.prepareStatement(dePoolSql);
 				stmt.execute();
+				DbUtil.DbCloseExecute(stmt);
 				//数据池操作记录表
 				dePoolOreSql=String.format("DELETE FROM "+HAU_DM_BC_POOL_ORE+" WHERE SourceID='%s'",shareid);
 				stmt = dbConn.prepareStatement(dePoolOreSql);
 				stmt.execute();
+				DbUtil.DbCloseExecute(stmt);
 				//座席池所属共享批次信息表Hasys_DM_SIDUserPool
 				deUserPoolSql=String.format("DELETE FROM HASYS_DM_SIDUSERPOOL WHERE SHAREID='%s'",shareid);
 				stmt = dbConn.prepareStatement(deUserPoolSql);
 				stmt.execute();
+				DbUtil.DbCloseExecute(stmt);
 				//无异常提交代码
 				dbConn.commit();
 	        }

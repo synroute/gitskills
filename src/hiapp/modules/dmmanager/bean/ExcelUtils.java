@@ -74,9 +74,13 @@ public class ExcelUtils extends BaseRepository{
         	 for (int j = 0; j < sheetCulomn.size(); j++) {
         		 HSSFCell  cell = null;   //设置单元格的数据类型
         		 cell=row.createCell(j);
-        		 if(dataList.get(i).keySet().contains(sheetCulomn.get(j))){
-        			 String value=dataList.get(i).get(sheetCulomn.get(j)).toString();
-        			 cell.setCellValue(dataList.get(i).get(sheetCulomn.get(j)).toString());
+        		 String key=sheetCulomn.get(j);
+        		 if(dataList.get(i).keySet().contains(key)){
+        			 String value="";
+        			 if(dataList.get(i).get(key)!=null){
+        				 value=String.valueOf(dataList.get(i).get(sheetCulomn.get(j)));
+        			 }
+        			 cell.setCellValue(value);
             		 
         		 }
         		 cell.setCellStyle(style);   

@@ -119,7 +119,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param startTime
 	 * @param endTime
 	 */
-	@SuppressWarnings({ "resource", "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes" })
 	public void getDistributeDataByTime(Integer bizId,String userId,Integer templateId,String startTime,String endTime,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -195,18 +195,24 @@ public class DataRecyleJdbc extends BaseRepository{
 			if(dbTableName==null){
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
 			}else{
 				//删除数据
 				String delteSql="delete from "+tempTableName;
 				pst=conn.prepareStatement(delteSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
+
 				//删除表
 				String dropTableSql="drop table "+tempTableName;
 				pst=conn.prepareStatement(dropTableSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
 				//创建表
 				pst=conn.prepareStatement(createTableSql);
 				pst.executeUpdate();
+				DbUtil.DbCloseExecute(pst);
+
 			}
 		
 			//向临时表添加数据
@@ -235,7 +241,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param num
 	 * @param pageSize
 	 */
-	@SuppressWarnings({ "resource", "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Map<String,Object> getTempNotDisData(Integer bizId,Integer templateId ,String userId,Integer num,Integer pageSize,String tempTableName){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -311,6 +317,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				
 				dataList.add(map);
 			}
+			DbUtil.DbCloseQuery(rs,pst);
 			//查询临时表数据总数
 			String getCountSql="select count(*) from "+tempTableName;
 			pst=conn.prepareStatement(getCountSql);
@@ -341,7 +348,6 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param pageSize
 	 * @return
 	 */
-	@SuppressWarnings("resource")
 	public Map<String,Object> getShareDataByTime(Integer bizId,String userId,String startTime,String endTime,Integer num,Integer pageSize){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -389,6 +395,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				shareBatchItems.setAbc(rs.getInt(11));
 				shareBatchItemList.add(shareBatchItems);
 			}
+			DbUtil.DbCloseQuery(rs, pst);
 			String getCountSql="select count(*) from (SELECT DISTINCT A.ID,A.BUSINESSID,A.SHAREID,A.SHARENAME,A.CREATEUSERID,A.CREATETIME,A.DESCRIPTION,A.STATE,A.STARTTIME,A.ENDTIME,B.ABC FROM HASYS_DM_SID A ,(SELECT SourceID,COUNT(1) AS ABC FROM "+dataPoolName+" GROUP BY SourceID ) B where  A.SHAREID=B.SourceID  AND A.CREATETIME >to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.CREATETIME < to_date(?,'yyyy-MM-dd hh24:mi:ss') AND A.BUSINESSID=? AND (A.STATE='stop'or A.STATE='expired') AND NOT EXISTS(SELECT 1 FROM HASYS_DM_SID WHERE SHAREID=A.SHAREID AND ID>A.ID) ORDER BY A.CREATETIME) t";
 			pst=conn.prepareStatement(getCountSql);
 			pst.setString(1,startTime);
@@ -415,7 +422,6 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param bizId
 	 * @param userId
 	 */
-	@SuppressWarnings({"resource" })
 	public Map<String,Object> recyleDisData(Integer bizId,String userId,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -436,6 +442,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			while(rs.next()){
 				dataPoolId=rs.getInt(1);
 			}
+			DbUtil.DbCloseQuery(rs,pst);
 			//不自动提交数据
 			conn.setAutoCommit(false);
 			String updatePoolSql="update "+poolName+" a set (sourceID,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ModifyUserID,ModifyTime,ISRecover,OperationName)"
@@ -443,13 +450,16 @@ public class DataRecyleJdbc extends BaseRepository{
 							+ " where exists(select 1 from "+tempTableName+" b where a.IID = b.IID AND a.CID = b.CID and b.ifchecked=1)";
 			pst=conn.prepareStatement(updatePoolSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
 					" select S_"+orePoolName+".nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+tempTableName+" b where b.ifchecked=1";
 			pst=conn.prepareStatement(insertOrePoolSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			String deleteSql=" delete from "+tempTableName+" a where a.ifchecked=1";
 			pst=conn.prepareStatement(deleteSql);
 			pst.execute();
+			DbUtil.DbCloseExecute(pst);
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,"+bizId+",'"+disBatchId+"','"+userId+"',sysdate)";
 			pst=conn.prepareStatement(insertDisBatchSql);
 			pst.execute();
@@ -473,7 +483,6 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param userId
 	 * @param shareIds
 	 */
-	@SuppressWarnings({ "resource" })
 	public Map<String,Object> recyleShareData(Integer bizId,String userId,String shareIds,int permissionId){
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -494,6 +503,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			while(rs.next()){
 				dataPoolId=rs.getInt(1);
 			}
+			DbUtil.DbCloseQuery(rs, pst);
 			//不自动提交数据
 			conn.setAutoCommit(false);
 			for (int i = 0; i < shareIdArr.length; i++) {
@@ -505,14 +515,18 @@ public class DataRecyleJdbc extends BaseRepository{
 				pst.setString(3,userId);
 				pst.setString(4,shareId);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 				String insertOrePoolSql="insert into "+orePoolName+" a(id,SourceID,IID,CID,OperationName,DataPoolIDLast,DataPoolIDCur,AreaLast,AreaCur,ISRecover,ModifyUserID,ModifyTime)"+
 										" select S_"+orePoolName+".nextval,'"+disBatchId+"',IID,CID,'回收',DataPoolIDCur,'"+dataPoolId+"',AreaCur,0,1,'"+userId+"',sysdate from "+orePoolName+" b where b.SourceID=?";
 				pst=conn.prepareStatement(insertOrePoolSql);
 				pst.setString(1, shareId);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
 				String updateShareIdSql="update HASYS_DM_SID set state ='"+ShareBatchStateEnum.RECOVER.getName()+"' where BusinessID="+bizId+" and ShareID='"+shareId+"'";
 				pst=conn.prepareStatement(updateShareIdSql);
 				pst.execute();
+				DbUtil.DbCloseExecute(pst);
+
 			}
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,ModifyUserID,ModifyTime) values(S_HASYS_DM_DID.nextval,"+bizId+",'"+disBatchId+"','"+userId+"',sysdate)";
 			pst=conn.prepareStatement(insertDisBatchSql);

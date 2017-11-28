@@ -57,7 +57,7 @@ public class DataMonitorJdbc extends BaseRepository{
 				monitorData.setZxNum(rs.getInt(5));
 				dataList.add(monitorData);
 			}
-			
+			DbUtil.DbCloseQuery(rs, pst);
 			String getCountSql="select count(1) from ("+getDataSql1+") t";
 			pst=conn.prepareStatement(getCountSql);
 			pst.setInt(1,bizId);
