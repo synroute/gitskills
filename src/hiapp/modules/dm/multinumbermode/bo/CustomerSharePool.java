@@ -7,6 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
+/**
+ * M6 多号码预测外呼
+ * Hidialer 抽取数据，客户信息不需要按照共享批次分类，由于不存在访问权限问题
+ */
+
 public class CustomerSharePool {
 
     @Autowired
