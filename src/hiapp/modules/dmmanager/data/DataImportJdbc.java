@@ -22,7 +22,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1126,7 +1128,41 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 	}
 	  
   }
-  
+  /**
+   * 向结果表插一条数据
+   * @param bizId
+   * @param sourceID
+   * @param importBatchId
+   * @param customerId
+   * @param userId
+   * @param modifyid
+   * @param dialType
+   * @param dialTime
+   * @param customerCallId
+   * @param endcodeType
+   * @param endCode
+   */
+public void insertDataToResultTable(Integer bizId,String sourceID,String importBatchId,String customerId,String userId,Integer modifyid,String dialType,Date dialTime,String customerCallId,String endcodeType,String endCode ){
+	  Connection conn=null;
+	  PreparedStatement pst = null;
+	  String tableName="HAU_DM_Result";
+	  String dataTime=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dialTime);
+	  try {
+		conn=this.getDbConnection();
+		String columnSql="insert into "+tableName+"(id,BUSINESSID,sourceId,iid,cid,Modifylast,Modifyid,Modifyuserid,Modifytime,DialType,dialTime,CUSTOMERCALLID,ENDCODETYPE,ENDCODE)";
+		String valueSql=" values(S_HAU_DM_RESULT.nextval,'"+bizId+"','"+sourceID+"','"+importBatchId+"','"+customerId+"',1,"+modifyid+",'"+userId+"',sysdate,'"+dialType+"',to_date('"+dataTime+"','yyyy-mm-dd hh24:mi:ss'),'"+customerCallId+"','"+endcodeType+"','"+endCode+"')";
+		columnSql=columnSql+valueSql;
+		pst=conn.prepareStatement(columnSql);
+		pst.executeUpdate();
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}finally{
+		DbUtil.DbCloseExecute(pst);
+		DbUtil.DbCloseConnection(conn);
+	}
+	  
+ }
   
   /**
 	 * 修改临时表
