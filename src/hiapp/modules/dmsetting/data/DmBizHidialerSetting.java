@@ -41,9 +41,19 @@ public class DmBizHidialerSetting extends BaseRepository {
 		
 		try {
 			dbConn =this.getDbConnection();
+			
+			int count = 0;
+			String szSql = String.format("select COUNT(*) from HASYS_ENTITY_MAP_MODULE where MODULEID=%s and TemplateID='%s' and MODULE='数据管理'",bizid,entityId);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				count = rs.getInt(1);
+			}
+			if (count == 0) {
 			String sql = "insert into HASYS_ENTITY_MAP_MODULE values(S_HASYS_ENTITY_MAP_MODULE.nextval,'数据管理',"+bizid+",'"+entityId+"')";
 			stmt = dbConn.prepareStatement(sql);
 	        stmt.executeUpdate();
+			}
 	     	
 		} catch (SQLException e) {
 			e.printStackTrace();

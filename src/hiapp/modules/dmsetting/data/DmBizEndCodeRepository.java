@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-
+import org.apache.xmlbeans.impl.jam.xml.TunnelledException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -143,10 +143,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				if(type==3)
 				{
 					add( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc);
-				}else if(type==6)
-				{
-					addModel6( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc,type);
-				}else if(type==5)
+				}else if(type==6||type==5||type==2)
 				{
 					addModel6( bizId, jsonObject.get("endCodeType").getAsString(), jsonObject.get("endCode").getAsString(),desc,type);
 				}else if(type==4) {
@@ -764,7 +761,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 						}
 					}
 					
-				}else if(type==6||type==5)
+				}else if(type==6||type==5||type==2)
 				{
 					
 					JsonArray jsonArray=new JsonParser().parse(xml).getAsJsonArray();

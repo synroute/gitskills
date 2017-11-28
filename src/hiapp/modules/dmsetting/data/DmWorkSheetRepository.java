@@ -1047,6 +1047,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			workSheetRepository.newWorkSheetColumn(worksheetId,columnName,type,columnLength);
 		} catch (Exception e) {
 			e.printStackTrace();
+			return ServiceResultCode.INVALID_PARAM;
 		} finally {
 			DbUtil.DbCloseExecute(stmt);
 			DbUtil.DbCloseConnection(dbConn);
