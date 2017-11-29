@@ -213,7 +213,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 			
 			
 			}
-			if(type==6||type==5)
+			if(type==6||type==5||type==2)
 			{
 				PreparedStatement stat=conn.prepareStatement("update HASYS_DM_BIZOUTBOUNDSETTING set xml=? where BusinessID="+bizId+"");
 				
