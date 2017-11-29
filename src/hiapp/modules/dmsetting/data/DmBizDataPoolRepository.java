@@ -122,7 +122,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 			{
 				poolLimit=dataPool.getPoolTopLimit();
 			}
-			String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where PID=(select ID from HASYS_DM_DATAPOOL where ID="+dataPool.getPoolId()+") and BusinessID="+dataPool.getBizId()+"");
+			String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where PID=(select ID from HASYS_DM_DATAPOOL where ID="+dataPool.getPoolId()+")");
 			stmt = dbConn.prepareStatement(poolsql);
 			rs = stmt.executeQuery();
 			
@@ -131,7 +131,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				poolLimit+=rs.getInt(1);
 			}
 			stmt.close();
-			String poolpid=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where ID=(select PID from HASYS_DM_DATAPOOL where ID="+dataPool.getPoolId()+") and BusinessID="+dataPool.getBizId()+"");
+			String poolpid=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where ID=(select PID from HASYS_DM_DATAPOOL where ID="+dataPool.getPoolId()+")");
 			stmt = dbConn.prepareStatement(poolpid);
 			rs = stmt.executeQuery();
 			
