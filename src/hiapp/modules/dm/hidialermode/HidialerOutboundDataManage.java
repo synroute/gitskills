@@ -2,6 +2,7 @@ package hiapp.modules.dm.hidialermode;
 
 import hiapp.modules.dm.hidialermode.bo.*;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
+import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
 import hiapp.modules.dm.multinumbermode.bo.PhoneDialInfo;
 import hiapp.modules.dmmanager.AreaTypeEnum;
@@ -187,18 +188,34 @@ public class HidialerOutboundDataManage {
                                        String resultCodeType, String resultCode,
                                        String dialType, Date dialTime, String customerCallId, String customerInfo) {
 
-        HidialerModeCustomer originCustomerItem = customerWaitPool.removeWaitCustomer(
+        HidialerModeCustomer originCustomer = customerWaitPool.removeWaitCustomer(
                 HiDialerUserId, bizId, importBatchId, customerId);
 
+        HidialerModeCustomer newCustomer = originCustomer.deepClone();
+        newCustomer.setEndCodeType(resultCodeType);
+        newCustomer.setEndCode(resultCode);
+        newCustomer.setModifyUserId(userId);
+        newCustomer.setModifyTime(new Date());
+        newCustomer.setModifyId(originCustomer.getModifyId() + 1);
+
+        newCustomer.setState(HidialerModeCustomerStateEnum.FINISHED);
+
+        // 更新共享状态表
+        hidialerModeDAO.updateCustomerShareForOutboundResult(newCustomer);
+
+        // 插入共享历史表
+        hidialerModeDAO.insertCustomerShareStateHistory(newCustomer);
+
+
         // 插入结果表
-        dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
-        dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
-                originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId,
+        dmDAO.updateDMResult(bizId, originCustomer.getShareBatchId(), importBatchId, customerId, originCustomer.getModifyId()); // MODIFYLAST 0
+        dmDAO.insertDMResult(bizId, originCustomer.getShareBatchId(), importBatchId, customerId,
+                originCustomer.getModifyId() + 1, userId, dialType, dialTime, customerCallId,
                 resultCodeType, resultCode);
 
         // 插入导入客户表
         if (null != customerInfo) {
-            dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomerItem.getModifyId() + 1);
+            dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomer.getModifyId() + 1);
         }
 
         return "";

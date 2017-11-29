@@ -188,7 +188,29 @@ public class HidialerModeCustomer {
     }
 
     public HidialerModeCustomer deepClone() {
-        return null;
+
+        HidialerModeCustomer customer = new HidialerModeCustomer();
+        customer.setId(id);
+        customer.setBizId(bizId);
+        customer.setShareBatchId(shareBatchId);
+        customer.setImportBatchId(importBatchId);
+        customer.setCustomerId(customerId);
+        customer.setState(state);
+        customer.setModifyId(modifyId);
+        customer.setModifyUserId(modifyUserId);
+        customer.setModifyTime(modifyTime);
+        customer.setModifyDesc(modifyDesc);
+        customer.setIsAppend(isAppend);
+        customer.setCustomerCallId(customerCallId);
+        customer.setEndCodeType(endCodeType);
+        customer.setEndCode(endCode);
+        customer.setPhoneNumber(phoneNumber);
+        customer.setLastDialTime(lastDialTime);
+        customer.setCallLossCount(callLossCount);
+        customer.setNextDialTime(nextDialTime);
+        customer.setShareBatchStartTime(shareBatchStartTime);
+        customer.setInvalid(invalid);
+        return customer;
     }
 
 }
