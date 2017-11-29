@@ -117,11 +117,15 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		ResultSet rs = null;
 		try {
 			dbConn =this.getDbConnection();
-			
+			int poolLimit=0;
+			if(dataPool.getPoolTopLimit()!=0)
+			{
+				poolLimit=dataPool.getPoolTopLimit();
+			}
 			String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where PID=(select ID from HASYS_DM_DATAPOOL where ID="+dataPool.getPoolId()+") and BusinessID="+dataPool.getBizId()+"");
 			stmt = dbConn.prepareStatement(poolsql);
 			rs = stmt.executeQuery();
-			int poolLimit=0;
+			
 			while(rs.next())
 			{
 				poolLimit+=rs.getInt(1);
