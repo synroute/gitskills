@@ -4,6 +4,7 @@ import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
+import hiapp.modules.dm.hidialermode.bo.HidialerModeCustomerStateEnum;
 import hiapp.modules.dm.multinumbermode.bo.*;
 import hiapp.modules.dm.multinumbermode.dao.MultiNumberPredictModeDAO;
 import hiapp.modules.dm.util.DateUtil;
@@ -187,6 +188,18 @@ public class MultiNumberOutboundDataManage {
         PhoneDialInfo originPhoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
 
         Date now = new Date();
+
+
+//        item.setCallLossCount(item.getCallLossCount()+1);
+//        if (item.getCallLossCount() >= Constants.MAX_CALL_LOSS_COUNT) {
+//            item.setState(HidialerModeCustomerStateEnum.LOSS_FINISHED);
+//        } else {
+//            item.setState(lossState);
+//
+//            // 放回共享池
+//            addCustomerToSharePool(item);
+//        }
+
 
         item.setState(MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);
         item.setModifyTime(now);
