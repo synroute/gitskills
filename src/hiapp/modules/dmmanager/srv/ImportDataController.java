@@ -124,6 +124,41 @@ public class ImportDataController {
 		
 	}
 	/**
+	 * 获取excel文件的所有sheet
+	 * @param request
+	 * @param response
+	 * @param file
+	 */
+	@RequestMapping(value="/srv/ImportDataController/getAllSheet.srv")
+	public void getAllSheet(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file){
+		String fileName=file.getOriginalFilename();
+		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		try {
+			InputStream in = file.getInputStream();
+			Workbook wookbook =null;
+			String suffix=fileName.substring(fileName.indexOf("."));//获取后缀名
+			if(".xls".equals(suffix)){ 
+				wookbook = new HSSFWorkbook(in);
+			}else if(".xlsx".equals(suffix)){
+				wookbook = new XSSFWorkbook(in);
+			}
+			for (int i = 0; i < wookbook.getNumberOfSheets(); i++) {
+				Map<String,Object> map=new HashMap<String, Object>();
+				String name=wookbook.getSheetAt(i).getSheetName();
+				map.put("name",name);
+				map.put("index",i);
+				list.add(map);
+			}
+			String jsonObject=new Gson().toJson(list);
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+	}
+	/**
 	 * 导入EXCEL数据
 	 * @param request
 	 * @param response
@@ -136,6 +171,7 @@ public class ImportDataController {
 	public void ImportExceCustomerData(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file) throws IOException{
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		Integer temPlateId=Integer.valueOf(request.getParameter("temPlateId"));
+		Integer sheetIndex=Integer.valueOf(request.getParameter("sheetIndex"));
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
@@ -151,7 +187,7 @@ public class ImportDataController {
 			}else if(".xlsx".equals(suffix)){
 				wookbook = new XSSFWorkbook(in);
 			}
-			Sheet sheet = wookbook.getSheetAt(0);
+			Sheet sheet = wookbook.getSheetAt(sheetIndex);
 			int totalRowNum = sheet.getLastRowNum()+1; //总行数
 			int coloumNum=sheet.getRow(0).getPhysicalNumberOfCells();//总列数
 			//获取前台要展示的字段
