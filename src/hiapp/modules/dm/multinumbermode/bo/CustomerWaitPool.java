@@ -215,10 +215,9 @@ public class CustomerWaitPool {
 
         // HiDialer 呼通超时处理
         Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2/Constants.timeSlotSpan;
-
         while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
             Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitPhoneConnectCustomerPool.get(earliestPhoneConnectTimeSlot++);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitPhoneConnectCustomerPool.remove(earliestPhoneConnectTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
@@ -236,9 +235,10 @@ public class CustomerWaitPool {
         }
 
         // 坐席弹屏 超时处理 ==> 呼损处理
-        while (earliestScreenPopUpTimeSlot < phoneConnectTimeoutTimeSlot) {
+        Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3/Constants.timeSlotSpan;
+        while (earliestScreenPopUpTimeSlot < screenPopupTimeoutTimeSlot) {
             Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitScreenPopUpCustomerPool.get(earliestScreenPopUpTimeSlot++);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitScreenPopUpCustomerPool.remove(earliestScreenPopUpTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
@@ -257,9 +257,10 @@ public class CustomerWaitPool {
         }
 
         // 坐席递交结果 超时处理
-        while (earliestResultTimeSlot < phoneConnectTimeoutTimeSlot) {
+        Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4/Constants.timeSlotSpan;
+        while (earliestResultTimeSlot < resultTimeoutTimeSlot) {
             Map<String, MultiNumberCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitOutboundResultCustomerPool.get(earliestResultTimeSlot++);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitOutboundResultCustomerPool.remove(earliestResultTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
