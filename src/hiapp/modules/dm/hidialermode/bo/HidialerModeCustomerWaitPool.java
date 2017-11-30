@@ -171,6 +171,9 @@ public class HidialerModeCustomerWaitPool {
         for (String shareBatchId : shareBatchIds) {
             Map<String, HidialerModeCustomer> mapWaitStopPool;
             mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+            if (null == mapWaitStopPool || mapWaitStopPool.isEmpty())
+                continue;
+
             for (HidialerModeCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }

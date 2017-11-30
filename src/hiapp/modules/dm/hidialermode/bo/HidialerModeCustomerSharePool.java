@@ -175,7 +175,10 @@ public class HidialerModeCustomerSharePool {
 
     private void removeFromShareBatchStopWaitPool(HidialerModeCustomer customer) {
         Map<String, HidialerModeCustomer> oneShareBatchPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareBatchId());
-        oneShareBatchPool.remove(customer.getImportBatchId() + customer.getCustomerId());
+        if (null == oneShareBatchPool)
+            return;
+
+        oneShareBatchPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
         if (oneShareBatchPool.isEmpty())
             mapShareBatchWaitStopCustomerPool.remove(customer.getShareBatchId());
     }
