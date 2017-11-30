@@ -17,14 +17,6 @@ public class EndCodeRedialStrategyM2Item {
         this.resultCode = resultCode;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public Boolean getCustomerDialFinished() {
         return customerDialFinished;
     }
@@ -51,7 +43,6 @@ public class EndCodeRedialStrategyM2Item {
 
     String resultCodeType;
     String resultCode;
-    String description;
     Boolean customerDialFinished;
     int redialDelayMinutes;
     int maxRedialNum;

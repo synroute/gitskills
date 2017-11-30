@@ -3,13 +3,9 @@ package hiapp.modules.dm.hidialermode.bo;
 public class EndCodeRedialStrategyM2ItemDB {
     String EndCodeType;
     String EndCode;
-    String description;
     String IsCustStop;
-    String IsPhoneStop;
     String RedialMinutes;
     String RedialCount;
-    String isPresetDial;
-    int SortNum;
 
     public String getEndCodeType() {
         return EndCodeType;
@@ -27,28 +23,12 @@ public class EndCodeRedialStrategyM2ItemDB {
         EndCode = endCode;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getIsCustStop() {
         return IsCustStop;
     }
 
     public void setIsCustStop(String isCustStop) {
         IsCustStop = isCustStop;
-    }
-
-    public String getIsPhoneStop() {
-        return IsPhoneStop;
-    }
-
-    public void setIsPhoneStop(String isPhoneStop) {
-        IsPhoneStop = isPhoneStop;
     }
 
     public String getRedialMinutes() {
@@ -67,19 +47,4 @@ public class EndCodeRedialStrategyM2ItemDB {
         RedialCount = redialCount;
     }
 
-    public String getPresetDial() {
-        return isPresetDial;
-    }
-
-    public void setPresetDial(String isPresetDial) {
-        this.isPresetDial = isPresetDial;
-    }
-
-    public int  getSortNum() {
-        return SortNum;
-    }
-
-    public void setSortNum(int sortNum) {
-        SortNum = sortNum;
-    }
 }

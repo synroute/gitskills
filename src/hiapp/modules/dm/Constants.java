@@ -10,6 +10,8 @@ public class Constants {
     public static Long ScreenPopUpTimeoutThreshold3 = 20 * timeSlotSpan; //
     public static Long ResultTimeoutThreshold4 = 20 * timeSlotSpan; //
 
+    public static Integer MAX_CALL_LOSS_COUNT = 3; //
+
     public static String timeStart = "TimeStart";
     public static String timeEnd = "TimeEnd";
 

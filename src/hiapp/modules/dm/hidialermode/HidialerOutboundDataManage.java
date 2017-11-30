@@ -1,5 +1,6 @@
 package hiapp.modules.dm.hidialermode;
 
+import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.hidialermode.bo.*;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
@@ -224,7 +225,7 @@ public class HidialerOutboundDataManage {
     /**
      *   呼损处理
      */
-    public void lostProc(HidialerModeCustomer item) {
+    public void lostProc(HidialerModeCustomer item, HidialerModeCustomerStateEnum lossState) {
         String dialType = "dialType";
         String customerCallId = "customerCallId";
 
@@ -232,10 +233,18 @@ public class HidialerOutboundDataManage {
 
         Date now = new Date();
 
-        item.setState(HidialerModeCustomerStateEnum.LOSS_WAIT_REDIAL);
+        item.setCallLossCount(item.getCallLossCount()+1);
+        if (item.getCallLossCount() >= Constants.MAX_CALL_LOSS_COUNT) {
+            item.setState(HidialerModeCustomerStateEnum.LOSS_FINISHED);
+        } else {
+            item.setState(lossState);
+
+            // 放回共享池
+            addCustomerToSharePool(item);
+        }
+
         item.setModifyTime(now);
         item.setModifyId(originModifyId + 1);
-
 
         hidialerModeDAO.updateCustomerShareForOutboundResult(item);
 
@@ -284,7 +293,7 @@ public class HidialerOutboundDataManage {
     // 用户登录通知
     public void onLogin(String userId) {
 
-        // TODO ??? 多号码预测模式需要处理吗 ？
+        // TODO ??? 需要处理吗 ？
 
     }
 
@@ -300,7 +309,6 @@ public class HidialerOutboundDataManage {
     }
 
     public void timeoutProc() {
-        System.out.println("MultiNumberOutboundDataManage TimeOut ...");
         customerWaitPool.timeoutProc();
     }
 
@@ -329,20 +337,14 @@ public class HidialerOutboundDataManage {
             // 插入共享历史表
             hidialerModeDAO.insertCustomerShareStateHistory(item);
 
-        } else /*当前号码类型重拨*/ {
-
-//            if ((phoneDialInfo.getDialCount() - phoneDialInfo.getCausePresetDialCount()) >= strategyItem.getMaxRedialNum()) {
-//                Integer nextDialPhoneType = customerPool.calcNextDialPhoneType(item);
-//                if (null != nextDialPhoneType) {
-//                    item.setState(HidialerModeCustomerStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
-//                    item.setNextDialPhoneType(nextDialPhoneType);
-//                } else {
-//                    item.setState(HidialerModeCustomerStateEnum.FINISHED);
-//                }
-//            } else {
-//                item.setState(HidialerModeCustomerStateEnum.WAIT_REDIAL);
-//                item.setCurPresetDialTime(DateUtil.getNextXMinute(strategyItem.getRedialDelayMinutes()));
-//            }
+        } else /*重拨*/ {
+            item.setRedialCount(item.getRedialCount()+1);
+            if (item.getRedialCount() >= strategyItem.getMaxRedialNum()) {
+                item.setState(HidialerModeCustomerStateEnum.FINISHED);
+            } else {
+                item.setState(HidialerModeCustomerStateEnum.WAIT_REDIAL);
+                item.setNextDialTime(DateUtil.getNextXMinute(strategyItem.getRedialDelayMinutes()));
+            }
 
             if (!HidialerModeCustomerStateEnum.FINISHED.equals(item.getState())) {
                 addCustomerToSharePool(item);
@@ -438,6 +440,8 @@ public class HidialerOutboundDataManage {
                 addCustomerToWaitPool(customerItem.getModifyUserId(), customerItem);
             }
         }
+
+        waitPoolPostProcess();
     }
 
     // 用于共享批次的启用，根据共享批次，不会导致重复加载
@@ -503,6 +507,10 @@ public class HidialerOutboundDataManage {
         System.out.println("wait result multinumber customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
+    }
+
+    private void waitPoolPostProcess() {
+        customerWaitPool.postProcess();
     }
 
     /**

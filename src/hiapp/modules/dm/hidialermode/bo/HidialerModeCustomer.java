@@ -21,6 +21,7 @@ public class HidialerModeCustomer {
     private Date lastDialTime;
     private Integer callLossCount;
     private Date nextDialTime;
+    private Integer redialCount;
 
     // 非数据库字段
     Date shareBatchStartTime;  //用于优先级控制
@@ -187,6 +188,14 @@ public class HidialerModeCustomer {
         this.nextDialTime = nextDialTime;
     }
 
+    public Integer getRedialCount() {
+        return redialCount;
+    }
+
+    public void setRedialCount(Integer redialCount) {
+        this.redialCount = redialCount;
+    }
+
     public HidialerModeCustomer deepClone() {
 
         HidialerModeCustomer customer = new HidialerModeCustomer();
@@ -210,6 +219,7 @@ public class HidialerModeCustomer {
         customer.setNextDialTime(nextDialTime);
         customer.setShareBatchStartTime(shareBatchStartTime);
         customer.setInvalid(invalid);
+        customer.setRedialCount(redialCount);
         return customer;
     }
 

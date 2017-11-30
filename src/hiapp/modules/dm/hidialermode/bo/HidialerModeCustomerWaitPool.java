@@ -5,10 +5,7 @@ import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class HidialerModeCustomerWaitPool {
@@ -42,11 +39,6 @@ public class HidialerModeCustomerWaitPool {
     Long earliestResultTimeSlot;
 
     public HidialerModeCustomerWaitPool() {
-        Date now =  new Date();
-        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-
         mapOutboundResultWaitSubmitCustomerPool = new HashMap<String, Map<String, HidialerModeCustomer>>();
         mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, HidialerModeCustomer>>();
 
@@ -146,7 +138,6 @@ public class HidialerModeCustomerWaitPool {
         if (null == customerItem)
             return customerItem;
 
-
         removeWaitStopCustomer(bizId, customerItem.getShareBatchId(), importBatchId, customerId);
 
         if (HidialerModeCustomerStateEnum.EXTRACTED.equals(customerItem.getState())) {
@@ -197,7 +188,7 @@ public class HidialerModeCustomerWaitPool {
 
     public void onLogin(String userId) {
 
-        // TODO ??? 多号码预测外呼需要处理用户登录通知吗？
+        // TODO ??? 需要处理用户登录通知吗？
 
         /*Map<String, SingleNumberModeShareCustomerItem> mapUserWaitResultPool = mapWaitResultCustomerPool.remove(userId);
         if (null == mapUserWaitResultPool)
@@ -221,21 +212,20 @@ public class HidialerModeCustomerWaitPool {
     public void timeoutProc() {
         Date now =  new Date();
         Long curTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        System.out.println("cur time slot : " + curTimeSlot);
+        System.out.println("m2 timeout proc: cur time slot " + curTimeSlot);
 
         // HiDialer 呼通超时处理
         Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2/Constants.timeSlotSpan;
-
         while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
             Map<String, HidialerModeCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitPhoneConnectCustomerPool.get(earliestPhoneConnectTimeSlot++);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitPhoneConnectCustomerPool.remove(earliestPhoneConnectTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
             for (HidialerModeCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    hidialerOutboundDataManage.addCustomerToSharePool(customerItem);
+                    hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.HIDIALER_LOSS_WAIT_REDIAL);
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -246,17 +236,17 @@ public class HidialerModeCustomerWaitPool {
         }
 
         // 坐席弹屏 超时处理 ==> 呼损处理
-        while (earliestScreenPopUpTimeSlot < phoneConnectTimeoutTimeSlot) {
+        Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3/Constants.timeSlotSpan;
+        while (earliestScreenPopUpTimeSlot < screenPopupTimeoutTimeSlot) {
             Map<String, HidialerModeCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitScreenPopUpCustomerPool.get(earliestScreenPopUpTimeSlot++);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitScreenPopUpCustomerPool.remove(earliestScreenPopUpTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
             for (HidialerModeCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    hidialerOutboundDataManage.lostProc(customerItem);  // 呼损处理
-                    hidialerOutboundDataManage.addCustomerToSharePool(customerItem);
+                    hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -267,16 +257,17 @@ public class HidialerModeCustomerWaitPool {
         }
 
         // 坐席递交结果 超时处理
-        while (earliestResultTimeSlot < phoneConnectTimeoutTimeSlot) {
+        Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4/Constants.timeSlotSpan;
+        while (earliestResultTimeSlot < resultTimeoutTimeSlot) {
             Map<String, HidialerModeCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitOutboundResultCustomerPool.get(earliestResultTimeSlot++);
+            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitOutboundResultCustomerPool.remove(earliestResultTimeSlot++);
             if (null == mapTimeSlotWaitTimeOutPool)
                 continue;
 
             for (HidialerModeCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    hidialerOutboundDataManage.addCustomerToSharePool(customerItem);
+                    hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.LOSS_WAIT_REDIAL);
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -284,6 +275,31 @@ public class HidialerModeCustomerWaitPool {
                 removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());
             }
+        }
+    }
+
+    public void postProcess() {
+        Date now =  new Date();
+        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+
+        Set<Long> phoneConnectTimeSlotSet = mapTimeOutWaitPhoneConnectCustomerPool.keySet();
+        for (Long timeSlot : phoneConnectTimeSlotSet) {
+            if (timeSlot < earliestPhoneConnectTimeSlot)
+                earliestPhoneConnectTimeSlot = timeSlot;
+        }
+
+        Set<Long> screenPopupTimeSlotSet = mapTimeOutWaitScreenPopUpCustomerPool.keySet();
+        for (Long timeSlot : screenPopupTimeSlotSet) {
+            if (timeSlot < earliestScreenPopUpTimeSlot)
+                earliestScreenPopUpTimeSlot = timeSlot;
+        }
+
+        Set<Long> resultTimeSlotSet = mapTimeOutWaitOutboundResultCustomerPool.keySet();
+        for (Long timeSlot : resultTimeSlotSet) {
+            if (timeSlot < earliestResultTimeSlot)
+                earliestResultTimeSlot = timeSlot;
         }
     }
 

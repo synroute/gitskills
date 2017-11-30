@@ -46,7 +46,6 @@ public class EndCodeRedialStrategyM2 {
             EndCodeRedialStrategyM2Item item = new EndCodeRedialStrategyM2Item();
             item.setResultCodeType(dbItem.getEndCodeType());
             item.setResultCode(dbItem.getEndCode());
-            item.setDescription(dbItem.getDescription());
             item.setMaxRedialNum(dbItem.getRedialCount().isEmpty()?0:Integer.valueOf(dbItem.getRedialCount()));
             item.setRedialDelayMinutes(dbItem.getRedialMinutes().isEmpty()?0:Integer.valueOf(dbItem.getRedialMinutes()));
             item.setCustomerDialFinished(dbItem.getIsCustStop().equals("true")?true:false);

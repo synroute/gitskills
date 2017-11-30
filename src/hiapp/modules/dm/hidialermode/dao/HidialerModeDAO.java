@@ -44,7 +44,7 @@ public class HidialerModeDAO extends BaseRepository {
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
                     " MODIFYUSERID, MODIFYTIME, MODIFYDSP, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
-                    " PHONENUMBER, LASTDIALDAY, NEXTDIALTIME, CALLLOSSCOUNT FROM " + tableName);
+                    " PHONENUMBER, LASTDIALDAY, NEXTDIALTIME, CALLLOSSCOUNT, REDIALCOUNT FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append("   AND STATE IN (").append(SQLUtil.hidialerModeCustomerStatelistToSqlString(shareDataStateList)).append(")");
 
@@ -72,6 +72,7 @@ public class HidialerModeDAO extends BaseRepository {
                 item.setLastDialTime(rs.getDate(16));
                 item.setNextDialTime(rs.getDate(17));
                 item.setCallLossCount(rs.getInt(18));
+                item.setRedialCount(rs.getInt(19));
 
                 item.setShareBatchStartTime(mapShareBatchIdVsShareBatchItem.get(item.getShareBatchId()).getStartTime());
 
@@ -108,7 +109,7 @@ public class HidialerModeDAO extends BaseRepository {
             //
             StringBuilder sqlBuilder = new StringBuilder("SELECT ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
                     " MODIFYUSERID, MODIFYTIME, MODIFYDSP, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
-                    " PHONENUMBER, LASTDIALDAY, NEXTDIALTIME, CALLLOSSCOUNT FROM " + tableName);
+                    " PHONENUMBER, LASTDIALDAY, NEXTDIALTIME, CALLLOSSCOUNT, REDIALCOUNT FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append("   AND STATE IN (").append(SQLUtil.hidialerModeCustomerStatelistToSqlString(shareDataStateList)).append(")");
             sqlBuilder.append("   AND NEXTDIALTIME < ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
@@ -137,6 +138,7 @@ public class HidialerModeDAO extends BaseRepository {
                 item.setLastDialTime(rs.getDate(16));
                 item.setNextDialTime(rs.getDate(17));
                 item.setCallLossCount(rs.getInt(18));
+                item.setRedialCount(rs.getInt(19));
 
                 item.setShareBatchStartTime(mapShareBatchIdVsShareBatchItem.get(item.getShareBatchId()).getStartTime());
 
@@ -195,6 +197,9 @@ public class HidialerModeDAO extends BaseRepository {
         sqlBuilder.append(", MODIFYTIME = ").append(SQLUtil.getSqlString(item.getModifyTime()));
         sqlBuilder.append(", MODIFYDSP = ").append(SQLUtil.getSqlString(item.getModifyDesc()));
         sqlBuilder.append(", CUSTOMERCALLID = ").append(SQLUtil.getSqlString(item.getCustomerCallId()));
+        sqlBuilder.append(", CALLLOSSCOUNT = ").append(SQLUtil.getSqlString(item.getCallLossCount()));
+        sqlBuilder.append(", REDIALCOUNT = ").append(SQLUtil.getSqlString(item.getRedialCount()));
+        sqlBuilder.append(", NEXTDIALTIME = ").append(SQLUtil.getSqlString(item.getNextDialTime()));
         sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(item.getBizId()));
         sqlBuilder.append("  AND IID = ").append(SQLUtil.getSqlString(item.getImportBatchId()));
         sqlBuilder.append("  AND CID = ").append(SQLUtil.getSqlString(item.getCustomerId()));
@@ -259,7 +264,7 @@ public class HidialerModeDAO extends BaseRepository {
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
         sqlBuilder.append(" (ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
                         " MODIFYUSERID, MODIFYTIME, MODIFYDSP, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
-                        " PHONENUMBER, LASTDIALDAY, NEXTDIALTIME, CALLLOSSCOUNT ) VALUES ( ");
+                        " PHONENUMBER, LASTDIALDAY, NEXTDIALTIME, CALLLOSSCOUNT, REDIALCOUNT ) VALUES ( ");
 
         sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getBizId())).append(",");
@@ -279,7 +284,8 @@ public class HidialerModeDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(item.getPhoneNumber())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getLastDialTime())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getNextDialTime())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getCallLossCount()));
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCallLossCount())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getRedialCount()));
 
         sqlBuilder.append(")");
 
@@ -426,6 +432,5 @@ public class HidialerModeDAO extends BaseRepository {
 
         return true;
     }
-
 
 }
