@@ -387,9 +387,7 @@ public class DataImportJdbc extends BaseRepository{
 			JsonObject importConfig= jsonObject.get("ImportConfig").getAsJsonObject();
 			String icrement=importConfig.get("IncrementalIdentifier").getAsString();
 			String sourceTableName=excelTemplate.get("SourceTableName").getAsString();
-			Properties properties = new Properties();
-			properties.load(new FileInputStream(contextPath));
-			String importTime = properties.getProperty(maxTimeKey);
+			String importTime = getImportTime(bizId, templateId);
 			for (int i = 0; i < dataArray.size(); i++) {
 				String value=dataArray.get(i).getAsJsonObject().get("FieldNameSource").getAsString();
 				if(value!=null&&!"".equals(value)){
@@ -432,8 +430,7 @@ public class DataImportJdbc extends BaseRepository{
 				maxTime=rs.getString(1);
 			}
 			DbUtil.DbCloseQuery(rs,pst);
-			properties.setProperty(maxTimeKey,maxTime);
-			properties.store(new FileOutputStream(contextPath),"最大时间");
+			updateImportTime(bizId, templateId, importTime, maxTime);
 			String getDataSourceSql="select a.id from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.DataPoolType =1";
 			pst=conn.prepareStatement(getDataSourceSql);
 			pst.setInt(1,bizId);
@@ -1338,4 +1335,51 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
         reString = sb.toString();  
         return reString;  
     }  
+    
+    public String getImportTime(Integer bizId,Integer templateId){
+    	Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		String importTime=null;
+		try {
+			conn=this.getDbConnection();
+			String sql="select to_char(importTime,'yyyy-mm-dd hh24:mi:ss') from HASYS_DM_IMPORTTIME where BUSINESSID=? and TEMPLATEID=?";
+			pst=conn.prepareStatement(sql);
+			pst.setInt(1,bizId);
+			pst.setInt(2,templateId);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				importTime=rs.getString(1);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return importTime;
+    }
+    
+    public void updateImportTime(Integer bizId,Integer templateId,String importTime,String maxTime){
+       	Connection conn=null;
+		PreparedStatement pst=null;
+		try {
+			conn=this.getDbConnection();
+			String sql=null;
+			if(importTime==null){
+				sql="insert into HASYS_DM_IMPORTTIME(BUSINESSID,TEMPLATEID,importTime) values("+bizId+","+templateId+","+"to_date('"+maxTime+"','yyyy-mm-dd hh24:mi:ss')"+")";
+			}else{
+				sql="update HASYS_DM_IMPORTTIME set importTime="+"to_date('"+maxTime+"','yyyy-mm-dd hh24:mi:ss')"+" where BUSINESSID="+bizId+" and TEMPLATEID="+templateId;
+			}
+			pst=conn.prepareStatement(sql);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+    }
 }

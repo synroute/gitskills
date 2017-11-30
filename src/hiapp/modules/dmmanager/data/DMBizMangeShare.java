@@ -578,5 +578,20 @@ public class DMBizMangeShare extends BaseRepository{
 			
 			return dataPoolId;
 		}
-		
+		public static void main(String[] args) {
+	/*		 try {
+				InputStream is = new FileInputStream("C:\\Users\\cuilulu\\Desktop\\导入模板(7).xlsx");
+				Workbook hssfWorkbook = new XSSFWorkbook(is);
+				for (int i = 0; i < hssfWorkbook.getNumberOfSheets(); i++) {
+					  Sheet hssfSheet = hssfWorkbook.getSheetAt(i);
+					  System.out.println(hssfSheet.getSheetName());
+				}
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}catch(IOException e){
+				
+			}
+			*/
+		}
 }
