@@ -1925,13 +1925,13 @@ public class CustomerRepository extends BaseRepository {
 			
 			sb.append("  SID.CREATEUSERID =  ");
 			sb.append(userId);
-			sb.append(" AND ");
+			/*sb.append(" AND ");
 			
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 					+ "MODIFYLAST");
 			sb.append(" = ");
 			sb.append("1");
-
+*/
 			// 查询条件
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
@@ -2172,16 +2172,16 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" <= ");
 			sb.append(queryRequest.getEnd());
 			
-			sb.append(" AND ");
+			sb.append(" AND ");    
 			sb.append("  SID.CREATEUSERID =  ");
 			sb.append(userId);
 			
-			sb.append(" AND ");
+			/*sb.append(" AND ");
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 					+ "MODIFYLAST");
 			sb.append(" = ");
 			sb.append("1");
-	
+	*/
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
 	
