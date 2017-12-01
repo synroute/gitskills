@@ -251,6 +251,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("呼损次数", "CALLLOSSCOUNT", "呼损次数", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("重拨次数", "REDIALCOUNT", "重拨次数", WorkSheetDataType.INT, -1, false, true);
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
 		
@@ -282,7 +283,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("最后拨打时间", "LASTDIALDAY", "最后拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("下次拨打时间", "NEXTDIALTIME", "下次拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("呼损次数", "CALLLOSSCOUNT", "呼损次数", WorkSheetDataType.INT, -1, false, true);
-			
+			creationInfoWorkSheet.addColumn("重拨次数", "REDIALCOUNT", "重拨次数", WorkSheetDataType.INT, -1, false, true);
 			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
@@ -652,6 +653,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESETDIALTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("下次拨打号码类型", "NEXTDIALPHONETYPE", "下次拨打号码类型", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("呼损次数", "CALLLOSSCOUNT", "呼损次数", WorkSheetDataType.INT, -1, false, true);
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
 		//多号码预测外呼历史表
@@ -722,6 +724,11 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESETDIALTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("下次拨打号码类型", "NEXTDIALPHONETYPE", "下次拨打号码类型", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("呼损次数", "CALLLOSSCOUNT", "呼损次数", WorkSheetDataType.INT, -1, false, true);
+			
+			
+			
+			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
 		
