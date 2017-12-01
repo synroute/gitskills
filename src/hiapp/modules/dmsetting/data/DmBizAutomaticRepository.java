@@ -260,7 +260,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			try {
 				dbConn =this.getDbConnection();
 				//查询客户信息
-				columns=columns.substring(0, columns.length()-12);
+				columns=columns.substring(0, columns.length()-21);
 				String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_RESULT where Cid='"+Cid+"' and IID='"+IID+"' and SOURCEID='"+SID+"' and MODIFYID='"+ModifyId+"' and MODIFYLAST=1";
 				stmt = dbConn.prepareStatement(szSelectSql);
 				rs = stmt.executeQuery();
@@ -327,7 +327,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			resultsql=resultsql.substring(0, resultsql.length()-1);
 			*/
 			//String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"'";
-			String szSelectSql="select "+repcolumn+",HAU_DM_B"+bizId+"C_RESULT.SOURCEID as RESULTSOURCEID,HAU_DM_B"+bizId+"C_RESULT.IID as RESULTIID,HAU_DM_B"+bizId+"C_RESULT.CID as RESULTCID,HAU_DM_B"+bizId+"C_RESULT.MODIFYID as RESULTMODIFYID  from HAU_DM_B"+bizId+"C_IMPORT  left join (select * from HAU_DM_B"+bizId+"C_RESULT where modifylast=1) HAU_DM_B"+bizId+"C_RESULT on HAU_DM_B"+bizId+"C_IMPORT.cid=HAU_DM_B"+bizId+"C_RESULT.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HAU_DM_B"+bizId+"C_RESULT.iid"+
+			String szSelectSql="select "+repcolumn+",HAU_DM_B"+bizId+"C_RESULT.SOURCEID as RESULTSOURCEID,HAU_DM_B"+bizId+"C_RESULT.IID as RESULTIID,HAU_DM_B"+bizId+"C_RESULT.CID as RESULTCID,HAU_DM_B"+bizId+"C_RESULT.MODIFYID as RESULTMODIFYID  from  HAU_DM_B"+bizId+"C_RESULT  left join (select * from HAU_DM_B"+bizId+"C_IMPORT where modifylast=1) HAU_DM_B"+bizId+"C_IMPORT on HAU_DM_B"+bizId+"C_IMPORT.cid=HAU_DM_B"+bizId+"C_RESULT.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HAU_DM_B"+bizId+"C_RESULT.iid"+
 					" left join (select * from HASYS_DM_B"+bizId+"C_PresetTime where modifylast=1) HASYS_DM_B"+bizId+"C_PresetTime on HAU_DM_B"+bizId+"C_IMPORT.cid=HASYS_DM_B"+bizId+"C_PresetTime.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HASYS_DM_B"+bizId+"C_PresetTime.iid"+
 					" where HAU_DM_B"+bizId+"C_IMPORT.Cid='"+Cid+"' and HAU_DM_B"+bizId+"C_IMPORT.modifylast=1";
 			stmt = dbConn.prepareStatement(szSelectSql);
