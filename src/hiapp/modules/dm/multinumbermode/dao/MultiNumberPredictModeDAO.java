@@ -54,7 +54,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                     " PT8_PHONENUMBER, PT8_LASTDIALTIME, PT8_CAUSEPRESETDIALCOUNT, PT8_DIALCOUNT, " +
                     " PT9_PHONENUMBER, PT9_LASTDIALTIME, PT9_CAUSEPRESETDIALCOUNT, PT9_DIALCOUNT, " +
                     " PT10_PHONENUMBER, PT10_LASTDIALTIME, PT10_CAUSEPRESETDIALCOUNT, PT10_DIALCOUNT, " +
-                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE " +
+                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE, CALLLOSSCOUNT " +
                     "FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberPredictStatelistToSqlString(shareDataStateList)).append(")");
@@ -93,6 +93,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                 item.setCurPresetDialTime(rs.getDate(56));
                 item.setCurDialPhoneType(rs.getInt(57));
                 item.setNextDialPhoneType(rs.getInt(58));
+                item.setCallLossCount(rs.getInt(59));
 
                 item.setShareBatchStartTime(mapShareBatchIdVsShareBatchItem.get(item.getShareBatchId()).getStartTime());
 
@@ -139,7 +140,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                     " PT8_PHONENUMBER, PT8_LASTDIALTIME, PT8_CAUSEPRESETDIALCOUNT, PT8_DIALCOUNT, " +
                     " PT9_PHONENUMBER, PT9_LASTDIALTIME, PT9_CAUSEPRESETDIALCOUNT, PT9_DIALCOUNT, " +
                     " PT10_PHONENUMBER, PT10_LASTDIALTIME, PT10_CAUSEPRESETDIALCOUNT, PT10_DIALCOUNT, " +
-                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE " +
+                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE, CALLLOSSCOUNT " +
                     "FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberPredictStatelistToSqlString(shareDataStateList)).append(")");
@@ -179,6 +180,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                 item.setCurPresetDialTime(rs.getDate(56));
                 item.setCurDialPhoneType(rs.getInt(57));
                 item.setNextDialPhoneType(rs.getInt(58));
+                item.setCallLossCount(rs.getInt(59));
 
                 item.setShareBatchStartTime(mapShareBatchIdVsShareBatchItem.get(item.getShareBatchId()).getStartTime());
 
@@ -241,6 +243,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         sqlBuilder.append(", CURDIALPHONETYPE = ").append(SQLUtil.getSqlString(item.getCurDialPhoneType()));
         sqlBuilder.append(", NEXTDIALPHONETYPE = ").append(SQLUtil.getSqlString(item.getNextDialPhoneType()));
         sqlBuilder.append(", CURPRESETDIALTIME = ").append(SQLUtil.getSqlString(item.getCurPresetDialTime()));
+        sqlBuilder.append(", CALLLOSSCOUNT = ").append(SQLUtil.getSqlString(item.getCallLossCount()));
         //sqlBuilder.append(", ISAPPEND = ").append(SQLUtil.getSqlString(item.getIsAppend()));
 
         int curPhoneType = item.getCurDialPhoneType();
@@ -328,7 +331,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                         " PT8_PHONENUMBER, PT8_LASTDIALTIME, PT8_CAUSEPRESETDIALCOUNT, PT8_DIALCOUNT, " +
                         " PT9_PHONENUMBER, PT9_LASTDIALTIME, PT9_CAUSEPRESETDIALCOUNT, PT9_DIALCOUNT, " +
                         " PT10_PHONENUMBER, PT10_LASTDIALTIME, PT10_CAUSEPRESETDIALCOUNT, PT10_DIALCOUNT, " +
-                        " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE) VALUES ( ");
+                        " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE, CALLLOSSCOUNT) VALUES ( ");
 
         sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getBizId())).append(",");
@@ -359,6 +362,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(item.getCurPresetDialTime())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getCurDialPhoneType())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getNextDialPhoneType()));
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCallLossCount()));
 
         sqlBuilder.append(")");
 

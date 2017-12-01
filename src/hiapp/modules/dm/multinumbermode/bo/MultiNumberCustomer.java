@@ -174,6 +174,14 @@ public class MultiNumberCustomer {
         this.curDialPhoneType = curDialPhoneType;
     }
 
+    public Integer getCallLossCount() {
+        return callLossCount;
+    }
+
+    public void setCallLossCount(Integer callLossCount) {
+        this.callLossCount = callLossCount;
+    }
+
     public int getIsAppend() {
         return isAppend;
     }
@@ -202,6 +210,7 @@ public class MultiNumberCustomer {
         cloneItem.setCurPresetDialTime(curPresetDialTime);
         cloneItem.setCurDialPhoneType(curDialPhoneType);
         cloneItem.setNextDialPhoneType(nextDialPhoneType);
+        cloneItem.setCallLossCount(callLossCount);
         cloneItem.setIsAppend(isAppend);
 
         //
@@ -234,6 +243,7 @@ public class MultiNumberCustomer {
     Date   curPresetDialTime;          // NOTE: 预约拨打时间 或者 重拨时间
     Integer    curDialPhoneType;
     Integer    nextDialPhoneType;
+    Integer    callLossCount;
     int    isAppend;
 
     Map<Integer, PhoneDialInfo> mapPhoneTypeVsPhoneInfo = new HashMap<Integer, PhoneDialInfo>();

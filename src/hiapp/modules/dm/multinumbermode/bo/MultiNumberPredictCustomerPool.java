@@ -72,6 +72,10 @@ public class MultiNumberPredictCustomerPool {
         customerWaitPool.add(customer.getModifyUserId(), customer);
     }
 
+    public void waitPoolPostProcess() {
+        customerWaitPool.postProcess();
+    }
+
 
     public void clear() {
         customerSharePool.clear();

@@ -4,10 +4,7 @@ import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class CustomerWaitPool {
@@ -41,11 +38,6 @@ public class CustomerWaitPool {
     Long earliestResultTimeSlot;
 
     public CustomerWaitPool() {
-        Date now =  new Date();
-        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-
         mapOutboundResultWaitSubmitCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
         mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
 
@@ -224,7 +216,7 @@ public class CustomerWaitPool {
             for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
+                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -245,8 +237,7 @@ public class CustomerWaitPool {
             for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.lostProc(customerItem);  // 呼损处理
-                    multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
+                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -267,7 +258,7 @@ public class CustomerWaitPool {
             for (MultiNumberCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.addCustomerToSharePool(customerItem);
+                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);  // 呼损处理
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -275,6 +266,31 @@ public class CustomerWaitPool {
                 removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());
             }
+        }
+    }
+
+    public void postProcess() {
+        Date now =  new Date();
+        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+
+        Set<Long> phoneConnectTimeSlotSet = mapTimeOutWaitPhoneConnectCustomerPool.keySet();
+        for (Long timeSlot : phoneConnectTimeSlotSet) {
+            if (timeSlot < earliestPhoneConnectTimeSlot)
+                earliestPhoneConnectTimeSlot = timeSlot;
+        }
+
+        Set<Long> screenPopupTimeSlotSet = mapTimeOutWaitScreenPopUpCustomerPool.keySet();
+        for (Long timeSlot : screenPopupTimeSlotSet) {
+            if (timeSlot < earliestScreenPopUpTimeSlot)
+                earliestScreenPopUpTimeSlot = timeSlot;
+        }
+
+        Set<Long> resultTimeSlotSet = mapTimeOutWaitOutboundResultCustomerPool.keySet();
+        for (Long timeSlot : resultTimeSlotSet) {
+            if (timeSlot < earliestResultTimeSlot)
+                earliestResultTimeSlot = timeSlot;
         }
     }
 

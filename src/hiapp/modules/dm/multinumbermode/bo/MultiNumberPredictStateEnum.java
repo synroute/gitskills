@@ -9,6 +9,7 @@ public enum MultiNumberPredictStateEnum {
     PRESET_DIAL("PRESET_DIAL"),   // 预约拨打状态
     WAIT_REDIAL("WAIT_REDIAL"),   // 等待重拨状态, 外呼策略处理结果
     LOSS_WAIT_REDIAL("LOSS_WAIT_REDIAL"),   //呼损重拨状态
+    HIDIALER_LOSS_WAIT_REDIAL("HIDIALER_LOSS_WAIT_REDIAL"),   //HIDIALER呼损重拨状态
     FINISHED("FINISHED"),      // 本客户拨打完成
     REVERT("REVERT"),         // 回退状态
 
@@ -43,6 +44,9 @@ public enum MultiNumberPredictStateEnum {
 
         if (MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL.getName().equals(columnValue))
             return MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL;
+
+        if (MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL.getName().equals(columnValue))
+            return MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL;
 
         if (MultiNumberPredictStateEnum.FINISHED.getName().equals(columnValue))
             return MultiNumberPredictStateEnum.FINISHED;

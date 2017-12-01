@@ -180,7 +180,7 @@ public class MultiNumberOutboundDataManage {
     /**
      *   呼损处理
      */
-    public void lostProc(MultiNumberCustomer item) {
+    public void lostProc(MultiNumberCustomer item, MultiNumberPredictStateEnum lossState) {
         String dialType = "dialType";
         String customerCallId = "customerCallId";
 
@@ -189,22 +189,25 @@ public class MultiNumberOutboundDataManage {
 
         Date now = new Date();
 
+        item.setCallLossCount(item.getCallLossCount() + 1);
+        if (item.getCallLossCount() < Constants.MAX_CALL_LOSS_COUNT) {
+            item.setState(lossState);
+        } else {
+            Integer nextDialPhoneType = customerPool.calcNextDialPhoneType(item);
+            if (null != nextDialPhoneType) {
+                item.setState(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
+                item.setNextDialPhoneType(nextDialPhoneType);
+            } else {
+                item.setState(MultiNumberPredictStateEnum.FINISHED);
+            }
+        }
 
-//        item.setCallLossCount(item.getCallLossCount()+1);
-//        if (item.getCallLossCount() >= Constants.MAX_CALL_LOSS_COUNT) {
-//            item.setState(HidialerModeCustomerStateEnum.LOSS_FINISHED);
-//        } else {
-//            item.setState(lossState);
-//
-//            // 放回共享池
-//            addCustomerToSharePool(item);
-//        }
+        if (!MultiNumberPredictStateEnum.FINISHED.equals(item.getState())) {
+            addCustomerToSharePool(item);
+        }
 
-
-        item.setState(MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);
         item.setModifyTime(now);
         item.setModifyId(originModifyId + 1);
-
 
         multiNumberPredictModeDAO.updateCustomerShareForOutboundResult(item);
 
@@ -413,6 +416,7 @@ public class MultiNumberOutboundDataManage {
         shareCustomerStateList.add(MultiNumberPredictStateEnum.APPENDED);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);
+        shareCustomerStateList.add(MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.REVERT);
 
         List<MultiNumberPredictStateEnum> shareStateListWithDialTime = new ArrayList<MultiNumberPredictStateEnum>();
@@ -474,6 +478,8 @@ public class MultiNumberOutboundDataManage {
                 addCustomerToWaitPool(customerItem);
             }
         }
+
+        waitPoolPostProcess();
     }
 
     // 用于共享批次的启用，根据共享批次，不会导致重复加载
@@ -497,6 +503,7 @@ public class MultiNumberOutboundDataManage {
         //shareCustomerStateList.add(MultiNumberPredictStateEnum.APPENDED);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);
+        shareCustomerStateList.add(MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberPredictStateEnum.REVERT);
 
         List<MultiNumberPredictStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberPredictStateEnum>();
@@ -541,6 +548,10 @@ public class MultiNumberOutboundDataManage {
         System.out.println("wait result multinumber customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
+    }
+
+    private void waitPoolPostProcess() {
+        customerPool.waitPoolPostProcess();
     }
 
     /**
