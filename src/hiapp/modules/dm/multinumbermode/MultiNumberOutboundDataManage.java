@@ -197,6 +197,7 @@ public class MultiNumberOutboundDataManage {
             if (null != nextDialPhoneType) {
                 item.setState(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
                 item.setNextDialPhoneType(nextDialPhoneType);
+                item.setCallLossCount(0);
             } else {
                 item.setState(MultiNumberPredictStateEnum.FINISHED);
             }
@@ -344,6 +345,7 @@ public class MultiNumberOutboundDataManage {
             if (null != nextDialPhoneType) {
                 item.setState(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
                 item.setNextDialPhoneType(nextDialPhoneType);
+                item.setCallLossCount(0);
             } else {
                 item.setState(MultiNumberPredictStateEnum.FINISHED);
             }
@@ -367,6 +369,7 @@ public class MultiNumberOutboundDataManage {
                 if (null != nextDialPhoneType) {
                     item.setState(MultiNumberPredictStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
                     item.setNextDialPhoneType(nextDialPhoneType);
+                    item.setCallLossCount(0);
                 } else {
                     item.setState(MultiNumberPredictStateEnum.FINISHED);
                 }
