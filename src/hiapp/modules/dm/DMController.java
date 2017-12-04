@@ -11,7 +11,9 @@ import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dm.util.XMLUtil;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBusiness;
+import hiapp.modules.dmsetting.data.DmBizAutomaticRepository;
 import hiapp.modules.dmsetting.data.DmBizRepository;
+import hiapp.modules.dmsetting.result.DMBizAutomaticColumns;
 import hiapp.system.buinfo.User;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -39,6 +41,9 @@ public class DMController {
 
     @Autowired
     private DmBizRepository dmBizRepository;
+
+    @Autowired
+    DmBizAutomaticRepository dmBizAutomaticRepository;
 
     @Autowired
     DMDAO dmDao;
@@ -105,6 +110,16 @@ public class DMController {
         if (null == dialTime)
             dialTime = new Date();
 
+        Map<String, String> mapCustomizedResultColumn = new HashMap<String, String>();
+        List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
+        dmBizAutomaticRepository.getResultColumns(listDMBizAutomaticColumns, strBizId);
+        for (DMBizAutomaticColumns column : listDMBizAutomaticColumns) {
+            if (column.getFixedColumn().equals("1"))
+                continue;
+
+            mapCustomizedResultColumn.put(column.getColumnName(), (String)resultData.get(column.getColumnName()));
+        }
+
         String customerCallId = (String) resultData.get("CUSTOMERCALLID");
 
         //
@@ -116,18 +131,17 @@ public class DMController {
         if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
             return manualModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
                     shareBatchId, importBatchId, customerId, resultCodeType, resultCode,
-                    isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
+                    isPreset, presetTime, dialType, dialTime, customerCallId, mapCustomizedResultColumn, jsonCustomerInfo);
 
         } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
             return hidialerModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
                     shareBatchId, importBatchId, customerId, resultCodeType, resultCode,
-                    isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
-
+                    isPreset, presetTime, dialType, dialTime, customerCallId, mapCustomizedResultColumn, jsonCustomerInfo);
 
         } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
             return singleNumberModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
                     shareBatchId, importBatchId, customerId, resultCodeType, resultCode,
-                    isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
+                    isPreset, presetTime, dialType, dialTime, customerCallId, mapCustomizedResultColumn, jsonCustomerInfo);
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
 
@@ -137,7 +151,7 @@ public class DMController {
             String strPhoneType = (String)map.get("phoneType");
             return multiNumberModeController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
                     shareBatchId, importBatchId, customerId, strPhoneType, resultCodeType, resultCode,
-                    isPreset, presetTime, dialType, dialTime, customerCallId, jsonCustomerInfo);
+                    isPreset, presetTime, dialType, dialTime, customerCallId, mapCustomizedResultColumn, jsonCustomerInfo);
         }
 
         return "";

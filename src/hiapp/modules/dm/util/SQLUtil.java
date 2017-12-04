@@ -7,10 +7,7 @@ import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class SQLUtil {
 
@@ -58,6 +55,17 @@ public class SQLUtil {
                 sb.append(",");
         }
 
+        return sb.toString();
+    }
+
+    public static String stringCollectionToSqlString(Collection<String> stringCollection) {
+        StringBuilder sb = new StringBuilder();
+        for (String str: stringCollection) {
+            sb.append("'").append(str).append("'");
+            sb.append(",");
+        }
+
+        sb.deleteCharAt(sb.length()-1); // 移除最后的逗号
         return sb.toString();
     }
 

@@ -8,6 +8,10 @@ import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMBusiness;
+import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
+import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
+import hiapp.system.worksheet.bean.WorkSheet;
+import hiapp.system.worksheet.bean.WorkSheetColumn;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -17,16 +21,21 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.sql.SQLException;
+import java.util.*;
 
 @Repository
 public class DMDAO extends BaseRepository {
 
     @Autowired
     DataImportJdbc dataImportJdbc;
+
+    @Autowired
+    private DmWorkSheetRepository dmWorkSheetRepository;
+
+    @Autowired
+    WorkSheet workSheet;
+
 
     /*
      *  所有业务的共享批次
@@ -346,13 +355,18 @@ public class DMDAO extends BaseRepository {
      */
     public Boolean insertDMResult(int bizId, String sourceId, String importBatchId, String customerId, int modifyId,
                                   String modifyUserId, String dialType, Date dialTime, String customerCallId,
-                                  String resultCodeType, String resultCode) {
+                                  String resultCodeType, String resultCode, Map<String, String> mapCustomizedResultColumn) {
 
         String tableName = String.format("HAU_DM_B%dC_RESULT", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
         sqlBuilder.append(" (ID, SOURCEID, IID, CID, MODIFYID, MODIFYUSERID, MODIFYTIME, MODIFYLAST, DIALTYPE, " +
-                                "DIALTIME, CUSTOMERCALLID, ENDCODETYPE, ENDCODE) VALUES ( ");
+                                "DIALTIME, CUSTOMERCALLID, ENDCODETYPE, ENDCODE");
+        if (null != mapCustomizedResultColumn && !mapCustomizedResultColumn.isEmpty()) {
+            sqlBuilder.append(", " + SQLUtil.stringCollectionToSqlString(mapCustomizedResultColumn.keySet()));
+        }
+
+        sqlBuilder.append(" ) VALUES ( ");
         sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
         sqlBuilder.append(SQLUtil.getSqlString(sourceId)).append(",");;
         sqlBuilder.append(SQLUtil.getSqlString(importBatchId)).append(",");;
@@ -366,6 +380,10 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(customerCallId)).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(resultCodeType)).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(resultCode));
+        if (null != mapCustomizedResultColumn && !mapCustomizedResultColumn.isEmpty()) {
+            sqlBuilder.append(", " + SQLUtil.stringCollectionToSqlString(mapCustomizedResultColumn.values()));
+        }
+
         sqlBuilder.append(")");
 
         System.out.println(sqlBuilder.toString());

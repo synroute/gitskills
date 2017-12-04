@@ -152,7 +152,8 @@ public class SingleNumberOutboundDataManage {
     public String submitOutboundResult(String userId, int bizId,
                        String shareBatchId, String importBatchId, String customerId,
                        String resultCodeType, String resultCode, Boolean isPreset, Date presetTime,
-                       String dialType, Date dialTime, String customerCallId, String customerInfo) {
+                       String dialType, Date dialTime, String customerCallId,
+                       Map<String, String> mapCustomizedResultColumn, String customerInfo) {
 
         SingleNumberModeShareCustomerItem originCustomerItem = removeWaitCustomer(userId, bizId, importBatchId, customerId);
 
@@ -170,7 +171,7 @@ public class SingleNumberOutboundDataManage {
         dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
         dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
                           originCustomerItem.getModifyId() + 1, userId, dialType, dialTime,
-                            customerCallId, resultCodeType, resultCode);
+                            customerCallId, resultCodeType, resultCode, mapCustomizedResultColumn);
 
         // 插入导入客户表
         dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, originCustomerItem.getModifyId() + 1);

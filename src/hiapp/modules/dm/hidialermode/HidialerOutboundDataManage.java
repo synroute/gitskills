@@ -187,7 +187,7 @@ public class HidialerOutboundDataManage {
 
     public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId,
                                        String resultCodeType, String resultCode,
-                                       String dialType, Date dialTime, String customerCallId, String customerInfo) {
+                                       String dialType, Date dialTime, String customerCallId, Map<String, String> mapCustomizedResultColumn, String customerInfo) {
 
         HidialerModeCustomer originCustomer = customerWaitPool.removeWaitCustomer(
                 HiDialerUserId, bizId, importBatchId, customerId);
@@ -212,7 +212,7 @@ public class HidialerOutboundDataManage {
         dmDAO.updateDMResult(bizId, originCustomer.getShareBatchId(), importBatchId, customerId, originCustomer.getModifyId()); // MODIFYLAST 0
         dmDAO.insertDMResult(bizId, originCustomer.getShareBatchId(), importBatchId, customerId,
                 originCustomer.getModifyId() + 1, userId, dialType, dialTime, customerCallId,
-                resultCodeType, resultCode);
+                resultCodeType, resultCode, mapCustomizedResultColumn);
 
         // 插入导入客户表
         if (null != customerInfo) {

@@ -70,7 +70,8 @@ public class ManualOutboundDataManage {
 
     public String submitOutboundResult(String userId, int bizId, String shareBatchId, String importBatchId, String customerId,
                                        String resultCodeType, String resultCode, Boolean isPreset, Date presetTime, String dialType,
-                                       Date dialTime, String customerCallId, String customerInfo) {
+                                       Date dialTime, String customerCallId,
+                                       Map<String, String> mapCustomizedResultColumn, String customerInfo) {
 
         //提交：insert导入表、结果表、预约表（如果外呼页面有预约勾选）
 
@@ -78,7 +79,7 @@ public class ManualOutboundDataManage {
 
         dmDAO.insertDMResult(bizId, shareBatchId, importBatchId, customerId,
                 modifyId, userId, dialType, dialTime,
-                customerCallId, resultCodeType, resultCode);
+                customerCallId, resultCodeType, resultCode, mapCustomizedResultColumn);
 
         // 插入导入客户表
         dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, modifyId);

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class HidialerModeController {
@@ -88,15 +89,16 @@ public class HidialerModeController {
     }
 
     public String submitOutboundResult(String userId, int bizId, String shareBatchId, String importBatchId,
-                       String customerId, String resultCodeType, String resultCode,
-                       Boolean isPreset, Date presetTime,
-                       String dialType, Date dialTime, String customerCallId, String jsonCustomerInfo) {
+                                       String customerId, String resultCodeType, String resultCode,
+                                       Boolean isPreset, Date presetTime,
+                                       String dialType, Date dialTime, String customerCallId,
+                                       Map<String, String> mapCustomizedResultColumn, String jsonCustomerInfo) {
 
         ServiceResult serviceresult = new ServiceResult();
 
         hidialerOutboundDataManage.submitOutboundResult(userId, bizId, importBatchId, customerId,
                 resultCodeType, resultCode,
-                dialType, dialTime, customerCallId, jsonCustomerInfo);
+                dialType, dialTime, customerCallId, mapCustomizedResultColumn, jsonCustomerInfo);
 
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);

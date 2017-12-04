@@ -58,13 +58,14 @@ public class SingleNumberModeController {
 
     public String submitOutboundResult(String userId, int bizId, String shareBatchId, String importBatchId,
                         String customerId, String resultCodeType, String resultCode,Boolean isPreset,Date presetTime,
-                        String dialType, Date dialTime, String customerCallId, String jsonCustomerInfo) {
+                        String dialType, Date dialTime, String customerCallId,
+                        Map<String, String> mapCustomizedResultColumn, String jsonCustomerInfo) {
 
         ServiceResult serviceresult = new ServiceResult();
 
         singleNumberOutboundDataManage.submitOutboundResult(userId, bizId, shareBatchId, importBatchId,
                 customerId, resultCodeType, resultCode, isPreset, presetTime, dialType, dialTime, customerCallId,
-                jsonCustomerInfo);
+                mapCustomizedResultColumn, jsonCustomerInfo);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();

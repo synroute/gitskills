@@ -118,14 +118,14 @@ public class MultiNumberModeController {
 
     public String submitOutboundResult(String userId, int bizId, String shareBatchId, String importBatchId,
                        String customerId, String strPhoneType, String resultCodeType, String resultCode,
-                       Boolean isPreset, Date presetTime,
-                       String dialType, Date dialTime, String customerCallId, String jsonCustomerInfo) {
+                       Boolean isPreset, Date presetTime, String dialType, Date dialTime, String customerCallId,
+                       Map<String, String> mapCustomizedResultColumn, String jsonCustomerInfo) {
 
         ServiceResult serviceresult = new ServiceResult();
 
         multiNumberOutboundDataManage.submitOutboundResult(userId, bizId, importBatchId, customerId,
                 Integer.valueOf(strPhoneType), resultCodeType, resultCode, isPreset, presetTime,
-                dialType, dialTime, customerCallId, jsonCustomerInfo);
+                dialType, dialTime, customerCallId, mapCustomizedResultColumn, jsonCustomerInfo);
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();

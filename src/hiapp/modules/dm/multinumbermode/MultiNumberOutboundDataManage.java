@@ -110,7 +110,8 @@ public class MultiNumberOutboundDataManage {
         }
 
         return submitOutboundResult(userId, bizId, importBatchId, customerId, phoneType, resultCodeType, resultCode,
-                null, null, null, null, null, null);
+                null, null, null, null, null,
+                null, null);
     }
 
     public String submitAgentScreenPopUp(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
@@ -150,7 +151,7 @@ public class MultiNumberOutboundDataManage {
 
     public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId, int phoneType,
                                        String resultCodeType, String resultCode, Boolean isPreset, Date presetTime,
-                                       String dialType, Date dialTime, String customerCallId, String customerInfo) {
+                                       String dialType, Date dialTime, String customerCallId, Map<String, String> mapCustomizedResultColumn, String customerInfo) {
 
         MultiNumberCustomer originCustomerItem = customerPool.removeWaitCustomer(
                 HiDialerUserId, bizId, importBatchId, customerId, phoneType);
@@ -165,7 +166,7 @@ public class MultiNumberOutboundDataManage {
             dmDAO.updateDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId, originCustomerItem.getModifyId()); // MODIFYLAST 0
             dmDAO.insertDMResult(bizId, originCustomerItem.getShareBatchId(), importBatchId, customerId,
                     originCustomerItem.getModifyId() + 1, userId, dialType, dialTime, customerCallId,
-                    resultCodeType, resultCode);
+                    resultCodeType, resultCode, mapCustomizedResultColumn);
 
             // 插入导入客户表
             if (null != customerInfo) {
