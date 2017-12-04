@@ -361,7 +361,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(item.getCurDialPhone())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getCurPresetDialTime())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getCurDialPhoneType())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getNextDialPhoneType()));
+        sqlBuilder.append(SQLUtil.getSqlString(item.getNextDialPhoneType())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getCallLossCount()));
 
         sqlBuilder.append(")");
