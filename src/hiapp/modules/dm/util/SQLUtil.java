@@ -69,6 +69,16 @@ public class SQLUtil {
         return sb.toString();
     }
 
+    public static String stringCollectionToFieldString(Collection<String> stringCollection) {
+        StringBuilder sb = new StringBuilder();
+        for (String str: stringCollection) {
+            sb.append(str).append(",");
+        }
+
+        sb.deleteCharAt(sb.length()-1); // 移除最后的逗号
+        return sb.toString();
+    }
+
     public static String shareStatelistToSqlString(List<SingleNumberModeShareCustomerStateEnum> shareCustomerStateList) {
         StringBuilder sb = new StringBuilder();
         for (int indx = 0; indx < shareCustomerStateList.size(); indx++) {

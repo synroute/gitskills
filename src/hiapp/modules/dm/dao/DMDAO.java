@@ -363,7 +363,7 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append(" (ID, SOURCEID, IID, CID, MODIFYID, MODIFYUSERID, MODIFYTIME, MODIFYLAST, DIALTYPE, " +
                                 "DIALTIME, CUSTOMERCALLID, ENDCODETYPE, ENDCODE");
         if (null != mapCustomizedResultColumn && !mapCustomizedResultColumn.isEmpty()) {
-            sqlBuilder.append(", " + SQLUtil.stringCollectionToSqlString(mapCustomizedResultColumn.keySet()));
+            sqlBuilder.append(", " + SQLUtil.stringCollectionToFieldString(mapCustomizedResultColumn.keySet()));
         }
 
         sqlBuilder.append(" ) VALUES ( ");
