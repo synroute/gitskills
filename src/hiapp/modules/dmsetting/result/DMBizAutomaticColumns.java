@@ -10,6 +10,8 @@ public class DMBizAutomaticColumns {
 	private String worksheetNameCh;
 	private String columnName;
 	private String columnNameCh;
+	public	String		fixedColumn;
+
 	public String getWorksheetName() {
 		return worksheetName;
 	}
@@ -40,4 +42,6 @@ public class DMBizAutomaticColumns {
 	public void setWorksheetId(String worksheetId) {
 		this.worksheetId = worksheetId;
 	}
+	public String getFixedColumn() { return fixedColumn; }
+	public void setFixedColumn(String fixedColumn) { this.fixedColumn = fixedColumn; }
 }

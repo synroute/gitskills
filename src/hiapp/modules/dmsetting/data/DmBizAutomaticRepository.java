@@ -160,6 +160,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					dmBizAutomaticColumns.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(workSheetId));
 					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
 					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+					dmBizAutomaticColumns.setFixedColumn(workSheetColumn.getFixedColumn());
 					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
 				
 			}
