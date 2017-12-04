@@ -148,7 +148,6 @@ public class ManualOutboundDataManage {
     }
 
     public void timeoutProc() {
-        System.out.println("ManualOutboundDataManage TimeOut ...");
     }
 
     private void loadCustomersDaily(List<ShareBatchItem> shareBatchItems) {

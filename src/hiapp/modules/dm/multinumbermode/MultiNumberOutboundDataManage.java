@@ -274,7 +274,6 @@ public class MultiNumberOutboundDataManage {
     }
 
     public void timeoutProc() {
-        System.out.println("MultiNumberOutboundDataManage TimeOut ...");
         customerPool.timeoutProc();
     }
 

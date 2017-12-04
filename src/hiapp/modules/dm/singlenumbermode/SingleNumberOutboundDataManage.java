@@ -749,7 +749,6 @@ public class SingleNumberOutboundDataManage {
     }
 
     public void timeoutProc() {
-        System.out.println("SingleNumberOutboundDataManage TimeOut ...");
         Date now =  new Date();
         Long curTimeSlot = now.getTime()/Constants.timeSlotSpan;
         Long timeoutTimeSlot = curTimeSlot - Constants.timeoutThreshold/Constants.timeSlotSpan;
