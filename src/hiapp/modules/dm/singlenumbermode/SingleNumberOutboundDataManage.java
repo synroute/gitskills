@@ -653,7 +653,7 @@ public class SingleNumberOutboundDataManage {
 
         queue.put(newCustomerItem);
 
-        System.out.println("add customer: bizId[" + newCustomerItem.getBizId()
+        System.out.println("M3 add customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
     }

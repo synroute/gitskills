@@ -39,6 +39,11 @@ public class ManualModeCustomerPool {
     }
 
     public void addCustomer(ManualModeCustomer customer) {
+
+        System.out.println("M1 add customer: bizId[" + customer.getBizId()
+                + "] shareId[" + customer.getSourceId() + "] IID[" + customer.getImportBatchId()
+                + "] CID[" + customer.getCustomerId() + "] ");
+
         Map<String, PriorityBlockingQueue<ManualModeCustomer>> oneBizCustomerSharePool = mapCustomerSharePool.get(customer.getBizId());
         if (null == oneBizCustomerSharePool) {
             oneBizCustomerSharePool = new HashMap<String, PriorityBlockingQueue<ManualModeCustomer>>();

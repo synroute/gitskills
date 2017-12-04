@@ -496,7 +496,7 @@ public class HidialerOutboundDataManage {
     public void addCustomerToSharePool(HidialerModeCustomer newCustomerItem) {
         customerPool.add(newCustomerItem);
 
-        System.out.println("add M2 customer: bizId[" + newCustomerItem.getBizId()
+        System.out.println("M2 add customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "] " );
     }
@@ -504,7 +504,7 @@ public class HidialerOutboundDataManage {
     private void addCustomerToWaitPool(String userId, HidialerModeCustomer newCustomerItem) {
         customerWaitPool.add(userId, newCustomerItem);
 
-        System.out.println("wait result multinumber customer: bizId[" + newCustomerItem.getBizId()
+        System.out.println("M2 add wait customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
     }
