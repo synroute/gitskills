@@ -19,7 +19,7 @@ import com.google.gson.JsonParser;
 
 import hiapp.modules.dmsetting.DMEndCode;
 import hiapp.system.dictionary.Dict;
-import hiapp.system.dictionary.dictTreeBranch;
+import hiapp.system.dictionary.DictTreeBranch;
 import hiapp.system.dictionary.data.DictRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
@@ -75,7 +75,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 				stmt.executeUpdate();
 				StringBuffer errMessage=new StringBuffer();
 				//创建字典表
-				List<dictTreeBranch> listDictTreeBranch=new ArrayList<dictTreeBranch>();
+				List<DictTreeBranch> listDictTreeBranch=new ArrayList<DictTreeBranch>();
 			    dictManager.getDictionaryClassBySearchKey("数据管理结束码",listDictTreeBranch);
 			    if(listDictTreeBranch.size()==0)
 			    {
