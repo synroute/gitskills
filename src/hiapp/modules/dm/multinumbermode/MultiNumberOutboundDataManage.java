@@ -274,7 +274,6 @@ public class MultiNumberOutboundDataManage {
     }
 
     public void timeoutProc() {
-        System.out.println("MultiNumberOutboundDataManage TimeOut ...");
         customerPool.timeoutProc();
     }
 
@@ -541,7 +540,7 @@ public class MultiNumberOutboundDataManage {
     public void addCustomerToSharePool(MultiNumberCustomer newCustomerItem) {
         Boolean ret = customerPool.add(newCustomerItem);
 
-        System.out.println("share multinumber customer: bizId[" + newCustomerItem.getBizId()
+        System.out.println("M6 add customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "] " + ret);
     }
@@ -549,7 +548,7 @@ public class MultiNumberOutboundDataManage {
     private void addCustomerToWaitPool(MultiNumberCustomer newCustomerItem) {
         customerPool.addWaitResultCustomer(newCustomerItem);
 
-        System.out.println("wait result multinumber customer: bizId[" + newCustomerItem.getBizId()
+        System.out.println("M6 add wait customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
     }

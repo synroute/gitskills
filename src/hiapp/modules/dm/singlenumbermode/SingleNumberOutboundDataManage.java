@@ -653,7 +653,7 @@ public class SingleNumberOutboundDataManage {
 
         queue.put(newCustomerItem);
 
-        System.out.println("add customer: bizId[" + newCustomerItem.getBizId()
+        System.out.println("M3 add customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
     }
@@ -749,7 +749,6 @@ public class SingleNumberOutboundDataManage {
     }
 
     public void timeoutProc() {
-        System.out.println("SingleNumberOutboundDataManage TimeOut ...");
         Date now =  new Date();
         Long curTimeSlot = now.getTime()/Constants.timeSlotSpan;
         Long timeoutTimeSlot = curTimeSlot - Constants.timeoutThreshold/Constants.timeSlotSpan;

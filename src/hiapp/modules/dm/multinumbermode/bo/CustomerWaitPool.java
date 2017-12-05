@@ -44,8 +44,12 @@ public class CustomerWaitPool {
         mapTimeOutWaitPhoneConnectCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
         mapTimeOutWaitScreenPopUpCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
         mapTimeOutWaitOutboundResultCustomerPool = new HashMap<Long, Map<String, MultiNumberCustomer>>();
-    }
 
+        Date now =  new Date();
+        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+    }
 
     public void add(String userId, MultiNumberCustomer customerItem) {
         Map<String, MultiNumberCustomer> mapWaitResultPool = mapOutboundResultWaitSubmitCustomerPool.get(userId);
@@ -270,11 +274,6 @@ public class CustomerWaitPool {
     }
 
     public void postProcess() {
-        Date now =  new Date();
-        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-
         Set<Long> phoneConnectTimeSlotSet = mapTimeOutWaitPhoneConnectCustomerPool.keySet();
         for (Long timeSlot : phoneConnectTimeSlotSet) {
             if (timeSlot < earliestPhoneConnectTimeSlot)

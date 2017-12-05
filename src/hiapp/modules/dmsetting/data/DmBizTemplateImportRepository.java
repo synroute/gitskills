@@ -29,7 +29,7 @@ import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.result.DMBizTemplateExcelColums;
 import hiapp.modules.dmsetting.result.DMBizTemplateImportTableColumns;
 import hiapp.modules.dmsetting.result.DMBizTemplateImportTableName;
-import hiapp.system.dictionary.dicItemsTreeBranch;
+import hiapp.system.dictionary.DicItemsTreeBranch;
 import hiapp.system.dictionary.data.DictRepository;
 import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.system.worksheet.bean.WorkSheetColumn;

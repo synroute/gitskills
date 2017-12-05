@@ -45,6 +45,11 @@ public class HidialerModeCustomerWaitPool {
         mapTimeOutWaitPhoneConnectCustomerPool = new HashMap<Long, Map<String, HidialerModeCustomer>>();
         mapTimeOutWaitScreenPopUpCustomerPool = new HashMap<Long, Map<String, HidialerModeCustomer>>();
         mapTimeOutWaitOutboundResultCustomerPool = new HashMap<Long, Map<String, HidialerModeCustomer>>();
+
+        Date now =  new Date();
+        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
     }
 
 
@@ -215,7 +220,6 @@ public class HidialerModeCustomerWaitPool {
     public void timeoutProc() {
         Date now =  new Date();
         Long curTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        System.out.println("m2 timeout proc: cur time slot " + curTimeSlot);
 
         // HiDialer 呼通超时处理
         Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2/Constants.timeSlotSpan;
@@ -282,11 +286,6 @@ public class HidialerModeCustomerWaitPool {
     }
 
     public void postProcess() {
-        Date now =  new Date();
-        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-
         Set<Long> phoneConnectTimeSlotSet = mapTimeOutWaitPhoneConnectCustomerPool.keySet();
         for (Long timeSlot : phoneConnectTimeSlotSet) {
             if (timeSlot < earliestPhoneConnectTimeSlot)

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 @Service
 public class DMService {
@@ -160,18 +161,63 @@ public class DMService {
     }
 
     private void setTimeOutRoutine(Long timeSlotSpan) {
-        timeoutTimer = new Timer();
-        timeoutTimerTask = new TimerTask() {
+        final TimerTask m1TimerTask = new TimerTask() {
             @Override
             public void run() {
-                singleNumberOutboundDataManage.timeoutProc();
-                multiNumberOutboundDataManage.timeoutProc();
-                manualOutboundDataManage.timeoutProc();
-                hidialerOutboundDataManage.timeoutProc();
+                System.out.println("M1 TimerTask...");
+                try {
+                    manualOutboundDataManage.timeoutProc();
+                } catch (Throwable exception) {
+                    System.out.println("M1 TimerTask XXX Exception ");
+                    exception.printStackTrace();
+                }
             }
         };
 
-        dailyTimer.scheduleAtFixedRate(timeoutTimerTask, timeSlotSpan, timeSlotSpan);
+        final TimerTask m2TimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("M2 TimerTask...");
+                try {
+                    hidialerOutboundDataManage.timeoutProc();
+                } catch (Throwable exception) {
+                    System.out.println("M2 TimerTask XXX Exception ");
+                    exception.printStackTrace();
+                }
+            }
+        };
+
+        final TimerTask m3TimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("M3 TimerTask...");
+                try {
+                    singleNumberOutboundDataManage.timeoutProc();
+                } catch (Throwable exception) {
+                    System.out.println("M3 TimerTask XXX Exception ");
+                    exception.printStackTrace();
+                }
+            }
+        };
+
+        final TimerTask m6TimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("M6 TimerTask...");
+                try {
+                    multiNumberOutboundDataManage.timeoutProc();
+                } catch (Throwable exception) {
+                    System.out.println("M6 TimerTask XXX Exception ");
+                    exception.printStackTrace();
+                }
+            }
+        };
+
+        ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+        pool.scheduleAtFixedRate(m1TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m2TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m3TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m6TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
     }
 
 }
