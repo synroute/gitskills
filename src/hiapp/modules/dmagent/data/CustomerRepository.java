@@ -603,6 +603,7 @@ public class CustomerRepository extends BaseRepository {
 					String fontFamily=next.get("fontFamily");
 					String fontSize=next.get("fontSize");
 					String fontWeight=next.get("fontWeight");
+					String width=next.get("width");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -619,6 +620,7 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontFamily", fontFamily);
 					map.put("fontSize", fontSize);
 					map.put("fontWeight", fontWeight);
+					map.put("width", width);
 					record.add(map);
 				}
 				result.add(record);
@@ -852,6 +854,7 @@ public class CustomerRepository extends BaseRepository {
 					String fontFamily=next.get("fontFamily");
 					String fontSize=next.get("fontSize");
 					String fontWeight=next.get("fontWeight");
+					String width=next.get("width");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -868,6 +871,7 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontFamily", fontFamily);
 					map.put("fontSize", fontSize);
 					map.put("fontWeight", fontWeight);
+					map.put("width", width);
 					record.add(map);
 				}
 				result.add(record);
@@ -1354,6 +1358,7 @@ public class CustomerRepository extends BaseRepository {
 					String fontFamily=next.get("fontFamily");
 					String fontSize=next.get("fontSize");
 					String fontWeight=next.get("fontWeight");
+					String width=next.get("width");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -1370,6 +1375,7 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontFamily", fontFamily);
 					map.put("fontSize", fontSize);
 					map.put("fontWeight", fontWeight);
+					map.put("width", width);
 					record.add(map);
 				}
 				result.add(record);
@@ -1800,6 +1806,7 @@ public class CustomerRepository extends BaseRepository {
 					String fontFamily=next.get("fontFamily");
 					String fontSize=next.get("fontSize");
 					String fontWeight=next.get("fontWeight");
+					String width=next.get("width");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -1816,6 +1823,7 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontFamily", fontFamily);
 					map.put("fontSize", fontSize);
 					map.put("fontWeight", fontWeight);
+					map.put("width", width);
 					record.add(map);
 				}
 				result.add(record);
@@ -2289,6 +2297,7 @@ public class CustomerRepository extends BaseRepository {
 					String fontFamily=next.get("fontFamily");
 					String fontSize=next.get("fontSize");
 					String fontWeight=next.get("fontWeight");
+					String width=next.get("width");
 					String type = next.get("dataType");
 					if (type != null && type.toLowerCase().contains("date")) {
 						map.put("value", simpleDateFormat.format(rs
@@ -2305,6 +2314,7 @@ public class CustomerRepository extends BaseRepository {
 					map.put("fontFamily", fontFamily);
 					map.put("fontSize", fontSize);
 					map.put("fontWeight", fontWeight);
+					map.put("width", width);
 					record.add(map);
 				}
 				result.add(record);
