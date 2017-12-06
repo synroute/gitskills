@@ -1,10 +1,10 @@
-package hiapp.modules.dm.multinumbermode.dao;
+package hiapp.modules.dm.multinumberredialmode.dao;
 
-import hiapp.modules.dm.bo.ShareBatchItem;
-import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
-import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
-import hiapp.modules.dm.multinumbermode.bo.PhoneDialInfo;
 import hiapp.modules.dm.bo.PhoneTypeDialSequence;
+import hiapp.modules.dm.bo.ShareBatchItem;
+import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialStateEnum;
+import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialCustomer;
+import hiapp.modules.dm.multinumberredialmode.bo.PhoneDialInfo;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.utils.DbUtil;
@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class MultiNumberPredictModeDAO extends BaseRepository {
+public class MultiNumberRedialDAO extends BaseRepository {
 
     @Autowired
     PhoneTypeDialSequence phoneTypeDialSequence;
 
     public Boolean getGivenBizCustomersByState(int bizId, List<ShareBatchItem> ShareBatchItems,
-                                               List<MultiNumberPredictStateEnum> shareDataStateList,
-                                      /*OUT*/List<MultiNumberCustomer> customerList) {
+                                               List<MultiNumberRedialStateEnum> shareDataStateList,
+                                      /*OUT*/List<MultiNumberRedialCustomer> customerList) {
         Connection dbConn = null;
         PreparedStatement stmt = null;
 
@@ -57,20 +57,20 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                     " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE, CALLLOSSCOUNT " +
                     "FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
-            sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberPredictStatelistToSqlString(shareDataStateList)).append(")");
+            sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberRedialStatelistToSqlString(shareDataStateList)).append(")");
 
             System.out.println(sqlBuilder.toString());
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                MultiNumberCustomer item = new MultiNumberCustomer();
+                MultiNumberRedialCustomer item = new MultiNumberRedialCustomer();
                 item.setId(rs.getInt(1));
                 item.setBizId(rs.getInt(2));
                 item.setShareBatchId(rs.getString(3));
                 item.setImportBatchId(rs.getString(4));
                 item.setCustomerId(rs.getString(5));
-                item.setState(MultiNumberPredictStateEnum.getFromString(rs.getString(6)));
+                item.setState(MultiNumberRedialStateEnum.getFromString(rs.getString(6)));
                 item.setModifyId(rs.getInt(7));
                 item.setModifyUserId(rs.getString(8));
                 item.setModifyTime(rs.getDate(9));
@@ -112,8 +112,8 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
     }
 
     public Boolean getGivenBizCustomersByStateAndNextDialTime(int bizId, List<ShareBatchItem> ShareBatchItems,
-                                               List<MultiNumberPredictStateEnum> shareDataStateList,
-                                               /*OUT*/List<MultiNumberCustomer> customerList) {
+                                               List<MultiNumberRedialStateEnum> shareDataStateList,
+                                               /*OUT*/List<MultiNumberRedialCustomer> customerList) {
         Connection dbConn = null;
         PreparedStatement stmt = null;
 
@@ -143,7 +143,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
                     " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE, CALLLOSSCOUNT " +
                     "FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
-            sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberPredictStatelistToSqlString(shareDataStateList)).append(")");
+            sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberRedialStatelistToSqlString(shareDataStateList)).append(")");
             sqlBuilder.append(" AND CURPRESETDIALTIME < ").append(SQLUtil.getSqlString(DateUtil.getNextDaySqlString()));
 
             System.out.println(sqlBuilder.toString());
@@ -151,13 +151,13 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                MultiNumberCustomer item = new MultiNumberCustomer();
+                MultiNumberRedialCustomer item = new MultiNumberRedialCustomer();
                 item.setId(rs.getInt(1));
                 item.setBizId(rs.getInt(2));
                 item.setShareBatchId(rs.getString(3));
                 item.setImportBatchId(rs.getString(4));
                 item.setCustomerId(rs.getString(5));
-                item.setState(MultiNumberPredictStateEnum.getFromString(rs.getString(6)));
+                item.setState(MultiNumberRedialStateEnum.getFromString(rs.getString(6)));
                 item.setModifyId(rs.getInt(7));
                 item.setModifyUserId(rs.getString(8));
                 item.setModifyTime(rs.getDate(9));
@@ -199,7 +199,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
     }
 
     // 更新客户共享状态
-    public Boolean updateCustomerShareState(int bizId, List<String> shareBatchIdList, MultiNumberPredictStateEnum state) {
+    public Boolean updateCustomerShareState(int bizId, List<String> shareBatchIdList, MultiNumberRedialStateEnum state) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM6", bizId);
 
@@ -225,7 +225,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         return true;
     }
 
-    public Boolean updateCustomerShareForOutboundResult(MultiNumberCustomer item) {
+    public Boolean updateCustomerShareForOutboundResult(MultiNumberRedialCustomer item) {
         String tableName = String.format("HAU_DM_B%dC_DATAM6", item.getBizId());
 
         //
@@ -277,7 +277,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         return true;
     }
 
-    public Boolean updateCustomerShareForExtract(MultiNumberCustomer item) {
+    public Boolean updateCustomerShareForExtract(MultiNumberRedialCustomer item) {
         String tableName = String.format("HAU_DM_B%dC_DATAM6", item.getBizId());
 
         //
@@ -314,7 +314,7 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         return true;
     }
 
-    public Boolean insertCustomerShareStateHistory(MultiNumberCustomer item) {
+    public Boolean insertCustomerShareStateHistory(MultiNumberRedialCustomer item) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM6_HIS", item.getBizId());
 

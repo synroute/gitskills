@@ -1,4 +1,4 @@
-package hiapp.modules.dm.multinumbermode.bo;
+package hiapp.modules.dm.bo;
 
 import hiapp.modules.dmsetting.DMBizPhoneType;
 import hiapp.modules.dmsetting.data.DmBizPhoneTypeRepository;

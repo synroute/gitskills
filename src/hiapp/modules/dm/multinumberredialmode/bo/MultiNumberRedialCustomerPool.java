@@ -1,4 +1,4 @@
-package hiapp.modules.dm.multinumbermode.bo;
+package hiapp.modules.dm.multinumberredialmode.bo;
 
 import hiapp.modules.dm.bo.PhoneTypeDialSequence;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,20 +10,20 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class MultiNumberPredictCustomerPool {
+public class MultiNumberRedialCustomerPool {
 
     @Autowired
     PhoneTypeDialSequence phoneTypeDialSequence;
     
     @Autowired
-    CustomerWaitPool customerWaitPool;
+    MultiNumberRedialCustomerWaitPool customerWaitPool;
 
     // bizId <==> {号码类型 <==> 号码类型对应的客户池}
     Map<Integer, Map<Integer, OnePhoneTypeCustomerPool>> customerSharePool;
 
 
-    public MultiNumberCustomer extractCustomer(String userId, int bizId) {
-        MultiNumberCustomer customer;
+    public MultiNumberRedialCustomer extractCustomer(String userId, int bizId) {
+        MultiNumberRedialCustomer customer;
 
         for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
             int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
@@ -47,7 +47,7 @@ public class MultiNumberPredictCustomerPool {
         return null;
     }
 
-    public Boolean add(MultiNumberCustomer customer) {
+    public Boolean add(MultiNumberRedialCustomer customer) {
         Integer nextDialPhoneType = initNextDialPhoneType(customer);
         if (null == nextDialPhoneType)
             return false;
@@ -69,7 +69,7 @@ public class MultiNumberPredictCustomerPool {
         return true;
     }
 
-    public void addWaitResultCustomer(MultiNumberCustomer customer) {
+    public void addWaitResultCustomer(MultiNumberRedialCustomer customer) {
         customerWaitPool.add(customer.getModifyUserId(), customer);
     }
 
@@ -82,11 +82,11 @@ public class MultiNumberPredictCustomerPool {
         customerSharePool.clear();
     }
 
-    public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
+    public MultiNumberRedialCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
         return customerWaitPool.removeWaitCustomer(userId, bizId, importBatchId, customerId);
     }
 
-    public MultiNumberCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
+    public MultiNumberRedialCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
         return customerWaitPool.getWaitCustome(userId, bizId, importBatchId, customerId);
     }
 
@@ -136,15 +136,15 @@ public class MultiNumberPredictCustomerPool {
 
     }
 
-    public void hidialerPhoneConnect(MultiNumberCustomer customer, Date originModifyTime) {
+    public void hidialerPhoneConnect(MultiNumberRedialCustomer customer, Date originModifyTime) {
         customerWaitPool.hidialerPhoneConnect(customer, originModifyTime);
     }
 
-    public void agentScreenPopUp(MultiNumberCustomer customer, Date originModifyTime) {
+    public void agentScreenPopUp(MultiNumberRedialCustomer customer, Date originModifyTime) {
         customerWaitPool.agentScreenPopUp(customer, originModifyTime);
     }
 
-    public Integer calcNextDialPhoneType(MultiNumberCustomer customer) {
+    public Integer calcNextDialPhoneType(MultiNumberRedialCustomer customer) {
         Integer curPhoneType = customer.getCurDialPhoneType();
         if (null == curPhoneType || 0 == curPhoneType)
             return  null;
@@ -165,7 +165,7 @@ public class MultiNumberPredictCustomerPool {
         return null;
     }
 
-    public Integer initNextDialPhoneType(MultiNumberCustomer customer) {
+    public Integer initNextDialPhoneType(MultiNumberRedialCustomer customer) {
         Integer nextPhoneType = customer.getNextDialPhoneType();
         if (null != nextPhoneType && 0 != nextPhoneType)
             return nextPhoneType;
