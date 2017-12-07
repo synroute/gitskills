@@ -415,7 +415,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		if (type.equals("分配")) {
 			//循环获取导入表列
 			for (DMBizAutomaticColumns dmBizAutomaticColumns : listImportColumns) {
-				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYCLASS")&&
+				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYLAST")&&
 						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")) {
 					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
 				}
@@ -443,7 +443,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		}else if (type.equals("回收")) {
 			//循环获取导入表列
 			for (DMBizAutomaticColumns dmBizAutomaticColumns : listImportColumns) {
-				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYCLASS")&&
+				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYLAST")&&
 						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")) {
 					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
 				}
@@ -453,10 +453,12 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				if (!dmBizAutomaticColumns.getColumnName().equals("IID")&&
 						!dmBizAutomaticColumns.getColumnName().equals("CID")&&
 						!dmBizAutomaticColumns.getColumnName().equals("MODIFYTIME")&&
+						!dmBizAutomaticColumns.getColumnName().equals("ID")&&
 						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")&&
 						!dmBizAutomaticColumns.getColumnName().equals("MODIFYLAST")&&
 						!dmBizAutomaticColumns.getColumnName().equals("ID")&&
-						!dmBizAutomaticColumns.getColumnName().equals("SOURCEID")) {
+						!dmBizAutomaticColumns.getColumnName().equals("SOURCEID")&&
+						!dmBizAutomaticColumns.getColumnName().equals("MODIFYUSERID")) {
 					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
 				}
 			}
@@ -466,15 +468,15 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			this.getPoolColumns(listPoolColumns,bizId);
 			listDMBizAutomaticColumns.addAll(listPoolColumns);
 			//获取预约表列信息
-			List<DMBizAutomaticColumns> listPresetColumns = new ArrayList<DMBizAutomaticColumns>();
-			
-			this.getPresetColumns(listPresetColumns,bizId);
-			listDMBizAutomaticColumns.addAll(listPresetColumns);
+//			List<DMBizAutomaticColumns> listPresetColumns = new ArrayList<DMBizAutomaticColumns>();
+//			
+//			this.getPresetColumns(listPresetColumns,bizId);
+//			listDMBizAutomaticColumns.addAll(listPresetColumns);
 		} 
 			else if(type.equals("导出")){
 			//循环获取导入表列
 			for (DMBizAutomaticColumns dmBizAutomaticColumns : listImportColumns) {
-				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYCLASS")&&
+				if (!dmBizAutomaticColumns.getColumnName().equals("ID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYLAST")&&
 						!dmBizAutomaticColumns.getColumnName().equals("MODIFYID")&&!dmBizAutomaticColumns.getColumnName().equals("MODIFYUSERID")) {
 					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
 				}
