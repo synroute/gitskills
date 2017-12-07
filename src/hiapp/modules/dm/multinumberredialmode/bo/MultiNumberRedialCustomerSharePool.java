@@ -157,8 +157,7 @@ public class MultiNumberRedialCustomerSharePool {
 
     public void add(MultiNumberRedialCustomer customer) {
         PriorityBlockingQueue<MultiNumberRedialCustomer> queue;
-        if (MultiNumberRedialStateEnum.PRESET_DIAL.equals(customer.getState())
-            || MultiNumberRedialStateEnum.WAIT_REDIAL.equals(customer.getState()) ) {
+        if (MultiNumberRedialStateEnum.PRESET_DIAL.equals(customer.getState())) {
             mapPreseCustomerSharePool.put(customer);
         } else {
             mapCustomerSharePool.put(customer);

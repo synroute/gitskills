@@ -71,31 +71,6 @@ public class MultiNumberRedialController {
         return XMLUtil.outputDocumentToString(doc);
     }
 
-    public String hiDialerDialResultNotify(int bizId, String importBatchId, String customerId, String shareBatchId,
-                                           String phoneType, String resultCode, String customerCallID)
-    {
-        multiNumberOutboundDataManage.hiDialerDialResultNotify(Constants.HiDialerUserId, bizId, importBatchId,
-                customerId, Integer.valueOf(phoneType), resultCode, resultCode, customerCallID);
-
-        Document doc = new Document();
-        Element root = new Element("Msg");
-        root.setAttribute("Result", "1");
-        root.setAttribute("Description", "");
-        doc.setRootElement(root);
-        return XMLUtil.outputDocumentToString(doc);
-    }
-
-    public String submitScreenPopUp(String userId, String strBizId, String importBatchId, String customerId, String strPhoneType) {
-
-        ServiceResult serviceresult = new ServiceResult();
-
-        multiNumberOutboundDataManage.submitAgentScreenPopUp(userId, Integer.parseInt(strBizId), importBatchId,
-                customerId, Integer.valueOf(strPhoneType));
-
-        serviceresult.setResultCode(ServiceResultCode.SUCCESS);
-        return serviceresult.toJson();
-    }
-
     public String submitOutboundResult(String userId, int bizId, String shareBatchId, String importBatchId,
                        String customerId, String strPhoneType, String resultCodeType, String resultCode,
                        Boolean isPreset, Date presetTime, String dialType, Date dialTime, String customerCallId,

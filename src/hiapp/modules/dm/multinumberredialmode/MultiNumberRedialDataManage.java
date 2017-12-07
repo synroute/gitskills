@@ -70,85 +70,6 @@ public class MultiNumberRedialDataManage {
         return customerList;
     }
 
-    public String hiDialerDialResultNotify(String userId, int bizId, String importBatchId, String customerId, int phoneType,
-                                           String resultCodeType, String resultCode, String customerCallId)
-    {
-        if (resultCodeType.equals("1") && resultCode.equals("1"))
-        {
-            String dialType = "dialType";
-
-            MultiNumberRedialCustomer customer = customerPool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
-            Date originModifyTime = customer.getModifyTime();
-            int  originModifyId = customer.getModifyId();
-
-            Date now = new Date();
-
-            customer.setState(MultiNumberRedialStateEnum.PHONECONNECTED);
-            customer.setEndCodeType(resultCodeType);
-            customer.setEndCode(resultCode);
-            customer.setModifyUserId(userId);
-            customer.setModifyId(customer.getModifyId() + 1);
-            customer.setModifyTime(now);
-
-            PhoneDialInfo curPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
-            curPhoneDialInfo.setLastDialTime(now);
-
-            customerPool.hidialerPhoneConnect(customer, originModifyTime);  // NOTE: 使用原客户，等待池中一个客户有多个key
-
-            multiNumberRedialDAO.updateCustomerShareForOutboundResult(customer);
-
-            // 插入共享历史表
-            multiNumberRedialDAO.insertCustomerShareStateHistory(customer);
-
-            // 插入结果表
-            //dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, originModifyId); // MODIFYLAST 0
-            //dmDAO.insertDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId,
-            //        customer.getModifyId(), userId, dialType, now, customerCallId,
-            //        resultCodeType, resultCode);
-
-            return "";
-        }
-
-        return submitOutboundResult(userId, bizId, importBatchId, customerId, phoneType, resultCodeType, resultCode,
-                null, null, null, null, null,
-                null, null);
-    }
-
-    public String submitAgentScreenPopUp(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
-
-        String dialType = "dialType";
-        String customerCallId = "customerCallId";
-
-        MultiNumberRedialCustomer customer = customerPool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
-        Date originModifyTime = customer.getModifyTime();
-        int  originModifyId = customer.getModifyId();
-
-        Date now = new Date();
-
-        customer.setState(MultiNumberRedialStateEnum.SCREENPOPUP);
-        customer.setModifyUserId(userId);
-        customer.setModifyId(customer.getModifyId() + 1);
-        customer.setModifyTime(now);
-
-        PhoneDialInfo originPhoneDialInfo = customer.getDialInfoByPhoneType(customer.getCurDialPhoneType());
-        Date lastDialTime = originPhoneDialInfo.getLastDialTime();
-
-        customerPool.agentScreenPopUp(customer, originModifyTime); // NOTE: 使用原客户，等待池中一个客户有多个key
-
-        multiNumberRedialDAO.updateCustomerShareForOutboundResult(customer);
-
-        // 插入共享历史表
-        multiNumberRedialDAO.insertCustomerShareStateHistory(customer);
-
-        // 插入结果表
-        //dmDAO.updateDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId, originModifyId); // MODIFYLAST 0
-        //dmDAO.insertDMResult(bizId, customer.getShareBatchId(), importBatchId, customerId,
-        //        customer.getModifyId(), userId, dialType, lastDialTime, customerCallId,
-        //        customer.getEndCodeType(), customer.getEndCode());
-
-        return "";
-    }
-
     public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId, int phoneType,
                                        String resultCodeType, String resultCode, Boolean isPreset, Date presetTime,
                                        String dialType, Date dialTime, String customerCallId, Map<String, String> mapCustomizedResultColumn, String customerInfo) {
@@ -176,7 +97,6 @@ public class MultiNumberRedialDataManage {
 
         return "";
     }
-
 
     /**
      *   呼损处理
@@ -374,7 +294,8 @@ public class MultiNumberRedialDataManage {
                     item.setState(MultiNumberRedialStateEnum.FINISHED);
                 }
             } else {
-                item.setState(MultiNumberRedialStateEnum.WAIT_REDIAL);
+                //TODO
+                //item.setState(MultiNumberRedialStateEnum.WAIT_REDIAL);
                 item.setCurPresetDialTime(DateUtil.getNextXMinute(strategyItem.getRedialDelayMinutes()));
             }
 
@@ -418,13 +339,10 @@ public class MultiNumberRedialDataManage {
         shareCustomerStateList.add(MultiNumberRedialStateEnum.CREATED);
         shareCustomerStateList.add(MultiNumberRedialStateEnum.APPENDED);
         shareCustomerStateList.add(MultiNumberRedialStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
-        shareCustomerStateList.add(MultiNumberRedialStateEnum.LOSS_WAIT_REDIAL);
-        shareCustomerStateList.add(MultiNumberRedialStateEnum.HIDIALER_LOSS_WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberRedialStateEnum.REVERT);
 
         List<MultiNumberRedialStateEnum> shareStateListWithDialTime = new ArrayList<MultiNumberRedialStateEnum>();
         shareStateListWithDialTime.add(MultiNumberRedialStateEnum.PRESET_DIAL);
-        shareStateListWithDialTime.add(MultiNumberRedialStateEnum.WAIT_REDIAL);
 
         List<MultiNumberRedialCustomer> shareDataItems = new ArrayList<MultiNumberRedialCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -461,9 +379,9 @@ public class MultiNumberRedialDataManage {
 
         // 初始化等待池
         List<MultiNumberRedialStateEnum> waitPollStates = new ArrayList<MultiNumberRedialStateEnum>();
-        waitPollStates.add(MultiNumberRedialStateEnum.EXTRACTED);
-        waitPollStates.add(MultiNumberRedialStateEnum.PHONECONNECTED);
-        waitPollStates.add(MultiNumberRedialStateEnum.SCREENPOPUP);
+        //waitPollStates.add(MultiNumberRedialStateEnum.EXTRACTED);
+        //waitPollStates.add(MultiNumberRedialStateEnum.PHONECONNECTED);
+        //waitPollStates.add(MultiNumberRedialStateEnum.SCREENPOPUP);
 
         List<MultiNumberRedialCustomer> waitResultCustoms = new ArrayList<MultiNumberRedialCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -505,13 +423,10 @@ public class MultiNumberRedialDataManage {
         shareCustomerStateList.add(MultiNumberRedialStateEnum.CREATED);
         //shareCustomerStateList.add(MultiNumberRedialStateEnum.APPENDED);
         shareCustomerStateList.add(MultiNumberRedialStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
-        shareCustomerStateList.add(MultiNumberRedialStateEnum.LOSS_WAIT_REDIAL);
-        shareCustomerStateList.add(MultiNumberRedialStateEnum.HIDIALER_LOSS_WAIT_REDIAL);
         shareCustomerStateList.add(MultiNumberRedialStateEnum.REVERT);
 
         List<MultiNumberRedialStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberRedialStateEnum>();
         shareCustomerStateList2.add(MultiNumberRedialStateEnum.PRESET_DIAL);
-        shareCustomerStateList2.add(MultiNumberRedialStateEnum.WAIT_REDIAL);
 
         List<MultiNumberRedialCustomer> shareDataItems = new ArrayList<MultiNumberRedialCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {

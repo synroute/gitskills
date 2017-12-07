@@ -27,7 +27,7 @@ public class OnePhoneTypeCustomerPool {
         Date now = new Date();
 
         if (null != shareDataItem) {
-            shareDataItem.setState(MultiNumberRedialStateEnum.EXTRACTED);
+            //shareDataItem.setState(MultiNumberRedialStateEnum.EXTRACTED);
             shareDataItem.setModifyTime(now);
             shareDataItem.setModifyId(shareDataItem.getModifyId() + 1);
             shareDataItem.setModifyUserId(userId);

@@ -66,37 +66,6 @@ public class MultiNumberRedialCustomerWaitPool {
             mapShareBatchWaitStopCustomerPool.put(customerItem.getShareBatchId(), mapWaitStopPool);
         }
         mapWaitStopPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
-
-        if (MultiNumberRedialStateEnum.EXTRACTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
-            if (null == mapWaitTimeOutPool) {
-                mapWaitTimeOutPool = new HashMap<String, MultiNumberRedialCustomer>();
-                mapTimeOutWaitPhoneConnectCustomerPool.put(timeSlot, mapWaitTimeOutPool);
-            }
-            mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
-
-        } else if (MultiNumberRedialStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
-            if (null == mapWaitTimeOutPool) {
-                mapWaitTimeOutPool = new HashMap<String, MultiNumberRedialCustomer>();
-                mapTimeOutWaitScreenPopUpCustomerPool.put(timeSlot, mapWaitTimeOutPool);
-            }
-            mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(),
-                    customerItem);
-
-        } else if (MultiNumberRedialStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot);
-            if (null == mapWaitTimeOutPool) {
-                mapWaitTimeOutPool = new HashMap<String, MultiNumberRedialCustomer>();
-                mapTimeOutWaitOutboundResultCustomerPool.put(timeSlot, mapWaitTimeOutPool);
-            }
-            mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(),
-                    customerItem);
-        }
-
     }
 
     public void hidialerPhoneConnect(MultiNumberRedialCustomer customer, Date originModifyTime) {
@@ -144,17 +113,6 @@ public class MultiNumberRedialCustomerWaitPool {
 
 
         removeWaitStopCustomer(bizId, customerItem.getShareBatchId(), importBatchId, customerId);
-
-        if (MultiNumberRedialStateEnum.EXTRACTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
-            removeWaitPhoneConnectTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
-        } else if (MultiNumberRedialStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
-            removeWaitScreenPopUpTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
-        } else if (MultiNumberRedialStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
-            removeWaitResultTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
-        }
 
         return customerItem;
     }
@@ -210,47 +168,6 @@ public class MultiNumberRedialCustomerWaitPool {
         Long curTimeSlot = now.getTime()/ Constants.timeSlotSpan;
         System.out.println("cur time slot : " + curTimeSlot);
 
-        // HiDialer 呼通超时处理
-        Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2/Constants.timeSlotSpan;
-        while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
-            Map<String, MultiNumberRedialCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitPhoneConnectCustomerPool.remove(earliestPhoneConnectTimeSlot++);
-            if (null == mapTimeSlotWaitTimeOutPool)
-                continue;
-
-            for (MultiNumberRedialCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberRedialStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
-                }
-
-                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
-            }
-        }
-
-        // 坐席弹屏 超时处理 ==> 呼损处理
-        Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3/Constants.timeSlotSpan;
-        while (earliestScreenPopUpTimeSlot < screenPopupTimeoutTimeSlot) {
-            Map<String, MultiNumberRedialCustomer> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapTimeOutWaitScreenPopUpCustomerPool.remove(earliestScreenPopUpTimeSlot++);
-            if (null == mapTimeSlotWaitTimeOutPool)
-                continue;
-
-            for (MultiNumberRedialCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberRedialStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
-                }
-
-                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
-            }
-        }
 
         // 坐席递交结果 超时处理
         Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4/Constants.timeSlotSpan;
@@ -263,7 +180,8 @@ public class MultiNumberRedialCustomerWaitPool {
             for (MultiNumberRedialCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberRedialStateEnum.LOSS_WAIT_REDIAL);  // 呼损处理
+                    //TODO
+                    //multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberRedialStateEnum.LOSS_WAIT_REDIAL);  // 呼损处理
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
