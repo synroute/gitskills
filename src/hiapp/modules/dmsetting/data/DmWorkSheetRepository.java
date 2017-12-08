@@ -743,6 +743,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 					creationInfoWorkSheet.setName(szWorkSheetName);
 					creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
 					creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+					creationInfoWorkSheet.addColumn("编号", "ID", "编号", WorkSheetDataType.INT, -1, false, true);
 					Connection dbConn = null;
 					try {
 						dbConn = this.getDbConnection();
