@@ -734,12 +734,12 @@ public class DmWorkSheetRepository extends BaseRepository {
 		
 		
 		//多号码预测外呼历史表
-				public  ServiceResultCode m_newWorkSheets(DMBusiness dmBusiness,StringBuffer errMessage,String worksheetname){
+				public  ServiceResultCode m_newWorkSheets(DMBusiness dmBusiness,StringBuffer errMessage,String worksheetname,String desc){
 					CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
 					creationInfoWorkSheet.setOwner(true);
 					String szWorkSheetName=String.format("HAU_DM_B%dC_%s", dmBusiness.getBizId(),worksheetname);
 					String szWorkSheetNameCh=String.format("外拨业务%d自定义表", dmBusiness.getBizId());
-					String szWorkSheetDescription=String.format("外拨业务%d自定义表",dmBusiness.getBizId());
+					String szWorkSheetDescription=String.format("%s",desc);
 					creationInfoWorkSheet.setName(szWorkSheetName);
 					creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
 					creationInfoWorkSheet.setDescription(szWorkSheetDescription);
@@ -750,7 +750,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
+					return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_CUSTOM,errMessage);
 				}
 		
 		

@@ -134,14 +134,14 @@ public class WorkSheetController {
 	
 	@RequestMapping(value = "/srv/dm/dmNewBizWorkSheet.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmNewBizWorkSheet(@RequestParam("bizId") int bizId,
-			@RequestParam("workSheetName") String workSheetName) {
+			@RequestParam("workSheetName") String workSheetName,@RequestParam("desc") String desc) {
 		
 		ServiceResultCode serviceResultCode = ServiceResultCode.SUCCESS;
 		StringBuffer errMessage = new StringBuffer();
 		ServiceResult serviceresult = new ServiceResult();
 		DMBusiness dmBusiness =new DMBusiness();
 		dmBusiness.setBizId(bizId);
-		serviceResultCode = dmWorkSheetRepository.m_newWorkSheets(dmBusiness,errMessage,workSheetName);
+		serviceResultCode = dmWorkSheetRepository.m_newWorkSheets(dmBusiness,errMessage,workSheetName,desc);
 		
 		if (serviceResultCode != ServiceResultCode.SUCCESS) {
 			serviceresult.setResultCode(serviceResultCode);

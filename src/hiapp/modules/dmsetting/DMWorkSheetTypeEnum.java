@@ -11,8 +11,8 @@ public enum DMWorkSheetTypeEnum {
 	WSTDM_POOL(4,"数据池记录表"),
 	WSTDM_POOLORE(5,"数据池操作记录表"),
 	WSTDM_SHARE(6,"共享表"),
-	WSTDM_SHAREHISTROY(7,"共享历史表");
-	
+	WSTDM_SHAREHISTROY(7,"共享历史表"),
+	WSTDM_CUSTOM(8,"用户自定义表");
 	private int code;
     private String type;  
 	public int getCode() {
