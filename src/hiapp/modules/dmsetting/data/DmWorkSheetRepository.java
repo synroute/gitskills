@@ -732,6 +732,28 @@ public class DmWorkSheetRepository extends BaseRepository {
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
 		
+		
+		//多号码预测外呼历史表
+				public  ServiceResultCode m_newWorkSheets(DMBusiness dmBusiness,StringBuffer errMessage,String worksheetname){
+					CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+					creationInfoWorkSheet.setOwner(true);
+					String szWorkSheetName=String.format("HAU_DM_B%dC_%s", dmBusiness.getBizId(),worksheetname);
+					String szWorkSheetNameCh=String.format("外拨业务%d自定义表", dmBusiness.getBizId());
+					String szWorkSheetDescription=String.format("外拨业务%d自定义表",dmBusiness.getBizId());
+					creationInfoWorkSheet.setName(szWorkSheetName);
+					creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+					creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+					Connection dbConn = null;
+					try {
+						dbConn = this.getDbConnection();
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
+				}
+		
+		
 	//设置工作表ID前缀，创建表
 	private ServiceResultCode m_newWs(Connection dbConn,int bizId,CreationInfoWorkSheet creationInfoWorkSheet,DMWorkSheetTypeEnum dmWsType,StringBuffer errMessage){
 		String szSql;

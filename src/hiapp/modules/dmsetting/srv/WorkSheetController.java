@@ -3,6 +3,7 @@ package hiapp.modules.dmsetting.srv;
 import java.util.ArrayList;
 import java.util.List;
 
+import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.modules.dmsetting.DMWorkSheet;
 import hiapp.modules.dmsetting.data.DmBizRepository;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
@@ -130,4 +131,27 @@ public class WorkSheetController {
 		}
 		return serviceresult.toJson();
 	}
+	
+	@RequestMapping(value = "/srv/dm/dmNewBizWorkSheet.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmNewBizWorkSheet(@RequestParam("bizId") int bizId,
+			@RequestParam("workSheetName") String workSheetName) {
+		
+		ServiceResultCode serviceResultCode = ServiceResultCode.SUCCESS;
+		StringBuffer errMessage = new StringBuffer();
+		ServiceResult serviceresult = new ServiceResult();
+		DMBusiness dmBusiness =new DMBusiness();
+		dmBusiness.setBizId(bizId);
+		serviceResultCode = dmWorkSheetRepository.m_newWorkSheets(dmBusiness,errMessage,workSheetName);
+		
+		if (serviceResultCode != ServiceResultCode.SUCCESS) {
+			serviceresult.setResultCode(serviceResultCode);
+			serviceresult.setReturnMessage(errMessage.toString());
+		} else {
+			serviceresult.setResultCode(ServiceResultCode.SUCCESS);
+			serviceresult.setReturnMessage("成功");
+		}
+		return serviceresult.toJson();
+	}
+	
+	
 }
