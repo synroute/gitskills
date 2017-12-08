@@ -734,11 +734,11 @@ public class DmWorkSheetRepository extends BaseRepository {
 		
 		
 		//多号码预测外呼历史表
-				public  ServiceResultCode m_newWorkSheets(DMBusiness dmBusiness,StringBuffer errMessage,String worksheetname,String desc){
+				public  ServiceResultCode m_newWorkSheets(DMBusiness dmBusiness,StringBuffer errMessage,String worksheetname,String desc,String worksheetnamech){
 					CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
 					creationInfoWorkSheet.setOwner(true);
 					String szWorkSheetName=String.format("HAU_DM_B%dC_%s", dmBusiness.getBizId(),worksheetname);
-					String szWorkSheetNameCh=String.format("外拨业务%d自定义表", dmBusiness.getBizId());
+					String szWorkSheetNameCh=String.format("外拨业务%s", dmBusiness.getBizId()+worksheetnamech);
 					String szWorkSheetDescription=String.format("%s",desc);
 					creationInfoWorkSheet.setName(szWorkSheetName);
 					creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
