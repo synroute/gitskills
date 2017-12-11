@@ -75,15 +75,16 @@ public class ManualOutboundDataManage {
 
         //提交：insert导入表、结果表、预约表（如果外呼页面有预约勾选）
 
-        Integer modifyId = dmDAO.getModifyIdFromImportTable(bizId, importBatchId, customerId);
-        modifyId++;
+        Integer originalModifyId = dmDAO.getModifyIdFromImportTable(bizId, importBatchId, customerId);
+        Integer newModifyId = originalModifyId + 1;
 
+        dmDAO.updateDMResult(bizId, shareBatchId, importBatchId, customerId, originalModifyId);
         dmDAO.insertDMResult(bizId, shareBatchId, importBatchId, customerId,
-                modifyId, userId, dialType, dialTime,
+                newModifyId, userId, dialType, dialTime,
                 customerCallId, resultCodeType, resultCode, mapCustomizedResultColumn);
 
         // 插入导入客户表
-        dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, modifyId);
+        dataImportJdbc.insertDataToImPortTable(bizId, importBatchId, customerId, userId, customerInfo, newModifyId);
 
         if (isPreset) {
             // 插入预约表
@@ -94,7 +95,7 @@ public class ManualOutboundDataManage {
             presetItem.setPresetTime(presetTime);
             presetItem.setState(DMPresetStateEnum.InUse.getStateName());
             presetItem.setComment("xxx");
-            presetItem.setModifyId(modifyId);
+            presetItem.setModifyId(newModifyId);
             presetItem.setModifyLast(1);
             presetItem.setModifyUserId(userId);
             presetItem.setModifyTime(new Date());

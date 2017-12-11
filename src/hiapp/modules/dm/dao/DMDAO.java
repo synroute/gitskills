@@ -585,6 +585,7 @@ public class DMDAO extends BaseRepository {
             StringBuilder sqlBuilder = new StringBuilder("SELECT MODIFYID FROM ").append(tableName);
             sqlBuilder.append(" WHERE IID = ").append(SQLUtil.getSqlString(importBatchId));
             sqlBuilder.append("   AND CID = ").append(SQLUtil.getSqlString(customerId));
+            sqlBuilder.append("   AND MODIFYLAST = 1");
 
             stmt = dbConn.prepareStatement(sqlBuilder.toString());
             rs = stmt.executeQuery();
