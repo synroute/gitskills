@@ -75,7 +75,8 @@ public class ManualOutboundDataManage {
 
         //提交：insert导入表、结果表、预约表（如果外呼页面有预约勾选）
 
-        int modifyId = 1;
+        Integer modifyId = dmDAO.getModifyIdFromImportTable(bizId, importBatchId, customerId);
+        modifyId++;
 
         dmDAO.insertDMResult(bizId, shareBatchId, importBatchId, customerId,
                 modifyId, userId, dialType, dialTime,

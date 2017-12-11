@@ -6,7 +6,6 @@ import java.util.List;
 public class OnePhoneTypeCustomerPool {
 
     MultiNumberRedialCustomerSharePool customerSharePool;
-    //CustomerWaitPool customerWaitPool;
 
     int bizId = 0;
     int phoneType;
@@ -17,7 +16,6 @@ public class OnePhoneTypeCustomerPool {
         this.phoneType = dialType;
 
         customerSharePool = new MultiNumberRedialCustomerSharePool(bizId);
-        //customerWaitPool = new CustomerWaitPool(bizId);
 
     }
 
@@ -47,27 +45,6 @@ public class OnePhoneTypeCustomerPool {
     public void stopShareBatch(List<String> shareBatchIds) {
         customerSharePool.stopShareBatch(shareBatchIds);
     }
-
-/*
-    public void addWaitResultCustomer(MultiNumberRedialCustomer customer) {
-        customerWaitPool.add(customer.getModifyUserId(), customer);
-    }
-
-    public MultiNumberRedialCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
-
-        return customerWaitPool.removeWaitCustomer(userId, bizId, importBatchId, customerId);
-    }
-
-    public MultiNumberRedialCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
-
-        return customerWaitPool.getWaitCustome(userId, bizId, importBatchId, customerId);
-    }
-
-
-    public void markShareBatchStopFromCustomerWaitPool(List<String> shareBatchIds) {
-        customerWaitPool.markShareBatchStopFromCustomerWaitPool(shareBatchIds);
-    }
-*/
 
 }
 

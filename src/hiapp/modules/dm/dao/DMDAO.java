@@ -1,5 +1,6 @@
 package hiapp.modules.dm.dao;
 
+import com.google.gson.JsonObject;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.util.SQLUtil;
@@ -22,6 +23,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Repository
@@ -565,6 +567,39 @@ public class DMDAO extends BaseRepository {
             DbUtil.DbCloseQuery(rs, stmt);
         }
         return true;
+    }
+
+    public Integer getModifyIdFromImportTable(int bizId, String importBatchId, String customerId)
+    {
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        Map<String,String> map=new HashMap<String, String>();
+        JsonObject jsonObject=new JsonObject();
+
+        String tableName = String.format("HAU_DM_B%dC_IMPORT", bizId);
+
+        try {
+            dbConn =this.getDbConnection();
+
+            StringBuilder sqlBuilder = new StringBuilder("SELECT MODIFYID FROM ").append(tableName);
+            sqlBuilder.append(" WHERE IID = ").append(SQLUtil.getSqlString(importBatchId));
+            sqlBuilder.append("   AND CID = ").append(SQLUtil.getSqlString(customerId));
+
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return 0;
     }
 
 }

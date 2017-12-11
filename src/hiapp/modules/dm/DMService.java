@@ -6,6 +6,7 @@ import hiapp.modules.dm.hidialermode.HidialerOutboundDataManage;
 import hiapp.modules.dm.manualmode.ManualOutboundDataManage;
 import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
+import hiapp.modules.dm.multinumberredialmode.MultiNumberRedialDataManage;
 import hiapp.modules.dm.singlenumbermode.SingleNumberModeController;
 import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
@@ -32,6 +33,9 @@ public class DMService {
     ManualOutboundDataManage manualOutboundDataManage;
 
     @Autowired
+    MultiNumberRedialDataManage multiNumberRedialDataManage;
+
+    @Autowired
     HidialerOutboundDataManage hidialerOutboundDataManage;
 
     @Autowired
@@ -40,13 +44,6 @@ public class DMService {
 
     @Autowired
     private DmBizRepository dmBizRepository;
-
-
-    Timer dailyTimer;
-    TimerTask dailyTimerTask;
-
-    Timer timeoutTimer;
-    TimerTask timeoutTimerTask;
 
 
     @Autowired
@@ -58,6 +55,7 @@ public class DMService {
         multiNumberOutboundDataManage.initialize();
         manualOutboundDataManage.initialize();
         hidialerOutboundDataManage.initialize();
+        multiNumberRedialDataManage.initialize();
 
         setDailyRoutine();
         setTimeOutRoutine(Constants.timeSlotSpan);
@@ -86,7 +84,7 @@ public class DMService {
             return singleNumberOutboundDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-
+            return multiNumberRedialDataManage.appendCustomersToShareBatch(bizId, shareBatchIds);
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
@@ -134,19 +132,28 @@ public class DMService {
                 manualOutboundDataManage.dailyProc(oneModeShareBatchItems);
             } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == modeId) {
                 singleNumberOutboundDataManage.dailyProc(oneModeShareBatchItems);
+            } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == modeId) {
+                multiNumberRedialDataManage.dailyProc(oneModeShareBatchItems);
             } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == modeId) {
                 multiNumberOutboundDataManage.dailyProc(oneModeShareBatchItems);
+            } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == modeId) {
+                multiNumberRedialDataManage.dailyProc(oneModeShareBatchItems);
             }
-
         }
     }
 
     private void setDailyRoutine() {
-        dailyTimer = new Timer();
-        dailyTimerTask = new TimerTask() {
+
+        final TimerTask dailyTimerTask = new TimerTask() {
             @Override
             public void run() {
-                dailyProc();
+                System.out.println("Daily TimerTask...");
+                try {
+                    dailyProc();
+                } catch (Throwable exception) {
+                    System.out.println("Daily TimerTask XXX Exception ");
+                    exception.printStackTrace();
+                }
             }
         };
 
@@ -157,7 +164,10 @@ public class DMService {
         calendar.set(Calendar.MINUTE, 0);      // 控制分
         calendar.set(Calendar.SECOND, 0);      // 控制秒
 
-        dailyTimer.scheduleAtFixedRate(dailyTimerTask, calendar.getTime(), 1000 * 60 * 60 * 24);
+        new Timer().scheduleAtFixedRate(dailyTimerTask, calendar.getTime(), 1000 * 60 * 60 * 24);
+
+        //ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+        //pool.scheduleAtFixedRate(dailyTimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
     }
 
     private void setTimeOutRoutine(Long timeSlotSpan) {
@@ -200,6 +210,19 @@ public class DMService {
             }
         };
 
+        final TimerTask m4TimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("M4 TimerTask...");
+                try {
+                    multiNumberRedialDataManage.timeoutProc();
+                } catch (Throwable exception) {
+                    System.out.println("M4 TimerTask XXX Exception ");
+                    exception.printStackTrace();
+                }
+            }
+        };
+
         final TimerTask m6TimerTask = new TimerTask() {
             @Override
             public void run() {
@@ -217,6 +240,7 @@ public class DMService {
         pool.scheduleAtFixedRate(m1TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
         pool.scheduleAtFixedRate(m2TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
         pool.scheduleAtFixedRate(m3TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m4TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
         pool.scheduleAtFixedRate(m6TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
     }
 
