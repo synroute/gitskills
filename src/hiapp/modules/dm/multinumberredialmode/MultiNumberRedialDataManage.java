@@ -203,7 +203,7 @@ public class MultiNumberRedialDataManage {
             multiNumberRedialDAO.insertCustomerShareStateHistory(item);
 
         } else if (strategyItem.getPresetDial()) {
-            //item.setState(MultiNumberRedialStateEnum.PRESET_DIAL);
+            item.setState(MultiNumberRedialStateEnum.PRESET_DIAL);
             item.setNextDialPhoneType(item.getCurDialPhoneType());
             PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
             phoneDialInfo.setCausePresetDialCount( phoneDialInfo.getCausePresetDialCount() + 1);
@@ -268,7 +268,6 @@ public class MultiNumberRedialDataManage {
                     item.setState(MultiNumberRedialStateEnum.FINISHED);
                 }
             } else {
-                //TODO
                 //item.setState(MultiNumberRedialStateEnum.WAIT_REDIAL);
                 item.setCurPresetDialTime(DateUtil.getNextXMinute(strategyItem.getRedialDelayMinutes()));
             }
@@ -284,8 +283,7 @@ public class MultiNumberRedialDataManage {
         }
 
         //若是当前是预约拨打，更新 预约状态 @ 预约表
-        // TODO
-        if (true/*MultiNumberRedialStateEnum.PRESET_DIAL.equals(originCustomerItem.getState())*/) {
+        if (MultiNumberRedialStateEnum.PRESET_DIAL.equals(originCustomerItem.getState())) {
             dmDAO.updatePresetState(item.getBizId(), item.getShareBatchId(), item.getImportBatchId(),
                     item.getCustomerId(), originCustomerItem.getModifyId(),
                     DMPresetStateEnum.FinishPreset.getStateName());
@@ -316,8 +314,9 @@ public class MultiNumberRedialDataManage {
         shareCustomerStateList.add(MultiNumberRedialStateEnum.WAIT_DIAL);
         shareCustomerStateList.add(MultiNumberRedialStateEnum.REVERT);
 
-        //List<MultiNumberRedialStateEnum> shareStateListWithDialTime = new ArrayList<MultiNumberRedialStateEnum>();
-        //shareStateListWithDialTime.add(MultiNumberRedialStateEnum.PRESET_DIAL);
+        List<MultiNumberRedialStateEnum> shareStateListWithDialTime = new ArrayList<MultiNumberRedialStateEnum>();
+        shareStateListWithDialTime.add(MultiNumberRedialStateEnum.PRESET_DIAL);
+        shareStateListWithDialTime.add(MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL);
 
         List<MultiNumberRedialCustomer> shareDataItems = new ArrayList<MultiNumberRedialCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -332,8 +331,8 @@ public class MultiNumberRedialDataManage {
                     bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
 
             // 成批从DB取数据, 根据nextDialTime
-            //result = multiNumberRedialDAO.getGivenBizCustomersByStateAndNextDialTime(
-            //        bizId, givenBizShareBatchItems, shareStateListWithDialTime, shareDataItems);
+            result = multiNumberRedialDAO.getGivenBizCustomersByStateAndNextDialTime(
+                    bizId, givenBizShareBatchItems, shareStateListWithDialTime, shareDataItems);
 
 
             // 收集客户共享状态为 MultiNumberRedialStateEnum.APPENDED 的客户信息
@@ -353,10 +352,10 @@ public class MultiNumberRedialDataManage {
         }
 
         // 初始化等待池
-        List<MultiNumberRedialStateEnum> waitPollStates = new ArrayList<MultiNumberRedialStateEnum>();
-        //waitPollStates.add(MultiNumberRedialStateEnum.EXTRACTED);
-        //waitPollStates.add(MultiNumberRedialStateEnum.PHONECONNECTED);
-        //waitPollStates.add(MultiNumberRedialStateEnum.SCREENPOPUP);
+        /*List<MultiNumberRedialStateEnum> waitPollStates = new ArrayList<MultiNumberRedialStateEnum>();
+        waitPollStates.add(MultiNumberRedialStateEnum.EXTRACTED);
+        waitPollStates.add(MultiNumberRedialStateEnum.PHONECONNECTED);
+        waitPollStates.add(MultiNumberRedialStateEnum.SCREENPOPUP);
 
         List<MultiNumberRedialCustomer> waitResultCustoms = new ArrayList<MultiNumberRedialCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -375,7 +374,7 @@ public class MultiNumberRedialDataManage {
             }
         }
 
-        waitPoolPostProcess();
+        waitPoolPostProcess();*/
     }
 
     // 用于共享批次的启用，根据共享批次，不会导致重复加载
@@ -400,8 +399,8 @@ public class MultiNumberRedialDataManage {
         shareCustomerStateList.add(MultiNumberRedialStateEnum.WAIT_DIAL);
         shareCustomerStateList.add(MultiNumberRedialStateEnum.REVERT);
 
-        //List<MultiNumberRedialStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberRedialStateEnum>();
-        //shareCustomerStateList2.add(MultiNumberRedialStateEnum.PRESET_DIAL);
+        List<MultiNumberRedialStateEnum> shareCustomerStateList2 = new ArrayList<MultiNumberRedialStateEnum>();
+        shareCustomerStateList2.add(MultiNumberRedialStateEnum.PRESET_DIAL);
 
         List<MultiNumberRedialCustomer> shareDataItems = new ArrayList<MultiNumberRedialCustomer>();
         for (Map.Entry<Integer, List<ShareBatchItem>> entry : mapBizIdVsShareBatchItem.entrySet()) {
@@ -417,8 +416,8 @@ public class MultiNumberRedialDataManage {
                     bizId, givenBizShareBatchItems, shareCustomerStateList, shareDataItems);
 
             // 成批从DB取数据, 根据nextDialTime
-            //result = multiNumberRedialDAO.getGivenBizCustomersByStateAndNextDialTime(
-            //        bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
+            result = multiNumberRedialDAO.getGivenBizCustomersByStateAndNextDialTime(
+                    bizId, givenBizShareBatchItems, shareCustomerStateList2, shareDataItems);
 
             for (MultiNumberRedialCustomer customerItem : shareDataItems) {
                 addCustomerToSharePool(customerItem);
