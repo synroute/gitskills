@@ -13,9 +13,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 public class MultiNumberRedialCustomerSharePool {
 
-    @Autowired
-    private DMBizMangeShare dmBizMangeShare;
-
     // 客户共享池
     //ShareBatchID <==> PriorityBlockingQueue<MultiNumberRedialCustomer>
     Map<String, PriorityBlockingQueue<MultiNumberRedialCustomer>> mapPreseCustomerSharePool;
@@ -88,12 +85,9 @@ public class MultiNumberRedialCustomerSharePool {
     }
     */
 
-    public MultiNumberRedialCustomer extractCustomer(String userId) {
+    public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList) {
         Date now = new Date();
         MultiNumberRedialCustomer shareDataItem = null;
-
-        // 根据userID，获取有权限访问的shareBatchIds
-        List<String> shareBatchIdList = dmBizMangeShare.getSidUserPool(bizId, userId);
 
         for (String shareBatchId : shareBatchIdList) {
             PriorityBlockingQueue<MultiNumberRedialCustomer> presetCustomerPool = mapPreseCustomerSharePool.get(shareBatchId);

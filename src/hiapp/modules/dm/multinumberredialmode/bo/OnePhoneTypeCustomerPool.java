@@ -19,8 +19,8 @@ public class OnePhoneTypeCustomerPool {
 
     }
 
-    public MultiNumberRedialCustomer extractCustomer(String userId) {
-        MultiNumberRedialCustomer shareDataItem = customerSharePool.extractCustomer(userId);
+    public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList) {
+        MultiNumberRedialCustomer shareDataItem = customerSharePool.extractCustomer(userId, shareBatchIdList);
 
         Date now = new Date();
 

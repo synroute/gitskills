@@ -6,6 +6,8 @@ import hiapp.modules.dm.hidialermode.HidialerModeController;
 import hiapp.modules.dm.manualmode.ManualModeController;
 import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
 import hiapp.modules.dm.multinumbermode.bo.BizConfig;
+import hiapp.modules.dm.multinumberredialmode.MultiNumberRedialController;
+import hiapp.modules.dm.multinumberredialmode.MultiNumberRedialDataManage;
 import hiapp.modules.dm.singlenumbermode.SingleNumberModeController;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dm.util.XMLUtil;
@@ -60,6 +62,10 @@ public class DMController {
     @Autowired
     MultiNumberModeController multiNumberModeController;
 
+    @Autowired
+    MultiNumberRedialController multiNumberRedialController;
+
+
     @RequestMapping(value="/srv/dm/extractNextCustomer.srv", method= RequestMethod.GET, produces="application/json")
     public String extractNextCustomer(HttpServletRequest request,
                                       @RequestParam("userId") String userId,
@@ -78,7 +84,7 @@ public class DMController {
             return singleNumberModeController.extractNextCustomer(userId, bizId);
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-
+            return multiNumberRedialController.extractNextCustomer(userId, bizId);
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
@@ -144,7 +150,10 @@ public class DMController {
                     isPreset, presetTime, dialType, dialTime, customerCallId, mapCustomizedResultColumn, jsonCustomerInfo);
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-
+            String strPhoneType = (String)map.get("phoneType");
+            return multiNumberRedialController.submitOutboundResult(user.getId(), Integer.valueOf(strBizId),
+                    shareBatchId, importBatchId, customerId, strPhoneType, resultCodeType, resultCode,
+                    isPreset, presetTime, dialType, dialTime, customerCallId, mapCustomizedResultColumn, jsonCustomerInfo);
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
@@ -383,7 +392,7 @@ public class DMController {
             return singleNumberModeController.startShareBatch(bizId, strShareBatchIds);
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-
+            return multiNumberRedialController.startShareBatch(bizId, strShareBatchIds);
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
@@ -407,7 +416,7 @@ public class DMController {
             return singleNumberModeController.stopShareBatch(bizId, strShareBatchIds);
 
         } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
-
+            return multiNumberRedialController.stopShareBatch(bizId, strShareBatchIds);
         } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
 
         } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {

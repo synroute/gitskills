@@ -2,6 +2,8 @@ package hiapp.modules.dm.multinumberredialmode;
 
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialCustomer;
+import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.modules.dm.util.XMLUtil;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -21,54 +23,21 @@ public class MultiNumberRedialController {
     @Autowired
     MultiNumberRedialDataManage multiNumberOutboundDataManage;
 
+    public String extractNextCustomer(String userId, String bizId) {
+        Integer intBizId = Integer.valueOf(bizId);
+        MultiNumberRedialCustomer item = multiNumberOutboundDataManage.extractNextOutboundCustomer(userId, intBizId);
 
-    /**
-     * @param bizId
-     * @param count
-     * @return
-     *
-     * <Msg Result="1" CustomerCount="1">
-     *    <CustList>
-     *    <Item DMBusinessId="24" IID="20170309P_0001" CID="2398636" TaskID="20170309T0001" PhoneType="1" PhoneNum="15777731180"/>
-     *    </CustList>
-     * </Msg>
-     *
-     */
-    public String hiDialerGetCustList(int bizId, int count) {
-
-        List<MultiNumberRedialCustomer> customerList = multiNumberOutboundDataManage.extractNextOutboundCustomer(
-                Constants.HiDialerUserId, bizId, count);
-
-        /*if (null == customerList) {
-            Document doc = new Document();
-            Element root = new Element("Msg");
-            root.setAttribute("Result", "0");
-            root.setAttribute("CustomerCount", "0");
-            doc.setRootElement(root);
-            return XMLUtil.outputDocumentToString(doc);
-        }*/
-
-        Document doc = new Document();
-        Element root = new Element("Msg");
-        root.setAttribute("Result", "1");
-        doc.setRootElement(root);
-        Element custList = new Element("CustList");
-
-        for (MultiNumberRedialCustomer customer : customerList) {
-            Element item = new Element("Item");
-            item.setAttribute("DMBusinessId", String.valueOf(customer.getBizId()));
-            item.setAttribute("IID", customer.getImportBatchId());
-            item.setAttribute("CID", customer.getCustomerId());
-            item.setAttribute("TaskID", customer.getShareBatchId());
-            item.setAttribute("PhoneType", String.valueOf(customer.getCurDialPhoneType()));
-            item.setAttribute("PhoneNum", customer.getCurDialPhone());
-
-            custList.addContent(item);
+        NextOutboundCustomerResult result = new NextOutboundCustomerResult();
+        if (null == item) {
+            result.setResultCode(ServiceResultCode.CUSTOMER_NONE);
+        } else {
+            result.setResultCode(ServiceResultCode.SUCCESS);
+            result.setCustomerId(item.getCustomerId());
+            result.setImportBatchId(item.getImportBatchId());
+            result.setShareBatchId(item.getShareBatchId());
+            result.setPhoneType(item.getCurDialPhoneType());
         }
-
-        root.addContent(custList);
-
-        return XMLUtil.outputDocumentToString(doc);
+        return result.toJson();
     }
 
     public String submitOutboundResult(String userId, int bizId, String shareBatchId, String importBatchId,

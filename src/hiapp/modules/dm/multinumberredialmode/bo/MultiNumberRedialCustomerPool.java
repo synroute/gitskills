@@ -1,6 +1,7 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
 import hiapp.modules.dm.bo.PhoneTypeDialSequence;
+import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,12 +19,19 @@ public class MultiNumberRedialCustomerPool {
     @Autowired
     MultiNumberRedialCustomerWaitPool customerWaitPool;
 
+    @Autowired
+    private DMBizMangeShare dmBizMangeShare;
+
+
     // bizId <==> {号码类型 <==> 号码类型对应的客户池}
     Map<Integer, Map<Integer, OnePhoneTypeCustomerPool>> customerSharePool;
 
 
     public MultiNumberRedialCustomer extractCustomer(String userId, int bizId) {
         MultiNumberRedialCustomer customer;
+
+        // 根据userID，获取有权限访问的shareBatchIds
+        List<String> shareBatchIdList = dmBizMangeShare.getSidUserPool(bizId, userId);
 
         for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
             int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
@@ -36,7 +44,7 @@ public class MultiNumberRedialCustomerPool {
             if (null == onePhoneTypeCustomerPool)
                 continue;
 
-            customer = onePhoneTypeCustomerPool.extractCustomer(userId);
+            customer = onePhoneTypeCustomerPool.extractCustomer(userId, shareBatchIdList);
             if (null != customer) {
                 // 放入 客户等待池
                 customerWaitPool.add(userId, customer);

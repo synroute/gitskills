@@ -38,35 +38,23 @@ public class MultiNumberRedialDataManage {
     PhoneTypeDialSequence phoneTypeDialSequence;
 
     @Autowired
-    EndCodeRedialStrategyM4 endCodeRedialStrategyM6;
+    EndCodeRedialStrategyM4 endCodeRedialStrategyM4;
 
     @Autowired
     DmBizRepository dmBizRepository;
 
-    Timer dailyTimer;
-    TimerTask dailyTimerTask;
 
-    Timer timeoutTimer;
-    TimerTask timeoutTimerTask;
+    public synchronized MultiNumberRedialCustomer extractNextOutboundCustomer(String userId, int bizId) {
+        MultiNumberRedialCustomer customer = customerPool.extractCustomer(userId, bizId);
+        //if (null == customer)
+        //    break;
 
+        //multiNumberRedialDAO.updateCustomerShareForExtract(customer);
 
-    public synchronized List<MultiNumberRedialCustomer> extractNextOutboundCustomer(String userId, int bizId, int count) {
-        List<MultiNumberRedialCustomer> customerList = new ArrayList<MultiNumberRedialCustomer>();
+        // 插入共享历史表
+        //multiNumberRedialDAO.insertCustomerShareStateHistory(customer);
 
-        for (int i=0; i<count; i++ ) {
-            MultiNumberRedialCustomer customer = customerPool.extractCustomer(userId, bizId);
-            if (null == customer)
-                break;
-
-            customerList.add(customer);
-
-            multiNumberRedialDAO.updateCustomerShareForExtract(customer);
-
-            // 插入共享历史表
-            multiNumberRedialDAO.insertCustomerShareStateHistory(customer);
-        }
-
-        return customerList;
+        return customer;
     }
 
     public String submitOutboundResult(String userId, int bizId, String importBatchId, String customerId, int phoneType,
@@ -77,7 +65,7 @@ public class MultiNumberRedialDataManage {
                 HiDialerUserId, bizId, importBatchId, customerId, phoneType);
 
         // 经过 Outbound 策略处理器
-        EndCodeRedialStrategyM4Item strategyItem = endCodeRedialStrategyM6.getEndCodeRedialStrategyItem(
+        EndCodeRedialStrategyM4Item strategyItem = endCodeRedialStrategyM4.getEndCodeRedialStrategyItem(
                                                         originCustomerItem.getBizId(), resultCodeType, resultCode);
         procEndcode(userId, originCustomerItem, strategyItem, resultCodeType, resultCode, presetTime);
 
