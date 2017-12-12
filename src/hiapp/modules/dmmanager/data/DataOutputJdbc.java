@@ -126,7 +126,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({"unchecked", "unused", "rawtypes" })
-	public Map<String,Object> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId,Integer num,Integer pageSize) throws IOException{
+	public Map<String,Object> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId,Integer ifDial,Integer num,Integer pageSize) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -227,6 +227,11 @@ public class DataOutputJdbc extends BaseRepository{
 			}
 			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.lastIndexOf("left join"))+" where ";
 			getOutDataSql+="b.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)";
+			if(ifDial==0){
+				getOutDataSql+=" and exists(select * from "+resultTableName+" c where c.iid=b.iid and c.cid=b.cid)";
+			}else if(ifDial==1){
+				getOutDataSql+=" and not exists(select * from "+resultTableName+" c where c.iid=b.iid and c.cid=b.cid)";
+			}
 			getOutDataSql1=getOutDataSql1.substring(0,getOutDataSql1.length()-1)+" from ("+getOutDataSql+getOutDataSql2+" and rownum<?) t where rn>=?";
 			pst=conn.prepareStatement(getOutDataSql1);
 			pst.setString(1,startTime);

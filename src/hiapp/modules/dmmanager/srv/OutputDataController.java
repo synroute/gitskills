@@ -73,11 +73,12 @@ public class OutputDataController{
 	public void getOutputDataByTime(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
+		Integer ifDial=Integer.valueOf(request.getParameter("ifDial"));
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		Integer pageNum=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
-		Map<String, Object> resultMap = dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId,bizId,pageNum,pageSize);
+		Map<String, Object> resultMap = dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId,bizId,ifDial,pageNum,pageSize);
 		String jsonObject=new Gson().toJson(resultMap);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.print(jsonObject);
