@@ -1,6 +1,7 @@
 package hiapp.modules.dmmanager.data;
 
 import hiapp.modules.dmmanager.bean.MonitorData;
+import hiapp.modules.dmmanager.bean.OutputFirstRow;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 
@@ -120,5 +121,108 @@ public class DataMonitorJdbc extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		return dataList;
+	}
+	
+	
+	public List<OutputFirstRow> getAllSheetColumn(String importWorkSheetId,String resultWorkSheetId){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		List<OutputFirstRow> list=new ArrayList<OutputFirstRow>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select ColumnName,ColumnNameCh,DataType,WorkSheetId from HASYS_WORKSHEETCOLUMN WHERE WorkSheetId in(?,?)";
+			pst=conn.prepareStatement(sql);
+			pst.setString(1,importWorkSheetId );
+			pst.setString(2,resultWorkSheetId);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				OutputFirstRow firstRow=new OutputFirstRow();
+				firstRow.setField(rs.getString(1));
+				firstRow.setTitle(rs.getString(2));
+				firstRow.setDataType(rs.getString(3));
+				firstRow.setWorkSheetId(rs.getString(4));
+				list.add(firstRow);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+		return list;
+	}
+	
+	public List<Map<String,Object>> getAllDataByTime(String importWorkSheetId,String resultWorkSheetId,String startTime,String endTime,List<OutputFirstRow> titleList,Integer ifDial,Integer bizId,Integer num,Integer pageSize){
+		Connection conn=null;
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String importTableName="HAU_DM_B"+bizId+"C_IMPORT";
+		String resultTableName="HAU_DM_B"+bizId+"C_RESULT";
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select ";
+			String sql1="select ";
+			for (int i = 0; i < titleList.size(); i++) {
+				String columName=titleList.get(i).getField();
+				String dataType=titleList.get(i).getDataType();
+				String workSheetId=titleList.get(i).getWorkSheetId();
+				String asName=null;
+				if(workSheetId.equals(importWorkSheetId)){
+					asName="a.";
+					sql1+=getDataType(dataType,columName,asName);
+					sql+=asName+columName+",";
+				}
+				if(workSheetId.equals(resultWorkSheetId)){
+					asName="b.";
+					sql1+=getDataType(dataType,columName,asName);
+					sql+=asName+columName+",";
+				}
+			}
+			sql1=sql1+"rownum rn from "+importTableName+" a left join "+resultTableName+" b on a.IID=b.IID where a.MODIFYLAST=1 and b.MODIFYLAST=1 and "
+					+"exists(select * from hasys_dm_iid c where a.CID=c.CID and a.IID=c.CID and c.IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and c.IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss')) and rownum<?";
+			if(ifDial==0){
+				sql1+=" and exists(select * from "+resultTableName+" d where a.iid=d.iid and a.cid=d.cid)";
+			}else if(ifDial==1){
+				sql1+=" and not exists(select * from "+resultTableName+" d where a.iid=d.iid and a.cid=d.cid)";
+			}
+			sql=sql.substring(0,sql.length()-1)+"("+sql1+") t where rn>=?";
+			pst=conn.prepareStatement(sql);
+			pst.setString(1,startTime);
+			pst.setString(2,endTime);
+			pst.setInt(3, endNum);
+			pst.setInt(4,startNum);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				Map<String,Object> map=new HashMap<String, Object>();
+				for (int i = 0; i < titleList.size(); i++) {
+					String columName=titleList.get(i).getField();
+					map.put(columName, rs.getObject(columName));
+				}
+				list.add(map);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return list;
+	}
+		
+	public String getDataType(String dataType,String columName,String asName){
+		String column=null;
+		if("datetime".equals(dataType.toLowerCase())){
+			column="to_char("+asName+columName+",'yyyy-mm-dd hh24:mi:ss') "+columName+",";
+		}else{
+			column=asName+columName+",";
+		}
+		return column;
 	}
 }
