@@ -10,55 +10,41 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class EndCodeRedialStrategyM4 {
+    int stageCount;
+    String loopType;
+    int stageDelayDays;
 
-    @Autowired
-    private DmBizOutboundConfigRepository dmBizOutboundConfig;
+    List<Map<String, Integer>> dailyPhoneTypeDialCount;
 
+    // resultCodeType + resultCode <==> MultiNumberRedialStrategyEnum
+    Map<String, MultiNumberRedialStrategyEnum> mapEndCodeRedialStrategy;
 
-    //BizId <==> { resultCodeType + resultCode <==> EndCodeRedialStrategyM4Item }
-    Map<Integer, Map<String, EndCodeRedialStrategyM4Item>>  mapBizIdVsEndCodeRedialStrategy =
-            new HashMap<Integer, Map<String, EndCodeRedialStrategyM4Item>>();
-
-    public void load() {
+    public int getStageCount() {
+        return stageCount;
     }
 
-    public EndCodeRedialStrategyM4Item getEndCodeRedialStrategyItem(int bizId, String resultCodeType, String resultCode) {
-        Map<String, EndCodeRedialStrategyM4Item> mapEndCodeRedialStrategy = mapBizIdVsEndCodeRedialStrategy.get(bizId);
-        if (null == mapEndCodeRedialStrategy) {
-            mapEndCodeRedialStrategy = getEndCodeRedialStrategyByBizId(bizId);
-            mapBizIdVsEndCodeRedialStrategy.put(bizId, mapEndCodeRedialStrategy);
-        }
-
-        return mapEndCodeRedialStrategy.get(resultCodeType+resultCode);
+    public int getStageDelayDays() {
+        return  stageDelayDays;
     }
 
-    private Map<String, EndCodeRedialStrategyM4Item> getEndCodeRedialStrategyByBizId(int bizId) {
-        String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
-
-        List<EndCodeRedialStrategyM4ItemDB> endCodeRedialStrategyFromDBList = new Gson().fromJson(jsonEndCodeRedialStrategy,
-                new TypeToken<List<EndCodeRedialStrategyM4ItemDB>>(){}.getType());
-
-        Map<String, EndCodeRedialStrategyM4Item> mapEndCodeRedialStrategy = new HashMap<String, EndCodeRedialStrategyM4Item>();
-
-        for (EndCodeRedialStrategyM4ItemDB dbItem : endCodeRedialStrategyFromDBList) {
-            EndCodeRedialStrategyM4Item item = new EndCodeRedialStrategyM4Item();
-            item.setResultCodeType(dbItem.getEndCodeType());
-            item.setResultCode(dbItem.getEndCode());
-            item.setDescription(dbItem.getDescription());
-            item.setMaxRedialNum(dbItem.getRedialCount().isEmpty()?0:Integer.valueOf(dbItem.getRedialCount()));
-            item.setRedialDelayMinutes(dbItem.getRedialMinutes().isEmpty()?0:Integer.valueOf(dbItem.getRedialMinutes()));
-            item.setPresetDial(dbItem.getPresetDial().equals("true")?true:false);
-            item.setPhoneTypeDialFinished(dbItem.getIsPhoneStop().equals("true")?true:false);
-            item.setCustomerDialFinished(dbItem.getIsCustStop().equals("true")?true:false);
-
-            mapEndCodeRedialStrategy.put(item.getResultCodeType() + item.getResultCode(), item);
-        }
-
-        return mapEndCodeRedialStrategy;
+    public Map<String, Integer> getPhoneTypeVsDialCount(int dayIndex) {
+        return dailyPhoneTypeDialCount.get(dayIndex-1);
     }
 
+    public MultiNumberRedialStrategyEnum getEndCodeRedialStrategy(String resultCodeType, String resultCode) {
+        return mapEndCodeRedialStrategy.get(resultCodeType + resultCode);
+    }
+
+    public static EndCodeRedialStrategyM4 getInstance(EndCodeRedialStrategyM4DB strategyM4DB) {
+        EndCodeRedialStrategyM4 strategyM4 = new EndCodeRedialStrategyM4();
+
+        strategyM4.stageCount = strategyM4DB.getStageCount();
+        strategyM4.stageDelayDays = strategyM4DB.getStageDelayDays();
+
+        strategyM4.mapEndCodeRedialStrategy = strategyM4DB.getEndCodeRedialStrategy();
+        strategyM4.dailyPhoneTypeDialCount = strategyM4DB.getDailyPhoneTypeDialCount();
+        return strategyM4;
+    }
 }
-
 

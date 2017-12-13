@@ -87,4 +87,14 @@ public class DateUtil {
         return null;
     }
 
+    public static int elapseDayNum(Date originDate) {
+        Date now = new Date();
+        now.setHours(23);
+        now.setMinutes(59);
+        now.setSeconds(59);
+
+        int days = (int) ((now.getTime() - originDate.getTime()) / (1000*3600*24));
+        return days;
+    }
+
 }

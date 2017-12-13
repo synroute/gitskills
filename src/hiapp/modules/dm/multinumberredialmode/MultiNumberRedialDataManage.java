@@ -38,7 +38,7 @@ public class MultiNumberRedialDataManage {
     PhoneTypeDialSequence phoneTypeDialSequence;
 
     @Autowired
-    EndCodeRedialStrategyM4 endCodeRedialStrategyM4;
+    MultiNumberRedialStrategy multiNumberRedialStrategy;
 
     @Autowired
     DmBizRepository dmBizRepository;
@@ -65,9 +65,8 @@ public class MultiNumberRedialDataManage {
                 HiDialerUserId, bizId, importBatchId, customerId, phoneType);
 
         // 经过 Outbound 策略处理器
-        EndCodeRedialStrategyM4Item strategyItem = endCodeRedialStrategyM4.getEndCodeRedialStrategyItem(
-                                                        originCustomerItem.getBizId(), resultCodeType, resultCode);
-        procEndcode(userId, originCustomerItem, strategyItem, resultCodeType, resultCode, presetTime);
+        EndCodeRedialStrategyM4 strategy = multiNumberRedialStrategy.getEndCodeRedialStrategyItem(bizId);
+        procEndcode(userId, originCustomerItem, strategy, phoneType, resultCodeType, resultCode, presetTime);
 
         if (!HiDialerUserId.equals(userId)) {
             // 插入结果表
@@ -161,11 +160,10 @@ public class MultiNumberRedialDataManage {
         customerPool.timeoutProc();
     }
 
-
     /////////////////////////////////////////////////////////////
 
     private void procEndcode(String userId, MultiNumberRedialCustomer originCustomerItem,
-                             EndCodeRedialStrategyM4Item strategyItem,
+                             EndCodeRedialStrategyM4 strategyItem, int phoneType,
                              String resultCodeType, String resultCode, Date presetTime) {
 
         Date now = new Date();
@@ -181,7 +179,11 @@ public class MultiNumberRedialDataManage {
         curPhoneDialInfo.setDialCount( curPhoneDialInfo.getDialCount() + 1);
         curPhoneDialInfo.setLastDialTime(now);
 
-        if (strategyItem.getCustomerDialFinished()) {
+        int strategyDayIndex = getStrategyDayIndex(item.getFirstDialDate(), strategyItem.getStageDelayDays());
+        Map<String, Integer> phoneTypeVsDialCount = strategyItem.getPhoneTypeVsDialCount(strategyDayIndex);
+        MultiNumberRedialStrategyEnum strategyEnum = strategyItem.getEndCodeRedialStrategy(resultCodeType, resultCode);
+
+        if (MultiNumberRedialStrategyEnum.IsCustStop.equals(strategyEnum)) {
             item.setState(MultiNumberRedialStateEnum.FINISHED);
 
             // 更新共享状态表
@@ -190,7 +192,7 @@ public class MultiNumberRedialDataManage {
             // 插入共享历史表
             multiNumberRedialDAO.insertCustomerShareStateHistory(item);
 
-        } else if (strategyItem.getPresetDial()) {
+        } else if (MultiNumberRedialStrategyEnum.IsPresetDial.equals(strategyEnum)) {
             item.setState(MultiNumberRedialStateEnum.PRESET_DIAL);
             item.setNextDialPhoneType(item.getCurDialPhoneType());
             PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
@@ -224,7 +226,7 @@ public class MultiNumberRedialDataManage {
                 addCustomerToSharePool(item);
             }
 
-        } else if (strategyItem.getPhoneTypeDialFinished()) {
+        } else if (MultiNumberRedialStrategyEnum.IsCustStop.equals(strategyEnum)) {
             Integer nextDialPhoneType = customerPool.calcNextDialPhoneType(item);
             if (null != nextDialPhoneType) {
                 item.setState(MultiNumberRedialStateEnum.WAIT_DIAL);
@@ -238,32 +240,6 @@ public class MultiNumberRedialDataManage {
             }
 
             // 更新共享状态表
-            multiNumberRedialDAO.updateCustomerShareForOutboundResult(item);
-
-            // 插入共享历史表
-            multiNumberRedialDAO.insertCustomerShareStateHistory(item);
-
-        } else /*当前号码类型重拨*/ {
-
-            PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
-
-            if ((phoneDialInfo.getDialCount() - phoneDialInfo.getCausePresetDialCount()) >= strategyItem.getMaxRedialNum()) {
-                Integer nextDialPhoneType = customerPool.calcNextDialPhoneType(item);
-                if (null != nextDialPhoneType) {
-                    item.setState(MultiNumberRedialStateEnum.WAIT_DIAL);
-                    item.setNextDialPhoneType(nextDialPhoneType);
-                } else {
-                    item.setState(MultiNumberRedialStateEnum.FINISHED);
-                }
-            } else {
-                //item.setState(MultiNumberRedialStateEnum.WAIT_REDIAL);
-                item.setCurPresetDialTime(DateUtil.getNextXMinute(strategyItem.getRedialDelayMinutes()));
-            }
-
-            if (!MultiNumberRedialStateEnum.FINISHED.equals(item.getState())) {
-                addCustomerToSharePool(item);
-            }
-
             multiNumberRedialDAO.updateCustomerShareForOutboundResult(item);
 
             // 插入共享历史表
@@ -479,6 +455,14 @@ public class MultiNumberRedialDataManage {
             multiNumberRedialDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
                     MultiNumberRedialStateEnum.CREATED);
         }
+    }
+
+    private int getStrategyDayIndex(Date firstDialDate, int stageDelayDays) {
+        if (null == firstDialDate)
+            return 1;
+
+        int elapseDayNum = DateUtil.elapseDayNum(firstDialDate);
+        return (elapseDayNum % (15 + stageDelayDays)) + 1;
     }
 
 }

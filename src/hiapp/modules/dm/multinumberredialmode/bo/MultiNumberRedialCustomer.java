@@ -174,6 +174,10 @@ public class MultiNumberRedialCustomer {
         this.curDialPhoneType = curDialPhoneType;
     }
 
+    public Date getFirstDialDate() { return firstDialDate; }
+
+    public void setFirstDialDate(Date firstDialDate) { this.firstDialDate = firstDialDate; }
+
     public int getIsAppend() {
         return isAppend;
     }
@@ -234,6 +238,7 @@ public class MultiNumberRedialCustomer {
     Date   curPresetDialTime;          // NOTE: 预约拨打时间 或者 重拨时间
     Integer    curDialPhoneType;
     Integer    nextDialPhoneType;
+    Date   firstDialDate;
     int    isAppend;
 
     Map<Integer, PhoneDialInfo> mapPhoneTypeVsPhoneInfo = new HashMap<Integer, PhoneDialInfo>();
