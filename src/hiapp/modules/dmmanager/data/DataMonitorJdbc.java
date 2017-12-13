@@ -155,7 +155,7 @@ public class DataMonitorJdbc extends BaseRepository{
 		return list;
 	}
 	
-	public List<Map<String,Object>> getAllDataByTime(String importWorkSheetId,String resultWorkSheetId,String startTime,String endTime,List<OutputFirstRow> titleList,Integer ifDial,Integer bizId,Integer num,Integer pageSize){
+	public Map<String,Object> getAllDataByTime(String importWorkSheetId,String resultWorkSheetId,String startTime,String endTime,List<Map<String,Object>>  titleList,Integer ifDial,Integer bizId,Integer num,Integer pageSize){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -164,34 +164,41 @@ public class DataMonitorJdbc extends BaseRepository{
 		Integer startNum=(num-1)*pageSize+1;
 		Integer endNum=num*pageSize+1;
 		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
 			String sql="select ";
 			String sql1="select ";
+			String sql2="select ";
+			String sql3="select b.iid,b.cid,";
 			for (int i = 0; i < titleList.size(); i++) {
-				String columName=titleList.get(i).getField();
-				String dataType=titleList.get(i).getDataType();
-				String workSheetId=titleList.get(i).getWorkSheetId();
+				String columName=(String) titleList.get(i).get("field");
+				String dataType=(String) titleList.get(i).get("dataType");
+				String workSheetId=(String) titleList.get(i).get("workSheetId");
 				String asName=null;
 				if(workSheetId.equals(importWorkSheetId)){
 					asName="a.";
-					sql1+=getDataType(dataType,columName,asName);
-					sql+=asName+columName+",";
+					sql1+=asName+columName+",";
+					sql2+=getDataType(dataType,columName,asName);
+					sql+=columName+",";
 				}
 				if(workSheetId.equals(resultWorkSheetId)){
 					asName="b.";
-					sql1+=getDataType(dataType,columName,asName);
-					sql+=asName+columName+",";
+					sql1+=asName+columName+",";
+					sql3+=getDataType(dataType,columName,asName);
+					sql+=columName+",";
 				}
 			}
-			sql1=sql1+"rownum rn from "+importTableName+" a left join "+resultTableName+" b on a.IID=b.IID where a.MODIFYLAST=1 and b.MODIFYLAST=1 and "
-					+"exists(select * from hasys_dm_iid c where a.CID=c.CID and a.IID=c.CID and c.IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and c.IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss')) and rownum<?";
+			
+			sql1=sql1+"rownum rn from ("+sql2.substring(0,sql2.length()-1)+" from "+importTableName+" a where a.MODIFYLAST=1) a left join ("+sql3.substring(0,sql3.length()-1)+" from "+resultTableName+" b where b.MODIFYLAST=1) b"
+				 +" on a.IID=b.IID and a.CID=b.CID ";
+			sql1=sql1+" where exists(select * from hasys_dm_iid c where a.IID=c.IID and c.IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and c.IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss'))";
 			if(ifDial==0){
 				sql1+=" and exists(select * from "+resultTableName+" d where a.iid=d.iid and a.cid=d.cid)";
 			}else if(ifDial==1){
 				sql1+=" and not exists(select * from "+resultTableName+" d where a.iid=d.iid and a.cid=d.cid)";
 			}
-			sql=sql.substring(0,sql.length()-1)+"("+sql1+") t where rn>=?";
+			sql=sql.substring(0,sql.length()-1)+" from ("+sql1+" and rownum<?) t where rn>=?";
 			pst=conn.prepareStatement(sql);
 			pst.setString(1,startTime);
 			pst.setString(2,endTime);
@@ -201,11 +208,24 @@ public class DataMonitorJdbc extends BaseRepository{
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
 				for (int i = 0; i < titleList.size(); i++) {
-					String columName=titleList.get(i).getField();
+					String columName=(String) titleList.get(i).get("field");
 					map.put(columName, rs.getObject(columName));
 				}
 				list.add(map);
 			}
+			DbUtil.DbCloseQuery(rs,pst);
+			
+			String getCountSql="select count(*) from ("+sql1+") t";
+			pst=conn.prepareStatement(getCountSql);
+			pst.setString(1,startTime);
+			pst.setString(2,endTime);
+			rs=pst.executeQuery();
+			Integer total=null;
+			while(rs.next()){
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows",list);
+			resultMap.put("total",total);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -213,7 +233,7 @@ public class DataMonitorJdbc extends BaseRepository{
 			DbUtil.DbCloseQuery(rs,pst);
 			DbUtil.DbCloseConnection(conn);
 		}
-		return list;
+		return resultMap;
 	}
 		
 	public String getDataType(String dataType,String columName,String asName){

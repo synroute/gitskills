@@ -2,7 +2,6 @@ package hiapp.modules.dmmanager.srv;
 
 import hiapp.modules.dmmanager.bean.ExcelUtils;
 import hiapp.modules.dmmanager.bean.OutputFirstRow;
-import hiapp.modules.dmmanager.bean.WorkSheetColumn;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmmanager.data.DataMonitorJdbc;
 import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
@@ -121,9 +120,9 @@ public class DataMonitorController {
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 		String importWorkSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());
 		String resultWorkSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_RESULT.getType());
-		List<OutputFirstRow> titleList = new Gson().fromJson(jsonData, List.class);
-		List<Map<String, Object>> resultList = dataMonitorJdbc.getAllDataByTime(importWorkSheetId, resultWorkSheetId, startTime, endTime, titleList, ifDial, bizId, pageNum, pageSize);
-		String jsonObject=new Gson().toJson(resultList);
+		List<Map<String,Object>> titleList = new Gson().fromJson(jsonData, List.class);
+		Map<String, Object> resultMap = dataMonitorJdbc.getAllDataByTime(importWorkSheetId, resultWorkSheetId, startTime, endTime, titleList, ifDial, bizId, pageNum, pageSize);
+		String jsonObject=new Gson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();
 			printWriter.print(jsonObject);
