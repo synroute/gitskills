@@ -195,4 +195,39 @@ public class SmsOperateJdbc extends BaseRepository{
 		
 		return list;
 	}
+	
+	/**
+	 * 批量删除
+	 * @param ids
+	 */
+	public Map<String,Object> deteleBatchData(String ids){
+		Connection conn=null;
+		PreparedStatement pst=null;
+		String[] arr=ids.split(",");
+		Map<String,Object> result=new HashMap<String,Object>();
+		try {
+			conn=this.getDbConnection();
+			String sql="delete from hasys_dm_smstemplate where id in(";
+			for (int i = 0; i < arr.length; i++) {
+				if(arr[i]==null||"".equals(arr[i])){
+					continue;
+				}
+				sql+=arr[i]+",";
+			}
+			sql=sql.substring(0,sql.length()-1)+")";
+			pst=conn.prepareStatement(sql);
+			pst.executeUpdate();
+			result.put("result",true);
+			result.put("message","删除成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			result.put("result",false);
+			result.put("message","删除失败");
+		}finally{
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return result;
+	}
 }

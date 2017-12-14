@@ -139,5 +139,23 @@ public class SmsOperateController {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 * 批量删除
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/SmsOperateController/deleteBatchData.srv")
+	public void deleteBatchData(HttpServletRequest request, HttpServletResponse response){
+		String ids=request.getParameter("ids");
+		Map<String, Object> result = smsOperateJdbc.deteleBatchData(ids);
+		String jsonObject=new Gson().toJson(result);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 }
