@@ -15,7 +15,7 @@ public class EndCodeRedialStrategyM4 {
     String loopType;
     int stageDelayDays;
 
-    List<Map<String, Integer>> dailyPhoneTypeDialCount;
+    List<Map<Integer, Integer>> dailyPhoneTypeDialCount;
 
     // resultCodeType + resultCode <==> MultiNumberRedialStrategyEnum
     Map<String, MultiNumberRedialStrategyEnum> mapEndCodeRedialStrategy;
@@ -28,7 +28,7 @@ public class EndCodeRedialStrategyM4 {
         return  stageDelayDays;
     }
 
-    public Map<String, Integer> getPhoneTypeVsDialCount(int dayIndex) {
+    public Map<Integer, Integer> getPhoneTypeVsDialCount(int dayIndex) {
         return dailyPhoneTypeDialCount.get(dayIndex-1);
     }
 

@@ -17,19 +17,19 @@ public class EndCodeRedialStrategyM4DB {
         return MultiNumberDetail.getStageDelayDays();
     }
 
-    public List<Map<String, Integer>> getDailyPhoneTypeDialCount() {
-        List<Map<String, Integer>> listDailyPhoneTypeDialCount = new ArrayList<Map<String, Integer>>();
+    public List<Map<Integer, Integer>> getDailyPhoneTypeDialCount() {
+        List<Map<Integer, Integer>> listDailyPhoneTypeDialCount = new ArrayList<Map<Integer, Integer>>();
 
         for (int i=1; i<=15; i++) {
             List<DayOrderItem> dayPhoneTypeDialCountList = MultiNumberDetail.getDayPhoneTypeDialCount(i);
-            Map<String, Integer> mapOnePhoneTypeDialCount = new HashMap<String, Integer>();
+            Map<Integer, Integer> mapOnePhoneTypeDialCount = new HashMap<Integer, Integer>();
             for (DayOrderItem item : dayPhoneTypeDialCountList) {
-                mapOnePhoneTypeDialCount.put(item.name, item.DialCount);
+                mapOnePhoneTypeDialCount.put(Integer.valueOf(item.dialType), item.DialCount);
             }
             listDailyPhoneTypeDialCount.add(mapOnePhoneTypeDialCount);
         }
 
-        return null;
+        return listDailyPhoneTypeDialCount;
     }
 
     public Map<String, MultiNumberRedialStrategyEnum> getEndCodeRedialStrategy() {
@@ -71,6 +71,7 @@ class Attribute {
 }
 
 class DayOrderItem {
+    String dialType;
     String name;
     String nameCh;
     int DialCount;
