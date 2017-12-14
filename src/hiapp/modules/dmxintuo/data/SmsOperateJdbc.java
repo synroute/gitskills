@@ -156,12 +156,12 @@ public class SmsOperateJdbc extends BaseRepository{
 			pst.setInt(1,id);
 			pst.executeUpdate();
 			result.put("result",true);
-			result.put("massage","添加成功");
+			result.put("message","删除成功");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			result.put("result",false);
-			result.put("massage","添加失败");
+			result.put("message","删除失败");
 		}finally{
 			DbUtil.DbCloseExecute(pst);
 			DbUtil.DbCloseConnection(conn);
