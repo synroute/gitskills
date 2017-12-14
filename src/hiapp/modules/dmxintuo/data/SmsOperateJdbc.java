@@ -90,7 +90,7 @@ public class SmsOperateJdbc extends BaseRepository{
 		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select '<'||t.columnname||'>' columnname,t.columnnamech from HASYS_WORKSHEETCOLUMN t where t.worksheetid=? and t.issyscolumn=0";
+			String sql="select '&lt'||t.columnname||'&gt' columnname,t.columnnamech from HASYS_WORKSHEETCOLUMN t where t.worksheetid=? and t.issyscolumn=0";
 			pst=conn.prepareStatement(sql);
 			pst.setString(1, workSheetId);
 			rs=pst.executeQuery();
