@@ -28,6 +28,7 @@ import org.springframework.stereotype.Repository;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 @Repository
 public class DmBizAutomaticRepository extends BaseRepository {
 	
@@ -645,7 +646,61 @@ public class DmBizAutomaticRepository extends BaseRepository {
 							dmBizAutomaticConfig.setSourceModulear(rs.getString(3));
 							dmBizAutomaticConfig.setPageName(rs.getString(4));
 							dmBizAutomaticConfig.setPanleName(rs.getString(5));
-							dmBizAutomaticConfig.setConfig(rs.getString(6));
+							String worksheetname="";
+							String worksheetnameCh="";
+							if(rs.getString(5).equals("dgKeHuInfo"))
+							{
+								worksheetname="HAU_DM_B"+rs.getString(2)+"C_IMPORT";
+								worksheetnameCh="外拨业务"+rs.getString(2)+"导入表";
+							}else if(rs.getString(5).equals("dgKeHuInfo"))
+							{
+								worksheetname="HAU_DM_B"+rs.getString(2)+"C_RESULT";
+								worksheetnameCh="外拨业务"+rs.getString(2)+"结果表";
+							}
+							String szSelectSql="select ID from HASYS_WORKSHEET where NAME='"+worksheetname+"'";
+							stmt = dbConn.prepareStatement(szSelectSql);
+							rs = stmt.executeQuery();
+							String workSheetId="";
+							while(rs.next()){
+								workSheetId=rs.getString(1);
+							}
+							stmt.close();
+							List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
+							workSheet.getColumns(dbConn,workSheetId, listColumns);
+							
+							JsonArray jsonArray=new JsonParser().parse(rs.getString(6)).getAsJsonArray();
+							if(!rs.getString(5).equals("dg"))
+							{
+							
+								if (jsonArray.size()!=listColumns.size()) {
+									for (int i = jsonArray.size(); i < listColumns.size(); i++) {
+										WorkSheetColumn workSheetColumn=listColumns.get(i);
+										JsonObject jsonObject_column=new JsonObject();
+										jsonObject_column.addProperty("columnNameCh", workSheetColumn.getColumnNameCh());
+										jsonObject_column.addProperty("worksheetId", workSheetId);
+										jsonObject_column.addProperty("worksheetName", worksheetname);
+										jsonObject_column.addProperty("worksheetNameCh", worksheetnameCh);
+										jsonObject_column.addProperty("columnName", workSheetColumn.getColumnName());
+										jsonObject_column.addProperty("ControlTypes", "文本");
+										jsonObject_column.addProperty("IsVisible", "0");
+										jsonObject_column.addProperty("ControlType", "文本框");
+										jsonObject_column.addProperty("ComboboxOptions", "");
+										jsonObject_column.addProperty("IsIncludeDialButton", "0");
+										jsonObject_column.addProperty("PrefixText", workSheetColumn.getColumnNameCh());
+										jsonObject_column.addProperty("IsMustFill", "0");
+										jsonObject_column.addProperty("IsReadOnly", "0");
+										jsonObject_column.addProperty("IsDisabled", "0");
+										jsonObject_column.addProperty("OccupyColCount", "3");
+										jsonObject_column.addProperty("OccupyRowCount", "1");
+										jsonObject_column.addProperty("PostfixText", "");
+										jsonObject_column.addProperty("Length", "");
+										
+										
+										jsonArray.add(jsonObject_column);
+									}
+								}
+							}
+							dmBizAutomaticConfig.setConfig(jsonArray.toString());
 							dmBizAutomaticConfig.setCreater(rs.getString(7));
 							dmBizAutomaticConfig.setState(rs.getString(8));
 							dmBizAutomaticConfig.setIsDelete(rs.getInt(9));
