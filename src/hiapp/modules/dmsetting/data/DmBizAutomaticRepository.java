@@ -631,8 +631,10 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					List<DMBizAutomaticConfig> listDMBizAutomaticConfig=new ArrayList<DMBizAutomaticConfig>();
 					Connection dbConn = null;
 					String url="";
-					PreparedStatement stmt = null;	
+					PreparedStatement stmt = null;
+					PreparedStatement stmts = null;
 					ResultSet rs = null;	
+					ResultSet rss = null;	
 					try {
 						dbConn = this.getDbConnection();
 						String szSql =String.format("select ID,SourceID,SOURCEMODULAR,PAGENAME,PANLENAME,CONFIG,CREATER,STATE,ISDELETE,DISPLAYTYPE,PAGEID,CREATETIME from HASYS_DM_AUTOMATICCONFIG where SourceID=%s and SOURCEMODULAR='%s' and PAGENAME='%s'",sourceId,sourceModular,pageName) ;
@@ -658,13 +660,13 @@ public class DmBizAutomaticRepository extends BaseRepository {
 								worksheetnameCh="外拨业务"+rs.getString(2)+"结果表";
 							}
 							String szSelectSql="select ID from HASYS_WORKSHEET where NAME='"+worksheetname+"'";
-							stmt = dbConn.prepareStatement(szSelectSql);
-							rs = stmt.executeQuery();
+							stmts = dbConn.prepareStatement(szSelectSql);
+							rss = stmts.executeQuery();
 							String workSheetId="";
-							while(rs.next()){
-								workSheetId=rs.getString(1);
+							while(rss.next()){
+								workSheetId=rss.getString(1);
 							}
-							stmt.close();
+							stmts.close();
 							List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
 							workSheet.getColumns(dbConn,workSheetId, listColumns);
 							
