@@ -410,7 +410,7 @@ public class HidialerOutboundDataManage {
                 addCustomerToSharePool(customerItem);
 
                 if (HidialerModeCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
-                    appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+                    appendedStateCustomerIdList.add(customerItem.getCustomerId());
                 }
             }
 
@@ -550,7 +550,7 @@ public class HidialerOutboundDataManage {
             addCustomerToSharePool(customerItem);
 
             if (HidialerModeCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
-                appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+                appendedStateCustomerIdList.add(customerItem.getCustomerId());
             }
         }
 

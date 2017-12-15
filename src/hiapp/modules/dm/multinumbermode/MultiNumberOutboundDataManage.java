@@ -451,7 +451,7 @@ public class MultiNumberOutboundDataManage {
                 addCustomerToSharePool(customerItem);
 
                 if (MultiNumberPredictStateEnum.APPENDED.equals(customerItem.getState())) {
-                    appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+                    appendedStateCustomerIdList.add(customerItem.getCustomerId());
                 }
             }
 
@@ -594,7 +594,7 @@ public class MultiNumberOutboundDataManage {
             addCustomerToSharePool(customerItem);
 
             if (MultiNumberPredictStateEnum.APPENDED.equals(customerItem.getState())) {
-                appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+                appendedStateCustomerIdList.add(customerItem.getCustomerId());
             }
         }
 

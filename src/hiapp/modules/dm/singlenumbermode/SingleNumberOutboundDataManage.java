@@ -334,7 +334,7 @@ public class SingleNumberOutboundDataManage {
                     addCustomerToSharePool(customerItem);
 
                 if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
-                    appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+                    appendedStateCustomerIdList.add(customerItem.getCustomerId());
                 }
             }
 
@@ -710,7 +710,7 @@ public class SingleNumberOutboundDataManage {
             addCustomerToSharePool(customerItem);
 
             if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
-                appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+                appendedStateCustomerIdList.add(customerItem.getCustomerId());
             }
         }
 

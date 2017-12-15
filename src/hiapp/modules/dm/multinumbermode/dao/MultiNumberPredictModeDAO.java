@@ -199,13 +199,13 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
     }
 
     // 更新客户共享状态
-    public Boolean updateCustomerShareState(int bizId, List<String> shareBatchIdList, MultiNumberPredictStateEnum state) {
+    public Boolean updateCustomerShareState(int bizId, List<String> customerIdList, MultiNumberPredictStateEnum state) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM6", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
         sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state.getName()));
-        sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIdList)).append(")");
+        sqlBuilder.append(" WHERE CID IN (").append(SQLUtil.stringListToSqlString(customerIdList)).append(")");
         sqlBuilder.append("   AND BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
 
         Connection dbConn = null;
