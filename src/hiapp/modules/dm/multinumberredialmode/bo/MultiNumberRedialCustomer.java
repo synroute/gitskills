@@ -186,6 +186,15 @@ public class MultiNumberRedialCustomer {
         this.isAppend = isAppend;
     }
 
+    public Integer getCurStageNum() {
+        return curStageNum;
+    }
+
+    public void setCurStageNum(Integer curStageNum) {
+        this.curStageNum = curStageNum;
+    }
+
+
     public MultiNumberRedialCustomer deepClone() {
         MultiNumberRedialCustomer cloneItem = new MultiNumberRedialCustomer();
 
@@ -206,6 +215,8 @@ public class MultiNumberRedialCustomer {
         cloneItem.setCurPresetDialTime(curPresetDialTime);
         cloneItem.setCurDialPhoneType(curDialPhoneType);
         cloneItem.setNextDialPhoneType(nextDialPhoneType);
+        cloneItem.setCurStageNum(curStageNum);
+        cloneItem.setFirstDialDate(firstDialDate);
         cloneItem.setIsAppend(isAppend);
 
         //
@@ -238,6 +249,7 @@ public class MultiNumberRedialCustomer {
     Date   curPresetDialTime;          // NOTE: 预约拨打时间 或者 重拨时间
     Integer    curDialPhoneType;
     Integer    nextDialPhoneType;
+    Integer curStageNum;
     Date   firstDialDate;
     int    isAppend;
 

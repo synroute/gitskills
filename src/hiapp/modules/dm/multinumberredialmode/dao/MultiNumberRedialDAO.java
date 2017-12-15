@@ -54,7 +54,7 @@ public class MultiNumberRedialDAO extends BaseRepository {
                     " PT8_PHONENUMBER, PT8_LASTDIALTIME, PT8_CAUSEPRESETDIALCOUNT, PT8_DIALCOUNT, " +
                     " PT9_PHONENUMBER, PT9_LASTDIALTIME, PT9_CAUSEPRESETDIALCOUNT, PT9_DIALCOUNT, " +
                     " PT10_PHONENUMBER, PT10_LASTDIALTIME, PT10_CAUSEPRESETDIALCOUNT, PT10_DIALCOUNT, " +
-                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE " +
+                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE, CURSTAGENUM, FIRSTDIALDATE " +
                     "FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberRedialStatelistToSqlString(shareDataStateList)).append(")");
@@ -93,6 +93,8 @@ public class MultiNumberRedialDAO extends BaseRepository {
                 item.setCurPresetDialTime(rs.getDate(56));
                 item.setCurDialPhoneType(rs.getInt(57));
                 item.setNextDialPhoneType(rs.getInt(58));
+                item.setCurStageNum(rs.getInt(59));
+                item.setFirstDialDate(rs.getDate(60));
 
                 item.setShareBatchStartTime(mapShareBatchIdVsShareBatchItem.get(item.getShareBatchId()).getStartTime());
 
@@ -139,7 +141,7 @@ public class MultiNumberRedialDAO extends BaseRepository {
                     " PT8_PHONENUMBER, PT8_LASTDIALTIME, PT8_CAUSEPRESETDIALCOUNT, PT8_DIALCOUNT, " +
                     " PT9_PHONENUMBER, PT9_LASTDIALTIME, PT9_CAUSEPRESETDIALCOUNT, PT9_DIALCOUNT, " +
                     " PT10_PHONENUMBER, PT10_LASTDIALTIME, PT10_CAUSEPRESETDIALCOUNT, PT10_DIALCOUNT, " +
-                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE " +
+                    " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE, CURSTAGENUM, FIRSTDIALDATE " +
                     "FROM " + tableName);
             sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.shareBatchItemlistToSqlString(ShareBatchItems)).append(")");
             sqlBuilder.append(" AND STATE IN (").append(SQLUtil.multiNumberRedialStatelistToSqlString(shareDataStateList)).append(")");
@@ -179,6 +181,8 @@ public class MultiNumberRedialDAO extends BaseRepository {
                 item.setCurPresetDialTime(rs.getDate(56));
                 item.setCurDialPhoneType(rs.getInt(57));
                 item.setNextDialPhoneType(rs.getInt(58));
+                item.setCurStageNum(rs.getInt(59));
+                item.setFirstDialDate(rs.getDate(60));
 
                 item.setShareBatchStartTime(mapShareBatchIdVsShareBatchItem.get(item.getShareBatchId()).getStartTime());
 
@@ -235,12 +239,14 @@ public class MultiNumberRedialDAO extends BaseRepository {
         sqlBuilder.append(", MODIFYID = ").append(SQLUtil.getSqlString(item.getModifyId()));
         sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
         sqlBuilder.append(", MODIFYTIME = ").append(SQLUtil.getSqlString(item.getModifyTime()));
-        sqlBuilder.append(", MODIFYDESC = ").append(SQLUtil.getSqlString(item.getModifyDesc()));
+        sqlBuilder.append(", MODIFYDSP = ").append(SQLUtil.getSqlString(item.getModifyDesc()));
         sqlBuilder.append(", CUSTOMERCALLID = ").append(SQLUtil.getSqlString(item.getCustomerCallId()));
         sqlBuilder.append(", CURDIALPHONE = ").append(SQLUtil.getSqlString(item.getCurDialPhone()));
         sqlBuilder.append(", CURDIALPHONETYPE = ").append(SQLUtil.getSqlString(item.getCurDialPhoneType()));
         sqlBuilder.append(", NEXTDIALPHONETYPE = ").append(SQLUtil.getSqlString(item.getNextDialPhoneType()));
         sqlBuilder.append(", CURPRESETDIALTIME = ").append(SQLUtil.getSqlString(item.getCurPresetDialTime()));
+        sqlBuilder.append(", CURSTAGENUM = ").append(SQLUtil.getSqlString(item.getCurStageNum()));
+        sqlBuilder.append(", FIRSTDIALDATE = ").append(SQLUtil.getSqlString(item.getFirstDialDate()));
         //sqlBuilder.append(", ISAPPEND = ").append(SQLUtil.getSqlString(item.getIsAppend()));
 
         int curPhoneType = item.getCurDialPhoneType();
@@ -284,10 +290,12 @@ public class MultiNumberRedialDAO extends BaseRepository {
         sqlBuilder.append(", MODIFYID = ").append(SQLUtil.getSqlString(item.getModifyId()));
         sqlBuilder.append(", MODIFYUSERID = ").append(SQLUtil.getSqlString(item.getModifyUserId()));
         sqlBuilder.append(", MODIFYTIME = ").append(SQLUtil.getSqlString(item.getModifyTime()));
-        sqlBuilder.append(", MODIFYDESC = ").append(SQLUtil.getSqlString(item.getModifyDesc()));
+        sqlBuilder.append(", MODIFYDSP = ").append(SQLUtil.getSqlString(item.getModifyDesc()));
         sqlBuilder.append(", CURDIALPHONE = ").append(SQLUtil.getSqlString(item.getCurDialPhone()));
         sqlBuilder.append(", CURDIALPHONETYPE = ").append(SQLUtil.getSqlString(item.getCurDialPhoneType()));
         sqlBuilder.append(", NEXTDIALPHONETYPE = ").append(SQLUtil.getSqlString(item.getNextDialPhoneType()));
+        sqlBuilder.append(", CURSTAGENUM = ").append(SQLUtil.getSqlString(item.getCurStageNum()));
+        sqlBuilder.append(", FIRSTDIALDATE = ").append(SQLUtil.getSqlString(item.getFirstDialDate()));
         sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(item.getBizId()));
         sqlBuilder.append("  AND IID = ").append(SQLUtil.getSqlString(item.getImportBatchId()));
         sqlBuilder.append("  AND CID = ").append(SQLUtil.getSqlString(item.getCustomerId()));
@@ -317,7 +325,7 @@ public class MultiNumberRedialDAO extends BaseRepository {
 
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO " + tableName);
         sqlBuilder.append(" (ID, BUSINESSID, SHAREID, IID, CID, STATE, MODIFYID, " +
-                        " MODIFYUSERID, MODIFYTIME, MODIFYDESC, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
+                        " MODIFYUSERID, MODIFYTIME, MODIFYDSP, ISAPPEND, CUSTOMERCALLID, ENDCODETYPE, ENDCODE, " +
                         " PT1_PHONENUMBER, PT1_LASTDIALTIME, PT1_CAUSEPRESETDIALCOUNT, PT1_DIALCOUNT, " +
                         " PT2_PHONENUMBER, PT2_LASTDIALTIME, PT2_CAUSEPRESETDIALCOUNT, PT2_DIALCOUNT, " +
                         " PT3_PHONENUMBER, PT3_LASTDIALTIME, PT3_CAUSEPRESETDIALCOUNT, PT3_DIALCOUNT, " +
@@ -328,7 +336,7 @@ public class MultiNumberRedialDAO extends BaseRepository {
                         " PT8_PHONENUMBER, PT8_LASTDIALTIME, PT8_CAUSEPRESETDIALCOUNT, PT8_DIALCOUNT, " +
                         " PT9_PHONENUMBER, PT9_LASTDIALTIME, PT9_CAUSEPRESETDIALCOUNT, PT9_DIALCOUNT, " +
                         " PT10_PHONENUMBER, PT10_LASTDIALTIME, PT10_CAUSEPRESETDIALCOUNT, PT10_DIALCOUNT, " +
-                        " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE) VALUES ( ");
+                        " CURDIALPHONE, CURPRESETDIALTIME, CURDIALPHONETYPE, NEXTDIALPHONETYPE, CURSTAGENUM, FIRSTDIALDATE) VALUES ( ");
 
         sqlBuilder.append("S_" + tableName + ".NEXTVAL").append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getBizId())).append(",");
@@ -358,7 +366,9 @@ public class MultiNumberRedialDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(item.getCurDialPhone())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getCurPresetDialTime())).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(item.getCurDialPhoneType())).append(",");
-        sqlBuilder.append(SQLUtil.getSqlString(item.getNextDialPhoneType()));
+        sqlBuilder.append(SQLUtil.getSqlString(item.getNextDialPhoneType())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getCurStageNum())).append(",");
+        sqlBuilder.append(SQLUtil.getSqlString(item.getFirstDialDate()));
 
         sqlBuilder.append(")");
 

@@ -20,7 +20,7 @@ public class EndCodeRedialStrategyM4 {
     // resultCodeType + resultCode <==> MultiNumberRedialStrategyEnum
     Map<String, MultiNumberRedialStrategyEnum> mapEndCodeRedialStrategy;
 
-    public int getStageCount() {
+    public int getMaxStageCount() {
         return stageCount;
     }
 
