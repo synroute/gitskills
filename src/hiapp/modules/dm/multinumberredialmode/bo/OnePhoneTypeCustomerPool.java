@@ -22,14 +22,7 @@ public class OnePhoneTypeCustomerPool {
     public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList) {
         MultiNumberRedialCustomer shareDataItem = customerSharePool.extractCustomer(userId, shareBatchIdList);
 
-        Date now = new Date();
-
         if (null != shareDataItem) {
-            //shareDataItem.setState(MultiNumberRedialStateEnum.EXTRACTED);
-            shareDataItem.setModifyTime(now);
-            shareDataItem.setModifyId(shareDataItem.getModifyId() + 1);
-            shareDataItem.setModifyUserId(userId);
-            //shareDataItem.setModifyDesc("");
             shareDataItem.setCurDialPhoneType(phoneType);
             PhoneDialInfo phoneDialInfo = shareDataItem.getDialInfoByPhoneType(phoneType);
             shareDataItem.setCurDialPhone(phoneDialInfo.getPhoneNumber());

@@ -7,7 +7,6 @@ public class PhoneDialInfo {
     Date   LastDialTime;
     int    CausePresetDialCount;
     int    DialCount;
-    Date   presetDialTime;
 
     public String getPhoneNumber() {
         return PhoneNumber;
@@ -39,14 +38,6 @@ public class PhoneDialInfo {
 
     public void setDialCount(int dialCount) {
         DialCount = dialCount;
-    }
-
-    public Date getPresetDialTime() {
-        return presetDialTime;
-    }
-
-    public void setPresetDialTime(Date presetDialTime) {
-        this.presetDialTime = presetDialTime;
     }
 
     public PhoneDialInfo clone() {

@@ -201,14 +201,15 @@ public class MultiNumberRedialDAO extends BaseRepository {
     }
 
     // 更新客户共享状态
-    public Boolean updateCustomerShareState(int bizId, List<String> shareBatchIdList, MultiNumberRedialStateEnum state) {
+    public Boolean updateCustomerShareState(int bizId, List<String> customerIdList, MultiNumberRedialStateEnum state) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM4", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
         sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state.getName()));
-        sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.stringListToSqlString(shareBatchIdList)).append(")");
+        sqlBuilder.append(" WHERE CID IN (").append(SQLUtil.stringListToSqlString(customerIdList)).append(")");
         sqlBuilder.append("   AND BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
+        // TODO 系统目前根据CID就能唯一找到客户，最好是 IID 和 CID 同时判断
 
         Connection dbConn = null;
         PreparedStatement stmt = null;

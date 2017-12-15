@@ -47,19 +47,6 @@ public class MultiNumberRedialDataManage {
 
     public synchronized MultiNumberRedialCustomer extractNextOutboundCustomer(String userId, int bizId) {
         MultiNumberRedialCustomer customer = customerPool.extractCustomer(userId, bizId);
-        if (null != customer) {
-
-            if (MultiNumberRedialStateEnum.CREATED.equals(customer.getState())
-                || MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL.equals(customer.getState())) {
-                customer.setCurStageNum(customer.getCurStageNum() + 1);
-            }
-
-            multiNumberRedialDAO.updateCustomerShareForExtract(customer);
-
-            // 插入共享历史表
-            //multiNumberRedialDAO.insertCustomerShareStateHistory(customer);
-        }
-
         return customer;
     }
 
@@ -187,6 +174,13 @@ public class MultiNumberRedialDataManage {
             item.setFirstDialDate(now);
         }
 
+        // 调整 阶段数
+        if (MultiNumberRedialStateEnum.CREATED.equals(originCustomerItem.getState())
+            || MultiNumberRedialStateEnum.APPENDED.equals(originCustomerItem.getState())
+            || MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL.equals(originCustomerItem.getState())) {
+            item.setCurStageNum(item.getCurStageNum() + 1);
+        }
+
         int strategyDayIndex = getStrategyDayIndex(item.getFirstDialDate(), strategyItem.getStageDelayDays());
         Map<Integer, Integer> phoneTypeVsDialCount = strategyItem.getPhoneTypeVsDialCount(strategyDayIndex);
         MultiNumberRedialStrategyEnum strategyEnum = strategyItem.getEndCodeRedialStrategy(resultCodeType, resultCode);
@@ -245,6 +239,7 @@ public class MultiNumberRedialDataManage {
                 item.setState(MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL);
                 item.setCurPresetDialTime(DateUtil.getNextXDay(strategyItem.getStageDelayDays()));
                 item.setNextDialPhoneType(null);
+                clearPhoneTypeDialInfo(item);
             }
 
             if (!MultiNumberRedialStateEnum.FINISHED.equals(item.getState())) {
@@ -277,6 +272,7 @@ public class MultiNumberRedialDataManage {
                     item.setState(MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL);
                     item.setCurPresetDialTime(DateUtil.getNextXDay(strategyItem.getStageDelayDays()));
                     item.setNextDialPhoneType(null);
+                    clearPhoneTypeDialInfo(item);
                 }
             } else {
                 item.setState(MultiNumberRedialStateEnum.WAIT_REDIAL);
@@ -363,7 +359,7 @@ public class MultiNumberRedialDataManage {
 
                 if (MultiNumberRedialStateEnum.APPENDED.equals(customerItem.getState())) {
                     customerItem.setState(MultiNumberRedialStateEnum.CREATED);
-                    appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+                    appendedStateCustomerIdList.add(customerItem.getCustomerId());
                 }
             }
 
@@ -505,7 +501,8 @@ public class MultiNumberRedialDataManage {
             addCustomerToSharePool(customerItem);
 
             if (MultiNumberRedialStateEnum.APPENDED.equals(customerItem.getState())) {
-                appendedStateCustomerIdList.add(customerItem.getShareBatchId());
+                customerItem.setState(MultiNumberRedialStateEnum.CREATED);
+                appendedStateCustomerIdList.add(customerItem.getCustomerId());
             }
         }
 
@@ -524,11 +521,15 @@ public class MultiNumberRedialDataManage {
     }
 
     private Boolean determineStageOver(MultiNumberRedialCustomer item, int maxStageCount) {
-        if (item.getCurStageNum() >= maxStageCount) {
-            return true;
-        }
+        return item.getCurStageNum() >= maxStageCount;
+    }
 
-        return false;
+    private void clearPhoneTypeDialInfo(MultiNumberRedialCustomer item) {
+        for (int i=1; i<=10; i++) {
+            PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(i);
+            phoneDialInfo.setDialCount(0);
+            phoneDialInfo.setCausePresetDialCount(0);
+        }
     }
 
 }
