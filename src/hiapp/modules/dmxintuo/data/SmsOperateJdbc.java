@@ -57,9 +57,24 @@ public class SmsOperateJdbc extends BaseRepository{
 	public Map<String,Object> inserSmstTemplate(String  templateName,String  templateType,String content){
 		Connection conn=null;
 		PreparedStatement pst=null;
+		ResultSet rs=null;
 		Map<String,Object> result=new HashMap<String,Object>();
 		try {
 			conn=this.getDbConnection();
+			String selectSql="select id from hasys_dm_smstemplate where TEMPLATETYPE=?";
+			pst=conn.prepareStatement(selectSql);
+			pst.setString(1,templateType);
+			rs=pst.executeQuery();
+			Integer id=null;
+			while(rs.next()){
+				id=rs.getInt(1);
+			}
+			if(id==null){
+				result.put("result",false);
+				result.put("massage","该合作机构已存在,不能添加");
+				return result;
+			}
+			DbUtil.DbCloseQuery(rs, pst);
 			String sql="insert into hasys_dm_smstemplate(id,TEMPPLATENAME,TEMPLATETYPE,CONTENT) values(S_HASYS_DM_SIMTEMPLATE.nextval,?,?,?)";
 			pst=conn.prepareStatement(sql);
 			pst.setString(1,templateName);
