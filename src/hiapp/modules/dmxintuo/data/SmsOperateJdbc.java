@@ -69,7 +69,7 @@ public class SmsOperateJdbc extends BaseRepository{
 			while(rs.next()){
 				id=rs.getInt(1);
 			}
-			if(id==null){
+			if(id!=null){
 				result.put("result",false);
 				result.put("message","该合作机构已存在,不能添加");
 				return result;
