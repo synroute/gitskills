@@ -211,6 +211,7 @@ public class SmsOperateJdbc extends BaseRepository{
 		return list;
 	}
 	
+	
 	/**
 	 * 批量删除
 	 * @param ids
@@ -244,5 +245,39 @@ public class SmsOperateJdbc extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		return result;
+	}
+	
+	/**
+	 * 根据合作机构获取短信模板内容
+	 * @param templateType
+	 * @return
+	 */
+	public Map<String,Object> getContentByType(String templateType){
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		String content=null;
+		Map<String,Object> map=new HashMap<String, Object>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select content from hasys_dm_smstemplate where TEMPLATETYPE=?";
+			pst=conn.prepareStatement(sql);
+			pst.setString(1,templateType);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				content=rs.getString(1);
+			}
+			map.put("result",true);
+			map.put("content", content);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			map.put("result",false);
+			map.put("content", "查询错误");
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return map;
 	}
 }

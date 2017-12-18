@@ -158,4 +158,23 @@ public class SmsOperateController {
 		}
 	}
 	
+	/**
+	 * 根据合作机构获取短信模板内容
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/SmsOperateController/getContentByType.srv")
+	public void getContentByType(HttpServletRequest request, HttpServletResponse response){
+		String templateType=request.getParameter("templateType");
+		Map<String, Object> resultMap = smsOperateJdbc.getContentByType(templateType);
+		String jsonObject=new Gson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 }
