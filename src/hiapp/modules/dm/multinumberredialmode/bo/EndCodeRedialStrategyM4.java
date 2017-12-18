@@ -1,13 +1,5 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class EndCodeRedialStrategyM4 {
@@ -15,7 +7,8 @@ public class EndCodeRedialStrategyM4 {
     String loopType;
     int stageDelayDays;
 
-    List<Map<Integer, Integer>> dailyPhoneTypeDialCount;
+    // StageDayIndex <==> {phoneType <==> dialCount}
+    Map<Integer, Map<Integer, Integer>> mapDailyPhoneTypeDialCount;
 
     // resultCodeType + resultCode <==> MultiNumberRedialStrategyEnum
     Map<String, MultiNumberRedialStrategyEnum> mapEndCodeRedialStrategy;
@@ -29,7 +22,11 @@ public class EndCodeRedialStrategyM4 {
     }
 
     public Map<Integer, Integer> getPhoneTypeVsDialCount(int dayIndex) {
-        return dailyPhoneTypeDialCount.get(dayIndex-1);
+        return mapDailyPhoneTypeDialCount.get(dayIndex);
+    }
+
+    public Boolean hasGivenDayConfig(int dayIndex) {
+        return mapDailyPhoneTypeDialCount.containsKey(dayIndex);
     }
 
     public MultiNumberRedialStrategyEnum getEndCodeRedialStrategy(String resultCodeType, String resultCode) {
@@ -43,7 +40,7 @@ public class EndCodeRedialStrategyM4 {
         strategyM4.stageDelayDays = strategyM4DB.getStageDelayDays();
 
         strategyM4.mapEndCodeRedialStrategy = strategyM4DB.getEndCodeRedialStrategy();
-        strategyM4.dailyPhoneTypeDialCount = strategyM4DB.getDailyPhoneTypeDialCount();
+        strategyM4.mapDailyPhoneTypeDialCount = strategyM4DB.getDailyPhoneTypeDialCount();
         return strategyM4;
     }
 }

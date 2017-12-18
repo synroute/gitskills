@@ -125,10 +125,14 @@ public class MultiNumberRedialCustomerSharePool {
         return shareDataItem;
     }
 
+    /**
+     * 注意：MultiNumberRedialStateEnum.WAIT_NEXT_DAY_DIAL 放入非预约队列
+     *
+     */
     public void add(MultiNumberRedialCustomer customer) {
         PriorityBlockingQueue<MultiNumberRedialCustomer> queue;
         if (MultiNumberRedialStateEnum.PRESET_DIAL.equals(customer.getState())
-            || MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL.equals(customer.getState()) ) {
+            || MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL.equals(customer.getState())) {
             queue = mapPreseCustomerSharePool.get(customer.getShareBatchId());
             if (null == queue) {
                 queue = new PriorityBlockingQueue<MultiNumberRedialCustomer>(1, nextDialTimeComparator);

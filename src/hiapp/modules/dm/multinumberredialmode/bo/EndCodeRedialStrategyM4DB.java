@@ -1,5 +1,7 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
+import hiapp.modules.dm.Constants;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,19 +19,22 @@ public class EndCodeRedialStrategyM4DB {
         return MultiNumberDetail.getStageDelayDays();
     }
 
-    public List<Map<Integer, Integer>> getDailyPhoneTypeDialCount() {
-        List<Map<Integer, Integer>> listDailyPhoneTypeDialCount = new ArrayList<Map<Integer, Integer>>();
+    public Map<Integer, Map<Integer, Integer>> getDailyPhoneTypeDialCount() {
+        Map<Integer, Map<Integer, Integer>> mapDailyPhoneTypeDialCount = new HashMap<Integer, Map<Integer, Integer>>();
 
-        for (int i=1; i<=15; i++) {
+        for (int i = 1; i<= Constants.StageDayNum; i++) {
             List<DayOrderItem> dayPhoneTypeDialCountList = MultiNumberDetail.getDayPhoneTypeDialCount(i);
+            if (null == dayPhoneTypeDialCountList)
+                continue;
+
             Map<Integer, Integer> mapOnePhoneTypeDialCount = new HashMap<Integer, Integer>();
             for (DayOrderItem item : dayPhoneTypeDialCountList) {
-                mapOnePhoneTypeDialCount.put(Integer.valueOf(item.dialType), item.DialCount);
+                mapOnePhoneTypeDialCount.put(item.getDialType(), item.getDialCount());
             }
-            listDailyPhoneTypeDialCount.add(mapOnePhoneTypeDialCount);
+            mapDailyPhoneTypeDialCount.put(i, mapOnePhoneTypeDialCount);
         }
 
-        return listDailyPhoneTypeDialCount;
+        return mapDailyPhoneTypeDialCount;
     }
 
     public Map<String, MultiNumberRedialStrategyEnum> getEndCodeRedialStrategy() {
@@ -52,11 +57,11 @@ class MultiNumberDetail {
     Map<String, List<DayOrderItem>> DayOrder;
 
     public int getStageCount() {
-        return Attribute.StageCount;
+        return Attribute.getStageCount();
     }
 
     public int getStageDelayDays() {
-        return Attribute.StageDelayDays;
+        return Attribute.getStageDelayDays();
     }
 
     public List<DayOrderItem> getDayPhoneTypeDialCount(int dayIndex) {
@@ -65,16 +70,56 @@ class MultiNumberDetail {
 }
 
 class Attribute {
-    int StageCount;
-    String LoopType;
-    int StageDelayDays;
+    public int getStageCount() {
+        if (null == StageCount || StageCount.isEmpty())
+            return 0;
+
+        return Integer.valueOf(StageCount);
+    }
+
+    public String getLoopType() {
+        return LoopType;
+    }
+
+    public int getStageDelayDays() {
+        if (null == StageDelayDays || StageDelayDays.isEmpty())
+            return 0;
+
+        return Integer.valueOf(StageDelayDays);
+    }
+
+    private String StageCount;
+    private String LoopType;
+    private String StageDelayDays;
 }
 
 class DayOrderItem {
-    String dialType;
-    String name;
-    String nameCh;
-    int DialCount;
+    public int getDialType() {
+        if (null == dialType || dialType.isEmpty())
+            return 0;
+
+        return Integer.valueOf(dialType);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getNameCh() {
+        return nameCh;
+    }
+
+    public int getDialCount() {
+        if (null == DialCount || DialCount.isEmpty())
+            return 0;
+
+        return Integer.valueOf(DialCount);
+    }
+
+    private String dialType;
+    private String name;
+    private String nameCh;
+    private String DialCount;
 }
 
 class EndCodeRedialStrategyItem {

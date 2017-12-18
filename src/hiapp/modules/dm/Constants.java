@@ -12,6 +12,8 @@ public class Constants {
 
     public static Integer MAX_CALL_LOSS_COUNT = 3; //
 
+    public static Integer StageDayNum = 15;
+
     public static String timeStart = "TimeStart";
     public static String timeEnd = "TimeEnd";
 

@@ -349,9 +349,10 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(item.getEndCode())).append(",");
 
         for (int i=1; i<=10; i++) {
-            Integer phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(item.getBizId(), i);
+            //Integer phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(item.getBizId(), i);
+            //PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(phoneType);
 
-            PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(phoneType);
+            PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(i);
             sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber())).append(",");
             sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getLastDialTime())).append(",");
             sqlBuilder.append(null == phoneDialInfo ? "null" : SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount())).append(",");
