@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -201,15 +202,16 @@ public class MultiNumberRedialDAO extends BaseRepository {
     }
 
     // 更新客户共享状态
-    public Boolean updateCustomerShareState(int bizId, List<String> customerIdList, MultiNumberRedialStateEnum state) {
+    public Boolean updateCustomerShareState(int bizId, HashSet<String> shareBatchIdSet,
+                                            MultiNumberRedialStateEnum originalState, MultiNumberRedialStateEnum newState ) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM4", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
-        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state.getName()));
-        sqlBuilder.append(" WHERE CID IN (").append(SQLUtil.stringListToSqlString(customerIdList)).append(")");
+        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(newState.getName()));
+        sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.stringCollectionToSqlString(shareBatchIdSet)).append(")");
         sqlBuilder.append("   AND BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
-        // TODO 系统目前根据CID就能唯一找到客户，最好是 IID 和 CID 同时判断
+        sqlBuilder.append("   AND STATE = ").append(SQLUtil.getSqlString(originalState.getName()));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
@@ -250,13 +252,13 @@ public class MultiNumberRedialDAO extends BaseRepository {
         sqlBuilder.append(", FIRSTDIALDATE = ").append(SQLUtil.getSqlString(item.getFirstDialDate()));
         //sqlBuilder.append(", ISAPPEND = ").append(SQLUtil.getSqlString(item.getIsAppend()));
 
-        int curPhoneType = item.getCurDialPhoneType();
-        //int curPhoneDialSeq = phoneTypeDialSequence.getDialSequenceByPhoneType(item.getBizId(), item.getCurDialPhoneType());
-        PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(curPhoneType);
-        sqlBuilder.append(", PT").append(curPhoneType).append("_PHONENUMBER = ").append(SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber()));
-        sqlBuilder.append(", PT").append(curPhoneType).append("_LASTDIALTIME = ").append(SQLUtil.getSqlString(phoneDialInfo.getLastDialTime()));
-        sqlBuilder.append(", PT").append(curPhoneType).append("_CAUSEPRESETDIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount()));
-        sqlBuilder.append(", PT").append(curPhoneType).append("_DIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getDialCount()));
+        for (int phoneType=1; phoneType<=10; phoneType++) {
+            PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(phoneType);
+            sqlBuilder.append(", PT").append(phoneType).append("_PHONENUMBER = ").append(SQLUtil.getSqlString(phoneDialInfo.getPhoneNumber()));
+            sqlBuilder.append(", PT").append(phoneType).append("_LASTDIALTIME = ").append(SQLUtil.getSqlString(phoneDialInfo.getLastDialTime()));
+            sqlBuilder.append(", PT").append(phoneType).append("_CAUSEPRESETDIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getCausePresetDialCount()));
+            sqlBuilder.append(", PT").append(phoneType).append("_DIALCOUNT = ").append(SQLUtil.getSqlString(phoneDialInfo.getDialCount()));
+        }
 
         sqlBuilder.append(" WHERE BUSINESSID = ").append(SQLUtil.getSqlString(item.getBizId()));
         sqlBuilder.append("  AND IID = ").append(SQLUtil.getSqlString(item.getImportBatchId()));

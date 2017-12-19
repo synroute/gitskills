@@ -77,15 +77,6 @@ public class MultiNumberRedialCustomerPool {
         return true;
     }
 
-    public void addWaitResultCustomer(MultiNumberRedialCustomer customer) {
-        customerWaitPool.add(customer.getModifyUserId(), customer);
-    }
-
-    public void waitPoolPostProcess() {
-        customerWaitPool.postProcess();
-    }
-
-
     public void clear() {
         customerSharePool.clear();
     }
@@ -142,14 +133,6 @@ public class MultiNumberRedialCustomerPool {
             //bizCustomerSharePool;
         }*/
 
-    }
-
-    public void hidialerPhoneConnect(MultiNumberRedialCustomer customer, Date originModifyTime) {
-        customerWaitPool.hidialerPhoneConnect(customer, originModifyTime);
-    }
-
-    public void agentScreenPopUp(MultiNumberRedialCustomer customer, Date originModifyTime) {
-        customerWaitPool.agentScreenPopUp(customer, originModifyTime);
     }
 
     public Integer calcNextDialPhoneType(MultiNumberRedialCustomer customer) {

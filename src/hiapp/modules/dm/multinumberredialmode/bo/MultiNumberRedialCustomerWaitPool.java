@@ -1,6 +1,7 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
+import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.multinumberredialmode.MultiNumberRedialDataManage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,6 @@ public class MultiNumberRedialCustomerWaitPool {
     @Autowired
     MultiNumberRedialDataManage multiNumberOutboundDataManage;
 
-
     // 等待拨打结果的客户池，坐席人员维度
     // UserID <==> {BizID + ImportID + CustomerID <==> MultiNumberRedialCustomer}
     Map<String, Map<String, MultiNumberRedialCustomer>> mapOutboundResultWaitSubmitCustomerPool;
@@ -21,14 +21,6 @@ public class MultiNumberRedialCustomerWaitPool {
     // 等待共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
     // ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberRedialCustomer}
     Map<String, Map<String, MultiNumberRedialCustomer>> mapShareBatchWaitStopCustomerPool;
-
-    // 等待hidialer呼通超时的客户池，抽取时间的分钟SLOT维度
-    // 分钟Slot <==> {BizID + ImportId + CustomerId <==> MultiNumberRedialCustomer}
-    Map<Long, Map<String, MultiNumberRedialCustomer>> mapTimeOutWaitPhoneConnectCustomerPool;
-
-    // 等待坐席弹屏超时的客户池，hidialer呼通时间的分钟SLOT维度
-    // 分钟Slot <==> {BizID + ImportId + CustomerId <==> MultiNumberRedialCustomer}
-    Map<Long, Map<String, MultiNumberRedialCustomer>> mapTimeOutWaitScreenPopUpCustomerPool;
 
     // 等待坐席拨打结果超时的客户池，坐席弹屏时间的分钟SLOT维度
     // 分钟Slot <==> {BizID + ImportId + CustomerId <==> MultiNumberRedialCustomer}
@@ -41,9 +33,6 @@ public class MultiNumberRedialCustomerWaitPool {
     public MultiNumberRedialCustomerWaitPool() {
         mapOutboundResultWaitSubmitCustomerPool = new HashMap<String, Map<String, MultiNumberRedialCustomer>>();
         mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberRedialCustomer>>();
-
-        mapTimeOutWaitPhoneConnectCustomerPool = new HashMap<Long, Map<String, MultiNumberRedialCustomer>>();
-        mapTimeOutWaitScreenPopUpCustomerPool = new HashMap<Long, Map<String, MultiNumberRedialCustomer>>();
         mapTimeOutWaitOutboundResultCustomerPool = new HashMap<Long, Map<String, MultiNumberRedialCustomer>>();
 
         Date now =  new Date();
@@ -66,43 +55,16 @@ public class MultiNumberRedialCustomerWaitPool {
             mapShareBatchWaitStopCustomerPool.put(customerItem.getShareBatchId(), mapWaitStopPool);
         }
         mapWaitStopPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
-    }
 
-    public void hidialerPhoneConnect(MultiNumberRedialCustomer customer, Date originModifyTime) {
-        Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
-        if (null != mapWaitTimeOutPool) {
-            mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
-            if (mapWaitTimeOutPool.isEmpty())
-                mapTimeOutWaitPhoneConnectCustomerPool.remove(timeSlot);
+        Long timeSlot = customerItem.getExtractTime().getTime()/Constants.timeSlotSpan;
+        Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot);
+        if (null == mapWaitTimeOutPool) {
+            mapWaitTimeOutPool = new HashMap<String, MultiNumberRedialCustomer>();
+            mapTimeOutWaitOutboundResultCustomerPool.put(timeSlot, mapWaitTimeOutPool);
         }
+        mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(),
+                customerItem);
 
-        Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot2);
-        if (null == mapWaitTimeOutPool2) {
-            mapWaitTimeOutPool2 = new HashMap<String, MultiNumberRedialCustomer>();
-            mapTimeOutWaitScreenPopUpCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
-        }
-        mapWaitTimeOutPool2.put(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId(), customer);
-    }
-
-    public void agentScreenPopUp(MultiNumberRedialCustomer customer, Date originModifyTime) {
-        Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
-        if (null != mapWaitTimeOutPool) {
-            mapWaitTimeOutPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
-            if (mapWaitTimeOutPool.isEmpty()) {
-                mapTimeOutWaitScreenPopUpCustomerPool.remove(timeSlot);
-            }
-        }
-
-        Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
-        Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool2 = mapTimeOutWaitOutboundResultCustomerPool.get(timeSlot2);
-        if (null == mapWaitTimeOutPool2) {
-            mapWaitTimeOutPool2 = new HashMap<String, MultiNumberRedialCustomer>();
-            mapTimeOutWaitOutboundResultCustomerPool.put(timeSlot2, mapWaitTimeOutPool2);
-        }
-        mapWaitTimeOutPool2.put(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId(), customer);
     }
 
     public MultiNumberRedialCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
@@ -113,6 +75,9 @@ public class MultiNumberRedialCustomerWaitPool {
 
 
         removeWaitStopCustomer(bizId, customerItem.getShareBatchId(), importBatchId, customerId);
+
+        Long timeSlot = customerItem.getExtractTime().getTime() / Constants.timeSlotSpan;
+        removeWaitResultTimeOutCustomer(bizId, importBatchId, customerId, timeSlot);
 
         return customerItem;
     }
@@ -132,8 +97,10 @@ public class MultiNumberRedialCustomerWaitPool {
      */
     public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
-            Map<String, MultiNumberRedialCustomer> mapWaitStopPool;
-            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+            Map<String, MultiNumberRedialCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+            if (null == mapWaitStopPool)
+                continue;
+
             for (MultiNumberRedialCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }
@@ -141,8 +108,7 @@ public class MultiNumberRedialCustomerWaitPool {
     }
 
     public void onLogin(String userId) {
-
-        // TODO ??? 多号码预测外呼需要处理用户登录通知吗？
+        // TODO 多号码重拨外呼需要处理用户登录通知
 
         /*Map<String, SingleNumberModeShareCustomerItem> mapUserWaitResultPool = mapWaitResultCustomerPool.remove(userId);
         if (null == mapUserWaitResultPool)
@@ -166,8 +132,6 @@ public class MultiNumberRedialCustomerWaitPool {
     public void timeoutProc() {
         Date now =  new Date();
         Long curTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        System.out.println("cur time slot : " + curTimeSlot);
-
 
         // 坐席递交结果 超时处理
         Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4/Constants.timeSlotSpan;
@@ -180,8 +144,7 @@ public class MultiNumberRedialCustomerWaitPool {
             for (MultiNumberRedialCustomer customerItem : mapTimeSlotWaitTimeOutPool.values()) {
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
-                    //TODO
-                    //multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberRedialStateEnum.LOSS_WAIT_REDIAL);  // 呼损处理
+                    multiNumberOutboundDataManage.lostProc(customerItem);  // 呼损处理
                 }
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
@@ -189,26 +152,6 @@ public class MultiNumberRedialCustomerWaitPool {
                 removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());
             }
-        }
-    }
-
-    public void postProcess() {
-        Set<Long> phoneConnectTimeSlotSet = mapTimeOutWaitPhoneConnectCustomerPool.keySet();
-        for (Long timeSlot : phoneConnectTimeSlotSet) {
-            if (timeSlot < earliestPhoneConnectTimeSlot)
-                earliestPhoneConnectTimeSlot = timeSlot;
-        }
-
-        Set<Long> screenPopupTimeSlotSet = mapTimeOutWaitScreenPopUpCustomerPool.keySet();
-        for (Long timeSlot : screenPopupTimeSlotSet) {
-            if (timeSlot < earliestScreenPopUpTimeSlot)
-                earliestScreenPopUpTimeSlot = timeSlot;
-        }
-
-        Set<Long> resultTimeSlotSet = mapTimeOutWaitOutboundResultCustomerPool.keySet();
-        for (Long timeSlot : resultTimeSlotSet) {
-            if (timeSlot < earliestResultTimeSlot)
-                earliestResultTimeSlot = timeSlot;
         }
     }
 
@@ -230,26 +173,6 @@ public class MultiNumberRedialCustomerWaitPool {
             mapWaitStopPool.remove(bizId + importBatchId + customerId);
             if (mapWaitStopPool.isEmpty())
                 mapShareBatchWaitStopCustomerPool.remove(shareBatchId);
-        }
-    }
-
-    private void removeWaitPhoneConnectTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool = mapTimeOutWaitPhoneConnectCustomerPool.get(timeSlot);
-        if (null != mapWaitTimeOutPool) {
-            mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
-            if (mapWaitTimeOutPool.isEmpty()) {
-                mapTimeOutWaitPhoneConnectCustomerPool.remove(timeSlot);
-            }
-        }
-    }
-
-    private void removeWaitScreenPopUpTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<String, MultiNumberRedialCustomer> mapWaitTimeOutPool = mapTimeOutWaitScreenPopUpCustomerPool.get(timeSlot);
-        if (null != mapWaitTimeOutPool) {
-            mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
-            if (mapWaitTimeOutPool.isEmpty()) {
-                mapTimeOutWaitScreenPopUpCustomerPool.remove(timeSlot);
-            }
         }
     }
 

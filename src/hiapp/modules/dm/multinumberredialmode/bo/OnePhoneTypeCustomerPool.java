@@ -27,6 +27,8 @@ public class OnePhoneTypeCustomerPool {
             PhoneDialInfo phoneDialInfo = shareDataItem.getDialInfoByPhoneType(phoneType);
             shareDataItem.setCurDialPhone(phoneDialInfo.getPhoneNumber());
 
+            shareDataItem.setExtractTime(new Date());
+
             //注意：只是在内存中清零了拨打计数
             if (MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL.equals(shareDataItem.getState())
                 || MultiNumberRedialStateEnum.WAIT_NEXT_DAY_DIAL.equals(shareDataItem.getState())) {

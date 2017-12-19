@@ -1,5 +1,7 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
+import hiapp.modules.dm.Constants;
+
 import java.util.Map;
 
 public class EndCodeRedialStrategyM4 {
@@ -27,6 +29,15 @@ public class EndCodeRedialStrategyM4 {
 
     public Boolean hasGivenDayConfig(int dayIndex) {
         return mapDailyPhoneTypeDialCount.containsKey(dayIndex);
+    }
+
+    public Boolean hasDayConfigSince(int curDayIndex) {
+        for (int dayIndex=curDayIndex + 1; dayIndex <= Constants.StageDayNum; dayIndex++ ) {
+            if (mapDailyPhoneTypeDialCount.containsKey(dayIndex))
+                return true;
+        }
+
+        return false;
     }
 
     public MultiNumberRedialStrategyEnum getEndCodeRedialStrategy(String resultCodeType, String resultCode) {

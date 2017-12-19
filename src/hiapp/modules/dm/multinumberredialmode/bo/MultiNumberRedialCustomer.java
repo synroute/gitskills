@@ -194,6 +194,13 @@ public class MultiNumberRedialCustomer {
         this.curStageNum = curStageNum;
     }
 
+    public Date getExtractTime() {
+        return extractTime;
+    }
+
+    public void setExtractTime(Date extractTime) {
+        this.extractTime = extractTime;
+    }
 
     public MultiNumberRedialCustomer deepClone() {
         MultiNumberRedialCustomer cloneItem = new MultiNumberRedialCustomer();
@@ -257,6 +264,7 @@ public class MultiNumberRedialCustomer {
 
     // 非本表字段
     Date shareBatchStartTime;  //用于优先级控制
+    Date extractTime; // 用于记录抽取时间
     Boolean invalid = false;
 }
 

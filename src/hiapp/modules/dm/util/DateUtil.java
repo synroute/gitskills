@@ -62,6 +62,17 @@ public class DateUtil {
         return curDay.getTime();
     }
 
+    public static Date getNextXDay(Date originalDay, int deltaDayNum) {
+        Calendar curDay = Calendar.getInstance();
+        curDay.setTime(originalDay);
+        curDay.add(Calendar.DAY_OF_MONTH, deltaDayNum);
+        curDay.set(Calendar.HOUR_OF_DAY, 0);
+        curDay.set(Calendar.MINUTE, 0);
+        curDay.set(Calendar.SECOND, 0);
+        curDay.set(Calendar.MILLISECOND, 0);
+        return curDay.getTime();
+    }
+
     public static Date getNextXMinute(int deltaMinuteNum) {
         Calendar curDay = Calendar.getInstance();
         curDay.setTime(new Date());
