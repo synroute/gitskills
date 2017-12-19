@@ -19,7 +19,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class DataMonitorJdbc extends BaseRepository{
 	
-	@SuppressWarnings("resource")
 	public Map<String,Object> getMonitorData(Integer bizId,String startTime,String endTime,String importId,Integer num,Integer pageSize){
 		Connection conn=null;
 		PreparedStatement pst = null;

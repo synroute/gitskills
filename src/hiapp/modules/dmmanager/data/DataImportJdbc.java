@@ -12,8 +12,6 @@ import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.sql.Clob;
@@ -31,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -370,7 +367,6 @@ public class DataImportJdbc extends BaseRepository{
 		ResultSet rs = null;
 		String jsonData=null;
 		String getDbDataSql1="select ";
-		String maxTimeKey="maxTime"+bizId+templateId;
 		List<Map<String,Object>> dataList=new ArrayList<Map<String,Object>>();
 		List<String> sourceColumns=new ArrayList<String>();
 		String workSheetId =dmWorkSheetRepository.getWorkSheetIdByType(bizId,DMWorkSheetTypeEnum.WSTDM_IMPORT.getType());;
