@@ -173,8 +173,10 @@ public class CustomerWaitPool {
      */
     public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
-            Map<String, MultiNumberCustomer> mapWaitStopPool;
-            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+            Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(shareBatchId);
+            if (null == mapWaitStopPool)
+                continue;
+
             for (MultiNumberCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }
