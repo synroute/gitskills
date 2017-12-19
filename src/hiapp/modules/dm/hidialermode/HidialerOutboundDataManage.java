@@ -404,18 +404,19 @@ public class HidialerOutboundDataManage {
 
             // 收集客户共享状态为 HidialerModeCustomerStateEnum.APPENDED 的客户信息
             // 后续需要更改状态为 HidialerModeCustomerStateEnum.CREATED
-            List<String> appendedStateCustomerIdList = new ArrayList<String>();
+            HashSet<String> appendedStateShareBatchIdSet = new HashSet<String>();
 
             for (HidialerModeCustomer customerItem : shareDataItems) {
                 addCustomerToSharePool(customerItem);
 
                 if (HidialerModeCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
-                    appendedStateCustomerIdList.add(customerItem.getCustomerId());
+                    appendedStateShareBatchIdSet.add(customerItem.getShareBatchId());
                 }
             }
 
-            if (!appendedStateCustomerIdList.isEmpty())
-                hidialerModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList, HidialerModeCustomerStateEnum.CREATED);
+            if (!appendedStateShareBatchIdSet.isEmpty())
+                hidialerModeDAO.updateCustomerShareState(bizId, appendedStateShareBatchIdSet,
+                        HidialerModeCustomerStateEnum.APPENDED, HidialerModeCustomerStateEnum.CREATED);
         }
 
         // 初始化等待池
@@ -544,19 +545,19 @@ public class HidialerOutboundDataManage {
 
         // 记录客户共享状态为 MultiNumberPredictStateEnum.APPENDED 的客户信息
         // 后续需要更改状态为 MultiNumberPredictStateEnum.CREATED
-        List<String> appendedStateCustomerIdList = new ArrayList<String>();
+        HashSet<String> appendedStateShareBatchIdSet = new HashSet<String>();
 
         for (HidialerModeCustomer customerItem : shareDataItems) {
             addCustomerToSharePool(customerItem);
 
             if (HidialerModeCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
-                appendedStateCustomerIdList.add(customerItem.getCustomerId());
+                appendedStateShareBatchIdSet.add(customerItem.getShareBatchId());
             }
         }
 
-        if (!appendedStateCustomerIdList.isEmpty()) {
-            hidialerModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
-                    HidialerModeCustomerStateEnum.CREATED);
+        if (!appendedStateShareBatchIdSet.isEmpty()) {
+            hidialerModeDAO.updateCustomerShareState(bizId, appendedStateShareBatchIdSet,
+                    HidialerModeCustomerStateEnum.APPENDED, HidialerModeCustomerStateEnum.CREATED);
         }
     }
 

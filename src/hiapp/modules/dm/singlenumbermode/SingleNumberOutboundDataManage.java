@@ -327,20 +327,20 @@ public class SingleNumberOutboundDataManage {
 
             // 收集客户共享状态为 SingleNumberModeShareCustomerStateEnum.APPENDED 的客户信息
             // 后续需要更改状态为 SingleNumberModeShareCustomerStateEnum.CREATED
-            List<String> appendedStateCustomerIdList = new ArrayList<String>();
+            HashSet<String> appendedStateShareBatchIdSet = new HashSet<String>();
 
             for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
                 if (needJoinCustomerPool(bizId, customerItem))
                     addCustomerToSharePool(customerItem);
 
                 if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
-                    appendedStateCustomerIdList.add(customerItem.getCustomerId());
+                    appendedStateShareBatchIdSet.add(customerItem.getShareBatchId());
                 }
             }
 
-            if (!appendedStateCustomerIdList.isEmpty()) {
-                singleNumberModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
-                        SingleNumberModeShareCustomerStateEnum.CREATED.getName());
+            if (!appendedStateShareBatchIdSet.isEmpty()) {
+                singleNumberModeDAO.updateCustomerShareState(bizId, appendedStateShareBatchIdSet,
+                        SingleNumberModeShareCustomerStateEnum.APPENDED, SingleNumberModeShareCustomerStateEnum.CREATED);
             }
         }
     }
@@ -704,18 +704,18 @@ public class SingleNumberOutboundDataManage {
 
         // 记录客户共享状态为 SingleNumberModeShareCustomerStateEnum.APPENDED 的客户信息
         // 后续需要更改状态为 SingleNumberModeShareCustomerStateEnum.CREATED
-        List<String> appendedStateCustomerIdList = new ArrayList<String>();
+        HashSet<String> appendedStateShareBatchIdSet = new HashSet<String>();
 
         for (SingleNumberModeShareCustomerItem customerItem : shareDataItems) {
             addCustomerToSharePool(customerItem);
 
             if (SingleNumberModeShareCustomerStateEnum.APPENDED.equals(customerItem.getState())) {
-                appendedStateCustomerIdList.add(customerItem.getCustomerId());
+                appendedStateShareBatchIdSet.add(customerItem.getShareBatchId());
             }
         }
 
-        singleNumberModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
-                SingleNumberModeShareCustomerStateEnum.CREATED.getName());
+        singleNumberModeDAO.updateCustomerShareState(bizId, appendedStateShareBatchIdSet,
+                SingleNumberModeShareCustomerStateEnum.APPENDED, SingleNumberModeShareCustomerStateEnum.CREATED);
     }
 
     private void removeFromCustomerSharePool(int bizId, List<String> shareBatchIds,

@@ -445,18 +445,19 @@ public class MultiNumberOutboundDataManage {
 
             // 收集客户共享状态为 MultiNumberPredictStateEnum.APPENDED 的客户信息
             // 后续需要更改状态为 MultiNumberPredictStateEnum.CREATED
-            List<String> appendedStateCustomerIdList = new ArrayList<String>();
+            HashSet<String> appendedStateShareBatchIdSet = new HashSet<String>();
 
             for (MultiNumberCustomer customerItem : shareDataItems) {
                 addCustomerToSharePool(customerItem);
 
                 if (MultiNumberPredictStateEnum.APPENDED.equals(customerItem.getState())) {
-                    appendedStateCustomerIdList.add(customerItem.getCustomerId());
+                    appendedStateShareBatchIdSet.add(customerItem.getShareBatchId());
                 }
             }
 
-            if (!appendedStateCustomerIdList.isEmpty())
-                multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList, MultiNumberPredictStateEnum.CREATED);
+            if (!appendedStateShareBatchIdSet.isEmpty())
+                multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateShareBatchIdSet,
+                        MultiNumberPredictStateEnum.APPENDED, MultiNumberPredictStateEnum.CREATED);
         }
 
         // 初始化等待池
@@ -588,19 +589,19 @@ public class MultiNumberOutboundDataManage {
 
         // 记录客户共享状态为 MultiNumberPredictStateEnum.APPENDED 的客户信息
         // 后续需要更改状态为 MultiNumberPredictStateEnum.CREATED
-        List<String> appendedStateCustomerIdList = new ArrayList<String>();
+        HashSet<String> appendedStateShareBatchIdSet = new HashSet<String>();
 
         for (MultiNumberCustomer customerItem : shareDataItems) {
             addCustomerToSharePool(customerItem);
 
             if (MultiNumberPredictStateEnum.APPENDED.equals(customerItem.getState())) {
-                appendedStateCustomerIdList.add(customerItem.getCustomerId());
+                appendedStateShareBatchIdSet.add(customerItem.getShareBatchId());
             }
         }
 
-        if (!appendedStateCustomerIdList.isEmpty()) {
-            multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateCustomerIdList,
-                    MultiNumberPredictStateEnum.CREATED);
+        if (!appendedStateShareBatchIdSet.isEmpty()) {
+            multiNumberPredictModeDAO.updateCustomerShareState(bizId, appendedStateShareBatchIdSet,
+                    MultiNumberPredictStateEnum.APPENDED, MultiNumberPredictStateEnum.CREATED);
         }
     }
 

@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -157,14 +158,16 @@ public class HidialerModeDAO extends BaseRepository {
     }
 
     // 更新客户共享状态
-    public Boolean updateCustomerShareState(int bizId, List<String> customerIdList, HidialerModeCustomerStateEnum state) {
+    public Boolean updateCustomerShareState(int bizId, HashSet<String> shareBatchIdSet,
+                                            HidialerModeCustomerStateEnum originalState, HidialerModeCustomerStateEnum newState) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM2", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
-        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state.getName()));
-        sqlBuilder.append(" WHERE CID IN (").append(SQLUtil.stringListToSqlString(customerIdList)).append(")");
+        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(newState.getName()));
+        sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.stringCollectionToSqlString(shareBatchIdSet)).append(")");
         sqlBuilder.append("   AND BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
+        sqlBuilder.append("   AND STATE = ").append(SQLUtil.getSqlString(originalState.getName()));
 
         Connection dbConn = null;
         PreparedStatement stmt = null;

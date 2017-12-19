@@ -201,13 +201,17 @@ public class SingleNumberModeDAO extends BaseRepository {
     }
 
     // 更新客户共享状态
-    public Boolean updateCustomerShareState(int bizId, List<String> customerIdList, String state) {
+    public Boolean updateCustomerShareState(int bizId, HashSet<String> shareBatchIdSet,
+                                            SingleNumberModeShareCustomerStateEnum originalState,
+                                            SingleNumberModeShareCustomerStateEnum newState) {
 
         String tableName = String.format("HAU_DM_B%dC_DATAM3", bizId);
 
         StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
-        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state));
-        sqlBuilder.append(" WHERE CID IN (").append(SQLUtil.stringListToSqlString(customerIdList)).append(")");
+        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(newState.getName()));
+        sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.stringCollectionToSqlString(shareBatchIdSet)).append(")");
+        sqlBuilder.append("   AND STATE = ").append(SQLUtil.getSqlString(originalState.getName()));
+
 
         Connection dbConn = null;
         PreparedStatement stmt = null;
