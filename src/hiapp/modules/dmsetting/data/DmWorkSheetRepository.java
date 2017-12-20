@@ -508,6 +508,9 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESETDIALTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("下次拨打号码类型", "NEXTDIALPHONETYPE", "下次拨打号码类型", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("当前阶段数", "CURSTAGENUM", "当前阶段数", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("第一次拨打日期", "FIRSTDIALDATE", "第一次拨打日期", WorkSheetDataType.DATETIME, -1, false, true);
+
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
 		
@@ -581,6 +584,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 					creationInfoWorkSheet.addColumn("本号码预约拨打时间", "CURPRESETDIALTIME", "本号码预约拨打时间", WorkSheetDataType.DATETIME, -1, false, true);
 					creationInfoWorkSheet.addColumn("当前已拨打号码类型", "CURDIALPHONETYPE", "当前已拨打号码类型", WorkSheetDataType.INT, -1, false, true);
 					creationInfoWorkSheet.addColumn("下次拨打号码类型", "NEXTDIALPHONETYPE", "下次拨打号码类型", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("当前阶段数", "CURSTAGENUM", "当前阶段数", WorkSheetDataType.INT, -1, false, true);
+					creationInfoWorkSheet.addColumn("第一次拨打日期", "FIRSTDIALDATE", "第一次拨打日期", WorkSheetDataType.DATETIME, -1, false, true);
 					return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 				}
 		
