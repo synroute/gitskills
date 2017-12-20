@@ -180,7 +180,7 @@ public class MultiNumberRedialDataManage {
         }
 
         int stageDayIndex = getStageDayIndex(item.getFirstDialDate(), strategyItem.getStageDelayDays());
-        Map<Integer, Integer> phoneTypeVsDialCount = strategyItem.getPhoneTypeVsDialCount(stageDayIndex);
+        Map<Integer, Integer> phoneTypeVsDialCount = strategyItem.getGivenDayDialConfig(stageDayIndex);
         MultiNumberRedialStrategyEnum strategyEnum = strategyItem.getEndCodeRedialStrategy(resultCodeType, resultCode);
 
         if (MultiNumberRedialStrategyEnum.IsCustStop.equals(strategyEnum)) {
@@ -405,10 +405,10 @@ public class MultiNumberRedialDataManage {
         Boolean ret = false;
         EndCodeRedialStrategyM4 strategy = multiNumberRedialStrategy.getEndCodeRedialStrategyItem(newCustomerItem.getBizId());
         int stageDayIndex = getStageDayIndex(newCustomerItem.getFirstDialDate(), strategy.getStageDelayDays());
-        if (strategy.hasGivenDayConfig(stageDayIndex)) {
-            ret = customerPool.add(newCustomerItem);
+        if (strategy.hasGivenDayDialConfig(stageDayIndex)) {
+            ret = customerPool.add(newCustomerItem, strategy.getGivenDayDialConfig(stageDayIndex));
         } else if (MultiNumberRedialStateEnum.PRESET_DIAL.equals(newCustomerItem.getState())) {
-            ret = customerPool.add(newCustomerItem);
+            ret = customerPool.add(newCustomerItem, strategy.getGivenDayDialConfig(stageDayIndex));
         }
 
         System.out.println("M4 add customer: bizId[" + newCustomerItem.getBizId()

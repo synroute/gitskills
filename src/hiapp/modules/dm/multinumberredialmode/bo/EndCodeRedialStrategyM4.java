@@ -9,7 +9,7 @@ public class EndCodeRedialStrategyM4 {
     String loopType;
     int stageDelayDays;
 
-    // StageDayIndex <==> {phoneType <==> dialCount}
+    // StageDayIndex <==> {phoneType <==> dialNum}
     Map<Integer, Map<Integer, Integer>> mapDailyPhoneTypeDialCount;
 
     // resultCodeType + resultCode <==> MultiNumberRedialStrategyEnum
@@ -23,17 +23,32 @@ public class EndCodeRedialStrategyM4 {
         return  stageDelayDays;
     }
 
-    public Map<Integer, Integer> getPhoneTypeVsDialCount(int dayIndex) {
+    /**
+     *
+     * @param dayIndex
+     * @return  phoneType <==> dialNum
+     */
+    public Map<Integer, Integer> getGivenDayDialConfig(int dayIndex) {
         return mapDailyPhoneTypeDialCount.get(dayIndex);
     }
 
-    public Boolean hasGivenDayConfig(int dayIndex) {
-        return mapDailyPhoneTypeDialCount.containsKey(dayIndex);
+    public Boolean hasGivenDayDialConfig(int dayIndex) {
+        if (!mapDailyPhoneTypeDialCount.containsKey(dayIndex))
+            return false;
+
+        // 如果所有号码类型的拨打次数都为零，那么认为该天没有配置策略
+        Map<Integer, Integer> mapPhoneTypeDialNum = mapDailyPhoneTypeDialCount.get(dayIndex);
+        for (Integer dialNum : mapPhoneTypeDialNum.values()) {
+            if (null != dialNum && dialNum != 0)
+                return true;
+        }
+
+        return false;
     }
 
     public Boolean hasDayConfigSince(int curDayIndex) {
         for (int dayIndex=curDayIndex + 1; dayIndex <= Constants.StageDayNum; dayIndex++ ) {
-            if (mapDailyPhoneTypeDialCount.containsKey(dayIndex))
+            if (hasGivenDayDialConfig(dayIndex))
                 return true;
         }
 

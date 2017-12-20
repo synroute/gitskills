@@ -55,8 +55,14 @@ public class MultiNumberRedialCustomerPool {
         return null;
     }
 
-    public Boolean add(MultiNumberRedialCustomer customer) {
-        Integer nextDialPhoneType = initNextDialPhoneType(customer);
+    /**
+     *
+     * @param customer
+     * @param theDayDialStrategy   phoneType <==> dialNum
+     * @return
+     */
+    public Boolean add(MultiNumberRedialCustomer customer, Map<Integer, Integer> theDayDialStrategy) {
+        Integer nextDialPhoneType = initNextDialPhoneType(customer, theDayDialStrategy);
         if (null == nextDialPhoneType)
             return false;
 
@@ -156,18 +162,23 @@ public class MultiNumberRedialCustomerPool {
         return null;
     }
 
-    public Integer initNextDialPhoneType(MultiNumberRedialCustomer customer) {
+    /**
+     *
+     * @param customer
+     * @param theDayDialStrategy   phoneType <==> dialNum
+     * @return
+     */
+    public Integer initNextDialPhoneType(MultiNumberRedialCustomer customer, Map<Integer, Integer> theDayDialStrategy) {
         Integer nextPhoneType = customer.getNextDialPhoneType();
         if (null != nextPhoneType && 0 != nextPhoneType)
             return nextPhoneType;
 
-        for (int dialSeq=1; dialSeq<=10; dialSeq++) {
+        for (int dialSeq=1; dialSeq<=phoneTypeDialSequence.getPhoneTypeNum(customer.getBizId()); dialSeq++) {
             nextPhoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(customer.getBizId(), dialSeq);
-            if (null == nextPhoneType)
-                break;
 
-            PhoneDialInfo nextPhoneDialInfo = customer.getDialInfoByPhoneType(nextPhoneType);
-            if (null != nextPhoneDialInfo.getPhoneNumber() && !nextPhoneDialInfo.getPhoneNumber().isEmpty())
+            String phoneTypeNumber = customer.getDialInfoByPhoneType(nextPhoneType).getPhoneNumber();
+            Integer phoneTypeDialNum = theDayDialStrategy.get(nextPhoneType);
+            if (null != phoneTypeNumber && !phoneTypeNumber.isEmpty() && null != phoneTypeDialNum && phoneTypeDialNum != 0 )
                 break;
 
             nextPhoneType = null;  // NOTE: 需要清除
