@@ -303,46 +303,81 @@ public class CustomerRepository extends BaseRepository {
 			String bizId = queryRequest.getBizId();
 			sb.append("SELECT COUNT(*) ");
 			sb.append(" FROM ");
-			// 要查哪些表
-			sb.append(TableNameEnume.INPUTTABLENAME.getPrefix());
-			sb.append(bizId);
-			sb.append(TableNameEnume.INPUTTABLENAME.getSuffix());
-			sb.append(" ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr());
-
-			sb.append(" INNER JOIN ");
-
-			sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
-			sb.append(bizId);
-			sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
-			sb.append(" ");
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
-
-			sb.append(" ON ");
-
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "IID");
-			sb.append(" = ");
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "IID");
-
-			sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "CID");
-			sb.append(" = ");
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "CID");
-
-			
-
-			sb.append(" WHERE ");
-			// 查询条件
-			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
-					+ "MODIFYUSERID");
-			sb.append(" = ");
-			sb.append(userId);
-			
-			sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
-					+ "MODIFYLAST");
-			sb.append(" = ");
-			sb.append(1);
+			String sql="select OutboundID from HASYS_DM_Business a left join Hasys_DM_BIZTypeMode b on a.outboundmddeid=b.OutboundMode where businessid="+bizId+"";
+			stmt = dbConn.prepareStatement(sql);
+			rs = stmt.executeQuery();
+			int outid=0;
+			while (rs.next()) {
+				outid=rs.getInt(1);
+			}
+			if(outid==1)
+			{
+				// 要查哪些表
+				sb.append("HAU_DM_B"+bizId+"C_POOL a left join HAU_DM_B"+bizId+"C_IMPORT DR on a.iid=DR.iid and a.cid=DR.cid left join (select * from HASYS_DM_DATAPOOL where businessid="+bizId+") a1 on a.DataPoolIDCur=a1.id left join HAU_DM_B"+bizId+"C_Result JG on a.iid=JG.iid and a.cid=JG.cid ");
+				
+	
+				sb.append(" WHERE ");
+	
+				
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append("1");
+	
+				/*sb.append(" AND ");
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);*/
+				
+				sb.append("and a1.datapoolname='"+userId+"'");
+			}else
+			{
+				// 要查哪些表
+				sb.append(TableNameEnume.INPUTTABLENAME.getPrefix());
+				sb.append(bizId);
+				sb.append(TableNameEnume.INPUTTABLENAME.getSuffix());
+				sb.append(" ");
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr());
+	
+				sb.append(" INNER JOIN ");
+	
+				sb.append(TableNameEnume.RESULTTABLENAME.getPrefix());
+				sb.append(bizId);
+				sb.append(TableNameEnume.RESULTTABLENAME.getSuffix());
+				sb.append(" ");
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr());
+	
+				sb.append(" ON ");
+	
+				sb.append("(");
+	
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "IID");
+				sb.append(" = ");
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "IID");
+	
+				sb.append(" AND ");
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "CID");
+				sb.append(" = ");
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "." + "CID");
+	
+				sb.append(")");
+	
+				sb.append(" WHERE ");
+	
+				// 查询条件
+				
+				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+						+ "MODIFYLAST");
+				sb.append(" = ");
+				sb.append("1");
+	
+				sb.append(" AND ");
+				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
+						+ "MODIFYUSERID");
+				sb.append(" = ");
+				sb.append(userId);
+			}
 
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
