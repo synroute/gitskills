@@ -1,14 +1,18 @@
 package hiapp.modules.dm.dbImport.data;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.SocketException;
 import java.net.URLDecoder;
 import java.nio.channels.SelectableChannel;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -20,6 +24,8 @@ import java.util.TimerTask;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Repository;
@@ -33,7 +39,7 @@ import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.utils.DbUtil;
 import hiapp.utils.base.HiAppContext;
 import hiapp.utils.database.BaseRepository;
-
+import com.csvreader.CsvReader;
 
 
 
@@ -56,9 +62,121 @@ public class DMDbImport  extends BaseRepository {
     	path=appContext.getServletContext().getRealPath("maxTime/maxTime.properties");
     	
     	System.out.println(path);
+    	//readcsv();
     	start();
     }
 	
+	
+	 public FTPClient ftp(String ip, String user, String password) {  
+		  
+	        FTPClient ftpClient = new FTPClient();  
+	        try {  
+	            ftpClient.connect(ip);  
+	            ftpClient.login(user, password);  
+	        } catch (SocketException e) {  
+	            e.printStackTrace();  
+	        } catch (IOException e) {  
+	            e.printStackTrace();  
+	        }  
+	  
+	        if (!ftpClient.isConnected()) {  
+	            ftpClient = null;  
+	        }  
+	  
+	        return ftpClient;  
+	    }  
+   
+  
+    /** 
+     * <b>将一个IO流解析，转化数组形式的集合<b> 
+     *  
+     * @param in 文件inputStream流 
+     * @throws SQLException 
+     */  
+    public ArrayList<String[]> csv(InputStream in) {  
+        ArrayList<String[]> csvList = new ArrayList<String[]>();  
+        if (null != in) {  
+        	CsvReader reader = new CsvReader(in, ',', Charset.forName("GBK"));  
+            try {  
+            	Statement stmt = null;
+            	
+				dbConn=this.getDbConnection();
+				dbConn.setAutoCommit(false);  
+
+	       		stmt = dbConn.createStatement();
+				
+            	reader.readHeaders();
+                //遍历每一行，若有#注释部分，则不处理，若没有，则加入csvList  
+            	
+            	
+                while (reader.readRecord()) { 
+                	
+                	reader.getRawRecord(); 
+                	String sql="insert into biao  values('"+reader.get(0)+"','"+reader.get("项目名称")+"','"+reader.get("项目编号")+"','"+reader.get("客户名称")+"','"+reader.get("证件号码")+"','"+reader.get("产品名称")+"','"+reader.get("产品类型")+"','"+reader.get("贷款金额")+"','"+reader.get("放款日期")+"','"+reader.get("贷款期限")+"','"+reader.get("贷款用途")+"','"+reader.get("居住地址")+"','"+reader.get("手机号")+"','"+reader.get("还款账号")+"','"+reader.get("还款账号所属银行")+"','"+reader.get("还款日期")+"','"+reader.get("月还款日")+"','"+reader.get("月还款金额")+"','"+reader.get("合作机构")+"','"+reader.get("押品类型")+"','"+reader.get("押品描述")+"');";
+                	stmt.addBatch("insert into biao  values ('"+reader.get(0)+"','"+reader.get("项目名称")+"','"+reader.get("项目编号")+"','"+reader.get("客户名称")+"','"+reader.get("证件号码")+"','"+reader.get("产品名称")+"','"+reader.get("产品类型")+"','"+reader.get("贷款金额")+"','"+reader.get("放款日期")+"','"+reader.get("贷款期限")+"','"+reader.get("贷款用途")+"','"+reader.get("居住地址")+"','"+reader.get("手机号")+"','"+reader.get("还款账号")+"','"+reader.get("还款账号所属银行")+"','"+reader.get("还款日期")+"','"+reader.get("月还款日")+"','"+reader.get("月还款金额")+"','"+reader.get("合作机构")+"','"+reader.get("押品类型")+"','"+reader.get("押品描述")+"')");
+
+                
+                }  
+                
+
+       		 stmt.executeBatch();
+
+       		dbConn.commit();  //�ύ����
+
+       		 //long end = System.currentTimeMillis();
+       		 
+            } catch (IOException e) {  
+                e.printStackTrace();  
+            }   catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+  
+            reader.close();  
+        }  
+        return csvList;  
+    }  
+	
+    
+    public void readcsv()
+    {
+    	 FTPClient ftp1 = ftp("192.168.0.193", "synroute", "1qaz@WSX");
+    	 if (null != ftp1) {
+    		 try {  
+    		  
+             // 更改当前工作目录,zgg为文件所在的目录  
+             ftp1.changeWorkingDirectory("up");  
+
+             // 从ftp上获取ggw目录下的文件  
+             FTPFile[] file = ftp1.listFiles();  
+
+             // 遍历所有文件，匹配需要查找的文件         
+             String yearMonth =new SimpleDateFormat("yyyyMMdd").format(new Date());
+             String fileName = "csv.csv";
+             for (int i = 0; i < file.length; i++) {  
+            	   
+                 // 匹配到则进入  
+                 if (file[i].getName().contains(fileName)) {  
+                     // 将匹配到的文件流传入接口，转化成数组集合  
+                     ArrayList<String[]> csvList = csv(ftp1  
+                             .retrieveFileStream(file[i].getName()));  
+
+                     // 将csv文件里的数据打印出来  
+                     // 遍历每一行  
+                     for (int row = 0; row < csvList.size(); row++) {  
+                         // 遍历每一行中的每一列  
+                         for (int j = 0; j < csvList.get(row).length; j++) {  
+                             System.out.print(csvList.get(row)[j] + "\t|");  
+                         }  
+                         System.out.println();  
+                     }  
+                 }  
+             }  
+         } catch (IOException e) {  
+             e.printStackTrace();  
+         }  
+     }  
+    }
 	
 	
 	
