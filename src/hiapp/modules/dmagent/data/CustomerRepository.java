@@ -965,12 +965,12 @@ public class CustomerRepository extends BaseRepository {
 					sb.append("HAU_DM_B"+bizId+"C_IMPORT DR left join hau_dm_b"+bizId+"c_result JG on DR.iid=JG.iid and DR.cid=JG.cid and DR.modifyid=JG.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on DR.IID=C.IID AND DR.CID=C.CID where DR.modifylast=1 AND c.sourceid not in (select sourceid from hau_dm_b"+bizId+"c_result where modifyid=1)");
 					
 		
-					sb.append(" AND ");
+					/*sb.append(" AND ");
 		
 					// 查询条件
 					sb.append("ROWNUM");
 					sb.append(" <= ");
-					sb.append(queryRequest.getEnd());
+					sb.append(queryRequest.getEnd());*/
 		
 					/*sb.append(" AND ");
 					sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
@@ -1058,10 +1058,10 @@ public class CustomerRepository extends BaseRepository {
 						+ "MODIFYTIME");
 				sb.append(" DESC)");
 
-				sb.append(" WHERE ");
+				/*sb.append(" WHERE ");
 				sb.append("RN");
 				sb.append(" >= ");
-				sb.append(queryRequest.getStart());
+				sb.append(queryRequest.getStart());*/
 
 
 				
