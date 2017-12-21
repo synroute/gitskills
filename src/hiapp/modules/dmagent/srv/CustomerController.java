@@ -523,7 +523,7 @@ public class CustomerController {
             e.printStackTrace();
         }
         result.put("rows", listToHtml(list,template));
-        result.put("total", 0);
+        result.put("total", count);
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
         result.put("recordCount", count);
@@ -598,7 +598,7 @@ public class CustomerController {
             e.printStackTrace();
         }
         result.put("rows", listToHtml(list,template));
-        result.put("total", 0);
+        result.put("total", count);
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
         result.put("recordCount", count);
@@ -655,8 +655,8 @@ public class CustomerController {
         } catch (HiAppException e) {
             e.printStackTrace();
         }
-        result.put("data", listToHtml(list,template));
-        result.put("result", 0);
+        result.put("rows", listToHtml(list,template));
+        result.put("total", count);
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
         result.put("recordCount", count);
@@ -714,8 +714,8 @@ public class CustomerController {
         } catch (HiAppException e) {
             e.printStackTrace();
         }
-        result.put("data", listToHtml(list,template));
-        result.put("result", 0);
+        result.put("rows", listToHtml(list,template));
+        result.put("total", 0);
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
         result.put("recordCount", count);
