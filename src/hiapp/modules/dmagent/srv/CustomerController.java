@@ -502,7 +502,7 @@ public class CustomerController {
         }
 
         try {
-            list1 = customerRepository.queryPending(queryRequest, userId);
+            list1 = customerRepository.queryPending(queryRequest, userId,pageSize,pageNum);
             list.addAll(list1);
         } catch (Exception e) {
             e.printStackTrace();

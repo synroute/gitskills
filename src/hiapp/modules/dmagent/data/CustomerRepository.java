@@ -676,7 +676,7 @@ public class CustomerRepository extends BaseRepository {
 	
 	//查询待处理工单
 	public List<List<Map<String, Object>>> queryPending(
-			QueryRequest queryRequest, String userId) throws HiAppException {
+			QueryRequest queryRequest, String userId,int pageSize,int pageNum) throws HiAppException {
 
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
@@ -771,7 +771,7 @@ public class CustomerRepository extends BaseRepository {
 				// 查询条件
 				sb.append("ROWNUM");
 				sb.append(" <= ");
-				sb.append(queryRequest.getEnd());
+				sb.append(pageNum*pageSize);
 	
 				/*sb.append(" AND ");
 				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
@@ -862,7 +862,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(" WHERE ");
 			sb.append("RN");
 			sb.append(" >= ");
-			sb.append(queryRequest.getStart());
+			sb.append((pageNum-1)*pageSize);
 
 
 			
