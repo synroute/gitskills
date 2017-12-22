@@ -12,7 +12,9 @@ public enum OperationNameEnum {
 	APPERND("追加共享"),
 	Extract("抽取"),
 	Recycle("回收 "),
-	Rollback("回退"); 
+	Rollback("回退"),
+	CANCELLED("取消共享");
+
 	private String name;
 	OperationNameEnum(String name){
 		this.name = name;
@@ -48,6 +50,9 @@ public enum OperationNameEnum {
 
 		if (OperationNameEnum.Rollback.getName().equals(dbValue))
 			return OperationNameEnum.Rollback;
+
+		if (OperationNameEnum.CANCELLED.getName().equals(dbValue))
+			return OperationNameEnum.CANCELLED;
 
 		return null;
 	}

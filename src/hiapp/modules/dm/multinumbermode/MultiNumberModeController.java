@@ -2,6 +2,7 @@ package hiapp.modules.dm.multinumbermode;
 
 import com.google.gson.Gson;
 import hiapp.modules.dm.Constants;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.multinumbermode.bo.BizConfig;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.multinumbermode.bo.PhoneDialInfo;
@@ -164,6 +165,11 @@ public class MultiNumberModeController {
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();
     }
+
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+
+    }
+
 
 }
 

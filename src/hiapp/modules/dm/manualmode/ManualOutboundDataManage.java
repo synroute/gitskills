@@ -1,5 +1,6 @@
 package hiapp.modules.dm.manualmode;
 
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
@@ -8,6 +9,7 @@ import hiapp.modules.dm.manualmode.bo.ManualModeCustomerPool;
 import hiapp.modules.dm.manualmode.dao.ManualModeDAO;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
+import hiapp.modules.dm.util.SQLUtil;
 import hiapp.modules.dmmanager.AreaTypeEnum;
 import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
@@ -150,6 +152,22 @@ public class ManualOutboundDataManage {
     }
 
     public void timeoutProc() {
+    }
+
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+        // step 1: remove from pool
+        List<ManualModeCustomer> customerList = customerPool.cancelShare(bizId, customerBasicList);
+
+        // step 2: update state in DB AND insert Pool_ORE table
+        Date now = new Date();
+        List<Integer> customerDBIdList = new ArrayList<Integer>();
+        for (ManualModeCustomer customer : customerList) {
+            manualModeDAO.insertPoolOperation(customer, OperationNameEnum.CANCELLED);
+
+            customerDBIdList.add(customer.getId());
+        }
+
+        manualModeDAO.updateCustomerOperationName(bizId, customerDBIdList, OperationNameEnum.CANCELLED);
     }
 
     private void loadCustomersDaily(List<ShareBatchItem> shareBatchItems) {

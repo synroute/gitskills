@@ -1,6 +1,7 @@
 package hiapp.modules.dm.manualmode;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
 import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
@@ -88,6 +89,10 @@ public class ManualModeController {
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();
+    }
+
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+        manualOutboundDataManage.cancelOutboundTask(bizId, customerBasicList);
     }
 
 }
