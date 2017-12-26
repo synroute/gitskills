@@ -1,6 +1,7 @@
 package hiapp.modules.dm.singlenumbermode;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.system.buinfo.User;
@@ -121,5 +122,10 @@ public class SingleNumberModeController {
         //serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         //return serviceresult.toJson();
     }
+
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+
+    }
+
 
 }

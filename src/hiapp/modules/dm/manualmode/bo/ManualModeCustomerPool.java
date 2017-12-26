@@ -1,5 +1,6 @@
 package hiapp.modules.dm.manualmode.bo;
 
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.manualmode.dao.ManualModeDAO;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
@@ -8,10 +9,7 @@ import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
 @Component
@@ -30,12 +28,18 @@ public class ManualModeCustomerPool {
     // BizId <==> {shareBatchId <==> PriorityBlockingQueue<ManualModeCustomer>}
     Map<Integer, Map<String, PriorityBlockingQueue<ManualModeCustomer>>> mapCustomerSharePool;
 
+    // BizId + IID + CID <==> ManualModeCustomer
+    Map<String, ManualModeCustomer> mapWaitCustomerCancellation;
+
     public void initialize() {
         mapCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<ManualModeCustomer>>>();
+
+        mapWaitCustomerCancellation = new HashMap<String, ManualModeCustomer>();
     }
 
     public void clear() {
         mapCustomerSharePool.clear();
+        mapWaitCustomerCancellation.clear();
     }
 
     public void addCustomer(ManualModeCustomer customer) {
@@ -57,6 +61,8 @@ public class ManualModeCustomerPool {
         }
 
         oneShareBatchCustomerSharePool.put(customer);
+
+        mapWaitCustomerCancellation.put(customer.getCustomerToken(), customer);
     }
 
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
@@ -89,10 +95,29 @@ public class ManualModeCustomerPool {
                 continue;
             }
 
+            if (customer.getInvalid())
+                continue;
+
+            mapWaitCustomerCancellation.remove( customer.getCustomerToken() );
             return customer;
 
         }
         return null;
+    }
+
+    public List<ManualModeCustomer> cancelShare(int bizId, List<CustomerBasic> customerBasicList) {
+        List<ManualModeCustomer> customerList = new ArrayList<ManualModeCustomer>();
+        for (CustomerBasic customerBasic : customerBasicList) {
+            ManualModeCustomer customer = mapWaitCustomerCancellation.remove(customerBasic.getCustomerToken());
+            if (null == customer)
+                continue;
+
+            customer.setInvalid(true);
+
+            customerList.add(customer);
+        }
+
+        return customerList;
     }
 
     //匿名Comparator实现

@@ -146,4 +146,8 @@ public class ManualModeCustomer {
         this.invalid = invalid;
     }
 
+    public String getCustomerToken() {
+        return bizId + importBatchId + customerId;
+    }
+
 }

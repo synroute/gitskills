@@ -1,6 +1,7 @@
 package hiapp.modules.dm;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.hidialermode.HidialerModeController;
 import hiapp.modules.dm.manualmode.ManualModeController;
@@ -425,6 +426,65 @@ public class DMController {
 
         return "";
     }
+
+    @RequestMapping(value="/srv/dm/cancelOutboundTask.srv", method= RequestMethod.POST, consumes="application/xml", produces="application/xml")
+    public String cancelOutboundTask(HttpServletRequest request, @RequestBody String requestBody) {
+
+        StringReader xmlString = new StringReader(requestBody);
+        InputSource source = new InputSource(xmlString);
+        // 创建一个新的SAXBuilder
+        SAXBuilder saxb = new SAXBuilder();
+        Document doc;
+
+        try {
+            doc = saxb.build(source);
+        } catch (JDOMException e) {
+            e.printStackTrace();
+            ServiceResult result = new ServiceResult();
+            result.setResultCode(ServiceResultCode.INVALID_PARAM);
+            return result.toJson();
+        } catch (IOException e) {
+            e.printStackTrace();
+            ServiceResult result = new ServiceResult();
+            result.setResultCode(ServiceResultCode.INVALID_PARAM);
+            return result.toJson();
+        }
+
+        // 取的根元素
+        Element root = doc.getRootElement();
+        String strBizId = root.getAttributeValue("DMBusinessId");
+
+        List<CustomerBasic> customerBasicList = new ArrayList<CustomerBasic>();
+
+        List<Element> customerElementList = root.getChildren();
+        for (Element customerElement : customerElementList) {
+            CustomerBasic customerBasic = new CustomerBasic();
+            customerBasic.setBizId(strBizId);
+            customerBasic.setSourceId(customerElement.getAttributeValue("TaskID"));
+            customerBasic.setImportBatchId(customerElement.getAttributeValue("IID"));
+            customerBasic.setCustomerId(customerElement.getAttributeValue("CID"));
+            customerBasicList.add(customerBasic);
+        }
+
+        DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(Integer.valueOf(strBizId));
+
+        if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
+            manualModeController.cancelOutboundTask(Integer.valueOf(strBizId), customerBasicList);
+        } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            hidialerModeController.cancelOutboundTask(Integer.valueOf(strBizId), customerBasicList);
+        } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
+            singleNumberModeController.cancelOutboundTask(Integer.valueOf(strBizId), customerBasicList);
+        } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
+            multiNumberRedialController.cancelOutboundTask(Integer.valueOf(strBizId), customerBasicList);
+        } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+
+        } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            multiNumberModeController.cancelOutboundTask(Integer.valueOf(strBizId), customerBasicList);
+        }
+
+        return "";
+    }
+
 
     private boolean checkPermitCall(List<Map<String, String>> permitCallTimeList, String curTimeString) {
         for (Map<String, String> callTimeScope : permitCallTimeList) {

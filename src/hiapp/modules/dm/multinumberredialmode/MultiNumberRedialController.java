@@ -1,6 +1,7 @@
 package hiapp.modules.dm.multinumberredialmode;
 
 import hiapp.modules.dm.Constants;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialCustomer;
 import hiapp.modules.dm.singlenumbermode.bo.NextOutboundCustomerResult;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
@@ -87,6 +88,10 @@ public class MultiNumberRedialController {
 
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();
+    }
+
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+
     }
 
 }

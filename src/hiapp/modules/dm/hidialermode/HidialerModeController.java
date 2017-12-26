@@ -1,6 +1,7 @@
 package hiapp.modules.dm.hidialermode;
 
 import hiapp.modules.dm.Constants;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.hidialermode.bo.HidialerModeCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.util.XMLUtil;
@@ -138,6 +139,11 @@ public class HidialerModeController {
         serviceresult.setResultCode(ServiceResultCode.SUCCESS);
         return serviceresult.toJson();
     }
+
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+
+    }
+
 
 }
 
