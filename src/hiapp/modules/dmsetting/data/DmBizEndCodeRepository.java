@@ -12,12 +12,14 @@ import java.util.List;
 import org.apache.xmlbeans.impl.jam.xml.TunnelledException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.socket.TextMessage;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import hiapp.modules.dmsetting.DMEndCode;
+import hiapp.modules.dmxintuo.data.DmWebSocketHandler;
 import hiapp.system.dictionary.Dict;
 import hiapp.system.dictionary.DictTreeBranch;
 import hiapp.system.dictionary.data.DictRepository;
@@ -677,6 +679,9 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	
 	public List<DMEndCode> dmGetAllBizEndCode(String bizid,String Code)
 	{
+		DmWebSocketHandler dmWebSocketHandler=new DmWebSocketHandler();
+		TextMessage textMessage=new TextMessage("ceshi");
+		dmWebSocketHandler.sendMessageToUser("1001", textMessage);
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		List<DMEndCode> listDmEndCodes=new ArrayList<DMEndCode>();

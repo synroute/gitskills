@@ -48,6 +48,11 @@
 	    <artifactId>hiapp-system-dictionary</artifactId>
 	    <version>0.0.1</version>
 	</dependency>
+	<dependency>
+	    <groupId>hiapp.modules.chat</groupId>
+	    <artifactId>hiapp-modules-chat</artifactId>
+	    <version>0.0.1</version>
+	</dependency>
 	<!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
 	<dependency>
 	    <groupId>javax.servlet</groupId>
@@ -126,5 +131,16 @@
 		  <version>1.1</version>
 	  </dependency>
 
+	<dependency>
+    <groupId>javax.websocket</groupId>
+    <artifactId>javax.websocket-api</artifactId>
+    <version>1.0</version>
+    <scope>provided</scope>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-websocket</artifactId>
+    <version>4.1.4.RELEASE</version>
+</dependency>
   </dependencies>
 </project>
