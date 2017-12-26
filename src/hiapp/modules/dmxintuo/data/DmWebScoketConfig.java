@@ -25,8 +25,8 @@ public class DmWebScoketConfig extends WebMvcConfigurerAdapter implements WebSoc
 		String[] allowsOrigins = {"*"};
         
        //WebIM WebSocket通道
-        registry.addHandler(dmWebSocketHandler(),"/IMDmServer.sock").setAllowedOrigins(allowsOrigins).addInterceptors(myInterceptor());
-        registry.addHandler(dmWebSocketHandler(), "/sockjs/IMDmServer.sock").setAllowedOrigins(allowsOrigins).addInterceptors(myInterceptor()).withSockJS();
+        registry.addHandler(dmWebSocketHandler(),"/IMDmServer.sock").setAllowedOrigins(allowsOrigins).addInterceptors(DmInterceptor());
+        registry.addHandler(dmWebSocketHandler(), "/sockjs/IMDmServer.sock").setAllowedOrigins(allowsOrigins).addInterceptors(DmInterceptor()).withSockJS();
 	}
 	
     @Bean
@@ -35,7 +35,7 @@ public class DmWebScoketConfig extends WebMvcConfigurerAdapter implements WebSoc
     }
     
     @Bean
-    public WebSocketHandlerdm myInterceptor(){
+    public WebSocketHandlerdm DmInterceptor(){
         return new WebSocketHandlerdm();
     }
 }
