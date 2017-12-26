@@ -14,6 +14,10 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class DmWebSocketHandler extends TextWebSocketHandler {
 	 @Autowired
 	    private DmMessage messageProcessor; 
+	 
+	 public DmWebSocketHandler() {
+		 System.out.println("new DmWebSocketHandler");
+	 }
 	    
 	  
 	    //接收文本消息，并发送出去

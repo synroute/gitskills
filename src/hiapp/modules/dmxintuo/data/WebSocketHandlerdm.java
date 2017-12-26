@@ -22,13 +22,14 @@ public class WebSocketHandlerdm implements HandshakeInterceptor {
 		// TODO Auto-generated method stub
 		System.out.println(request.getURI());
         System.out.println("beforeHandshake start.....");  
-        System.out.println(request.getClass().getName());  
+               System.out.println(request.getClass().getName());  
         if (request instanceof ServletServerHttpRequest) {  
             ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;  
             HttpSession session = servletRequest.getServletRequest().getSession(false);  
             if (session != null) {
             	System.out.println("get httpsession success");
                 //使用userName区分WebSocketHandler，以便定向发送消息  
+            	
                 User user = (User)session.getAttribute("user");
                 if (null != user) {
                 	System.out.println(user.getId() + " login");
