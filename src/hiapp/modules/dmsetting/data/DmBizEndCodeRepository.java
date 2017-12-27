@@ -682,7 +682,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	public List<DMEndCode> dmGetAllBizEndCode(String bizid,String Code)
 	{
 		
-		TextMessage textMessage=new TextMessage("ceshi");
+		TextMessage textMessage=new TextMessage("{\"type\":1,\"message\":\"22\"}");
 		dmWebSocketHandler.sendMessageToUser("1001", textMessage);
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
