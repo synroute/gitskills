@@ -22,7 +22,7 @@ public class WebSocketHandlerdm implements HandshakeInterceptor {
 		// TODO Auto-generated method stub
 		System.out.println(request.getURI());
         System.out.println("beforeHandshake start.....");  
-               System.out.println(request.getClass().getName());  
+        /*       System.out.println(request.getClass().getName());  
         if (request instanceof ServletServerHttpRequest) {  
             ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;  
             HttpSession session = servletRequest.getServletRequest().getSession(false);  
@@ -38,7 +38,7 @@ public class WebSocketHandlerdm implements HandshakeInterceptor {
             }else{  
             	System.out.println("httpsession is null");  
             }  
-        }  
+        }  */
 		return true;
 	}
 

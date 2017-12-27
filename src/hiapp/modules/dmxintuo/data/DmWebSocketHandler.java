@@ -57,8 +57,9 @@ public class DmWebSocketHandler extends TextWebSocketHandler {
 	    }
 	    public boolean sendMessageToUser(String clientId, TextMessage message) {
 	        
-	    	WebSocketSession session = messageProcessor.getSession(clientId);
-	    	System.out.println("sendMessage:" + session);
+	    	DMSession sessions = messageProcessor.getSession(clientId);
+	    	System.out.println("sendMessage:" + sessions);
+	    	WebSocketSession session=sessions.getSession();
 	        if (!session.isOpen()) return false;
 	        try {
 	            session.sendMessage(message);

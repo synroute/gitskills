@@ -26,9 +26,9 @@ public class DmMessage extends Thread {
     	DmMessage.sessions.remove(session.getId());
     }
     
-    public WebSocketSession getSession(String userid) {
+    public DMSession getSession(String userid) {
     	
-    	return (WebSocketSession) DmMessage.sessions.get(userid);
+    	return  DmMessage.sessions.get(userid);
 		
     }
     
