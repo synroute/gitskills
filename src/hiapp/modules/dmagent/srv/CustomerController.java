@@ -210,28 +210,28 @@ public class CustomerController {
      */
     @SuppressWarnings("rawtypes")
     public Map<String, String> dataToDisplayPattern(Map[][] data,
-                                                    Map<String, String> addMap,List<Map<String, String>> template) {
-        for(int i=0;i<3;i++){
-            for(int j=0;j<3;j++){
-                if (data[i][j].get("value") == null || "null".equals(data[i][j].get("value"))){
-                    data[i][j].put("value","");
+                                                    Map<String, String> addMap, List<Map<String, String>> template) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (data[i][j].get("value") == null || "null".equals(data[i][j].get("value"))) {
+                    data[i][j].put("value", "");
                 }
             }
         }
         HashMap<String, String> hashMap = new HashMap<String, String>();
         String s1 = "<tr>" + "<td style='width:" + data[0][0].get("width") + "%;font-size:14px;border: none;color:"
                 + data[0][0].get("fontColor")
-                +";text-align:center;display: inline-block;height: 20px;font-family:"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[0][0].get("fontFamily")
                 + ";font-size:"
-                +data[0][0].get("fontSize")
-                +";font-weight:"
-                +data[0][0].get("fontWeight")
+                + data[0][0].get("fontSize")
+                + ";font-weight:"
+                + data[0][0].get("fontWeight")
                 + ";'><p style='background:"
-                +data[0][0].get("bgColor")
-                +";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[0][0].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[0][0].get("value")
-                +">"
+                + ">"
                 + data[0][0].get("value")
                 + "</p>"
                 + "</td>"
@@ -239,15 +239,15 @@ public class CustomerController {
                 + data[0][1].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[0][1].get("fontFamily")
-                +";font-size:"
+                + ";font-size:"
                 + data[0][1].get("fontSize")
-                +";font-weight:"
+                + ";font-weight:"
                 + data[0][1].get("fontWeight")
                 + ";'><p style='background:"
                 + data[0][1].get("bgColor")
                 + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[0][1].get("value")
-                +">"
+                + ">"
                 + data[0][1].get("value")
                 + "</p>"
                 + "</td>"
@@ -255,31 +255,31 @@ public class CustomerController {
                 + data[0][2].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[0][2].get("fontFamily")
-                +";font-size:"
+                + ";font-size:"
                 + data[0][2].get("fontSize")
-                +";font-weight:"
+                + ";font-weight:"
                 + data[0][2].get("fontWeight")
                 + ";'><p style='background:"
                 + data[0][2].get("bgColor")
                 + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[0][2].get("value")
-                +">"
+                + ">"
                 + data[0][2].get("value")
                 + "</p>"
                 + "</td>";
-        String s2 =  "<tr>" + "<td style='width:" + data[1][0].get("width") + "%;font-size:14px;border: none;color:"
+        String s2 = "<tr>" + "<td style='width:" + data[1][0].get("width") + "%;font-size:14px;border: none;color:"
                 + data[1][0].get("fontColor")
-                +";text-align:center;display: inline-block;height: 20px;font-family:"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[1][0].get("fontFamily")
                 + ";font-size:"
-                +data[1][0].get("fontSize")
-                +";font-weight:"
-                +data[1][0].get("fontWeight")
+                + data[1][0].get("fontSize")
+                + ";font-weight:"
+                + data[1][0].get("fontWeight")
                 + ";'><p style='background:"
-                +data[1][0].get("bgColor")
-                +";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[1][0].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[1][0].get("value")
-                +">"
+                + ">"
                 + data[1][0].get("value")
                 + "</p>"
                 + "</td>"
@@ -287,15 +287,15 @@ public class CustomerController {
                 + data[1][1].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[1][1].get("fontFamily")
-                +";font-size:"
+                + ";font-size:"
                 + data[1][1].get("fontSize")
-                +";font-weight:"
+                + ";font-weight:"
                 + data[1][1].get("fontWeight")
                 + ";'><p style='background:"
                 + data[1][1].get("bgColor")
                 + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[1][1].get("value")
-                +">"
+                + ">"
                 + data[1][1].get("value")
                 + "</p>"
                 + "</td>"
@@ -303,31 +303,31 @@ public class CustomerController {
                 + data[1][2].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[1][2].get("fontFamily")
-                +";font-size:"
+                + ";font-size:"
                 + data[1][2].get("fontSize")
-                +";font-weight:"
+                + ";font-weight:"
                 + data[1][2].get("fontWeight")
                 + ";'><p style='background:"
                 + data[1][2].get("bgColor")
                 + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[1][2].get("value")
-                +">"
+                + ">"
                 + data[1][2].get("value")
                 + "</p>"
                 + "</td>";
-        String s3 =  "<tr>" + "<td style='width:" + data[2][0].get("width") + "%;font-size:14px;border: none;color:"
+        String s3 = "<tr>" + "<td style='width:" + data[2][0].get("width") + "%;font-size:14px;border: none;color:"
                 + data[2][0].get("fontColor")
-                +";text-align:center;display: inline-block;height: 20px;font-family:"
+                + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[2][0].get("fontFamily")
                 + ";font-size:"
-                +data[2][0].get("fontSize")
-                +";font-weight:"
-                +data[2][0].get("fontWeight")
+                + data[2][0].get("fontSize")
+                + ";font-weight:"
+                + data[2][0].get("fontWeight")
                 + ";'><p style='background:"
-                +data[2][0].get("bgColor")
-                +";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
+                + data[2][0].get("bgColor")
+                + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[2][0].get("value")
-                +">"
+                + ">"
                 + data[2][0].get("value")
                 + "</p>"
                 + "</td>"
@@ -335,15 +335,15 @@ public class CustomerController {
                 + data[2][1].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[2][1].get("fontFamily")
-                +";font-size:"
+                + ";font-size:"
                 + data[2][1].get("fontSize")
-                +";font-weight:"
+                + ";font-weight:"
                 + data[2][1].get("fontWeight")
                 + ";'><p style='background:"
                 + data[2][1].get("bgColor")
                 + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[2][1].get("value")
-                +">"
+                + ">"
                 + data[2][1].get("value")
                 + "</p>"
                 + "</td>"
@@ -351,15 +351,15 @@ public class CustomerController {
                 + data[2][2].get("fontColor")
                 + ";text-align:center;display: inline-block;height: 20px;font-family:"
                 + data[2][2].get("fontFamily")
-                +";font-size:"
+                + ";font-size:"
                 + data[2][2].get("fontSize")
-                +";font-weight:"
+                + ";font-weight:"
                 + data[2][2].get("fontWeight")
                 + ";'><p style='background:"
                 + data[2][2].get("bgColor")
                 + ";line-height:20px;border-radius:20px;margin-top: 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' title="
                 + data[2][2].get("value")
-                +">"
+                + ">"
                 + data[2][2].get("value")
                 + "</p>"
                 + "</td>";
@@ -400,7 +400,7 @@ public class CustomerController {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public List<Map<String, String>> listToHtml(
-            List<List<Map<String, Object>>> queryData,List<Map<String, String>> template) {
+            List<List<Map<String, Object>>> queryData, List<Map<String, String>> template) {
         List<Map<String, String>> result = new ArrayList<Map<String, String>>();
         for (List<Map<String, Object>> list : queryData) {
             HashMap<String, String> addMap = new HashMap<String, String>();
@@ -454,7 +454,7 @@ public class CustomerController {
                             ((String) map.get("value")));
                 }
             }
-            result.add(dataToDisplayPattern(maps, addMap,template));
+            result.add(dataToDisplayPattern(maps, addMap, template));
         }
         return result;
     }
@@ -502,7 +502,7 @@ public class CustomerController {
         }
 
         try {
-            list1 = customerRepository.queryPending(queryRequest, userId,pageSize,pageNum);
+            list1 = customerRepository.queryPending(queryRequest, userId, pageSize, pageNum);
             list.addAll(list1);
         } catch (Exception e) {
             e.printStackTrace();
@@ -522,7 +522,7 @@ public class CustomerController {
         } catch (HiAppException e) {
             e.printStackTrace();
         }
-        result.put("rows", listToHtml(list,template));
+        result.put("rows", listToHtml(list, template));
         result.put("total", count);
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
@@ -531,6 +531,21 @@ public class CustomerController {
         result.put("pageCount", (count % pageSize == 0) ? pageCount
                 : pageCount + 1);
         return result;
+    }
+
+    @RequestMapping(value = "/srv/agent/queryMyCustomersCount.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+    public Map<String, Object> queryMyCustomersCount(QueryRequest queryRequest,
+                                                     HttpSession session) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        String userId = ((User) session.getAttribute("user")).getId();
+        try {
+            int count = customerRepository.queryMyCustomersCount(queryRequest,
+                    userId);
+            result.put("data",count);
+        } catch (HiAppException e) {
+            e.printStackTrace();
+        }
+       return result;
     }
 
 
@@ -597,7 +612,7 @@ public class CustomerController {
         } catch (HiAppException e) {
             e.printStackTrace();
         }
-        result.put("rows", listToHtml(list,template));
+        result.put("rows", listToHtml(list, template));
         result.put("total", count);
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
@@ -655,7 +670,7 @@ public class CustomerController {
         } catch (HiAppException e) {
             e.printStackTrace();
         }
-        result.put("rows", listToHtml(list,template));
+        result.put("rows", listToHtml(list, template));
         result.put("total", count);
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
@@ -663,6 +678,21 @@ public class CustomerController {
         int pageCount = count / pageSize;
         result.put("pageCount", (count % pageSize == 0) ? pageCount
                 : pageCount + 1);
+        return result;
+    }
+
+    @RequestMapping(value = "/srv/agent/queryMyPresetCustomersCount.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+    public Map<String, Object> queryMyPresetCustomersCount(QueryRequest queryRequest,
+                                                     HttpSession session) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        String userId = ((User) session.getAttribute("user")).getId();
+        try {
+            int count = customerRepository.queryMyPresetCustomersCount(queryRequest,
+                    userId);
+            result.put("data",count);
+        } catch (HiAppException e) {
+            e.printStackTrace();
+        }
         return result;
     }
 
@@ -714,7 +744,7 @@ public class CustomerController {
         } catch (HiAppException e) {
             e.printStackTrace();
         }
-        result.put("rows", listToHtml(list,template));
+        result.put("rows", listToHtml(list, template));
         result.put("total", 0);
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
