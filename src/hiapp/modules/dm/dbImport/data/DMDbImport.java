@@ -215,7 +215,7 @@ public class DMDbImport  extends BaseRepository {
 		timer = new Timer();
         for(int i=0;i<listImportConfig.size();i++)
 		{
-        	ImportConfig importConfig=listImportConfig.get(i);
+        	final ImportConfig importConfig=listImportConfig.get(i);
         	TimerTask task = new TimerTask() {
     	        @Override
     	        public void run() {
