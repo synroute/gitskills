@@ -9,6 +9,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import hiapp.system.buinfo.User;
+
 
 
 public class DmWebSocketHandler extends TextWebSocketHandler {
@@ -23,7 +25,7 @@ public class DmWebSocketHandler extends TextWebSocketHandler {
 	    //接收文本消息，并发送出去
 	    @Override
 	    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-	    	System.out.println("AgentChatServer " + message.getPayload());
+	    	System.out.println("DMServer " + message.getPayload());
 	    	/*messageProcessor.putMessage(session, message.getPayload());*/
 	        super.handleTextMessage(session, message);
 	    }
@@ -31,7 +33,10 @@ public class DmWebSocketHandler extends TextWebSocketHandler {
 	    @Override
 	    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 	        //logger.debug("connect to the websocket chat success......");
-	    	System.out.println("connect to the AgentChatServer success......" + session.getId());
+	    	System.out.println("connect to the DMServer success......" + session.getId());
+	    	Map<String, Object> sMap=session.getAttributes();
+	    	User user = (User)sMap.get("user");
+	    	String userid=user.getId();
 	    	messageProcessor.addSession(session);
 	    }
 	    
@@ -41,13 +46,13 @@ public class DmWebSocketHandler extends TextWebSocketHandler {
 	        if(session.isOpen()){
 	            session.close();
 	        }
-	        System.out.println("AgentChatServer connection closed......");
+	        System.out.println("DmServer connection closed......");
 	        messageProcessor.removeSession(session);
 	    }
 	    //连接关闭后处理
 	    @Override
 	    public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-	    	System.out.println("AgentChatServer connection closed......");
+	    	System.out.println("DMServer connection closed......");
 	    	messageProcessor.removeSession(session);
 	    }
 
