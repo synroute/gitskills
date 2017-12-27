@@ -178,7 +178,7 @@ public class CustomerController {
                 String dictId = (String) map.get("dictId");
                 String dictLevel = (String) map.get("dictLevel");
                 List<String> itemsText = dictionaryConfigurationController
-                        .getItemsByDictIdAndLevel(Integer.parseInt(dictId),
+                        .getItemsByDictIdAndLevelData(Integer.parseInt(dictId),
                                 Integer.parseInt(dictLevel));
                 for (String string : itemsText) {
                     sb.append("<option>" + string + "</option>");
