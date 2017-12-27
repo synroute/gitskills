@@ -14,11 +14,11 @@ import org.springframework.web.socket.WebSocketSession;
 
 @Component("dmMessageProcessor")
 public class DmMessage extends Thread {
-	private final static Map<String, DMSession> sessions = Collections.synchronizedMap(new HashMap<String, DMSession>());
+	private final static Map<String, WebSocketSession> sessions =new HashMap<String, WebSocketSession>();
 	
 	
-    public void addSession(WebSocketSession session) {
-    	DmMessage.sessions.put(session.getId(), new DMSession(session));
+    public void addSession(WebSocketSession session,String userid) {
+    	DmMessage.sessions.put(userid, session);
     }
     
     public void removeSession(WebSocketSession session) {
@@ -26,9 +26,9 @@ public class DmMessage extends Thread {
     	DmMessage.sessions.remove(session.getId());
     }
     
-    public DMSession getSession(String userid) {
-    	
-    	return  DmMessage.sessions.get(userid);
+    public WebSocketSession getSession(String userid) {
+    	WebSocketSession session=DmMessage.sessions.get(userid);
+    	return  session;
 		
     }
     

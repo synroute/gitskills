@@ -30,6 +30,8 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	Connection conn = null;
 	@Autowired
 	 private DictRepository dictManager;
+	@Autowired
+	private DmWebSocketHandler dmWebSocketHandler;
 	//添加结束码
 	public boolean dmAddBizEndCode(String mapColmns,int bizId,StringBuffer err)throws SQLException, IOException
 	{
@@ -679,7 +681,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	
 	public List<DMEndCode> dmGetAllBizEndCode(String bizid,String Code)
 	{
-		DmWebSocketHandler dmWebSocketHandler=new DmWebSocketHandler();
+		
 		TextMessage textMessage=new TextMessage("ceshi");
 		dmWebSocketHandler.sendMessageToUser("1001", textMessage);
 		PreparedStatement stmt = null;

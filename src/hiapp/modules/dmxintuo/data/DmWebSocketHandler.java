@@ -35,9 +35,9 @@ public class DmWebSocketHandler extends TextWebSocketHandler {
 	        //logger.debug("connect to the websocket chat success......");
 	    	System.out.println("connect to the DMServer success......" + session.getId());
 	    	Map<String, Object> sMap=session.getAttributes();
-	    	User user = (User)sMap.get("user");
-	    	String userid=user.getId();
-	    	messageProcessor.addSession(session);
+	    	
+	    	String userid=sMap.get("userId").toString();
+	    	messageProcessor.addSession(session,userid);
 	    }
 	    
 	    //抛出异常时处理
@@ -61,10 +61,11 @@ public class DmWebSocketHandler extends TextWebSocketHandler {
 	        return false;
 	    }
 	    public boolean sendMessageToUser(String clientId, TextMessage message) {
-	        
-	    	DMSession sessions = messageProcessor.getSession(clientId);
-	    	System.out.println("sendMessage:" + sessions);
-	    	WebSocketSession session=sessions.getSession();
+	    	
+	    	
+	    	WebSocketSession session=messageProcessor.getSession(clientId);
+	    	/*System.out.println("sendMessage:" + sessions);
+	    	=sessions.getSession();*/
 	        if (!session.isOpen()) return false;
 	        try {
 	            session.sendMessage(message);

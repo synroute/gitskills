@@ -10,6 +10,7 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import hiapp.modules.dm.Constants;
 import hiapp.system.buinfo.User;
 
 public class WebSocketHandlerdm implements HandshakeInterceptor {
@@ -22,7 +23,7 @@ public class WebSocketHandlerdm implements HandshakeInterceptor {
 		// TODO Auto-generated method stub
 		System.out.println(request.getURI());
         System.out.println("beforeHandshake start.....");  
-        /*       System.out.println(request.getClass().getName());  
+               System.out.println(request.getClass().getName());  
         if (request instanceof ServletServerHttpRequest) {  
             ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;  
             HttpSession session = servletRequest.getServletRequest().getSession(false);  
@@ -34,11 +35,11 @@ public class WebSocketHandlerdm implements HandshakeInterceptor {
                 if (null != user) {
                 	System.out.println(user.getId() + " login");
                 }
-                //attributes.put(Constants.WEBSOCKET_USERNAME,userName);  
+                attributes.put("userId",user.getId());  
             }else{  
             	System.out.println("httpsession is null");  
             }  
-        }  */
+        }  
 		return true;
 	}
 
