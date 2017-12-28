@@ -2,10 +2,17 @@ package hiapp.modules.dmagent.srv;
 
 import hiapp.modules.dmagent.*;
 import hiapp.modules.dmagent.data.CustomerRepository;
+import hiapp.modules.dmmanager.bean.Business;
+import hiapp.modules.dmmanager.data.DataImportJdbc;
+import hiapp.system.buinfo.Permission;
+import hiapp.system.buinfo.RoleInGroupSet;
 import hiapp.system.buinfo.User;
+import hiapp.system.buinfo.data.PermissionRepository;
+import hiapp.system.buinfo.data.UserRepository;
 import hiapp.system.dictionary.srv.DictionaryConfigurationController;
 import hiapp.utils.base.HiAppException;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -24,6 +31,12 @@ public class CustomerController {
     private CustomerRepository customerRepository;
     @Autowired
     private DictionaryConfigurationController dictionaryConfigurationController;
+    @Autowired
+    private DataImportJdbc dataImportJdbc;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PermissionRepository permissionRepository;
 
     // 从会话中获取当前用户的用户Id
     @RequestMapping(value = "/srv/agent/getUserId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
@@ -533,21 +546,6 @@ public class CustomerController {
         return result;
     }
 
-    @RequestMapping(value = "/srv/agent/queryMyCustomersCount.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-    public Map<String, Object> queryMyCustomersCount(QueryRequest queryRequest,
-                                                     HttpSession session) {
-        Map<String, Object> result = new HashMap<String, Object>();
-        String userId = ((User) session.getAttribute("user")).getId();
-        try {
-            int count = customerRepository.queryMyCustomersCount(queryRequest,
-                    userId);
-            result.put("data",count);
-        } catch (HiAppException e) {
-            e.printStackTrace();
-        }
-       return result;
-    }
-
 
     /**
      * 根据条件查询前台页面上“我的客户”模块下符合条件的客户
@@ -681,20 +679,6 @@ public class CustomerController {
         return result;
     }
 
-    @RequestMapping(value = "/srv/agent/queryMyPresetCustomersCount.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-    public Map<String, Object> queryMyPresetCustomersCount(QueryRequest queryRequest,
-                                                     HttpSession session) {
-        Map<String, Object> result = new HashMap<String, Object>();
-        String userId = ((User) session.getAttribute("user")).getId();
-        try {
-            int count = customerRepository.queryMyPresetCustomersCount(queryRequest,
-                    userId);
-            result.put("data",count);
-        } catch (HiAppException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
 
     /**
      * 根据条件查询前台页面上“所有客户”模块下符合条件的客户
@@ -754,5 +738,37 @@ public class CustomerController {
                 : pageCount + 1);
         return result;
     }
+
+    //客户统计
+    @RequestMapping(value = "/srv/agent/customerCount.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+    public Map<String, Object> queryAllCustomersCount(HttpSession session) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        User user = (User) session.getAttribute("user");
+        String userId = String.valueOf(user.getId());
+        RoleInGroupSet roleInGroupSet = userRepository.getRoleInGroupSetByUserId(userId);
+        Permission permission = permissionRepository.getPermission(roleInGroupSet);
+        int permissionId = permission.getId();
+        try {
+            List<Map<String, Object>> customerCounts = new ArrayList<>();
+            List<Business> busList = dataImportJdbc.getBusinessData(permissionId);
+            for (Business business : busList) {
+                Map<String, Object> customerCount = new HashMap<>();
+                QueryRequest queryRequest = new QueryRequest();
+                queryRequest.setBizId(String.valueOf(business.getId()));
+                customerCount.put("bizId", String.valueOf(business.getId()));
+                customerCount.put("bizName", business.getName());
+                customerCount.put("bizDesc", business.getDescription());
+                customerCount.put("myPresetCustomersCount", customerRepository.queryAllCustomersCount(queryRequest, userId));
+                customerCount.put("myCustomersCount", customerRepository.queryAllCustomersCount(queryRequest, userId));
+                customerCount.put("allCustomersCount", customerRepository.queryAllCustomersCount(queryRequest, userId));
+                customerCounts.add(customerCount);
+            }
+            result.put("data", customerCounts);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
 
 }
