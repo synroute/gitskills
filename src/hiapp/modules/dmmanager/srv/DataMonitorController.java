@@ -78,7 +78,11 @@ public class DataMonitorController {
 		ExcelUtils excelUtils=new ExcelUtils();
 		excelUtils.exportExcel(excelHeader, dataList, sheetCulomn, request, response);
 	}
-	
+	/**
+	 * 根据业务id获取要展示的列
+	 * @param request
+	 * @param response
+	 */
 	@RequestMapping(value="/srv/DataMonitorController/getAllColumn.srv")
 	public  void getAllColumn(HttpServletRequest request, HttpServletResponse response){
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
@@ -109,6 +113,12 @@ public class DataMonitorController {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 * 根据时间查询数据
+	 * @param request
+	 * @param response
+	 */
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value="/srv/DataMonitorController/getAllDataByTime.srv")
 	public void getAllDataByTime(HttpServletRequest request, HttpServletResponse response){
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));

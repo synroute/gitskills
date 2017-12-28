@@ -18,8 +18,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -384,11 +387,24 @@ public class ImportDataController {
 	
 	public String getStringcell(Cell cell){
 		String value=null;
-		if("yyyy/mm/dd".equals(cell.getCellStyle().getDataFormatString()) || "m/d/yy".equals(cell.getCellStyle().getDataFormatString())
-		        || "yy/m/d".equals(cell.getCellStyle().getDataFormatString()) || "mm/dd/yy".equals(cell.getCellStyle().getDataFormatString())
-		        || "dd-mmm-yy".equals(cell.getCellStyle().getDataFormatString())|| "yyyy/m/d".equals(cell.getCellStyle().getDataFormatString())){
-			value= new SimpleDateFormat("yyyy/MM/dd").format(cell.getDateCellValue());
+		try{
+			if("yyyy/mm/dd".equals(cell.getCellStyle().getDataFormatString()) || "m/d/yy".equals(cell.getCellStyle().getDataFormatString())
+			        || "yy/m/d".equals(cell.getCellStyle().getDataFormatString()) || "mm/dd/yy".equals(cell.getCellStyle().getDataFormatString())
+			        || "dd-mmm-yy".equals(cell.getCellStyle().getDataFormatString())|| "yyyy/m/d".equals(cell.getCellStyle().getDataFormatString())){
+				
+				if(cell.getDateCellValue()!=null){
+					value= new SimpleDateFormat("yyyy/MM/dd").format(cell.getDateCellValue());
+				}
+			}else if("m/d/yy h:mm".equals(cell.getCellStyle().getDataFormatString())||"yyyy/m/d h:mm".equals(cell.getCellStyle().getDataFormatString())){
+				if(cell.getDateCellValue()!=null){
+					value= new SimpleDateFormat("yyyy/MM/dd hh:mm").format(cell.getDateCellValue());
+				}
+			}
+		}catch(IllegalStateException e){
+			value=cell.getRichStringCellValue().toString();
 		}
+	
 		return value;
 	}
+	
 }
