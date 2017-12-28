@@ -5,19 +5,35 @@ import java.util.Map;
 
 public class QueryRequest {
 	private String bizId;
-	private int pageNum = 1;
-	private int pageSize = 20;
+	private int page;
+	private int rows;
 	private String IID;
 	private String CID;
 	private String SourceId;
 	private List<Map<String, String>> queryCondition;
 	
+	public int getPage() {
+		return page;
+	}
+
+	public void setPage(int page) {
+		this.page = page;
+	}
+
+	public int getRows() {
+		return rows;
+	}
+
+	public void setRows(int rows) {
+		this.rows = rows;
+	}
+
 	public boolean hasQueryNext(){
 		return IID!=null&&CID!=null&&SourceId!=null;
 	}
 
 	public int getStart() {
-		int start = (pageNum - 1) * pageSize + 1;
+		int start = (page - 1) * rows + 1;
 		if(hasQueryNext()){
 			start = 1;
 		}
@@ -25,9 +41,9 @@ public class QueryRequest {
 	}
 
 	public int getEnd() {
-		int end = pageNum * pageSize;
+		int end = page * rows;
 		if(hasQueryNext()){
-			end = pageSize - 1;
+			end = rows - 1;
 		}
 		return end;
 	}
@@ -49,19 +65,19 @@ public class QueryRequest {
 	}
 
 	public int getPageNum() {
-		return pageNum;
+		return page;
 	}
 
 	public void setPageNum(int pageNum) {
-		this.pageNum = pageNum;
+		this.page = pageNum;
 	}
 
 	public int getPageSize() {
-		return pageSize;
+		return rows;
 	}
 
 	public void setPageSize(int pageSize) {
-		this.pageSize = pageSize;
+		this.rows = pageSize;
 	}
 
 	public String getIID() {
