@@ -61,6 +61,7 @@ public class ManualOutboundDataManage {
             customer.setIsRecover(0);
             customer.setModifyUserId(userId);
             customer.setModifyTime(new Date());
+            customer.setOperationName(OperationNameEnum.Extract);
             manualModeDAO.updatePool(customer);
 
             //

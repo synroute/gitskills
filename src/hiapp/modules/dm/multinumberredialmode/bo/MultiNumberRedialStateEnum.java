@@ -13,6 +13,8 @@ public enum MultiNumberRedialStateEnum {
     WAIT_NEXT_STAGE_DIAL("WAIT_NEXT_STAGE_DIAL"),
 
     FINISHED("FINISHED"),  // 本客户拨打完成
+    CANCELLED("CANCELLED"),  //
+
     REVERT("REVERT");      // 回退状态
 
     private MultiNumberRedialStateEnum(String name) {
@@ -49,6 +51,9 @@ public enum MultiNumberRedialStateEnum {
 
         if (MultiNumberRedialStateEnum.FINISHED.getName().equals(columnValue))
             return MultiNumberRedialStateEnum.FINISHED;
+
+        if (MultiNumberRedialStateEnum.CANCELLED.getName().equals(columnValue))
+            return MultiNumberRedialStateEnum.CANCELLED;
 
         if (MultiNumberRedialStateEnum.REVERT.getName().equals(columnValue))
             return MultiNumberRedialStateEnum.REVERT;

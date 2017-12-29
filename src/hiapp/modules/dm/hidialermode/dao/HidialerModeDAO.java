@@ -186,6 +186,31 @@ public class HidialerModeDAO extends BaseRepository {
         return true;
     }
 
+    // 更新客户共享状态
+    public Boolean updateCustomerShareStateById(int bizId, List<Integer> idList, HidialerModeCustomerStateEnum state) {
+        String tableName = String.format("HAU_DM_B%dC_DATAM2", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state.getName()));
+        sqlBuilder.append(" WHERE ID IN (").append(SQLUtil.integerListToSqlString(idList)).append(")");
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
     public Boolean updateCustomerShareForOutboundResult(HidialerModeCustomer item) {
         String tableName = String.format("HAU_DM_B%dC_DATAM2", item.getBizId());
 

@@ -198,7 +198,7 @@ public class SingleNumberModeShareCustomerItem {
         isLoaded = loaded;
     }
 
-    public void setInvalid() { invalid = true; }
+    public void setInvalid(Boolean flag) { invalid = flag; }
 
     public Boolean getInvalid() { return null == invalid ? false : invalid; }
 
@@ -217,6 +217,10 @@ public class SingleNumberModeShareCustomerItem {
     public void setUserId(String userId) {
         this.userId = userId;
     }
+
+    public String getShareToken() { return bizId + shareBatchId; }
+
+    public String getCustomerToken() { return bizId + importBatchId + customerId; }
 
 
     int id;

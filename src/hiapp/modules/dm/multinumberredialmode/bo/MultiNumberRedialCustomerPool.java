@@ -1,14 +1,12 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.PhoneTypeDialSequence;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class MultiNumberRedialCustomerPool {
@@ -186,6 +184,26 @@ public class MultiNumberRedialCustomerPool {
 
         customer.setNextDialPhoneType(nextPhoneType);
         return nextPhoneType;
+    }
+
+    public List<MultiNumberRedialCustomer> cancelShare(int bizId, List<CustomerBasic> customerBasicList) {
+        Map<Integer, OnePhoneTypeCustomerPool> oneBizCustomerSharePool = customerSharePool.get(bizId);
+        if (null == oneBizCustomerSharePool)
+            return null;
+
+        List<MultiNumberRedialCustomer> customerList = new ArrayList<MultiNumberRedialCustomer>();
+
+        // 号码类型遍历
+        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
+            int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
+            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = oneBizCustomerSharePool.get(phoneType);
+            if (null == onePhoneTypeCustomerPool)
+                continue;
+
+            customerList.addAll(onePhoneTypeCustomerPool.cancelShare(customerBasicList));
+        }
+
+        return customerList;
     }
 
 }

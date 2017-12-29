@@ -1,8 +1,10 @@
 package hiapp.modules.dm.singlenumbermode;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
+import hiapp.modules.dm.hidialermode.bo.HidialerModeCustomer;
 import hiapp.modules.dm.singlenumbermode.bo.*;
 import hiapp.modules.dm.singlenumbermode.dao.SingleNumberModeDAO;
 import hiapp.modules.dm.dao.DMDAO;
@@ -59,8 +61,8 @@ public class SingleNumberOutboundDataManage {
     // 分钟Slot <==> {BizId + ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
     Map<Long, Map<String, SingleNumberModeShareCustomerItem>> mapWaitTimeOutCustomerPool;
 
-    // 等待共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
-    // BizId + ShareBatchId <==> {ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
+    // 等待共享停止/取消的客户池，共享批次维度，用于标注已经停止共享的客户
+    // BizId + ShareBatchId <==> {BizId + ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
     Map<String, Map<String, SingleNumberModeShareCustomerItem>> mapWaitStopCustomerPool;
 
     Long earliestTimeSlot;
@@ -86,53 +88,13 @@ public class SingleNumberOutboundDataManage {
         Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = null;
 
-        // TODO 目前取得就走了，其实可以PEEK遍后比较拨打时间，确定先取那个客户
-        shareBatchIdVsCustomerMap = mapPresetDialCustomerSharePool.get(bizId);
-        if (null != shareBatchIdVsCustomerMap) {
-            for (String shareBatchId : shareBatchIdList) {
-                customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
-                if (null == customerQueue)
-                    continue;
 
-                shareDataItem = customerQueue.peek();
-                if (null == shareDataItem)
-                    continue;
-
-                if (shareDataItem.getNextDialTime().before(now)) {
-                    shareDataItem = customerQueue.poll();
-                    break;
-                }
-            }
-        }
-
+        shareDataItem = retrievePresetCustomer(bizId, shareBatchIdList, mapPresetDialCustomerSharePool);
         if (null == shareDataItem) {
-            shareBatchIdVsCustomerMap = mapStageDialCustomerSharePool.get(bizId);
-            if (null != shareBatchIdVsCustomerMap) {
-                for (String shareBatchId : shareBatchIdList) {
-                    customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
-                    if (null == customerQueue)
-                        continue;
-
-                    shareDataItem = customerQueue.poll();
-                    if (null != shareDataItem)
-                        break;
-                }
-            }
+            shareDataItem = retrieveGeneralCustomer(bizId, shareBatchIdList, mapStageDialCustomerSharePool);
         }
-
         if (null == shareDataItem) {
-            shareBatchIdVsCustomerMap = mapDialCustomerSharePool.get(bizId);
-            if (null != shareBatchIdVsCustomerMap) {
-                for (String shareBatchId : shareBatchIdList) {
-                    customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
-                    if (null == customerQueue)
-                        continue;
-
-                    shareDataItem = customerQueue.poll();
-                    if (null != shareDataItem)
-                        break;
-                }
-            }
+            shareDataItem = retrieveGeneralCustomer(bizId, shareBatchIdList, mapDialCustomerSharePool);
         }
 
         if (null != shareDataItem) {
@@ -233,9 +195,6 @@ public class SingleNumberOutboundDataManage {
 
     }
 
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     public void initialize() {
 
         mapPresetDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
@@ -259,8 +218,50 @@ public class SingleNumberOutboundDataManage {
         mapStageDialCustomerSharePool.clear();
         mapDialCustomerSharePool.clear();
 
+        mapWaitResultCustomerPool.clear();
+        mapWaitTimeOutCustomerPool.clear();
+        mapWaitStopCustomerPool.clear();
+
         loadCustomersDaily(shareBatchItems);
     }
+
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+        // step 1 : remove from share pool
+        List<SingleNumberModeShareCustomerItem> customerList = cancelShare(bizId, customerBasicList);
+
+        // step 2 : update state in database and insert to share history table
+        List<Integer> customerDBIdList = new ArrayList<Integer>();
+        for (SingleNumberModeShareCustomerItem customer : customerList) {
+            customer.setState(SingleNumberModeShareCustomerStateEnum.CANCELLED);
+            singleNumberModeDAO.insertCustomerShareStateHistory(customer);
+
+            customerDBIdList.add(customer.getId());
+        }
+
+        singleNumberModeDAO.updateCustomerShareStateToCancel(bizId, customerDBIdList, SingleNumberModeShareCustomerStateEnum.CANCELLED);
+    }
+
+    public List<SingleNumberModeShareCustomerItem> cancelShare(int bizId, List<CustomerBasic> customerBasicList) {
+        List<SingleNumberModeShareCustomerItem> customerList = new ArrayList<SingleNumberModeShareCustomerItem>();
+        for (CustomerBasic customerBasic : customerBasicList) {
+            Map<String, SingleNumberModeShareCustomerItem> oneShareBatchCustomerPool = mapWaitStopCustomerPool.get(customerBasic.getSourceToken());
+            if (null == oneShareBatchCustomerPool || oneShareBatchCustomerPool.isEmpty()) {
+                mapWaitStopCustomerPool.remove(customerBasic.getSourceToken());
+                continue;
+            }
+
+            SingleNumberModeShareCustomerItem customer = oneShareBatchCustomerPool.get(customerBasic.getCustomerToken());
+            if (null == customer)
+                continue;
+
+            customer.setInvalid(true);
+            customerList.add(customer);
+        }
+
+        return customerList;
+    }
+
+    /////////////////////////////////////////////////////
 
     /**
      * 过滤出当天需要激活的共享批次
@@ -424,12 +425,6 @@ public class SingleNumberOutboundDataManage {
         }
         mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
 
-        Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + customerItem.getShareBatchId());
-        if (null == mapWaitStopPool) {
-            mapWaitStopPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
-            mapWaitStopCustomerPool.put(bizId + customerItem.getShareBatchId(), mapWaitStopPool);
-        }
-        mapWaitStopPool.put(customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
     }
 
     private SingleNumberModeShareCustomerItem removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
@@ -470,7 +465,7 @@ public class SingleNumberOutboundDataManage {
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
         Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + shareBatchId);
         if (null != mapWaitStopPool) {
-            mapWaitStopPool.remove(importBatchId + customerId);
+            mapWaitStopPool.remove(bizId + importBatchId + customerId);
             if (mapWaitStopPool.isEmpty())
                 mapWaitStopCustomerPool.remove(bizId + shareBatchId);
         }
@@ -653,6 +648,13 @@ public class SingleNumberOutboundDataManage {
 
         queue.put(newCustomerItem);
 
+        Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool = mapWaitStopCustomerPool.get(newCustomerItem.getShareToken());
+        if (null == mapWaitStopPool) {
+            mapWaitStopPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
+            mapWaitStopCustomerPool.put(newCustomerItem.getShareToken(), mapWaitStopPool);
+        }
+        mapWaitStopPool.put(newCustomerItem.getCustomerToken(), newCustomerItem);
+
         System.out.println("M3 add customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
@@ -743,9 +745,81 @@ public class SingleNumberOutboundDataManage {
             Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool;
             mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + shareBatchId);
             for (SingleNumberModeShareCustomerItem item : mapWaitStopPool.values()) {
-                item.setInvalid();
+                item.setInvalid(true);
             }
         }
+    }
+
+    /**
+     * 获取有具体拨打时间（时分）的客户
+     * @param bizId
+     * @param shareBatchIdList
+     * @return
+     */
+    private SingleNumberModeShareCustomerItem retrievePresetCustomer(int bizId, List<String> shareBatchIdList,
+                       Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> customerSharePool) {
+        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap;
+        shareBatchIdVsCustomerMap = customerSharePool.get(bizId);
+        if (null == shareBatchIdVsCustomerMap) {
+            customerSharePool.remove(bizId);
+            return null;
+        }
+
+        Date now = new Date();
+
+        // TODO 目前在一个共享批次中取得就返回了，其实可以PEEK遍所有共享批次后比较拨打时间，确定先取那个客户
+        for (String shareBatchId : shareBatchIdList) {
+            PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
+            if (null == customerQueue || customerQueue.isEmpty()) {
+                shareBatchIdVsCustomerMap.remove(shareBatchId);
+                continue;
+            }
+
+            SingleNumberModeShareCustomerItem shareDataItem = customerQueue.peek();
+            if (shareDataItem.getInvalid()) {
+                customerQueue.poll();  // 丢弃 作废的客户
+                continue;
+            }
+
+            if (shareDataItem.getNextDialTime().before(now)) {
+                shareDataItem = customerQueue.poll();
+                return shareDataItem;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 获取当天拨打的客户
+     * @param bizId
+     * @param shareBatchIdList
+     * @return
+     */
+    private SingleNumberModeShareCustomerItem retrieveGeneralCustomer(int bizId, List<String> shareBatchIdList,
+                   Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> customerSharePool) {
+        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap;
+        shareBatchIdVsCustomerMap = customerSharePool.get(bizId);
+        if (null == shareBatchIdVsCustomerMap) {
+            customerSharePool.remove(bizId);
+            return null;
+        }
+
+        for (String shareBatchId : shareBatchIdList) {
+            PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
+            if (null == customerQueue || customerQueue.isEmpty()) {
+                shareBatchIdVsCustomerMap.remove(shareBatchId);
+                continue;
+            }
+
+            SingleNumberModeShareCustomerItem shareDataItem = customerQueue.poll();
+            if (shareDataItem.getInvalid())
+                continue;
+
+            return shareDataItem;
+        }
+
+        return null;
     }
 
     public void timeoutProc() {
@@ -776,36 +850,3 @@ public class SingleNumberOutboundDataManage {
 
 }
 
-        /*EndCodeRedialStrategyFromDB endCodeRedialStrategyFromDB = new EndCodeRedialStrategyFromDB();
-        RedialState redialState = new RedialState();
-        redialState.setDescription("description");
-        redialState.setLoopRedialCountExceedNextState("loopRedialCountExceedNextStateName");
-        redialState.setLoopRedialDialCount("9");
-        redialState.setLoopRedialFirstDialDayDialCountLimit("2");
-        redialState.setLoopRedialPerdayCountLimit("3");
-        redialState.setName("statename");
-        redialState.setStateType(RedialStateTypeEnum.REDIAL_STATE_FINISHED);
-        redialState.setStageRedialDelayDays("20");
-
-        endCodeRedialStrategyFromDB.addRedialState(redialState);
-        endCodeRedialStrategyFromDB.addRedialState(redialState);
-        endCodeRedialStrategyFromDB.addEndCodeRedialStrategyItem();
-
-        String jsonObject=new Gson().toJson(endCodeRedialStrategyFromDB);
-        System.out.println(jsonObject);
-
-        EndCodeRedialStrategyFromDB tmp00 = new Gson().fromJson(jsonObject,
-                EndCodeRedialStrategyFromDB.class);*/
-
-        //EndCodeRedialStrategyM6 endCodeRedialStrategy = getEndCodeRedialStrategyByBizId(20);
-
-        /*String tmp = "{\"bizId\":11,\"importBatchId\":77\" }";
-        Map<String, String> map = new Gson().fromJson(tmp, Map.class);
-        String strBizId = map.get("bizId");
-        String resultCodeType = map.get("resultCodeType");
-        String resultCode = map.get("resultCode");
-        String importBatchId = map.get("importBatchId");
-        String shareBatchId = map.get("shareBatchId");
-        String customerId = map.get("customerId");
-        String resultData = map.get("resultData");
-        String customerInfo = map.get("customerInfo");*/

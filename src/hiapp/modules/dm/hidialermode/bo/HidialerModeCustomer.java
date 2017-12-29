@@ -196,6 +196,9 @@ public class HidialerModeCustomer {
         this.redialCount = redialCount;
     }
 
+    public String getShareToken() { return bizId + shareBatchId; }
+    public String getCustomerToken() { return bizId + importBatchId + customerId; }
+
     public HidialerModeCustomer deepClone() {
 
         HidialerModeCustomer customer = new HidialerModeCustomer();

@@ -1,12 +1,15 @@
 package hiapp.modules.dm.multinumbermode;
 
 import hiapp.modules.dm.Constants;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.PhoneTypeDialSequence;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.multinumbermode.bo.*;
 import hiapp.modules.dm.multinumbermode.dao.MultiNumberPredictModeDAO;
+import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialCustomer;
+import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialStateEnum;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
@@ -277,6 +280,22 @@ public class MultiNumberOutboundDataManage {
         customerPool.timeoutProc();
     }
 
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+        // step 1 : remove from share pool
+        List<MultiNumberCustomer> customerList = customerPool.cancelShare(bizId, customerBasicList);
+
+        // step 2 : update state and insert share history table
+        List<Integer> customerDBIdList = new ArrayList<Integer>();
+        for (MultiNumberCustomer customer : customerList) {
+            customer.setState(MultiNumberPredictStateEnum.CANCELLED);
+            multiNumberPredictModeDAO.insertCustomerShareStateHistory(customer);
+
+            customerDBIdList.add(customer.getId());
+        }
+
+        multiNumberPredictModeDAO.updateCustomerShareStateToCancel(bizId, customerDBIdList, MultiNumberPredictStateEnum.CANCELLED);
+
+    }
 
     /////////////////////////////////////////////////////////////
 

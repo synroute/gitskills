@@ -1,7 +1,6 @@
 package hiapp.modules.dm.hidialermode.bo;
 
-import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
-import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,7 +25,7 @@ public class HidialerModeCustomerSharePool {
     Map<Integer, PriorityBlockingQueue<HidialerModeCustomer>> mapCustomerSharePool;
 
     // 用于处理共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
-    // ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberCustomer}
+    // BizId + ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberCustomer}
     Map<String, Map<String, HidialerModeCustomer>> mapShareBatchWaitStopCustomerPool;
 
     public HidialerModeCustomerSharePool() {
@@ -132,12 +131,12 @@ public class HidialerModeCustomerSharePool {
             queue.put(customer);
         }
 
-        Map<String, HidialerModeCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareBatchId());
+        Map<String, HidialerModeCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareToken());
         if (null == mapWaitStopPool) {
             mapWaitStopPool = new HashMap<String, HidialerModeCustomer>();
-            mapShareBatchWaitStopCustomerPool.put(customer.getShareBatchId(), mapWaitStopPool);
+            mapShareBatchWaitStopCustomerPool.put(customer.getShareToken(), mapWaitStopPool);
         }
-        mapWaitStopPool.put(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId(), customer);
+        mapWaitStopPool.put(customer.getCustomerToken(), customer);
     }
 
     /**
@@ -147,7 +146,7 @@ public class HidialerModeCustomerSharePool {
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
             Map<String, HidialerModeCustomer> mapWaitStopPool;
-            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.remove(shareBatchId);
+            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.remove(bizId + shareBatchId);
             for (HidialerModeCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }
@@ -170,17 +169,34 @@ public class HidialerModeCustomerSharePool {
         }
     }*/
 
+    public List<HidialerModeCustomer> cancelShare(int bizId, List<CustomerBasic> customerBasicList) {
+        List<HidialerModeCustomer> customerList = new ArrayList<HidialerModeCustomer>();
+        for (CustomerBasic customerBasic : customerBasicList) {
+            Map<String, HidialerModeCustomer> oneShareBatchCustomerPool = mapShareBatchWaitStopCustomerPool.get(customerBasic.getSourceToken());
+            if (null == oneShareBatchCustomerPool)
+                continue;
+
+            HidialerModeCustomer customer = oneShareBatchCustomerPool.get(customerBasic.getCustomerToken());
+            if (null == customer)
+                continue;
+
+            customer.setInvalid(true);
+            customerList.add(customer);
+        }
+
+        return customerList;
+    }
 
     //////////////////////////////////////////////////////////
 
     private void removeFromShareBatchStopWaitPool(HidialerModeCustomer customer) {
-        Map<String, HidialerModeCustomer> oneShareBatchPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareBatchId());
+        Map<String, HidialerModeCustomer> oneShareBatchPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareToken());
         if (null == oneShareBatchPool)
             return;
 
-        oneShareBatchPool.remove(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId());
+        oneShareBatchPool.remove(customer.getCustomerToken());
         if (oneShareBatchPool.isEmpty())
-            mapShareBatchWaitStopCustomerPool.remove(customer.getShareBatchId());
+            mapShareBatchWaitStopCustomerPool.remove(customer.getShareToken());
     }
 
     //匿名Comparator实现

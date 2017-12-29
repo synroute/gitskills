@@ -12,6 +12,7 @@ public enum HidialerModeCustomerStateEnum {
     FINISHED("FINISHED"),     // 本客户拨打完成
     LOSS_FINISHED("LOSS_FINISHED"),     // 呼损重拨完成
     REVERT("REVERT"),         // 回退状态
+    CANCELLED("CANCELLED"),   // 取消状态
 
     PHONECONNECTED("PHONECONNECTED"),
     SCREENPOPUP("SCREENPOPUP");
@@ -48,6 +49,8 @@ public enum HidialerModeCustomerStateEnum {
         if (HidialerModeCustomerStateEnum.REVERT.getName().equals(columnValue))
             return HidialerModeCustomerStateEnum.REVERT;
 
+        if (HidialerModeCustomerStateEnum.CANCELLED.getName().equals(columnValue))
+            return HidialerModeCustomerStateEnum.CANCELLED;
 
         if (HidialerModeCustomerStateEnum.PHONECONNECTED.getName().equals(columnValue))
             return HidialerModeCustomerStateEnum.PHONECONNECTED;

@@ -190,6 +190,10 @@ public class MultiNumberCustomer {
         this.isAppend = isAppend;
     }
 
+    public String getShareToken() { return bizId + shareBatchId; }
+
+    public String getCustomerToken() { return bizId + importBatchId + customerId; }
+
     public MultiNumberCustomer deepClone() {
         MultiNumberCustomer cloneItem = new MultiNumberCustomer();
 

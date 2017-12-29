@@ -91,7 +91,7 @@ public class MultiNumberRedialController {
     }
 
     public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
-
+        multiNumberOutboundDataManage.cancelOutboundTask(bizId, customerBasicList);
     }
 
 }

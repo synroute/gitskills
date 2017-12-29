@@ -1,5 +1,7 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
+import hiapp.modules.dm.bo.CustomerBasic;
+
 import java.util.Date;
 import java.util.List;
 
@@ -49,6 +51,10 @@ public class OnePhoneTypeCustomerPool {
 
     public void stopShareBatch(List<String> shareBatchIds) {
         customerSharePool.stopShareBatch(shareBatchIds);
+    }
+
+    public List<MultiNumberRedialCustomer> cancelShare(List<CustomerBasic> customerBasicList) {
+        return customerSharePool.cancelShare(customerBasicList);
     }
 
 }

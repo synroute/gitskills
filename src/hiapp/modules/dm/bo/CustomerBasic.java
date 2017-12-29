@@ -38,7 +38,9 @@ public class CustomerBasic {
         this.customerId = customerId;
     }
 
-    public String getCustomerToken() {
-        return bizId + importBatchId + customerId;
+    public String getSourceToken() {
+        return bizId + sourceId;
     }
+
+    public String getCustomerToken() { return bizId + importBatchId + customerId; }
 }

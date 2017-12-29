@@ -10,7 +10,8 @@ public enum MultiNumberPredictStateEnum {
     WAIT_REDIAL("WAIT_REDIAL"),   // 等待重拨状态, 外呼策略处理结果
     LOSS_WAIT_REDIAL("LOSS_WAIT_REDIAL"),   //呼损重拨状态
     HIDIALER_LOSS_WAIT_REDIAL("HIDIALER_LOSS_WAIT_REDIAL"),   //HIDIALER呼损重拨状态
-    FINISHED("FINISHED"),      // 本客户拨打完成
+    CANCELLED("CANCELLED"),
+    FINISHED("FINISHED"),     // 本客户拨打完成
     REVERT("REVERT"),         // 回退状态
 
     PHONECONNECTED("PHONECONNECTED"),
@@ -50,6 +51,9 @@ public enum MultiNumberPredictStateEnum {
 
         if (MultiNumberPredictStateEnum.FINISHED.getName().equals(columnValue))
             return MultiNumberPredictStateEnum.FINISHED;
+
+        if (MultiNumberPredictStateEnum.CANCELLED.getName().equals(columnValue))
+            return MultiNumberPredictStateEnum.CANCELLED;
 
         if (MultiNumberPredictStateEnum.REVERT.getName().equals(columnValue))
             return MultiNumberPredictStateEnum.REVERT;

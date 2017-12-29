@@ -5,6 +5,7 @@ import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
 import hiapp.modules.dm.multinumbermode.bo.PhoneDialInfo;
 import hiapp.modules.dm.bo.PhoneTypeDialSequence;
+import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialStateEnum;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.utils.DbUtil;
@@ -299,6 +300,32 @@ public class MultiNumberPredictModeDAO extends BaseRepository {
         sqlBuilder.append("  AND CID = ").append(SQLUtil.getSqlString(item.getCustomerId()));
 
         System.out.println(sqlBuilder.toString());
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    // 更新客户共享状态
+    public Boolean updateCustomerShareStateToCancel(int bizId, List<Integer> idLIst,
+                                                    MultiNumberPredictStateEnum state) {
+        String tableName = String.format("HAU_DM_B%dC_DATAM6", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state.getName()));
+        sqlBuilder.append(" WHERE ID IN (").append(SQLUtil.integerListToSqlString(idLIst)).append(")");
 
         Connection dbConn = null;
         PreparedStatement stmt = null;

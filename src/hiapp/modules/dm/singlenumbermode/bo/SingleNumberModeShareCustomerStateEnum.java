@@ -7,6 +7,7 @@ public enum SingleNumberModeShareCustomerStateEnum {
     PRESET_DIAL("PRESET_DIAL"),   // 预约拨打状态，有下次拨打时间
     LOSTCALL_WAIT_REDIAL("LOSTCALL_WAIT_REDIAL"),   //未接通，等待重拨状态，没有下次拨打时间，通过拨打次数控制
     FINISHED("FINISHED"),
+    CANCELLED("CANCELLED"),
     REVERT("REVERT");         // 回退状态
 
     private SingleNumberModeShareCustomerStateEnum(String name) {
@@ -43,6 +44,9 @@ public enum SingleNumberModeShareCustomerStateEnum {
 
         if (SingleNumberModeShareCustomerStateEnum.REVERT.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.REVERT;
+
+        if (SingleNumberModeShareCustomerStateEnum.CANCELLED.getName().equals(columnValue))
+           return SingleNumberModeShareCustomerStateEnum.CANCELLED;
 
         return null;
     }

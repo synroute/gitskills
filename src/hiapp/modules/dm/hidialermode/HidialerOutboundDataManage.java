@@ -1,6 +1,7 @@
 package hiapp.modules.dm.hidialermode;
 
 import hiapp.modules.dm.Constants;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.hidialermode.bo.*;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
 import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
@@ -313,6 +314,24 @@ public class HidialerOutboundDataManage {
     }
 
 
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+        // step 1: remove from share pool
+        List<HidialerModeCustomer> customerList = customerPool.cancelShare(bizId, customerBasicList);
+
+        // step 2: update state in share table AND insert share history table
+        Date now = new Date();
+        List<Integer> customerDBIdList = new ArrayList<Integer>();
+        for (HidialerModeCustomer customer : customerList) {
+            customer.setState(HidialerModeCustomerStateEnum.CANCELLED);
+            hidialerModeDAO.insertCustomerShareStateHistory(customer);
+
+            customerDBIdList.add(customer.getId());
+        }
+
+        hidialerModeDAO.updateCustomerShareStateById(bizId, customerDBIdList, HidialerModeCustomerStateEnum.CANCELLED);
+    }
+
+
     /////////////////////////////////////////////////////////////
 
     private void procEndcode(String userId, HidialerModeCustomer originCustomerItem,
@@ -494,7 +513,7 @@ public class HidialerOutboundDataManage {
         }
     }
 
-    public void addCustomerToSharePool(HidialerModeCustomer newCustomerItem) {
+    private void addCustomerToSharePool(HidialerModeCustomer newCustomerItem) {
         customerPool.add(newCustomerItem);
 
         System.out.println("M2 add customer: bizId[" + newCustomerItem.getBizId()

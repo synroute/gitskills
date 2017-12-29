@@ -5,6 +5,7 @@ import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialStateEnum;
 import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialCustomer;
 import hiapp.modules.dm.multinumberredialmode.bo.PhoneDialInfo;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.utils.DbUtil;
@@ -212,6 +213,32 @@ public class MultiNumberRedialDAO extends BaseRepository {
         sqlBuilder.append(" WHERE SHAREID IN (").append(SQLUtil.stringCollectionToSqlString(shareBatchIdSet)).append(")");
         sqlBuilder.append("   AND BUSINESSID = ").append(SQLUtil.getSqlString(bizId));
         sqlBuilder.append("   AND STATE = ").append(SQLUtil.getSqlString(originalState.getName()));
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
+
+    // 更新客户共享状态
+    public Boolean updateCustomerShareStateToCancel(int bizId, List<Integer> idLIst,
+                                                    MultiNumberRedialStateEnum state) {
+        String tableName = String.format("HAU_DM_B%dC_DATAM4", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("UPDATE " + tableName);
+        sqlBuilder.append(" SET STATE = ").append(SQLUtil.getSqlString(state.getName()));
+        sqlBuilder.append(" WHERE ID IN (").append(SQLUtil.integerListToSqlString(idLIst)).append(")");
 
         Connection dbConn = null;
         PreparedStatement stmt = null;

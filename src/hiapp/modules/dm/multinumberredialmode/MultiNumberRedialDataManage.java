@@ -1,12 +1,15 @@
 package hiapp.modules.dm.multinumberredialmode;
 
 import hiapp.modules.dm.Constants;
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.PhoneTypeDialSequence;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.multinumberredialmode.bo.*;
 import hiapp.modules.dm.multinumberredialmode.dao.MultiNumberRedialDAO;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
@@ -147,6 +150,22 @@ public class MultiNumberRedialDataManage {
 
     public void timeoutProc() {
         customerPool.timeoutProc();
+    }
+
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+        // remove from share pool
+        List<MultiNumberRedialCustomer> customerList = customerPool.cancelShare(bizId, customerBasicList);
+
+        // update state and insert share history table
+        List<Integer> customerDBIdList = new ArrayList<Integer>();
+        for (MultiNumberRedialCustomer customer : customerList) {
+            customer.setState(MultiNumberRedialStateEnum.CANCELLED);
+            multiNumberRedialDAO.insertCustomerShareStateHistory(customer);
+
+            customerDBIdList.add(customer.getId());
+        }
+
+        multiNumberRedialDAO.updateCustomerShareStateToCancel(bizId, customerDBIdList, MultiNumberRedialStateEnum.CANCELLED);
     }
 
     /////////////////////////////////////////////////////////////

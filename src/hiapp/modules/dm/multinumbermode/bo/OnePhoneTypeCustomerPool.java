@@ -1,5 +1,7 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
+import hiapp.modules.dm.bo.CustomerBasic;
+
 import java.util.Date;
 import java.util.List;
 
@@ -68,6 +70,10 @@ public class OnePhoneTypeCustomerPool {
         customerWaitPool.markShareBatchStopFromCustomerWaitPool(shareBatchIds);
     }
 */
+
+    public List<MultiNumberCustomer> cancelShare(List<CustomerBasic> customerBasicList) {
+        return customerSharePool.cancelShare(customerBasicList);
+    }
 
 }
 

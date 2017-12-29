@@ -124,8 +124,7 @@ public class SingleNumberModeController {
     }
 
     public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
-
+        singleNumberOutboundDataManage.cancelOutboundTask(bizId, customerBasicList);
     }
-
 
 }

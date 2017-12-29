@@ -1,5 +1,6 @@
 package hiapp.modules.dm;
 
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.hidialermode.HidialerOutboundDataManage;
@@ -16,7 +17,9 @@ import hiapp.utils.database.DBConnectionPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -92,6 +95,27 @@ public class DMService {
         }
 
         return false;
+    }
+
+    /**
+     * 后台直接调用
+     */
+    public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
+        DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(bizId);
+
+        if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
+            manualOutboundDataManage.cancelOutboundTask(bizId, customerBasicList);
+        } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            hidialerOutboundDataManage.cancelOutboundTask(bizId, customerBasicList);
+        } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
+            singleNumberOutboundDataManage.cancelOutboundTask(bizId, customerBasicList);
+        } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
+            multiNumberRedialDataManage.cancelOutboundTask(bizId, customerBasicList);
+        } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+
+        } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            multiNumberOutboundDataManage.cancelOutboundTask(bizId, customerBasicList);
+        }
     }
 
     private Boolean shareBatchDailyProc(/*OUT*/List<ShareBatchItem> shareBatchItems) {

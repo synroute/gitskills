@@ -202,6 +202,10 @@ public class MultiNumberRedialCustomer {
         this.extractTime = extractTime;
     }
 
+    public String getShareToken() { return bizId + shareBatchId; }
+
+    public String getCustomerToken() { return bizId + importBatchId + customerId; }
+
     public MultiNumberRedialCustomer deepClone() {
         MultiNumberRedialCustomer cloneItem = new MultiNumberRedialCustomer();
 

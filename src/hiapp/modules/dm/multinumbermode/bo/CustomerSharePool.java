@@ -1,5 +1,7 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
+import hiapp.modules.dm.bo.CustomerBasic;
+import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialCustomer;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,7 @@ public class CustomerSharePool {
     PriorityBlockingQueue<MultiNumberCustomer> mapCustomerSharePool;
 
     // 用于处理共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
-    // ShareBatchId <==> {ImportId + CustomerId <==> MultiNumberCustomer}
+    // BizId + ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberCustomer}
     Map<String, Map<String, MultiNumberCustomer>> mapShareBatchWaitStopCustomerPool;
 
 
@@ -46,91 +48,15 @@ public class CustomerSharePool {
         mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();
     }
 
-    /*
-    public MultiNumberCustomer extractCustomer(String userId) {
-
-        MultiNumberCustomer shareDataItem = null;
-
-        Date now = new Date();
-
-        // 根据userID，获取有权限访问的shareBatchIds
-        List<String> shareBatchIdList = dmBizMangeShare.getSidUserPool(bizId, userId);
-        PriorityBlockingQueue<MultiNumberCustomer> customerQueue = null;
-
-        // TODO 目前取得就走了，其实可以PEEK遍后比较拨打时间，确定先取那个客户
-        for (String shareBatchId : shareBatchIdList) {
-            customerQueue = mapPreseCustomerSharePool.get(shareBatchId);
-            if (null == customerQueue)
-                continue;
-
-            shareDataItem = customerQueue.peek();
-            if (null == shareDataItem) {
-                mapPreseCustomerSharePool.remove(shareBatchId);
-                continue;
-            }
-
-            if (shareDataItem.getCurPresetDialTime().before(now)) {
-                shareDataItem = customerQueue.poll();
-                break;
-            }
-        }
-
-        if (null == shareDataItem) {
-            for (String shareBatchId : shareBatchIdList) {
-                customerQueue = mapCustomerSharePool.get(shareBatchId);
-                if (null == customerQueue)
-                    continue;
-
-                shareDataItem = customerQueue.poll();
-                if (null != shareDataItem)
-                    break;
-
-                mapCustomerSharePool.remove(shareBatchId);
-            }
-        }
-
-        return shareDataItem;
-    }
-    */
-
     public MultiNumberCustomer extractCustomer(String userId) {
         Date now = new Date();
-        MultiNumberCustomer shareDataItem = null;
-
-        while (true) {
-            shareDataItem = mapPreseCustomerSharePool.peek();
-            if (null == shareDataItem)
-                break;
-
-            if (shareDataItem.getInvalid()) {
-                mapPreseCustomerSharePool.poll();  // 扔掉已经停止共享批次的客户
-                removeFromShareBatchStopWaitPool(shareDataItem);
-                continue;
-            }
-
-            if (null != shareDataItem && shareDataItem.getCurPresetDialTime().before(now)) {
-                shareDataItem = mapPreseCustomerSharePool.poll();
-                removeFromShareBatchStopWaitPool(shareDataItem);
-                return shareDataItem;
-            }
-
-            break;   //NOTE: 取不到合适的，就跳出
-        }
-
-        while (true) {
-            shareDataItem = mapCustomerSharePool.poll();
-            if (null == shareDataItem)
-                break;
-
-            removeFromShareBatchStopWaitPool(shareDataItem);
-
-            if (shareDataItem.getInvalid())
-                continue;
-
+        MultiNumberCustomer shareDataItem = peekNextValidCustomer(mapPreseCustomerSharePool);
+        if (null != shareDataItem && shareDataItem.getCurPresetDialTime().before(now)) {
+            shareDataItem = mapPreseCustomerSharePool.poll();
             return shareDataItem;
         }
 
-        return shareDataItem;
+        return retrieveNextValideCustomer(mapCustomerSharePool);
     }
 
     /*
@@ -165,12 +91,12 @@ public class CustomerSharePool {
             mapCustomerSharePool.put(customer);
         }
 
-        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareBatchId());
+        Map<String, MultiNumberCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareToken());
         if (null == mapWaitStopPool) {
             mapWaitStopPool = new HashMap<String, MultiNumberCustomer>();
-            mapShareBatchWaitStopCustomerPool.put(customer.getShareBatchId(), mapWaitStopPool);
+            mapShareBatchWaitStopCustomerPool.put(customer.getShareToken(), mapWaitStopPool);
         }
-        mapWaitStopPool.put(customer.getImportBatchId() + customer.getCustomerId(), customer);
+        mapWaitStopPool.put(customer.getCustomerToken(), customer);
     }
 
     /**
@@ -180,7 +106,7 @@ public class CustomerSharePool {
     public void stopShareBatch(List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
             Map<String, MultiNumberCustomer> mapWaitStopPool;
-            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.remove(shareBatchId);
+            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.remove(bizId + shareBatchId);
             for (MultiNumberCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }
@@ -203,13 +129,52 @@ public class CustomerSharePool {
         }
     }*/
 
+    public List<MultiNumberCustomer> cancelShare(List<CustomerBasic> customerBasicList) {
+        List<MultiNumberCustomer> customerList = new ArrayList<MultiNumberCustomer>();
+        for (CustomerBasic customerBasic : customerBasicList) {
+            Map<String, MultiNumberCustomer> oneShareBatchCustomerPool = mapShareBatchWaitStopCustomerPool.get(customerBasic.getSourceToken());
+            if (null == oneShareBatchCustomerPool || oneShareBatchCustomerPool.isEmpty()) {
+                mapShareBatchWaitStopCustomerPool.remove(customerBasic.getSourceToken());
+                continue;
+            }
+
+            MultiNumberCustomer customer = oneShareBatchCustomerPool.remove(customerBasic.getCustomerToken());
+            if (null == customer)
+                continue;
+
+            customer.setInvalid(true);
+            customerList.add(customer);
+        }
+
+        return customerList;
+    }
+
+
     //////////////////////////////////////////////////////////
 
-    private void removeFromShareBatchStopWaitPool(MultiNumberCustomer customer) {
-        Map<String, MultiNumberCustomer> oneShareBatchPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareBatchId());
-        oneShareBatchPool.remove(customer.getImportBatchId() + customer.getCustomerId());
-        if (oneShareBatchPool.isEmpty())
-            mapShareBatchWaitStopCustomerPool.remove(customer.getShareBatchId());
+    private MultiNumberCustomer peekNextValidCustomer(PriorityBlockingQueue<MultiNumberCustomer> customerSharePool) {
+        while (!customerSharePool.isEmpty()) {
+            MultiNumberCustomer shareDataItem = customerSharePool.peek();
+            if (shareDataItem.getInvalid()) {
+                customerSharePool.poll();  // 丢弃 已经停止共享的客户
+                continue;
+            }
+
+            return shareDataItem;
+            //break;   // 第一个有效客户还未到拨打时间，就跳出
+        }
+
+        return null;
+    }
+
+    private MultiNumberCustomer retrieveNextValideCustomer(PriorityBlockingQueue<MultiNumberCustomer> customerSharePool) {
+        while (!customerSharePool.isEmpty()) {
+            MultiNumberCustomer shareDataItem = customerSharePool.poll();
+            if (!shareDataItem.getInvalid())
+                return shareDataItem;
+        }
+
+        return null;
     }
 
     //匿名Comparator实现
