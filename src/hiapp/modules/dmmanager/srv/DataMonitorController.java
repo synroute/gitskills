@@ -99,7 +99,7 @@ public class DataMonitorController {
 				}
 			}else{
 				if(!"MODIFYLAST".equals(field)&&!"ID".equals(field)&&!"MODIFYID".equals(field)&&!"MODIFYUSERID".equals(field)&&
-						!"SOURCEID".equals(field)&&!"IID".equals(field)&&!"CID".equals(field)&&!"MODIFYTIME".equals(field)){
+						!"IID".equals(field)&&!"CID".equals(field)&&!"MODIFYTIME".equals(field)){
 					resultList1.add(resultList.get(i));
 				}
 			}
