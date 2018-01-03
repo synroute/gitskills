@@ -526,7 +526,7 @@ public class CustomerController {
         QueryTemplate queryTemplate = new QueryTemplate();
         String bizId = queryRequest.getBizId();
         queryTemplate.setBizId(bizId);
-        queryTemplate.setConfigPage(ConfigPageEnume.MYCUSTOMERS.getName());
+        queryTemplate.setConfigPage(ConfigPageEnume.CONTACTPLAN.getName());
         queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
         List<Map<String, String>> template = null;
         try {
