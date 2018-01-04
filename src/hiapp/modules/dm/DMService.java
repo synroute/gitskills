@@ -5,10 +5,8 @@ import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.hidialermode.HidialerOutboundDataManage;
 import hiapp.modules.dm.manualmode.ManualOutboundDataManage;
-import hiapp.modules.dm.multinumbermode.MultiNumberModeController;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
 import hiapp.modules.dm.multinumberredialmode.MultiNumberRedialDataManage;
-import hiapp.modules.dm.singlenumbermode.SingleNumberModeController;
 import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBusiness;
@@ -17,9 +15,7 @@ import hiapp.utils.database.DBConnectionPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -117,6 +113,31 @@ public class DMService {
             multiNumberOutboundDataManage.cancelOutboundTask(bizId, customerBasicList);
         }
     }
+
+    public String startShareBatch(int bizId, List<String> shareBatchIds) {
+
+        DMBusiness dmBusiness = dmBizRepository.getDMBusinessByBizId(bizId);
+
+        if (DMBizOutboundModelEnum.ManualDistributeShare.getOutboundID() == dmBusiness.getModeId()) {
+            return manualOutboundDataManage.startShareBatch(bizId, shareBatchIds);
+
+        } else if (DMBizOutboundModelEnum.SingleDialHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            return hidialerOutboundDataManage.startShareBatch(bizId, shareBatchIds);
+
+        } else if (DMBizOutboundModelEnum.SingleNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
+            return singleNumberOutboundDataManage.startShareBatch(bizId, shareBatchIds);
+
+        } else if (DMBizOutboundModelEnum.MultiNumberRedial.getOutboundID() == dmBusiness.getModeId()) {
+            return multiNumberRedialDataManage.startShareBatch(bizId, shareBatchIds);
+        } else if (DMBizOutboundModelEnum.SingleNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+
+        } else if (DMBizOutboundModelEnum.MultiNumberHiDialer.getOutboundID() == dmBusiness.getModeId()) {
+            return multiNumberOutboundDataManage.startShareBatch(bizId, shareBatchIds);
+        }
+
+        return "";
+    }
+
 
     private Boolean shareBatchDailyProc(/*OUT*/List<ShareBatchItem> shareBatchItems) {
         //List<String> expiredShareBatchIds = new ArrayList<String>();
