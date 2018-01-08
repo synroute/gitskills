@@ -452,18 +452,18 @@ public class DMBizMangeShare extends BaseRepository{
 		}
 		
 		
-		public ServiceResultCode DeleteShareBatchDataByShareId(String[] shareId,int businessID) throws Exception {
+		public ServiceResultCode DeleteShareBatchDataByShareId(String shareIds,int businessID,Integer model) throws Exception {
 			String deSidSql="";
 			String deDataM3Sql="";
 			String deDataM3HisSql="";
 			String dePoolSql="";
 			String dePoolOreSql="";
 			String deUserPoolSql="";
-			String shareid="";
+			String shareid=shareIds;
 			//单号码重拨共享表
-			String HASYS_DM_BC_DATAM3="HAU_DM_B"+businessID+"C_DATAM3";
+			String HASYS_DM_BC_DATAM3="HAU_DM_B"+businessID+"C_DATAM"+model;
 			//单号码重拨共享历史表
-			String HAU_DM_BC_DATAM3_HIS= "HAU_DM_B"+businessID+"C_DATAM3_HIS";
+			String HAU_DM_BC_DATAM3_HIS= "HAU_DM_B"+businessID+"C_DATAM"+model+"_HIS";
 			//数据池记录表
 			String HAU_DM_BC_POOL="HAU_DM_B"+businessID+"C_POOL";
 			//数据池操作记录表
@@ -472,8 +472,6 @@ public class DMBizMangeShare extends BaseRepository{
 	        Connection dbConn=null;
 	        try {
 	        	dbConn=this.getDbConnection();
-	        for (int i = 0; i < shareId.length; i++) {
-			shareid = shareId[i];
 				//不自动提交数据
 				dbConn.setAutoCommit(false);
 				//删除共享批次信息表里面的数据
@@ -481,16 +479,18 @@ public class DMBizMangeShare extends BaseRepository{
 				stmt = dbConn.prepareStatement(deSidSql);
 				stmt.execute();
 				DbUtil.DbCloseExecute(stmt);
-				//单号码重播共享表
-				deDataM3Sql=String.format("DELETE FROM "+HASYS_DM_BC_DATAM3+" WHERE SHAREID='%s'",shareid);
-				stmt = dbConn.prepareStatement(deDataM3Sql);
-				stmt.execute();
-				DbUtil.DbCloseExecute(stmt);
-				//单号码重播共享表历史表dePoolSql
-				deDataM3HisSql=String.format("DELETE FROM "+HAU_DM_BC_DATAM3_HIS+" WHERE SHAREID='%s'",shareid);
-				stmt = dbConn.prepareStatement(deDataM3HisSql);
-				stmt.execute();
-				DbUtil.DbCloseExecute(stmt);
+				if(model!=1){
+					//单号码重播共享表
+					deDataM3Sql=String.format("DELETE FROM "+HASYS_DM_BC_DATAM3+" WHERE SHAREID='%s'",shareid);
+					stmt = dbConn.prepareStatement(deDataM3Sql);
+					stmt.execute();
+					DbUtil.DbCloseExecute(stmt);
+					//单号码重播共享表历史表dePoolSql
+					deDataM3HisSql=String.format("DELETE FROM "+HAU_DM_BC_DATAM3_HIS+" WHERE SHAREID='%s'",shareid);
+					stmt = dbConn.prepareStatement(deDataM3HisSql);
+					stmt.execute();
+					DbUtil.DbCloseExecute(stmt);
+				}
 				//更改数据池记录表数据
 				dePoolSql=String.format("DELETE FROM "+HAU_DM_BC_POOL+" WHERE SourceID='%s'",shareid);
 				stmt = dbConn.prepareStatement(dePoolSql);
@@ -508,7 +508,6 @@ public class DMBizMangeShare extends BaseRepository{
 				DbUtil.DbCloseExecute(stmt);
 				//无异常提交代码
 				dbConn.commit();
-	        }
 			} catch (Exception e) {
 				//有异常回滚
 				dbConn.rollback();
@@ -577,21 +576,5 @@ public class DMBizMangeShare extends BaseRepository{
 			}
 			
 			return dataPoolId;
-		}
-		public static void main(String[] args) {
-	/*		 try {
-				InputStream is = new FileInputStream("C:\\Users\\cuilulu\\Desktop\\导入模板(7).xlsx");
-				Workbook hssfWorkbook = new XSSFWorkbook(is);
-				for (int i = 0; i < hssfWorkbook.getNumberOfSheets(); i++) {
-					  Sheet hssfSheet = hssfWorkbook.getSheetAt(i);
-					  System.out.println(hssfSheet.getSheetName());
-				}
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}catch(IOException e){
-				
-			}
-			*/
 		}
 }
