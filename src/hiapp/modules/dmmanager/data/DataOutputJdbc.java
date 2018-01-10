@@ -447,10 +447,10 @@ public class DataOutputJdbc extends BaseRepository{
 		String column=null;
 		try {
 			conn=this.getDbConnection();
-			String sql="select dataType from Hasys_Worksheetcolumn where WORKSHEETID=? and COLUMNNAME=?";
+			String sql="select dataType from Hasys_Worksheetcolumn where WORKSHEETID=? and upper(COLUMNNAME)=?";
 			pst=conn.prepareStatement(sql);
 			pst.setString(1,workSheetId);
-			pst.setString(2, columnName);
+			pst.setString(2, columnName.toUpperCase());
 			rs=pst.executeQuery();
 			String dataType=null;
 			while(rs.next()){

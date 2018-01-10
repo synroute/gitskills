@@ -1208,9 +1208,9 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 		String dataType=null;
 		try {
 			conn=this.getDbConnection();
-			String getTypeSql="select dataType from HASYS_WORKSHEETCOLUMN	where COLUMNNAME=? and  workSheetId=?";
+			String getTypeSql="select dataType from HASYS_WORKSHEETCOLUMN	where upper(COLUMNNAME)=? and  workSheetId=?";
 			pst=conn.prepareStatement(getTypeSql);
-			pst.setString(1, columName);
+			pst.setString(1, columName.toUpperCase());
 			pst.setString(2, workSheetId);
 			rs=pst.executeQuery();
 			while(rs.next()){
