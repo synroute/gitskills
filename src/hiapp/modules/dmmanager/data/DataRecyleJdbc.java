@@ -127,8 +127,17 @@ public class DataRecyleJdbc extends BaseRepository{
 		String tempTableName="HAU_DM_H"+bizId+"S_"+userId;
 		String dataPoolName="HAU_DM_B"+bizId+"C_POOL";
 		List<String> workSheetNameList=new ArrayList<String>();
+		Integer areaCur=0;
 		try {
 			conn=this.getDbConnection();
+			Map<String, Object> ifCurPoolChildrens = dataDistributeJdbc.ifCurPoolChildrens(bizId, permissionId);
+			Integer result=(Integer) ifCurPoolChildrens.get("result");
+			if(result==0){
+				areaCur=2;
+			}else{
+				areaCur=0;
+			}
+			
 			String dbTableName=getTableName(tempTableName);
 			String configJson=getConfigJson(bizId, templateId);
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
@@ -189,7 +198,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			}
 			getDataSql2=getDataSql2.substring(0,getDataSql2.lastIndexOf("left join"))+" where ";
 			getDataSql2=getDataSql2+" b.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>to_date(?,'yyyy-mm-dd hh24:mi:ss') and a.ModifyTime<to_date(?,'yyyy-mm-dd hh24:mi:ss') "
-					+ " and b.AreaCur=0 and b.ISRecover=0 and b.DataPoolIDCur in(select id from HASYS_DM_DATAPOOL p where p.pid=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null) and p.BusinessID=?) )";
+					+ " and b.AreaCur="+areaCur+" and b.ISRecover=0 and b.DataPoolIDCur in(select id from HASYS_DM_DATAPOOL p where p.pid=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null) and p.BusinessID=?) )";
 			createTableSql=createTableSql.substring(0,createTableSql.length()-1)+")";
 			insertSql=insertSql.substring(0,insertSql.length()-1)+") "+getDataSql2;
 			if(dbTableName==null){
