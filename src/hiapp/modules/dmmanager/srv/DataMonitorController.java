@@ -98,7 +98,7 @@ public class DataMonitorController {
 					resultList1.add(resultList.get(i));
 				}
 			}else{
-				if(!"MODIFYLAST".equals(field)&&!"ID".equals(field)&&!"MODIFYID".equals(field)&&!"MODIFYUSERID".equals(field)&&
+				if(!"MODIFYLAST".equals(field)&&!"ID".equals(field)&&!"MODIFYUSERID".equals(field)&&
 						!"IID".equals(field)&&!"CID".equals(field)&&!"MODIFYTIME".equals(field)){
 					resultList1.add(resultList.get(i));
 				}
