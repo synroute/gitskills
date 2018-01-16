@@ -98,11 +98,12 @@ public class OutputDataController{
 		String importData=request.getParameter("importData");
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
+		Integer ifDial=Integer.valueOf(request.getParameter("ifDial"));
 		List<Map<String,Object>> dataList=null;
 		if(importData!=null&&!"".equals(importData)){
 			dataList=new Gson().fromJson(importData, List.class);
 		}else{
-			dataList=dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId, bizId);
+			dataList=dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId, bizId,ifDial);
 		}
 	
 		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(bizId,templateId);

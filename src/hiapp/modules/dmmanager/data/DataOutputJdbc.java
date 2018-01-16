@@ -191,8 +191,8 @@ public class DataOutputJdbc extends BaseRepository{
 						}
 						String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
 						if(!"IID".equals(column.toUpperCase())&&!"CID".equals(column.toUpperCase())){
-							getOutDataSql+=getDataType(column,workSheetId,asName)+",";
-							getOutDataSql1+=column+",";
+							getOutDataSql+=getDataType(column,workSheetId,asName,i)+",";
+							getOutDataSql1+=column+i+",";
 							break;
 						}
 						
@@ -250,8 +250,12 @@ public class DataOutputJdbc extends BaseRepository{
 						value=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
 					}
 					String key=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
-					if(value!=null&&!"".equals(value)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
-						map.put(key,rs.getObject(value));
+					if(value!=null&&!"".equals(value)&&!"IID".equals(key)&&!"CID".equals(key)){
+						if("IID".equals(value.toUpperCase())||"CID".equals(value.toUpperCase())){
+							map.put(key,rs.getObject(value));
+						}else{
+							map.put(key,rs.getObject(value+i));
+						}
 					}else{
 						map.put(key,"");
 					}
@@ -290,7 +294,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes" })
-	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId) throws IOException{
+	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId,Integer ifDial) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -349,7 +353,7 @@ public class DataOutputJdbc extends BaseRepository{
 						}
 						String column=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
 						if(!"IID".equals(column.toUpperCase())&&!"CID".equals(column.toUpperCase())){
-							getOutDataSql+=getDataType(column,workSheetId,asName)+",";
+							getOutDataSql+=getDataType(column,workSheetId,asName,i)+",";
 							break;
 						}
 						
@@ -384,6 +388,11 @@ public class DataOutputJdbc extends BaseRepository{
 			}
 			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.lastIndexOf("left join"))+" where ";
 			getOutDataSql+="b.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)"+getOutDataSql2;
+			if(ifDial==0){
+				getOutDataSql+=" and exists(select * from "+resultTableName+" c where c.iid=b.iid and c.cid=b.cid)";
+			}else if(ifDial==1){
+				getOutDataSql+=" and not exists(select * from "+resultTableName+" c where c.iid=b.iid and c.cid=b.cid)";
+			}
 			pst=conn.prepareStatement(getOutDataSql);
 			pst.setString(1,startTime);
 			pst.setString(2, endTime);
@@ -397,8 +406,12 @@ public class DataOutputJdbc extends BaseRepository{
 						value=dataArray.get(i).getAsJsonObject().get("WorkSheetColName").getAsString();
 					}
 					String key=dataArray.get(i).getAsJsonObject().get("ExcelHeader").getAsString();
-					if(value!=null&&!"".equals(value)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
-						map.put(key,rs.getObject(value));
+					if(value!=null&&!"".equals(value)&&!"IID".equals(key)&&!"CID".equals(key)){
+						if("IID".equals(value.toUpperCase())||"CID".equals(value.toUpperCase())){
+							map.put(key,rs.getObject(value));
+						}else{
+							map.put(key,rs.getObject(value+i));
+						}
 					}else{
 						map.put(key,"");
 					}
@@ -440,7 +453,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @param asName
 	 * @return
 	 */
-	public String getDataType(String columnName,String workSheetId,String asName){
+	public String getDataType(String columnName,String workSheetId,String asName,Integer index){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -458,9 +471,9 @@ public class DataOutputJdbc extends BaseRepository{
 			}
 			
 			if("varchar".equals(dataType.toLowerCase())||"int".equals(dataType.toLowerCase())){
-				column=asName+columnName;
+				column=asName+columnName+" "+columnName+index;
 			}else if("datetime".equals(dataType.toLowerCase())){
-				column="to_char("+asName+columnName+",'yyyy-mm-dd hh24:mi:ss') "+columnName;
+				column="to_char("+asName+columnName+",'yyyy-mm-dd hh24:mi:ss') "+columnName+index;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
