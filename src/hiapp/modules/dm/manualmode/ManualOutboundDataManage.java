@@ -207,6 +207,8 @@ public class ManualOutboundDataManage {
 
                 if (OperationNameEnum.APPERND.equals(customer.getOperationName())) {
                     appendedCustomerIdList.add(customer.getId());
+
+                    manualModeDAO.insertPoolOperation(customer, OperationNameEnum.Sharing);
                 }
             }
 
@@ -254,6 +256,8 @@ public class ManualOutboundDataManage {
 
             if (OperationNameEnum.APPERND.equals(customer.getOperationName())) {
                 appendedCustomerIdList.add(customer.getId());
+
+                manualModeDAO.insertPoolOperation(customer, OperationNameEnum.Sharing);
             }
         }
 
