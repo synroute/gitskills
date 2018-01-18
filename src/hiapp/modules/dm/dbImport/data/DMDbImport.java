@@ -353,9 +353,9 @@ public class DMDbImport  extends BaseRepository {
 		} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
-			
-				DbUtil.DbCloseConnection(dbConn);
 				DbUtil.DbCloseQuery(rs, stmt);
+				DbUtil.DbCloseConnection(dbConn);
+				
 		}
 		
 		return listImportConfig;
