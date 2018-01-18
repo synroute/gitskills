@@ -263,7 +263,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				dbConn =this.getDbConnection();
 				//查询客户信息
 				columns=columns.substring(0, columns.length()-21);
-				String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_RESULT where Cid='"+Cid+"' and IID='"+IID+"' and SOURCEID='"+SID+"' and MODIFYID='"+ModifyId+"' and MODIFYLAST=1";
+				String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_RESULT where Cid='"+Cid+"' and IID='"+IID+"' and SOURCEID='"+SID+"' and MODIFYID='"+ModifyId+"' ";
 				stmt = dbConn.prepareStatement(szSelectSql);
 				rs = stmt.executeQuery();
 				String[] column=columns.split(",");

@@ -112,8 +112,8 @@ public class DMDbImport  extends BaseRepository {
                 while (reader.readRecord()) { 
                 	
                 	reader.getRawRecord(); 
-                	String sql="insert into biao  values('"+reader.get(0)+"','"+reader.get("项目名称")+"','"+reader.get("项目编号")+"','"+reader.get("客户名称")+"','"+reader.get("证件号码")+"','"+reader.get("产品名称")+"','"+reader.get("产品类型")+"','"+reader.get("贷款金额")+"','"+reader.get("放款日期")+"','"+reader.get("贷款期限")+"','"+reader.get("贷款用途")+"','"+reader.get("居住地址")+"','"+reader.get("手机号")+"','"+reader.get("还款账号")+"','"+reader.get("还款账号所属银行")+"','"+reader.get("还款日期")+"','"+reader.get("月还款日")+"','"+reader.get("月还款金额")+"','"+reader.get("合作机构")+"','"+reader.get("押品类型")+"','"+reader.get("押品描述")+"');";
-                	stmt.addBatch("insert into biao  values ('"+reader.get(0)+"','"+reader.get("项目名称")+"','"+reader.get("项目编号")+"','"+reader.get("客户名称")+"','"+reader.get("证件号码")+"','"+reader.get("产品名称")+"','"+reader.get("产品类型")+"','"+reader.get("贷款金额")+"','"+reader.get("放款日期")+"','"+reader.get("贷款期限")+"','"+reader.get("贷款用途")+"','"+reader.get("居住地址")+"','"+reader.get("手机号")+"','"+reader.get("还款账号")+"','"+reader.get("还款账号所属银行")+"','"+reader.get("还款日期")+"','"+reader.get("月还款日")+"','"+reader.get("月还款金额")+"','"+reader.get("合作机构")+"','"+reader.get("押品类型")+"','"+reader.get("押品描述")+"')");
+                	String sql="insert into HAU_DM_B57U_IMPORT  values('"+reader.get(0)+"','"+reader.get("项目名称")+"','"+reader.get("项目编号")+"','"+reader.get("客户名称")+"','"+reader.get("证件号码")+"','"+reader.get("产品名称")+"','"+reader.get("产品类型")+"','"+reader.get("贷款金额")+"','"+reader.get("放款日期")+"','"+reader.get("贷款期限")+"','"+reader.get("贷款用途")+"','"+reader.get("居住地址")+"','"+reader.get("手机号")+"','"+reader.get("还款账号")+"','"+reader.get("还款账号所属银行")+"','"+reader.get("还款日期")+"','"+reader.get("月还款日")+"','"+reader.get("月还款金额")+"','"+reader.get("合作机构")+"','"+reader.get("押品类型")+"','"+reader.get("押品描述")+"');";
+                	stmt.addBatch("insert into HAU_DM_B57U_IMPORT  values ('"+reader.get(0)+"','"+reader.get("项目名称")+"','"+reader.get("项目编号")+"','"+reader.get("客户名称")+"','"+reader.get("证件号码")+"','"+reader.get("产品名称")+"','"+reader.get("产品类型")+"','"+reader.get("贷款金额")+"','"+reader.get("放款日期")+"','"+reader.get("贷款期限")+"','"+reader.get("贷款用途")+"','"+reader.get("居住地址")+"','"+reader.get("手机号")+"','"+reader.get("还款账号")+"','"+reader.get("还款账号所属银行")+"','"+reader.get("还款日期")+"','"+reader.get("月还款日")+"','"+reader.get("月还款金额")+"','"+reader.get("合作机构")+"','"+reader.get("押品类型")+"','"+reader.get("押品描述")+"')");
 
                 
                 }  
@@ -354,7 +354,8 @@ public class DMDbImport  extends BaseRepository {
 				e.printStackTrace();
 			} finally {
 			
-			DbUtil.DbCloseExecute(stmt);
+				DbUtil.DbCloseConnection(dbConn);
+				DbUtil.DbCloseQuery(rs, stmt);
 		}
 		
 		return listImportConfig;
