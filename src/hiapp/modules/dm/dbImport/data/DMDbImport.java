@@ -55,7 +55,7 @@ public class DMDbImport  extends BaseRepository {
 	
 	public static Timer timer = new Timer();
 	public static Timer starttimer = new Timer();
-	Connection dbConn=null;
+	
 	public static String path="";
 	@Autowired
     public void setDBConnectionPool(HiAppContext appContext) {
@@ -94,11 +94,13 @@ public class DMDbImport  extends BaseRepository {
      * @throws SQLException 
      */  
     public ArrayList<String[]> csv(InputStream in) {  
+    	Connection dbConn=null;
         ArrayList<String[]> csvList = new ArrayList<String[]>();  
         if (null != in) {  
         	CsvReader reader = new CsvReader(in, ',', Charset.forName("GBK"));  
+        	Statement stmt = null;
             try {  
-            	Statement stmt = null;
+            	
             	
 				dbConn=this.getDbConnection();
 				dbConn.setAutoCommit(false);  
@@ -130,7 +132,11 @@ public class DMDbImport  extends BaseRepository {
             }   catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}finally {
+				DbUtil.DbCloseExecute( stmt);
+				DbUtil.DbCloseConnection(dbConn);
+				
+		}
   
             reader.close();  
         }  
@@ -295,6 +301,7 @@ public class DMDbImport  extends BaseRepository {
 		listImportConfig=new ArrayList<ImportConfig>();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn=null;
 		try {
 			dbConn=this.getDbConnection();
 		String sql="select BusinessID,TemplateID,Xml from HASYS_DM_BIZTEMPLATEIMPORT where SourceType='DB'";
