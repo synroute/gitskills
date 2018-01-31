@@ -33,6 +33,7 @@ import hiapp.system.dictionary.DicItemsTreeBranch;
 import hiapp.system.dictionary.data.DictRepository;
 import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.system.worksheet.bean.WorkSheetColumn;
+import hiapp.system.worksheet.data.WorkSheetRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
@@ -41,7 +42,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	Connection dbConn = null;
 	
 	@Autowired
-	 private WorkSheet workSheet;
+	private WorkSheetRepository workSheetRepository;
 	
 	@Autowired
 	private DMDbImport dmDbImport;
@@ -297,8 +298,8 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 				workSheetId=rs.getString(1);
 			}
 			stmt.close();
-			List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
-			workSheet.getColumns(dbConn,workSheetId, listColumns);
+
+			List<WorkSheetColumn> listColumns = this.workSheetRepository.getWorkSheetColumns(workSheetId);
 			if(json==null)
 			{
 				JsonObject jsonObject =new JsonObject();

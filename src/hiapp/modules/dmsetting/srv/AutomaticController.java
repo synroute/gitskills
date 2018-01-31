@@ -19,10 +19,8 @@ import com.google.gson.JsonParser;
 
 import hiapp.modules.dmsetting.result.*;
 import hiapp.modules.dmsetting.DMBizAutomaticConfig;
-import hiapp.modules.dmsetting.DMBizImportTemplate;
 import hiapp.modules.dmsetting.data.DmBizAutomaticRepository;
 import hiapp.system.buinfo.User;
-import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.utils.idfactory.IdFactory;
 import hiapp.utils.serviceresult.RecordsetResult;
 import hiapp.utils.serviceresult.ServiceResult;
@@ -31,8 +29,6 @@ import hiapp.utils.serviceresult.ServiceResultCode;
 public class AutomaticController {
 	@Autowired
 	private DmBizAutomaticRepository dmBizAutomatic;
-	@Autowired
-	private WorkSheet worksheet;
 	@Autowired
 	private IdFactory idFactory;
 	@RequestMapping(value = "/srv/dm/dmGetBizResultColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")

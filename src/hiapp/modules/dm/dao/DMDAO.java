@@ -9,13 +9,9 @@ import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMBusiness;
-import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
-import hiapp.system.worksheet.bean.WorkSheet;
-import hiapp.system.worksheet.bean.WorkSheetColumn;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
-import hiapp.utils.serviceresult.ServiceResultCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -23,7 +19,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Repository
@@ -34,9 +29,6 @@ public class DMDAO extends BaseRepository {
 
     @Autowired
     private DmWorkSheetRepository dmWorkSheetRepository;
-
-    @Autowired
-    WorkSheet workSheet;
 
 
     /*

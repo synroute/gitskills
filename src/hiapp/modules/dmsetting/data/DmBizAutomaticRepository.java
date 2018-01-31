@@ -31,9 +31,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 @Repository
 public class DmBizAutomaticRepository extends BaseRepository {
-	
-	@Autowired
-	private WorkSheet workSheet;
 	@Autowired
 	private WorkSheetRepository workSheetRepository;
 	@Autowired
@@ -45,7 +42,6 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
 		List<DMBizAutomaticColumns> listDmBizAutomaticColums=new ArrayList<DMBizAutomaticColumns>();
 		try {
 			//根据表名查询中文名称接worksheetid
@@ -61,7 +57,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			}
 			
 			//根据worksheetid获取该工作表下所有列信息
-			workSheet.getColumns(dbConn,workSheetId, listColumns);
+			List<WorkSheetColumn> listColumns = this.workSheetRepository.getWorkSheetColumns(workSheetId);
 			//将列值绑定到列表中
 			for (int i = 0; i < listColumns.size(); i++) {
 				WorkSheetColumn workSheetColumn=listColumns.get(i);
@@ -94,7 +90,6 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
 		List<DMBizAutomaticColumns> listDmBizAutomaticColums=new ArrayList<DMBizAutomaticColumns>();
 		try {
 			//根据表名查询中文名称接worksheetid
@@ -110,7 +105,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			}
 			
 			//根据worksheetid获取该工作表下所有列信息
-			workSheet.getColumns(dbConn,workSheetId, listColumns);
+			List<WorkSheetColumn> listColumns = this.workSheetRepository.getWorkSheetColumns(workSheetId);
 			//将列值绑定到列表中
 			for (int i = 0; i < listColumns.size(); i++) {
 				WorkSheetColumn workSheetColumn=listColumns.get(i);
@@ -145,12 +140,11 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
 			//根据表名获取worksheetid
 			String szWorkSheetName="HAU_DM_B"+bizId+"C_RESULT";
 			String workSheetId = workSheetRepository.getWorksheetIdByName(szWorkSheetName);
 			//根据worksheetid获取该表下所有列信息
-			workSheet.getColumns(dbConn,workSheetId, listColumns);
+			List<WorkSheetColumn> listColumns = this.workSheetRepository.getWorkSheetColumns(workSheetId);
 			//将列绑定到列表中
 			for (WorkSheetColumn workSheetColumn : listColumns) {
 				//剔除掉不需要显示的列信息
@@ -180,12 +174,11 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
 			//根据表名获取worksheetid
 			String szWorkSheetName="HAU_DM_B"+bizId+"C_POOL";
 			String workSheetId = workSheetRepository.getWorksheetIdByName(szWorkSheetName);
 			//根据worksheetid获取该表下所有列信息
-			workSheet.getColumns(dbConn,workSheetId, listColumns);
+			List<WorkSheetColumn> listColumns = this.workSheetRepository.getWorkSheetColumns(workSheetId);
 			//将列绑定到列表中
 			for (WorkSheetColumn workSheetColumn : listColumns) {
 				//剔除掉不需要显示的列信息
@@ -368,13 +361,12 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
-			List<WorkSheetColumn> listColumns = new ArrayList<WorkSheetColumn>();
 			//拼接工作表名称
 			String szWorkSheetName="HASYS_DM_B"+bizId+"C_PRESETTIME";
 			//根据预约表名获取工作表id
 			String workSheetId = workSheetRepository.getWorksheetIdByName(szWorkSheetName);
 			//根据工作表id获取该工作表下面所有的列信息
-			workSheet.getColumns(dbConn,workSheetId, listColumns);
+			List<WorkSheetColumn> listColumns = this.workSheetRepository.getWorkSheetColumns(workSheetId);
 			for (WorkSheetColumn workSheetColumn : listColumns) {
 				//剔除掉不需要显示的列信息
 				if (!workSheetColumn.getColumnName().equals("ID")
@@ -667,8 +659,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 								workSheetId=rss.getString(1);
 							}
 							stmts.close();
-							List<WorkSheetColumn> listColumns=new ArrayList<WorkSheetColumn>();
-							workSheet.getColumns(dbConn,workSheetId, listColumns);
+							List<WorkSheetColumn> listColumns = this.workSheetRepository.getWorkSheetColumns(workSheetId);
 							
 							JsonArray jsonArray=new JsonParser().parse(rs.getString(6)).getAsJsonArray();
 							if(!rs.getString(5).equals("dg"))
