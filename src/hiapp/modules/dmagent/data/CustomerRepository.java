@@ -211,7 +211,7 @@ public class CustomerRepository extends BaseRepository {
 		ResultSet rs = null;
 		try {
 			
-			String selectSqlString="select couont(*) from HASYS_DM_CUPAGETEMPLATE where BUSINESSID = ? AND CONFIGPAGE = ? AND CONFIGTYPE = ?";
+			String selectSqlString="select count(*) from HASYS_DM_CUPAGETEMPLATE where BUSINESSID = ? AND CONFIGPAGE = ? AND CONFIGTYPE = ?";
 			dbCOnn = this.getDbConnection();
 			stmt = dbCOnn.prepareStatement(selectSqlString);
 			stmt.setObject(1, bizId);
