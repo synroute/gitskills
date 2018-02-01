@@ -212,6 +212,7 @@ public class CustomerRepository extends BaseRepository {
 		try {
 			
 			String selectSqlString="select couont(*) from HASYS_DM_CUPAGETEMPLATE where BUSINESSID = ? AND CONFIGPAGE = ? AND CONFIGTYPE = ?";
+			dbCOnn = this.getDbConnection();
 			stmt = dbCOnn.prepareStatement(selectSqlString);
 			stmt.setObject(1, bizId);
 			stmt.setObject(2, configPage);
@@ -236,7 +237,7 @@ public class CustomerRepository extends BaseRepository {
 			}else {
 
 				String sql = "INSERT INTO HASYS_DM_CUPAGETEMPLATE (ID,BUSINESSID,CONFIGPAGE,CONFIGTYPE,CONFIGTEMPLATE) VALUES (SEQ_HASYS_DM_CUPAGETEMPLATE.NEXTVAL,?,?,?,?)";
-				dbCOnn = this.getDbConnection();
+				
 				stmt = dbCOnn.prepareStatement(sql);
 				stmt.setObject(1, bizId);
 				stmt.setObject(2, configPage);
