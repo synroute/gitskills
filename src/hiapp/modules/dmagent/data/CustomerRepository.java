@@ -12,6 +12,7 @@ import hiapp.system.worksheet.data.WorkSheetRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.base.HiAppException;
 import hiapp.utils.database.BaseRepository;
+import hiapp.utils.serviceresult.ServiceResultCode;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -207,36 +208,49 @@ public class CustomerRepository extends BaseRepository {
 
 		Connection dbCOnn = null;
 		PreparedStatement stmt = null;
-
+		ResultSet rs = null;
 		try {
-			String sql = "INSERT INTO HASYS_DM_CUPAGETEMPLATE (ID,BUSINESSID,CONFIGPAGE,CONFIGTYPE,CONFIGTEMPLATE) VALUES (SEQ_HASYS_DM_CUPAGETEMPLATE.NEXTVAL,?,?,?,?)";
-			dbCOnn = this.getDbConnection();
-			stmt = dbCOnn.prepareStatement(sql);
+			
+			String selectSqlString="select couont(*) from HASYS_DM_CUPAGETEMPLATE where BUSINESSID = ? AND CONFIGPAGE = ? AND CONFIGTYPE = ?";
+			stmt = dbCOnn.prepareStatement(selectSqlString);
 			stmt.setObject(1, bizId);
 			stmt.setObject(2, configPage);
 			stmt.setObject(3, configType);
-			stmt.setObject(4, new Gson().toJson(configTemplate));
-			stmt.execute();
-		} catch (SQLException e) {
-			if (e instanceof SQLIntegrityConstraintViolationException) {
-				DbUtil.DbCloseExecute(stmt);
-				try {
-					String sql = "UPDATE HASYS_DM_CUPAGETEMPLATE SET CONFIGTEMPLATE = ? WHERE BUSINESSID = ? AND CONFIGPAGE = ? AND CONFIGTYPE = ?";
-					stmt = dbCOnn.prepareStatement(sql);
-					stmt.setObject(2, bizId);
-					stmt.setObject(3, configPage);
-					stmt.setObject(4, configType);
-					stmt.setObject(1, new Gson().toJson(configTemplate));
-					stmt.execute();
-					return true;
-				} catch (SQLException e1) {
-					e.printStackTrace();
-					return false;
-				}
-			} else {
-				e.printStackTrace();
-				return false;
+			rs = stmt.executeQuery();
+			int count=0;
+			if (rs.next()) {
+				count = rs.getInt(1);
 			}
+			DbUtil.DbCloseExecute(stmt);
+			if (count > 0) {
+				
+				String sql = "UPDATE HASYS_DM_CUPAGETEMPLATE SET CONFIGTEMPLATE = ? WHERE BUSINESSID = ? AND CONFIGPAGE = ? AND CONFIGTYPE = ?";
+				stmt = dbCOnn.prepareStatement(sql);
+				stmt.setObject(2, bizId);
+				stmt.setObject(3, configPage);
+				stmt.setObject(4, configType);
+				stmt.setObject(1, new Gson().toJson(configTemplate));
+				stmt.execute();
+				return true;
+				
+			}else {
+
+				String sql = "INSERT INTO HASYS_DM_CUPAGETEMPLATE (ID,BUSINESSID,CONFIGPAGE,CONFIGTYPE,CONFIGTEMPLATE) VALUES (SEQ_HASYS_DM_CUPAGETEMPLATE.NEXTVAL,?,?,?,?)";
+				dbCOnn = this.getDbConnection();
+				stmt = dbCOnn.prepareStatement(sql);
+				stmt.setObject(1, bizId);
+				stmt.setObject(2, configPage);
+				stmt.setObject(3, configType);
+				stmt.setObject(4, new Gson().toJson(configTemplate));
+				stmt.execute();
+				
+			}
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			return false;
+			
 		} finally {
 			DbUtil.DbCloseExecute(stmt);
 			DbUtil.DbCloseConnection(dbCOnn);
