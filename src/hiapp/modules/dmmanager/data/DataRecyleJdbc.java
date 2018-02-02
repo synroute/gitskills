@@ -194,7 +194,10 @@ public class DataRecyleJdbc extends BaseRepository{
 					continue;
 				}
 				String asName="a"+i;
-				getDataSql2+=newList.get(i)+" "+asName+" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
+				//getDataSql2+=newList.get(i)+" "+asName+" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
+                //getDataSql2+=newList.get(i)+" "+asName;
+				getDataSql2+=" (select * from "+ newList.get(i)+" where modifylast=1)"+asName;
+				getDataSql2+=" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
 			}
 			getDataSql2=getDataSql2.substring(0,getDataSql2.lastIndexOf("left join"))+" where ";
 			getDataSql2=getDataSql2+" b.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>to_date(?,'yyyy-mm-dd hh24:mi:ss') and a.ModifyTime<to_date(?,'yyyy-mm-dd hh24:mi:ss') "
