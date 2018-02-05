@@ -958,6 +958,7 @@ public class DataImportJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 			//创建表
 			createTable(tableName, sheetColumnList);
+			conn.setAutoCommit(false);
 			//临时表插数据 
 			statement=conn.createStatement();
 			List<String> customerBatchIds=idfactory.newIds("DM_CID", dataList.size());
@@ -986,6 +987,7 @@ public class DataImportJdbc extends BaseRepository{
 				}
 			}
 			statement.executeBatch();
+			conn.commit();
 			resultMap.put("result", true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
