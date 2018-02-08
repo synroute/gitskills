@@ -1037,10 +1037,10 @@ public class DataImportJdbc extends BaseRepository{
 			rs=pst.executeQuery();
 			while(rs.next()){
 				Map<String,Object> map=new HashMap<String, Object>();
+				map.put("tempId",rs.getObject("tempId"));
 				for (int i = 0; i < sheetColumnList.size(); i++) {
 					String column=sheetColumnList.get(i).getField();
 					if(rs.getObject(column)!=null){
-						map.put("tempId",rs.getObject("tempId"));
 						map.put(column, rs.getObject(column));
 					}
 				}
