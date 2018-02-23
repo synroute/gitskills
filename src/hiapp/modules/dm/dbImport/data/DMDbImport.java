@@ -62,8 +62,8 @@ public class DMDbImport  extends BaseRepository {
     	path=appContext.getServletContext().getRealPath("maxTime/maxTime.properties");
     	
     	System.out.println(path);
-    	//readcsv();
-    	start();
+    	/*//readcsv();
+    	start();*/
     }
 	
 	
@@ -304,29 +304,29 @@ public class DMDbImport  extends BaseRepository {
 		Connection dbConn=null;
 		try {
 			dbConn=this.getDbConnection();
-		String sql="select BusinessID,TemplateID,Xml from HASYS_DM_BIZTEMPLATEIMPORT where SourceType='DB'";
-		stmt = dbConn.prepareStatement(sql);
-		rs = stmt.executeQuery();
-		while(rs.next())
-		{
-			
-			if(rs.getString(3)!=null)
+			String sql="select BusinessID,TemplateID,Xml from HASYS_DM_BIZTEMPLATEIMPORT where SourceType='DB'";
+			stmt = dbConn.prepareStatement(sql);
+			rs = stmt.executeQuery();
+			while(rs.next())
 			{
-				JsonObject jsonObject=new JsonParser().parse(rs.getString(3)).getAsJsonObject();
-				if(jsonObject.has("ImportConfig"))
-				 {
-					JsonObject jsonObject_ImportConfig=jsonObject.get("ImportConfig").getAsJsonObject();
-					if(jsonObject_ImportConfig.get("IsStart").getAsInt()==1)
-					{
-						ImportConfig importConfig=new ImportConfig();
-						importConfig.setBizId(rs.getInt(1));
-						importConfig.setTemplateId(rs.getInt(2));
-						importConfig.setIntervalTime(jsonObject_ImportConfig.get("Time").getAsInt());
-						listImportConfig.add(importConfig);
-					}
-				 }
+				
+				if(rs.getString(3)!=null)
+				{
+					JsonObject jsonObject=new JsonParser().parse(rs.getString(3)).getAsJsonObject();
+					if(jsonObject.has("ImportConfig"))
+					 {
+						JsonObject jsonObject_ImportConfig=jsonObject.get("ImportConfig").getAsJsonObject();
+						if(jsonObject_ImportConfig.get("IsStart").getAsInt()==1)
+						{
+							ImportConfig importConfig=new ImportConfig();
+							importConfig.setBizId(rs.getInt(1));
+							importConfig.setTemplateId(rs.getInt(2));
+							importConfig.setIntervalTime(jsonObject_ImportConfig.get("Time").getAsInt());
+							listImportConfig.add(importConfig);
+						}
+					 }
+				}
 			}
-		}
 		/*listCount=listImportConfig.size();
 		 for(int i=0;i<listImportConfig.size();i++)
 			{

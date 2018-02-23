@@ -1982,11 +1982,12 @@ public class CustomerRepository extends BaseRepository {
 	
 			sb.append(" WHERE ");
 			
-			sb.append("  SID.CREATEUSERID =  ");
+			/*sb.append("  SID.CREATEUSERID =  ");*/
+			sb.append("  JG.modifyuserid=  ");
 			sb.append(userId);
-			/*sb.append(" AND ");
+			sb.append(" AND  jg.modifylast=1 ");
 			
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+			/*sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 					+ "MODIFYLAST");
 			sb.append(" = ");
 			sb.append("1");
@@ -2232,15 +2233,16 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(queryRequest.getEnd());
 			
 			sb.append(" AND ");    
-			sb.append("  SID.CREATEUSERID =  ");
+			/*sb.append("  SID.CREATEUSERID =  ");*/
+			sb.append("  JG.modifyuserid =  ");
 			sb.append(userId);
 			
-			/*sb.append(" AND ");
-			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
+			sb.append(" AND  jg.modifylast=1 ");
+			/*sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 					+ "MODIFYLAST");
 			sb.append(" = ");
-			sb.append("1");
-	*/
+			sb.append("1");*/
+	
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
 	
