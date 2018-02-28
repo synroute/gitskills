@@ -336,8 +336,9 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 						e.printStackTrace();
 					} 
 					finally {
+						DbUtil.DbCloseQuery(rs, stmt);
 						DbUtil.DbCloseConnection(dbConn);
-						DbUtil.DbCloseExecute(stmt);
+						
 					}
 					List<DMBizDatePoolGetUserId> listDmBizDatePoolGetUserId = new ArrayList<DMBizDatePoolGetUserId>();
 					String[] groupids=groupId.split(",");
