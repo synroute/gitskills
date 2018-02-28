@@ -499,21 +499,25 @@ public class CustomerController {
             result.put("reason", e.getMessage());
             return result;
         }
-
-        if (queryRequest.hasQueryNext()) {
-            pageNum = 1;
-            try {
-                list = customerRepository.queryMyNextCustomer(queryRequest,
-                        userId);
-                count += list.size();
-            } catch (HiAppException e) {
-                e.printStackTrace();
-                result.put("total", 1);
-                result.put("reason", e.getMessage());
-                return result;
-            }
+        int outid=customerRepository.getOutBound(queryRequest);
+        if(outid==1)
+        {
+	        if (queryRequest.hasQueryNext()) {
+	            pageNum = 1;
+	            try {
+	                list = customerRepository.queryMyNextCustomer(queryRequest,
+	                        userId);
+	                count += list.size();
+	            } catch (HiAppException e) {
+	                e.printStackTrace();
+	                result.put("total", 1);
+	                result.put("reason", e.getMessage());
+	                return result;
+	            }
+	        }
         }
-
+       
+        	
         try {
             list1 = customerRepository.queryPending(queryRequest, userId, pageSize, pageNum);
             list.addAll(list1);

@@ -688,7 +688,30 @@ public class CustomerRepository extends BaseRepository {
 		return result;
 	}
 	
-	
+	public int getOutBound(QueryRequest queryRequest)
+	{
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String bizId = queryRequest.getBizId();
+		int outid=0;
+		try {
+			String sql="select OutboundID from HASYS_DM_Business a left join Hasys_DM_BIZTypeMode b on a.outboundmddeid=b.OutboundMode where businessid="+bizId+"";
+			stmt = dbConn.prepareStatement(sql);
+			rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+				outid=rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		finally {
+			DbUtil.DbCloseConnection(dbConn);
+			DbUtil.DbCloseExecute(stmt);
+		}
+		return outid;
+	}
 	
 	//查询待处理工单
 	public List<List<Map<String, Object>>> queryPending(
