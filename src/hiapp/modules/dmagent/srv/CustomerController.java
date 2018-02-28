@@ -500,7 +500,7 @@ public class CustomerController {
             return result;
         }
 
-        /*if (queryRequest.hasQueryNext()) {
+        if (queryRequest.hasQueryNext()) {
             pageNum = 1;
             try {
                 list = customerRepository.queryMyNextCustomer(queryRequest,
@@ -512,7 +512,7 @@ public class CustomerController {
                 result.put("reason", e.getMessage());
                 return result;
             }
-        }*/
+        }
 
         try {
             list1 = customerRepository.queryPending(queryRequest, userId, pageSize, pageNum);
