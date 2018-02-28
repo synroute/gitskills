@@ -696,6 +696,7 @@ public class CustomerRepository extends BaseRepository {
 		String bizId = queryRequest.getBizId();
 		int outid=0;
 		try {
+			dbConn = this.getDbConnection();
 			String sql="select OutboundID from HASYS_DM_Business a left join Hasys_DM_BIZTypeMode b on a.outboundmddeid=b.OutboundMode where businessid="+bizId+"";
 			stmt = dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
