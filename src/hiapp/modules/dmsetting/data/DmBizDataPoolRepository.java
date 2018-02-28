@@ -29,7 +29,7 @@ import hiapp.utils.database.BaseRepository;
 
 @Repository
 public class DmBizDataPoolRepository  extends BaseRepository {
-	Connection dbConn = null;
+	
 	
 	@Autowired
 	private UserRepository userRepository;
@@ -38,6 +38,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 	//创建普通数据池
 	public boolean dmCreateBizDataPool(DMDataPool dataPool,StringBuffer err)
 	{
+		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -113,6 +114,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 	//修改数据池
 	public boolean dmModifyBizDataPool(DMDataPool dataPool,StringBuffer err)
 	{
+		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -167,6 +169,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 	
 		public boolean dmDeleteBizDataPool(int poolId)
 		{
+			Connection dbConn = null;
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
 			try {
@@ -205,6 +208,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 	//创建坐席数据池
 		public boolean dmCreateBizUserDataPool(DMDataPool dataPool,String userId ,StringBuffer err)
 		{
+			Connection dbConn = null;
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
 			try {
@@ -257,6 +261,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		//获取数据池详细信息
 		public List<DMDataPool> dmGetBizDataPool(int poolid,String type )
 		{
+			Connection dbConn = null;
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
 			List<DMDataPool> listDmDataPool=new ArrayList<DMDataPool>();
@@ -293,6 +298,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 		//获取业务下所有数据池
 				public List<DMDataPool> dmGetAllBizDataPool(int bizId )
 				{
+					Connection dbConn = null;
 					PreparedStatement stmt = null;
 					ResultSet rs = null;
 					List<DMDataPool> listDmDataPool=new ArrayList<DMDataPool>();
@@ -321,9 +327,11 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					//获取该业务下所有可选用户
 				public List<DMBizDatePoolGetUserId> dmGetBizUser(int bizId )
 				{
+					Connection dbConn = null;
 					PreparedStatement stmt = null;
 					ResultSet rs = null;
-					String groupId="";
+					String groupId=null;
+					List<DMBizDatePoolGetUserId> listDmBizDatePoolGetUserId = new ArrayList<DMBizDatePoolGetUserId>();
 					try {
 						dbConn =this.getDbConnection();
 						String szSql = String.format("select OwnerGROUPId from HASYS_DM_Business where BusinessID=%s",bizId);
@@ -332,6 +340,35 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 						while(rs.next()){
 							groupId=rs.getString(1);
 						}
+						
+						String[] groupids=groupId.split(",");
+						List<GroupTreeBranch> listGroups = new ArrayList<GroupTreeBranch>();
+						for (int g = 0; g < groupids.length; g++) {
+							ugrRepository.getGroupAndAllChildGroup(listGroups,groupids[g]);
+							//通过组获取组下用户信息
+							List<User> listUser = new ArrayList<User>();
+							ugrRepository.getAllUsersByGroup(listUser,listGroups);
+							//拼接信息
+							
+								GroupTreeBranch groupTreeBranch=listGroups.get(listGroups.size()-1);
+								DMBizDatePoolGetUserId dmBizDatePoolGetUserId=new DMBizDatePoolGetUserId();
+								dmBizDatePoolGetUserId.setUserId(groupids[g]);
+								dmBizDatePoolGetUserId.setUserName(groupTreeBranch.getGroupName());
+								dmBizDatePoolGetUserId.setGroupId(0);
+								listDmBizDatePoolGetUserId.add(dmBizDatePoolGetUserId);
+							
+							for (int i = 0; i < listUser.size(); i++) {
+								UserView userView = new UserView();
+								User user = listUser.get(i);
+								DMBizDatePoolGetUserId dmBizDatePoolGetUserIds=new DMBizDatePoolGetUserId();
+								dmBizDatePoolGetUserIds.setUserId(user.getId());
+								dmBizDatePoolGetUserIds.setUserName(user.getName());
+								dmBizDatePoolGetUserIds.setGroupId(Integer.parseInt(groupids[g]));
+								
+								listDmBizDatePoolGetUserId.add(dmBizDatePoolGetUserIds);
+							}
+						}
+						
 					} catch (SQLException e) {
 						e.printStackTrace();
 					} 
@@ -339,34 +376,6 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 						DbUtil.DbCloseQuery(rs, stmt);
 						DbUtil.DbCloseConnection(dbConn);
 						
-					}
-					List<DMBizDatePoolGetUserId> listDmBizDatePoolGetUserId = new ArrayList<DMBizDatePoolGetUserId>();
-					String[] groupids=groupId.split(",");
-					List<GroupTreeBranch> listGroups = new ArrayList<GroupTreeBranch>();
-					for (int g = 0; g < groupids.length; g++) {
-						ugrRepository.getGroupAndAllChildGroup(listGroups,groupids[g]);
-						//通过组获取组下用户信息
-						List<User> listUser = new ArrayList<User>();
-						ugrRepository.getAllUsersByGroup(listUser,listGroups);
-						//拼接信息
-						
-							GroupTreeBranch groupTreeBranch=listGroups.get(listGroups.size()-1);
-							DMBizDatePoolGetUserId dmBizDatePoolGetUserId=new DMBizDatePoolGetUserId();
-							dmBizDatePoolGetUserId.setUserId(groupids[g]);
-							dmBizDatePoolGetUserId.setUserName(groupTreeBranch.getGroupName());
-							dmBizDatePoolGetUserId.setGroupId(0);
-							listDmBizDatePoolGetUserId.add(dmBizDatePoolGetUserId);
-						
-						for (int i = 0; i < listUser.size(); i++) {
-							UserView userView = new UserView();
-							User user = listUser.get(i);
-							DMBizDatePoolGetUserId dmBizDatePoolGetUserIds=new DMBizDatePoolGetUserId();
-							dmBizDatePoolGetUserIds.setUserId(user.getId());
-							dmBizDatePoolGetUserIds.setUserName(user.getName());
-							dmBizDatePoolGetUserIds.setGroupId(Integer.parseInt(groupids[g]));
-							
-							listDmBizDatePoolGetUserId.add(dmBizDatePoolGetUserIds);
-						}
 					}
 					
 					
