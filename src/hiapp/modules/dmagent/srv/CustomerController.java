@@ -500,7 +500,7 @@ public class CustomerController {
             return result;
         }
         int outid=customerRepository.getOutBound(queryRequest);
-        if(outid==1)
+        if(outid==2)
         {
 	        if (queryRequest.hasQueryNext()) {
 	            pageNum = 1;
