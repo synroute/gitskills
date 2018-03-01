@@ -226,7 +226,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		List<DMBizTemplateImportTableName> listDmTableName=new ArrayList<DMBizTemplateImportTableName>();
 		try {
 			dbConn =this.getDbConnection();
-			String szSql=String.format("select t.table_name,f.comments from user_tables t inner join user_tab_comments f on t.table_name = f.table_name");
+			String szSql=String.format("select t.table_name,f.comments from user_tables t inner join user_tab_comments f on t.table_name = f.table_name order by t.table_name ASC");
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while(rs.next()){
