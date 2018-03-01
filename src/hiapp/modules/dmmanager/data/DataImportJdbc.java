@@ -63,7 +63,7 @@ public class DataImportJdbc extends BaseRepository{
 			String getOrgnizeSql="";
 			if(bizid==-1)
 			{
-				getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? ";
+				getOrgnizeSql="select distinct b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? ";
 				pst=conn.prepareStatement(getOrgnizeSql);
 				pst.setInt(1,pemissId);
 				rs = pst.executeQuery();
@@ -74,11 +74,10 @@ public class DataImportJdbc extends BaseRepository{
 					bus.setDescription(rs.getString(3));
 					bus.setOwnergroupId(rs.getString(4));
 					bus.setOutboundmddeId(rs.getInt(5));
-					bus.setConfigJson(rs.getString(6));
 					businessList.add(bus);
 				}
 			}else {
-				getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? and a.itemname ='数据管理' and b.businessid="+bizid+"";
+				getOrgnizeSql="select distinct b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? and a.itemname ='数据管理' and b.businessid="+bizid+"";
 				pst=conn.prepareStatement(getOrgnizeSql);
 				pst.setInt(1,pemissId);
 				rs = pst.executeQuery();
@@ -89,7 +88,6 @@ public class DataImportJdbc extends BaseRepository{
 					bus.setDescription(rs.getString(3));
 					bus.setOwnergroupId(rs.getString(4));
 					bus.setOutboundmddeId(rs.getInt(5));
-					bus.setConfigJson(rs.getString(6));
 					businessList.add(bus);
 				}
 			}
