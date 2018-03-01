@@ -329,12 +329,18 @@ public class CustomerRepository extends BaseRepository {
 			if(outid==1)
 			{
 				// 要查哪些表
-				sb.append("HAU_DM_B"+bizId+"C_POOL a left join HAU_DM_B"+bizId+"C_IMPORT DR on a.iid=DR.iid and a.cid=DR.cid left join (select * from HASYS_DM_DATAPOOL where businessid="+bizId+") a1 on a.DataPoolIDCur=a1.id left join HAU_DM_B"+bizId+"C_Result JG on a.iid=JG.iid and a.cid=JG.cid ");
+				//sb.append("HAU_DM_B"+bizId+"C_POOL a left join HAU_DM_B"+bizId+"C_IMPORT DR on a.iid=DR.iid and a.cid=DR.cid left join (select * from HASYS_DM_DATAPOOL where businessid="+bizId+") a1 on a.DataPoolIDCur=a1.id left join HAU_DM_B"+bizId+"C_Result JG on a.iid=JG.iid and a.cid=JG.cid ");
+				sb.append("HAU_DM_B"+bizId+"C_Result JG left join (select * from HAU_DM_B"+bizId+"C_IMPORT where modifylast=1) DR on JG.iid = DR.iid and JG.cid = DR.cid");
+				 
 				
-	
 				sb.append(" WHERE ");
 	
-				
+				// 查询条件
+				sb.append("ROWNUM");
+				sb.append(" <= ");
+				sb.append(queryRequest.getEnd());
+	
+				sb.append(" AND ");
 				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");
 				sb.append(" = ");
@@ -346,7 +352,7 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(" = ");
 				sb.append(userId);*/
 				
-				sb.append("and a1.datapoolname='"+userId+"'");
+				sb.append(" and JG.MODIFYuserID='"+userId+"'");
 			}else
 			{
 				// 要查哪些表
@@ -1252,8 +1258,9 @@ public class CustomerRepository extends BaseRepository {
 			if(outid==1)
 			{
 				// 要查哪些表
-				sb.append("HAU_DM_B"+bizId+"C_POOL a left join HAU_DM_B"+bizId+"C_IMPORT DR on a.iid=DR.iid and a.cid=DR.cid left join (select * from HASYS_DM_DATAPOOL where businessid="+bizId+") a1 on a.DataPoolIDCur=a1.id left join HAU_DM_B"+bizId+"C_Result JG on a.iid=JG.iid and a.cid=JG.cid ");
-				
+				//sb.append("HAU_DM_B"+bizId+"C_POOL a left join HAU_DM_B"+bizId+"C_IMPORT DR on a.iid=DR.iid and a.cid=DR.cid left join (select * from HASYS_DM_DATAPOOL where businessid="+bizId+") a1 on a.DataPoolIDCur=a1.id left join HAU_DM_B"+bizId+"C_Result JG on a.iid=JG.iid and a.cid=JG.cid ");
+				sb.append("HAU_DM_B"+bizId+"C_Result JG left join (select * from HAU_DM_B"+bizId+"C_IMPORT where modifylast=1) DR on JG.iid = DR.iid and JG.cid = DR.cid");
+				 
 	
 				sb.append(" WHERE ");
 	
@@ -1274,7 +1281,7 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(" = ");
 				sb.append(userId);*/
 				
-				sb.append("and a1.datapoolname='"+userId+"'");
+				sb.append(" and JG.MODIFYuserID='"+userId+"'");
 			}else
 			{
 				// 要查哪些表
