@@ -53,27 +53,47 @@ public class DataImportJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException 
 	 */
-	public List<Business> getBusinessData(int pemissId) throws IOException{
+	public List<Business> getBusinessData(int pemissId,String bizid) throws IOException{
 		List<Business> businessList=new ArrayList<Business>();
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		try {
 			conn= this.getDbConnection();
-			String getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? and a.itemname ='数据管理'";
-			pst=conn.prepareStatement(getOrgnizeSql);
-			pst.setInt(1,pemissId);
-			rs = pst.executeQuery();
-			while (rs.next()) {
-				Business bus=new Business();
-				bus.setId(rs.getInt(1));
-				bus.setName(rs.getString(2));
-				bus.setDescription(rs.getString(3));
-				bus.setOwnergroupId(rs.getString(4));
-				bus.setOutboundmddeId(rs.getInt(5));
-				bus.setConfigJson(rs.getString(6));
-				businessList.add(bus);
+			String getOrgnizeSql="";
+			if(bizid.equals(""))
+			{
+				getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? ";
+				pst=conn.prepareStatement(getOrgnizeSql);
+				pst.setInt(1,pemissId);
+				rs = pst.executeQuery();
+				while (rs.next()) {
+					Business bus=new Business();
+					bus.setId(rs.getInt(1));
+					bus.setName(rs.getString(2));
+					bus.setDescription(rs.getString(3));
+					bus.setOwnergroupId(rs.getString(4));
+					bus.setOutboundmddeId(rs.getInt(5));
+					bus.setConfigJson(rs.getString(6));
+					businessList.add(bus);
+				}
+			}else {
+				getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? and a.itemname ='数据管理' and b.businessid="+bizid+"";
+				pst=conn.prepareStatement(getOrgnizeSql);
+				pst.setInt(1,pemissId);
+				rs = pst.executeQuery();
+				while (rs.next()) {
+					Business bus=new Business();
+					bus.setId(rs.getInt(1));
+					bus.setName(rs.getString(2));
+					bus.setDescription(rs.getString(3));
+					bus.setOwnergroupId(rs.getString(4));
+					bus.setOutboundmddeId(rs.getInt(5));
+					bus.setConfigJson(rs.getString(6));
+					businessList.add(bus);
+				}
 			}
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
