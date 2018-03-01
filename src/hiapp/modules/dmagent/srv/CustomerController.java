@@ -754,7 +754,7 @@ public class CustomerController {
         int permissionId = permission.getId();
         try {
             List<Map<String, Object>> customerCounts = new ArrayList<>();
-            List<Business> busList = dataImportJdbc.getBusinessData(permissionId);
+            List<Business> busList = dataImportJdbc.getBusinessData(permissionId,-1);
             for (Business business : busList) {
                 Map<String, Object> customerCount = new HashMap<>();
                 QueryRequest queryRequest = new QueryRequest();
