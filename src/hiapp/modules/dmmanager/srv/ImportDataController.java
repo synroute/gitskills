@@ -72,7 +72,7 @@ public class ImportDataController {
 		RoleInGroupSet roleInGroupSet=userRepository.getRoleInGroupSetByUserId(userId);
 		Permission permission = permissionRepository.getPermission(roleInGroupSet);
 		int permissionId = permission.getId();
-		List<Business> busList=dataImportJdbc.getBusinessData(permissionId,request.getParameter("bizId").toString());
+		List<Business> busList=dataImportJdbc.getBusinessData(permissionId,Integer.valueOf(request.getParameter("bizId")));
 		String gson=new Gson().toJson(busList);
 		try {
 			PrintWriter printWriter = response.getWriter();

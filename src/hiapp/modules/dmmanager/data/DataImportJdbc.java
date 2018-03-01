@@ -53,7 +53,7 @@ public class DataImportJdbc extends BaseRepository{
 	 * @return
 	 * @throws IOException 
 	 */
-	public List<Business> getBusinessData(int pemissId,String bizid) throws IOException{
+	public List<Business> getBusinessData(int pemissId,Integer bizid) throws IOException{
 		List<Business> businessList=new ArrayList<Business>();
 		Connection conn=null;
 		PreparedStatement pst = null;
@@ -61,7 +61,7 @@ public class DataImportJdbc extends BaseRepository{
 		try {
 			conn= this.getDbConnection();
 			String getOrgnizeSql="";
-			if(bizid.equals(""))
+			if(bizid==-1)
 			{
 				getOrgnizeSql="select b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId,b.configJson from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? ";
 				pst=conn.prepareStatement(getOrgnizeSql);
