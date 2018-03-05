@@ -842,7 +842,7 @@ public class CustomerRepository extends BaseRepository {
 					"     LEFT JOIN HAU_DM_B"+bizId+"C_POOL C ON DR.IID = C.IID AND DR.CID = C.CID\n" +
 					"   WHERE C.DATAPOOLIDCUR IN (SELECT id\n" +
 					"                             FROM HASYS_DM_DATAPOOL\n" +
-					"                             WHERE businessid = 1 AND datapoolname = '"+userId+"')\n" +
+					"                             WHERE businessid = "+bizId+" AND datapoolname = '"+userId+"')\n" +
 					"         AND DR.modifylast = 1 AND nvl(JG.MODIFYUSERID, 00) <> "+userId+" AND ");
 	
 				// 查询条件
@@ -1330,7 +1330,7 @@ public class CustomerRepository extends BaseRepository {
 						"     LEFT JOIN HAU_DM_B"+bizId+"C_POOL C ON DR.IID = C.IID AND DR.CID = C.CID\n" +
 						"   WHERE C.DATAPOOLIDCUR IN (SELECT id\n" +
 						"                             FROM HASYS_DM_DATAPOOL\n" +
-						"                             WHERE businessid = 1 AND datapoolname = '"+userId+"')\n" +
+						"                             WHERE businessid = "+bizId+" AND datapoolname = '"+userId+"')\n" +
 						"         AND DR.modifylast = 1 AND nvl(JG.MODIFYUSERID, 00) <> "+userId);
 		
 					/*sb.append(" AND ");
