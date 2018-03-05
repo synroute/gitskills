@@ -428,7 +428,7 @@ public class CustomerRepository extends BaseRepository {
 					String field = map.get("field");
 					String value = map.get("value");
 					String type = map.get("dataType");
-					if(!field.equals(""))
+					if(!field.equals("")&&!value.equals(""))
 					{
 						if (value != null) {
 							// 时间字段使用范围查询
@@ -874,7 +874,7 @@ public class CustomerRepository extends BaseRepository {
 					String field = map.get("field");
 					String value = map.get("value");
 					String type = map.get("dataType");
-					if (!field.equals("")) {
+					if (!field.equals("")&&!value.equals("")) {
 						
 					
 						if (value != null) {
@@ -1364,7 +1364,7 @@ public class CustomerRepository extends BaseRepository {
 						String field = map.get("field");
 						String value = map.get("value");
 						String type = map.get("dataType");
-						if (!field.equals("")) {
+						if (!field.equals("")&&!value.equals("")) {
 							
 						
 							if (value != null) {
@@ -1843,7 +1843,7 @@ public class CustomerRepository extends BaseRepository {
 					String field = map.get("field");
 					String value = map.get("value");
 					String type = map.get("dataType");
-					if (!field.equals("")) {
+					if (!field.equals("")&&!value.equals("")) {
 						
 					
 						if (value != null) {
@@ -2534,7 +2534,7 @@ public class CustomerRepository extends BaseRepository {
 					String field = map.get("field");
 					String value = map.get("value");
 					String type = map.get("dataType");
-					if (value != null) {
+					if (!value.equals("")&&!field.equals("")) {
 						// 时间字段使用范围查询
 						if (type != null && type.toLowerCase().contains("date")) {
 							try {
@@ -2785,7 +2785,7 @@ public class CustomerRepository extends BaseRepository {
 					String value = map.get("value");
 					String type = map.get("dataType");
 	
-					if (value != null) {
+					if (!field.equals("")&&!value.equals("")) {
 						// 时间字段使用范围查询
 						if (type != null && type.toLowerCase().contains("date")) {
 							try {
