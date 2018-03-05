@@ -296,7 +296,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		
 		JsonObject jsonObject=new JsonObject();
 		JsonArray jsonArray=new JsonArray();
-		Map<String,String> map=new HashMap<String, String>(); 
+		 
 		try {
 			dbConn =this.getDbConnection();
 			columns=columns.substring(0, columns.length()-1);
@@ -329,6 +329,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			rs = stmt.executeQuery();
 			String[] column=columns.split(",");
 			while(rs.next()){
+				Map<String,String> map=new HashMap<String, String>();
 				JsonObject jsonObject_row=new JsonObject();
 				for(int i=0;i<column.length;i++)
 				{
