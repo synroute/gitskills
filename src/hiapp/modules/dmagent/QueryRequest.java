@@ -5,8 +5,8 @@ import java.util.Map;
 
 public class QueryRequest {
 	private String bizId;
-	private int page;
-	private int rows;
+	private int page = 1;
+	private int rows = 20;
 	private String IID;
 	private String CID;
 	private String SourceId;
