@@ -1255,7 +1255,10 @@ public class CustomerRepository extends BaseRepository {
 				queryTemplate.setConfigPage(ConfigPageEnume.CONTACTPLAN.getName());
 				queryTemplate.setConfigType(ConfigTypeEnume.CUSTOMERLIST.getName());
 				String template = getTemplate(queryTemplate);
-
+				if(template==null||"".equals(template)){
+					count=-1;
+					return count;
+				}
 				sb.append("SELECT count(*) FROM (SELECT ");
 
 				// 要查哪些字段
