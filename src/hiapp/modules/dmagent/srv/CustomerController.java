@@ -544,9 +544,11 @@ public class CustomerController {
         result.put("pageSize", pageSize);
         result.put("pageNum", pageNum);
         result.put("recordCount", count);
-        int pageCount = count / pageSize;
-        result.put("pageCount", (count % pageSize == 0) ? pageCount
-                : pageCount + 1);
+        if(pageSize!=0){
+            int pageCount = count / pageSize;
+            result.put("pageCount", (count % pageSize == 0) ? pageCount
+                    : pageCount + 1);
+        }
         return result;
     }
 
@@ -634,7 +636,7 @@ public class CustomerController {
     @RequestMapping(value = "/srv/agent/queryMyPresetCustomers.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
     public Map<String, Object> queryMyPresetCustomers(
             QueryRequest queryRequest, HttpSession session) {
-        Map<String, Object> result = new HashMap<String, Object>();
+       /* Map<String, Object> result = new HashMap<String, Object>();
         List<List<Map<String, Object>>> list = new ArrayList<List<Map<String, Object>>>();
         String userId = ((User) session.getAttribute("user")).getId();
         int pageSize = queryRequest.getPageSize();
@@ -679,8 +681,8 @@ public class CustomerController {
         result.put("recordCount", count);
         int pageCount = count / pageSize;
         result.put("pageCount", (count % pageSize == 0) ? pageCount
-                : pageCount + 1);
-        return result;
+                : pageCount + 1);*/
+        return queryPending(queryRequest,session);
     }
 
 
