@@ -219,11 +219,11 @@ public class TemplateImportController {
 	}
 	
 	@RequestMapping(value = "srv/dm/dmGetBizExcel.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmGetBizExcel(@RequestParam("file") MultipartFile file) {
+	public String dmGetBizExcel(@RequestParam("file") MultipartFile file,@RequestParam("sheetId") int sheetId) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try{
 			List<DMBizTemplateExcelColums> listDMBizTemplateExcelColums=new ArrayList<DMBizTemplateExcelColums>();
-			listDMBizTemplateExcelColums=dmBizTemplateImport.dmGetBizExcel(file);
+			listDMBizTemplateExcelColums=dmBizTemplateImport.dmGetBizExcel(file,sheetId);
 				recordsetResult.setPage(0);
 				recordsetResult.setTotal(listDMBizTemplateExcelColums.size());
 				recordsetResult.setPageSize(listDMBizTemplateExcelColums.size());
