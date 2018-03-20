@@ -90,7 +90,6 @@ public class OutputDataController{
 	 * @param queryCondition
 	 * @throws IOException
 	 */
-	@SuppressWarnings("unchecked")
 	@RequestMapping(value="/srv/DataShareController/GetOutputExcelData.srv")
 	public void getOutputExcelCustomerData(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		Integer templateId=Integer.valueOf(request.getParameter("templateId"));
@@ -99,13 +98,7 @@ public class OutputDataController{
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
 		Integer ifDial=Integer.valueOf(request.getParameter("ifDial"));
-		List<Map<String,Object>> dataList=null;
-		if(importData!=null&&!"".equals(importData)){
-			dataList=new Gson().fromJson(importData, List.class);
-		}else{
-			dataList=dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId, bizId,ifDial);
-		}
-	
+		List<Map<String,Object>> dataList=dataOutputJdbc.getOutputDataByTime(startTime, endTime, templateId, bizId,ifDial,importData);
 		List<OutputFirstRow> columnList = dataOutputJdbc.getOutDataColumns(bizId,templateId);
 		List<String> excelHeader =new ArrayList<String>();
 		List<String> sheetCulomn =new ArrayList<String>();
