@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import com.google.gson.JsonArray;
@@ -389,7 +388,7 @@ public class DataOutputJdbc extends BaseRepository{
 			}
 			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.lastIndexOf("left join"))+" where ";
 			getOutDataSql+="b.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)"+getOutDataSql2;
-			if(StringUtils.isNotBlank(importData)){
+			if(importData!=null&&!"".equals(importData)){
 				importData=importData.substring(0,importData.lastIndexOf(","));
 				getOutDataSql+=" and b.CID in("+importData+")";
 			}
