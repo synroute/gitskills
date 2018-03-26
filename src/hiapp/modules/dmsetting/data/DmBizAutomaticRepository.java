@@ -37,7 +37,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	private DmWorkSheetRepository dmWorkSheetRepository;
 	
 	//获取客户导入表列
-	public List<DMBizAutomaticColumns> dmGetBizCustomerColumns(int bizId)
+	public List<DMBizAutomaticColumns> dmGetBizCustomerColumns(int bizId,int type)
 	{
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
@@ -62,7 +62,33 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			for (int i = 0; i < listColumns.size(); i++) {
 				WorkSheetColumn workSheetColumn=listColumns.get(i);
 				//剔除掉不需要显示的列信息
-				
+				if(type==0)
+				{
+					if (!workSheetColumn.getColumnName().equals("ID")
+							&&!workSheetColumn.getColumnName().equals("MODIFYLAST")
+							&&!workSheetColumn.getColumnName().equals("MODIFYUSERID")
+							&&!workSheetColumn.getColumnName().equals("MODIFYTIME")) {
+						DMBizAutomaticColumns dmBizAutomaticColumns=new DMBizAutomaticColumns();
+						dmBizAutomaticColumns.setWorksheetId(workSheetId);
+						dmBizAutomaticColumns.setWorksheetName("HAU_DM_B"+bizId+"C_IMPORT");
+						dmBizAutomaticColumns.setWorksheetNameCh(worksheetName);
+						dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
+						dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+						listDmBizAutomaticColums.add(dmBizAutomaticColumns);
+					}
+				}else if(type==1) {
+					if (!workSheetColumn.getColumnName().equals("ID")
+							&&!workSheetColumn.getColumnName().equals("MODIFYLAST")
+							&&!workSheetColumn.getColumnName().equals("MODIFYID")) {
+						DMBizAutomaticColumns dmBizAutomaticColumns=new DMBizAutomaticColumns();
+						dmBizAutomaticColumns.setWorksheetId(workSheetId);
+						dmBizAutomaticColumns.setWorksheetName("HAU_DM_B"+bizId+"C_IMPORT");
+						dmBizAutomaticColumns.setWorksheetNameCh(worksheetName);
+						dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
+						dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+						listDmBizAutomaticColums.add(dmBizAutomaticColumns);
+					}
+				}else {
 					DMBizAutomaticColumns dmBizAutomaticColumns=new DMBizAutomaticColumns();
 					dmBizAutomaticColumns.setWorksheetId(workSheetId);
 					dmBizAutomaticColumns.setWorksheetName("HAU_DM_B"+bizId+"C_IMPORT");
@@ -70,8 +96,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
 					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
 					listDmBizAutomaticColums.add(dmBizAutomaticColumns);
-				
-				
+				}
 			}
 			
 		
@@ -136,7 +161,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 	
 	//获取结果表列
 	public boolean getResultColumns(
-			List<DMBizAutomaticColumns> listDMBizAutomaticColumns, String bizId) {
+			List<DMBizAutomaticColumns> listDMBizAutomaticColumns, String bizId,int type) {
 		Connection dbConn = null;
 		try {
 			dbConn = this.getDbConnection();
@@ -148,7 +173,16 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			//将列绑定到列表中
 			for (WorkSheetColumn workSheetColumn : listColumns) {
 				//剔除掉不需要显示的列信息
-				
+				if(type==0)
+				{
+					if (!workSheetColumn.getColumnName().equals("ID")
+							&&!workSheetColumn.getColumnName().equals("MODIFYLAST")
+							&&!workSheetColumn.getColumnName().equals("MODIFYUSERID")
+							&&!workSheetColumn.getColumnName().equals("MODIFYTIME")
+							&&!workSheetColumn.getColumnName().equals("MODIFYID")
+							&&!workSheetColumn.getColumnName().equals("DIALTYPE")
+							&&!workSheetColumn.getColumnName().equals("DIALTIME")
+							&&!workSheetColumn.getColumnName().equals("CUSTOMERCALLID")) {
 					DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
 					dmBizAutomaticColumns.setWorksheetId(workSheetId);
 					dmBizAutomaticColumns.setWorksheetName(szWorkSheetName);
@@ -157,6 +191,30 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
 					dmBizAutomaticColumns.setFixedColumn(workSheetColumn.getFixedColumn());
 					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+					}
+				}else if(type==1) {
+					if (!workSheetColumn.getColumnName().equals("ID")
+							&&!workSheetColumn.getColumnName().equals("MODIFYLAST")
+							&&!workSheetColumn.getColumnName().equals("MODIFYID")) {
+					DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
+					dmBizAutomaticColumns.setWorksheetId(workSheetId);
+					dmBizAutomaticColumns.setWorksheetName(szWorkSheetName);
+					dmBizAutomaticColumns.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(workSheetId));
+					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
+					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+					dmBizAutomaticColumns.setFixedColumn(workSheetColumn.getFixedColumn());
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+					}
+				}else {
+					DMBizAutomaticColumns dmBizAutomaticColumns = new DMBizAutomaticColumns();
+					dmBizAutomaticColumns.setWorksheetId(workSheetId);
+					dmBizAutomaticColumns.setWorksheetName(szWorkSheetName);
+					dmBizAutomaticColumns.setWorksheetNameCh(workSheetRepository.getWorkSheetNameCh(workSheetId));
+					dmBizAutomaticColumns.setColumnName(workSheetColumn.getColumnName());
+					dmBizAutomaticColumns.setColumnNameCh(workSheetColumn.getColumnNameCh());
+					dmBizAutomaticColumns.setFixedColumn(workSheetColumn.getFixedColumn());
+					listDMBizAutomaticColumns.add(dmBizAutomaticColumns);
+				}
 				
 			}
 		} catch (Exception e) {
@@ -400,12 +458,12 @@ public class DmBizAutomaticRepository extends BaseRepository {
 
 		//获取导入表列信息
 		List<DMBizAutomaticColumns> listDMBizAutomaticColumns=new ArrayList<DMBizAutomaticColumns>();
-		List<DMBizAutomaticColumns> listImportColumns = this.dmGetBizCustomerColumns(Integer.parseInt(bizId));
+		List<DMBizAutomaticColumns> listImportColumns = this.dmGetBizCustomerColumns(Integer.parseInt(bizId),3);
 		
 		List<DMBizAutomaticColumns> listResultColumns = new ArrayList<DMBizAutomaticColumns>();
 		
 		//获取结果表列信息
-		this.getResultColumns(listResultColumns,bizId);
+		this.getResultColumns(listResultColumns,bizId,3);
 		if (type.equals("分配")) {
 			//循环获取导入表列
 			for (DMBizAutomaticColumns dmBizAutomaticColumns : listImportColumns) {

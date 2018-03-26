@@ -119,7 +119,7 @@ public class DMController {
 
         Map<String, String> mapCustomizedResultColumn = new HashMap<String, String>();
         List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
-        dmBizAutomaticRepository.getResultColumns(listDMBizAutomaticColumns, strBizId);
+        dmBizAutomaticRepository.getResultColumns(listDMBizAutomaticColumns, strBizId,3);
         for (DMBizAutomaticColumns column : listDMBizAutomaticColumns) {
             if (column.getFixedColumn().equals("1"))
                 continue;
