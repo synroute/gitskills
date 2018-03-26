@@ -82,6 +82,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 */
 	public List<OutputFirstRow> getAllColumn(Integer bizId,Integer templateId){
 		List<OutputFirstRow> columns=new ArrayList<OutputFirstRow>();
+		List<String> workSheetNameList=new ArrayList<String>();
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -93,22 +94,44 @@ public class DataDistributeJdbc extends BaseRepository{
 			}
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
+				String workSheetName=null ;
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+					workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+					if(!"".equals(workSheetName)){
+						workSheetNameList.add(workSheetName);
+					}
+					
+				}
+				
+			}
+			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
+			for (int i = 0; i < dataArray.size(); i++) {
 				OutputFirstRow firstRow=new OutputFirstRow();
 				String title=null; 
 				String filed=null;
+				String workSheetName=null;
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+					workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+				}
 				if(!dataArray.get(i).getAsJsonObject().get("Title").isJsonNull()){
 					title=dataArray.get(i).getAsJsonObject().get("Title").getAsString();
 					if(!"".equals(title)){
 						firstRow.setTitle(title);
 					}
 				}
-				if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
-					filed=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
-					if(!"".equals(filed)){
-						firstRow.setField(filed);
+				for (int j = 0; j < newList.size(); j++) {
+					if(newList.get(j).equals(workSheetName)){
+						if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
+							filed=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
+							if(!"".equals(filed)){
+								firstRow.setField(filed+j);
+							}
+						}
+						columns.add(firstRow);	
+						
 					}
 				}
-				columns.add(firstRow);		
+				
 			}
 			
 		} catch (SQLException e) {
@@ -192,8 +215,8 @@ public class DataDistributeJdbc extends BaseRepository{
 						}
 						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql2+=asName+columnName+",";
-							insertSql+=columnName+",";
-							createTableSql+=getTempColumnType(columnName,workSheetId);
+							insertSql+=columnName+j+",";
+							createTableSql+=getTempColumnType(columnName,workSheetId,j);
 							break;
 						}
 						
@@ -302,8 +325,8 @@ public class DataDistributeJdbc extends BaseRepository{
 				for (int j = 0; j < newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName)){
 						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())){
-							getDataSql1+=columnName+",";
-							getDataSql3+=getDataType(columnName,workSheetId)+",";
+							getDataSql1+=columnName+j+",";
+							getDataSql3+=getDataType(columnName,workSheetId,j)+",";
 							break;
 						}
 						
@@ -869,7 +892,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param asName
 	 * @return
 	 */
-	public String getDataType(String columnName,String workSheetId){
+	public String getDataType(String columnName,String workSheetId,int j){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -887,9 +910,9 @@ public class DataDistributeJdbc extends BaseRepository{
 			}
 			
 			if("varchar".equals(dataType.toLowerCase())||"int".equals(dataType.toLowerCase())){
-				column=columnName;
+				column=columnName+j;
 			}else if("datetime".equals(dataType.toLowerCase())){
-				column="to_char("+columnName+",'yyyy-mm-dd hh24:mi:ss') "+columnName;
+				column="to_char("+columnName+j+",'yyyy-mm-dd hh24:mi:ss') "+columnName+j;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -902,7 +925,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		return column;
 	}
 	
-	public String getTempColumnType(String columnName,String workSheetId){
+	public String getTempColumnType(String columnName,String workSheetId,int j){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -921,11 +944,11 @@ public class DataDistributeJdbc extends BaseRepository{
 				length=rs.getInt(2);
 			}
 			if("varchar".equals(dataType.toLowerCase())){
-				tempColumnType=columnName+"  VARCHAR2("+length+"),";
+				tempColumnType=columnName+j+"  VARCHAR2("+length+"),";
 			}else if("int".equals(dataType.toLowerCase())){
-				tempColumnType=columnName+"  NUMBER,";
+				tempColumnType=columnName+j+"  NUMBER,";
 			}else if("datetime".equals(dataType.toLowerCase())){
-				tempColumnType=columnName+"  DATE,";
+				tempColumnType=columnName+j+"  DATE,";
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
