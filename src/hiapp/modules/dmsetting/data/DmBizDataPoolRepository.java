@@ -215,7 +215,7 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				
 				String[] userids=userId.split(",");
 				dbConn =this.getDbConnection();
-				String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where PID="+dataPool.getpId()+"");
+				String poolsql=String.format("select PoolTopLimit from HASYS_DM_DATAPOOL where ID="+dataPool.getpId()+"");
 				stmt = dbConn.prepareStatement(poolsql);
 				rs = stmt.executeQuery();
 				int poolLimit=0;
