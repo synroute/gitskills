@@ -342,12 +342,21 @@ public class DataRecyleJdbc extends BaseRepository{
 				map.put("CID",rs.getObject(3));
 				for (int i = 0; i < dataArray.size(); i++) {
 					String key=null;
-					if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
-						key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
-						if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
-							map.put(key,rs.getObject(key));
+					String workSheetName=null;
+					if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+						workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+					}
+					for (int j = 0; j < newList.size(); j++) {
+						if(newList.get(j).equals(workSheetName)){
+							if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
+								key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString()+j;
+								if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
+									map.put(key,rs.getObject(key));
+								}
+							}
 						}
 					}
+				
 				}
 				
 				dataList.add(map);
