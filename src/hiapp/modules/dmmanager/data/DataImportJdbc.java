@@ -77,7 +77,7 @@ public class DataImportJdbc extends BaseRepository{
 					businessList.add(bus);
 				}
 			}else {
-				getOrgnizeSql="select distinct b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? and and b.ISDELETE=0 and a.itemname ='数据管理' and b.businessid="+bizid+"";
+				getOrgnizeSql="select distinct b.businessId,b.name,b.DESCRIPTION,b.OWNERGROUPID,b.outboundmddeId from HASYS_DM_PER_MAP_POOL a,HASYS_DM_Business b  where a.businessid=b.businessid and a.permissionid=? and  b.ISDELETE=0 and a.itemname ='数据管理' and b.businessid="+bizid+"";
 				pst=conn.prepareStatement(getOrgnizeSql);
 				pst.setInt(1,pemissId);
 				rs = pst.executeQuery();
