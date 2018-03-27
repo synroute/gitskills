@@ -114,8 +114,10 @@ public class DataRecyleJdbc extends BaseRepository{
 					if(newList.get(j).equals(workSheetName)){
 						if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
 							filed=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
-							if(!"".equals(filed)){
+							if(!"".equals(filed)&&!"IID".equals(filed.toUpperCase())&&!"CID".equals(filed.toUpperCase())&&!"DATAPOOLIDCUR".equals(filed.toUpperCase())&&!"AREACUR".equals(filed.toUpperCase())){
 								firstRow.setField(filed+j);
+							}else{
+								firstRow.setField(filed);
 							}
 						}
 						columns.add(firstRow);	
@@ -290,8 +292,8 @@ public class DataRecyleJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 			String configJson=getConfigJson(bizId, templateId);
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
-			String getDataSql1="select TEMPID,IID,CID,";
-			String getDataSql3="select TEMPID,IID,CID,";
+			String getDataSql1="select TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
+			String getDataSql3="select TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=null ;
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
@@ -319,7 +321,7 @@ public class DataRecyleJdbc extends BaseRepository{
 				}
 				for (int j = 0; j < newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName)){
-						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())){
+						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql1+=columnName+j+",";
 							getDataSql3+=dataDistributeJdbc.getDataType(columnName,workSheetId,j)+",";
 							break;
@@ -340,6 +342,8 @@ public class DataRecyleJdbc extends BaseRepository{
 				map.put("tempId",rs.getObject(1));
 				map.put("IID",rs.getObject(2));
 				map.put("CID",rs.getObject(3));
+				map.put("DATAPOOLIDCUR",rs.getObject(4));
+				map.put("AREACUR",rs.getObject(5));
 				for (int i = 0; i < dataArray.size(); i++) {
 					String key=null;
 					String workSheetName=null;
@@ -349,9 +353,9 @@ public class DataRecyleJdbc extends BaseRepository{
 					for (int j = 0; j < newList.size(); j++) {
 						if(newList.get(j).equals(workSheetName)){
 							if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
-								key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString()+j;
-								if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
-									map.put(key,rs.getObject(key));
+								key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
+								if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())&&!"DATAPOOLIDCUR".equals(key.toUpperCase())&&!"AREACUR".equals(key.toUpperCase())){
+									map.put(key+j,rs.getObject(key+j));
 								}
 							}
 						}
