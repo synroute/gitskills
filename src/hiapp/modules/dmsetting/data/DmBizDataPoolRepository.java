@@ -226,8 +226,11 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 				int userpool=0;
 				stmt.close();
 				for(int row=0;row<userids.length;row++){
+					User user = new User();
+					user = userRepository.getUserById(userids[row]);
+					String polnameString=userids[row]+"|"+user.getName();
 					//判断是否有活动的共享批次
-					String selectsql=String.format("select count(*) from HASYS_DM_DATAPOOL where DataPoolName='"+userids[row]+"' and BusinessID="+dataPool.getBizId()+"");
+					String selectsql=String.format("select count(*) from HASYS_DM_DATAPOOL where DataPoolName='"+polnameString+"' and BusinessID="+dataPool.getBizId()+"");
 					stmt = dbConn.prepareStatement(selectsql);
 					rs = stmt.executeQuery();
 					int count=0;
@@ -246,10 +249,10 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					if(userpool<=poolLimit)
 					{
 						szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,PID,AreaType,isDelete,POOLTOPLIMIT)"+
-								" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0,0,1000)",dataPool.getBizId(),userids[row],dataPool.getpId());
+								" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0,0,1000)",dataPool.getBizId(),polnameString,dataPool.getpId());
 					}else {
 						szSql = String.format("insert into HASYS_DM_DATAPOOL(ID,BusinessID,DataPoolName,DataPoolType,PID,AreaType,isDelete,POOLTOPLIMIT)"+
-								" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0,0,0)",dataPool.getBizId(),userids[row],dataPool.getpId());
+								" values(S_HASYS_DM_DATAPOOL.nextval,%s,'%s',3,%s,0,0,0)",dataPool.getBizId(),polnameString,dataPool.getpId());
 					}
 					
 					
