@@ -416,7 +416,14 @@ public class DataDistributeJdbc extends BaseRepository{
 			while(rs.next()){
 				treePool.setId(rs.getInt(1));
 				user = userRepository.getUserById(rs.getString(2));
-				treePool.setDataPoolName(rs.getString(2)+"|"+user.getName());
+				if(rs.getString(2).equals("数据源池"))
+				{
+					treePool.setDataPoolName(rs.getString(2));
+				}else {
+					treePool.setDataPoolName(rs.getString(2)+"|"+user.getName());
+				
+				}
+				
 				treePool.setPid(rs.getInt(3));
 			}
 			
@@ -467,7 +474,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @return
 	 */
 	public UserItem getTreePoolByBizId(Integer bizId,String userId,int permissionId){
-		TreePool treePool=getRootPool(userId, bizId,permissionId);
+		TreePool treePool=getRootPool(userId, bizId,permissionId); 
 		UserItem userItem=new UserItem();
 		userItem.setId(String.valueOf(treePool.getId()));
 		userItem.setText(treePool.getDataPoolName());
