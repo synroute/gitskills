@@ -8,6 +8,8 @@ import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.bean.DistributeTemplate;
 import hiapp.modules.dmmanager.bean.OutputFirstRow;
+import hiapp.system.buinfo.User;
+import hiapp.system.buinfo.data.UserRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
@@ -37,7 +39,8 @@ public class DataDistributeJdbc extends BaseRepository{
 	private SingleNumberOutboundDataManage singleNumberOutboundDataManage;
 	@Autowired
 	private DMService dMService;
-
+	@Autowired
+	private UserRepository userRepository;
 	/**
 	 * 获取所有分配模板
 	 * @param bizId
@@ -401,6 +404,8 @@ public class DataDistributeJdbc extends BaseRepository{
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		TreePool treePool=new TreePool();
+		User user = new User();
+		
 		try {
 			conn=this.getDbConnection();
 			String sql="select a.ID,a.DATAPOOLNAME,a.PID from HASYS_DM_DATAPOOL a where a.id=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null)";
@@ -410,7 +415,8 @@ public class DataDistributeJdbc extends BaseRepository{
 			rs=pst.executeQuery();
 			while(rs.next()){
 				treePool.setId(rs.getInt(1));
-				treePool.setDataPoolName(rs.getString(2));
+				user = userRepository.getUserById(rs.getString(2));
+				treePool.setDataPoolName(rs.getString(2)+"|"+user.getName());
 				treePool.setPid(rs.getInt(3));
 			}
 			
