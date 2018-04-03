@@ -408,7 +408,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		
 		try {
 			conn=this.getDbConnection();
-			String sql="select a.ID,a.DATAPOOLNAME,a.PID from HASYS_DM_DATAPOOL a where a.id=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null)";
+			String sql="select a.ID,a.DATAPOOLNAME,a.PID,a.datapooltype from HASYS_DM_DATAPOOL a where a.id=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null)";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1, bizId);
 			pst.setInt(2,permissionId);
@@ -416,11 +416,12 @@ public class DataDistributeJdbc extends BaseRepository{
 			while(rs.next()){
 				treePool.setId(rs.getInt(1));
 				user = userRepository.getUserById(rs.getString(2));
-				if(rs.getString(2).equals("数据源池"))
+				if(rs.getString(3).equals("3"))
 				{
-					treePool.setDataPoolName(rs.getString(2));
-				}else {
 					treePool.setDataPoolName(rs.getString(2)+"|"+user.getName());
+					
+				}else {
+					treePool.setDataPoolName(rs.getString(2));
 				
 				}
 				
