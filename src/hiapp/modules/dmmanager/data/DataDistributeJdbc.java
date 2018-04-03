@@ -416,7 +416,7 @@ public class DataDistributeJdbc extends BaseRepository{
 			while(rs.next()){
 				treePool.setId(rs.getInt(1));
 				user = userRepository.getUserById(rs.getString(2));
-				if(rs.getString(3).equals("3"))
+				if(rs.getString(4).equals("3"))
 				{
 					treePool.setDataPoolName(rs.getString(2)+"|"+user.getName());
 					
