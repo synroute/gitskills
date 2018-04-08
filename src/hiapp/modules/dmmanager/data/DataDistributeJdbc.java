@@ -404,7 +404,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		TreePool treePool=new TreePool();
-		User user = new User();
+		
 		
 		try {
 			conn=this.getDbConnection();
@@ -415,15 +415,11 @@ public class DataDistributeJdbc extends BaseRepository{
 			rs=pst.executeQuery();
 			while(rs.next()){
 				treePool.setId(rs.getInt(1));
-				user = userRepository.getUserById(rs.getString(2));
-				if(rs.getString(4).equals("3"))
-				{
-					treePool.setDataPoolName(rs.getString(2)+"|"+user.getName());
-					
-				}else {
+				
+				
 					treePool.setDataPoolName(rs.getString(2));
 				
-				}
+				
 				
 				treePool.setPid(rs.getInt(3));
 			}
@@ -444,6 +440,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		ResultSet rs = null;
 		List<UserItem>	userItems=new ArrayList<UserItem>();
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
+		User user = new User();
 		try {
 			conn=this.getDbConnection();
 			String sql="select a.ID,a.DATAPOOLNAME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0) from "+poolName+" b) topLimit,a.dataPoolType from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.pid=?";
@@ -452,9 +449,16 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst.setInt(2, pid);
 			rs=pst.executeQuery();
 			while(rs.next()){
+				user = userRepository.getUserById(rs.getString(2));
 				UserItem userItem=new UserItem();
 				userItem.setId(String.valueOf(rs.getInt(1)));
-				userItem.setText(rs.getString(2));;
+				if(rs.getString(4).equals("3"))
+				{
+					userItem.setText(rs.getString(2)+"|"+user.getName());
+					
+				}else {
+					userItem.setText(rs.getString(2));;
+				}
 				userItem.setTopLimit(rs.getInt(3));
 				userItem.setDataPoolType(rs.getInt(4));
 				userItems.add(userItem);

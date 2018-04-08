@@ -67,7 +67,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					if (!workSheetColumn.getColumnName().equals("ID")
 							&&!workSheetColumn.getColumnName().equals("MODIFYLAST")
 							&&!workSheetColumn.getColumnName().equals("MODIFYUSERID")
-							&&!workSheetColumn.getColumnName().equals("MODIFYTIME")) {
+							&&!workSheetColumn.getColumnName().equals("MODIFYTIME")&&!workSheetColumn.getColumnName().equals("MODIFYID")) {
 						DMBizAutomaticColumns dmBizAutomaticColumns=new DMBizAutomaticColumns();
 						dmBizAutomaticColumns.setWorksheetId(workSheetId);
 						dmBizAutomaticColumns.setWorksheetName("HAU_DM_B"+bizId+"C_IMPORT");
