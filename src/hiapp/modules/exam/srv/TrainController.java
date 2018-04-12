@@ -56,8 +56,8 @@ public class TrainController {
 	 * @param request
 	 * @param response
 	 */
-	@RequestMapping(value="srv/TrainController/insertCourseWare.srv")
-	public void insertCourseWare(HttpServletRequest request,HttpServletResponse response,@RequestParam MultipartFile[] file){
+	@RequestMapping(value="srv/TrainController/insertOrUpdateCourseWare.srv")
+	public void insertOrUpdateCourseWare(HttpServletRequest request,HttpServletResponse response,@RequestParam MultipartFile[] file){
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
