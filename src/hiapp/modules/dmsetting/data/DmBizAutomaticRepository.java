@@ -103,8 +103,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
+			DbUtil.DbCloseQuery(rs, stmt);
 			DbUtil.DbCloseConnection(dbConn);
-			DbUtil.DbCloseExecute(stmt);
 		}
 		return listDmBizAutomaticColums;
 	}
@@ -152,8 +152,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
+			DbUtil.DbCloseQuery(rs, stmt);
 			DbUtil.DbCloseConnection(dbConn);
-			DbUtil.DbCloseExecute(stmt);
 		}
 		return listDmBizAutomaticColums;
 	}
@@ -221,6 +221,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			// TODO: handle exception
 			e.printStackTrace();
 		} finally {
+			
 			DbUtil.DbCloseConnection(dbConn);
 		}
 		return true;
@@ -296,8 +297,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
+			DbUtil.DbCloseQuery(rs, stmt);
 			DbUtil.DbCloseConnection(dbConn);
-			DbUtil.DbCloseExecute(stmt);
 		}
 		return map;
 	}
@@ -338,8 +339,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
+				DbUtil.DbCloseQuery(rs, stmt);
 				DbUtil.DbCloseConnection(dbConn);
-				DbUtil.DbCloseExecute(stmt);
 			}
 			return map;
 		}
@@ -408,8 +409,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
+			DbUtil.DbCloseQuery(rs, stmt);
 			DbUtil.DbCloseConnection(dbConn);
-			DbUtil.DbCloseExecute(stmt);
 		}
 		jsonObject.add("rows", jsonArray);
 		return list;
@@ -585,8 +586,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				} catch (Exception e) {
 					e.printStackTrace();
 				} finally{
-					DbUtil.DbCloseConnection(dbConn);
 					DbUtil.DbCloseQuery(rs, stmt);
+					DbUtil.DbCloseConnection(dbConn);
 				}
 				return map;
 			}
@@ -623,8 +624,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						e.printStackTrace();
 						return false;
 					} finally{
-						DbUtil.DbCloseConnection(dbConn);
 						DbUtil.DbCloseQuery(rs, stmt);
+						DbUtil.DbCloseConnection(dbConn);
 					}
 					return true;
 				}
@@ -670,8 +671,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						e.printStackTrace();
 						return false;
 					} finally{
-						DbUtil.DbCloseConnection(dbConn);
 						DbUtil.DbCloseQuery(rs, stmt);
+						DbUtil.DbCloseConnection(dbConn);
 					}
 					return true;
 				}
@@ -764,8 +765,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					} catch (Exception e) {
 						e.printStackTrace();
 					} finally{
-						DbUtil.DbCloseConnection(dbConn);
 						DbUtil.DbCloseQuery(rs, stmt);
+						DbUtil.DbCloseConnection(dbConn);
 					}
 					return listDMBizAutomaticConfig;
 				}
@@ -818,8 +819,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					} catch (SQLException e) {
 						e.printStackTrace();
 					} finally {
+						DbUtil.DbCloseQuery(rs, stmt);
 						DbUtil.DbCloseConnection(dbConn);
-						DbUtil.DbCloseExecute(stmt);
 					}
 					return true;
 				}
