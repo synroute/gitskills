@@ -1,7 +1,10 @@
 package hiapp.modules.exam.srv;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,6 +29,7 @@ import hiapp.modules.exam.data.TrainDao;
 import hiapp.modules.exam.utils.ConverPPTFileToImageUtil;
 import hiapp.modules.exam.utils.FtpUtil;
 import hiapp.modules.exam.utils.GsonUtil;
+import hiapp.modules.exam.utils.OfficeToPdfUtil;
 import hiapp.modules.exam.utils.WordToHtml;
 import hiapp.system.buinfo.User;
 
@@ -103,6 +107,73 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	
+	}
+	/**
+	 * office文件转pdf
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="srv/TrainController/officeToPdf.srv")
+	public  void  officeToPdf(HttpServletRequest request,HttpServletResponse response) {
+		String names=request.getParameter("names");
+		String[] arr=names.split(",");
+		String toFilePath=request.getSession().getServletContext().getRealPath("/office");
+		String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
+		InputStream in=null;
+		for (int i = 0; i < arr.length; i++) {
+			String name=arr[i];
+			String suffix=name.substring(name.lastIndexOf(".")+1);
+			String fileName=name.substring(0, name.lastIndexOf(".")+1);
+			String type=name.substring(name.lastIndexOf(".")+1);
+			path=path+"/"+name;
+			if(name==null||"".equals(name)||"pdf".equals(suffix.toLowerCase())) {
+				continue;
+			}
+			in = FtpUtil.getFtpInputStream(path);
+			try {
+				OfficeToPdfUtil.file2Html(in, toFilePath, fileName, type);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	/**
+	 * 将ftp上文件放到uplaod下
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="srv/TrainController/getPdfFile.srv")
+	public void getPdfFile(HttpServletRequest request,HttpServletResponse response) {
+		String address=request.getParameter("address");
+		String fileName=address.substring(address.lastIndexOf("/")+1);
+		String suffix=fileName.substring(fileName.lastIndexOf(".")+1);
+		String path="";
+		if("pdf".equals(suffix.toLowerCase())) {
+			path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
+		}else {
+			path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date())+"pdf";
+		}
+		String uploadPath=request.getSession().getServletContext().getRealPath("/upload");
+		String endPath=uploadPath+File.separator+fileName;
+		InputStream ftpInputStream = FtpUtil.getFtpInputStream(path+"/"+fileName);
+		OfficeToPdfUtil.delAllFile(uploadPath);//删除文件
+	    try {
+	  		File file=new File(endPath);
+			if(!file.exists()) {
+				 file.createNewFile();;
+			}
+			OutputStream out=new FileOutputStream(file);
+		    int bytesRead = 0;
+		    byte[] buffer = new byte[1024 * 8];
+		    while ((bytesRead = ftpInputStream.read(buffer)) != -1) {
+		    	out.write(buffer, 0, bytesRead);
+		    }
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	/**
 	 * 下载课件文件
@@ -470,14 +541,17 @@ public class TrainController {
 		InputStream in=null;
 		String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
 		String address="";
+		String toFilePath=request.getSession().getServletContext().getRealPath(File.separator+"office");
 		List<String> list=new ArrayList<String>();
 		for (int i = 0; i < file.length; i++) {
 			String fileName=file[i].getOriginalFilename();
+			String fileName1=fileName.substring(0,fileName.lastIndexOf("."));
+			String type =fileName.substring(fileName.lastIndexOf(".")+1);
 			in = file[i].getInputStream();
 			address=path+ "/"+fileName+",";
 			list.add(address);
 			FtpUtil.uploadFile(path, fileName,in);
-		
+			OfficeToPdfUtil.file2Html(in, toFilePath, fileName1, type);
 		}
 	
 		String result=new Gson().toJson(list);
@@ -489,6 +563,8 @@ public class TrainController {
 				e.printStackTrace();
 			}
 	}
+	
+	
 	/**
 	 * 
 	 * @param request
@@ -531,7 +607,7 @@ public class TrainController {
 	
 	@RequestMapping(value="/srv/TrainController/getDoc.srv")
 	public void getDoc(HttpServletRequest request,HttpServletResponse response) {
-		String path="C:/Users/李远/Desktop/Hi-Link 报表指标说明 5.5.0.0.doc";
+		String path="C:/Users/李远/Desktop/Hi-Agent6.0工作流使用说明（最新）.doc";
 		String htmlPath=request.getSession().getServletContext().getRealPath("/doc/");
 		Map<String,Object> map=new HashMap<>();
 		String result=null;
@@ -557,5 +633,23 @@ public class TrainController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	@RequestMapping(value="/srv/TrainController/getPdf.srv")
+	public void getPdf(HttpServletRequest request,HttpServletResponse response) throws IOException {
+		String uploadPath=request.getSession().getServletContext().getRealPath("/upload");
+		String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date())+"pdf";
+		String fileName="线索相关接口说明0402.docx.pdf";
+		InputStream ftpInputStream = FtpUtil.getFtpInputStream(path+"/"+fileName);
+		File file=new File(uploadPath+File.separator+"线索相关接口说明0402.pdf");
+		if(!file.exists()) {
+			 file.createNewFile();;
+		}
+		OutputStream out=new FileOutputStream(file);
+	     int bytesRead = 0;
+	      byte[] buffer = new byte[1024 * 8];
+	      while ((bytesRead = ftpInputStream.read(buffer)) != -1) {
+	    	  out.write(buffer, 0, bytesRead);
+	      }
+	      out.close();
 	}
 }
