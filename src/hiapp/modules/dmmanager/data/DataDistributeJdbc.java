@@ -477,7 +477,9 @@ public class DataDistributeJdbc extends BaseRepository{
 				callStmt.setInt(6,dataPoolId);
 				callStmt.setString(7,userId);
 				callStmt.execute();  
-				
+				if(callStmt!=null){
+					callStmt.close();
+				}
 			}
 			String insertDisBatchSql="insert into HASYS_DM_DID(id,BusinessID,DID,DistributionName,ModifyUserID,ModifyTime,Description) values(S_HASYS_DM_DID.nextval,?,?,?,?,sysdate,?)";
 			pst=conn.prepareStatement(insertDisBatchSql);
