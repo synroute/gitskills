@@ -1,12 +1,11 @@
 package hiapp.modules.dm.singlenumbermode.bo;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /*
  *  单号码重拨模式共享数据状态表
  */
-public class SingleNumberModeShareCustomerItem implements Serializable{
+public class SingleNumberModeShareCustomerItem {
     public int getId() {
         return id;
     }

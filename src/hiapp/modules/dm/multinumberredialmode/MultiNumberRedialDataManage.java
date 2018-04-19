@@ -8,6 +8,8 @@ import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.multinumberredialmode.bo.*;
 import hiapp.modules.dm.multinumberredialmode.dao.MultiNumberRedialDAO;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerStateEnum;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
@@ -29,14 +31,7 @@ public class MultiNumberRedialDataManage {
     DMDAO dmDAO;
 
     @Autowired
-    MultiNumberRedialCustomerPool multiNumberRedialCustomerPool;
-    //用于初始化连接池
-    @Autowired
-    MultiNumberRedialCustomerSharePool multiNumberRedialCustomerSharePool;
-
-    //用于初始化连接池
-    @Autowired
-    MultiNumberRedialCustomerWaitPool multiNumberRedialCustomerWaitPool;
+    MultiNumberRedialCustomerPool customerPool;
 
     @Autowired
     private DataImportJdbc dataImportJdbc;
@@ -50,14 +45,9 @@ public class MultiNumberRedialDataManage {
     @Autowired
     DmBizRepository dmBizRepository;
 
-    public void initialize() {
-        multiNumberRedialCustomerPool.initialize();
-        multiNumberRedialCustomerSharePool.initialize();
-        multiNumberRedialCustomerWaitPool.initialize();
-    }
 
     public synchronized MultiNumberRedialCustomer extractNextOutboundCustomer(String userId, int bizId) {
-        MultiNumberRedialCustomer customer = multiNumberRedialCustomerPool.extractCustomer(userId, bizId);
+        MultiNumberRedialCustomer customer = customerPool.extractCustomer(userId, bizId);
         return customer;
     }
 
@@ -65,7 +55,7 @@ public class MultiNumberRedialDataManage {
                                        String resultCodeType, String resultCode, Boolean isPreset, Date presetTime,
                                        String dialType, Date dialTime, String customerCallId, Map<String, String> mapCustomizedResultColumn, String customerInfo) {
 
-        MultiNumberRedialCustomer originCustomerItem = multiNumberRedialCustomerPool.removeWaitCustomer(
+        MultiNumberRedialCustomer originCustomerItem = customerPool.removeWaitCustomer(
                 userId, bizId, importBatchId, customerId, phoneType);
 
         // 经过 Outbound 策略处理器
@@ -126,9 +116,9 @@ public class MultiNumberRedialDataManage {
 
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
 
-        multiNumberRedialCustomerPool.stopShareBatch(bizId, shareBatchIds);
+        customerPool.stopShareBatch(bizId, shareBatchIds);
 
-        multiNumberRedialCustomerPool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
+        customerPool.markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }
 
     public Boolean appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
@@ -147,19 +137,24 @@ public class MultiNumberRedialDataManage {
 
     }
 
+
+    public void initialize() {
+        customerPool.initialize();
+    }
+
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {
-        multiNumberRedialCustomerPool.clear();
+        customerPool.clear();
 
         loadCustomersDaily(shareBatchItems);
     }
 
     public void timeoutProc() {
-        multiNumberRedialCustomerPool.timeoutProc();
+        customerPool.timeoutProc();
     }
 
     public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
         // remove from share pool
-        List<MultiNumberRedialCustomer> customerList = multiNumberRedialCustomerPool.cancelShare(bizId, customerBasicList);
+        List<MultiNumberRedialCustomer> customerList = customerPool.cancelShare(bizId, customerBasicList);
 
         // update state and insert share history table
         List<Integer> customerDBIdList = new ArrayList<Integer>();
@@ -251,7 +246,7 @@ public class MultiNumberRedialDataManage {
             }
 
         } else if (MultiNumberRedialStrategyEnum.IsPhoneStop.equals(strategyEnum)) {
-            Integer nextDialPhoneType = multiNumberRedialCustomerPool.calcNextDialPhoneType(item);
+            Integer nextDialPhoneType = customerPool.calcNextDialPhoneType(item);
             if (null != nextDialPhoneType) {
                 item.setState(MultiNumberRedialStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
                 item.setNextDialPhoneType(nextDialPhoneType);
@@ -274,7 +269,7 @@ public class MultiNumberRedialDataManage {
         } else /*当前号码类型重拨*/ {
 
             if ((curPhoneDialInfo.getDialCount() - curPhoneDialInfo.getCausePresetDialCount()) >= phoneTypeVsDialCount.get(phoneType)) {
-                Integer nextDialPhoneType = multiNumberRedialCustomerPool.calcNextDialPhoneType(item);
+                Integer nextDialPhoneType = customerPool.calcNextDialPhoneType(item);
                 if (null != nextDialPhoneType) {
                     item.setState(MultiNumberRedialStateEnum.NEXT_PHONETYPE_WAIT_DIAL);
                     item.setNextDialPhoneType(nextDialPhoneType);
@@ -430,9 +425,9 @@ public class MultiNumberRedialDataManage {
         EndCodeRedialStrategyM4 strategy = multiNumberRedialStrategy.getEndCodeRedialStrategyItem(newCustomerItem.getBizId());
         int stageDayIndex = getStageDayIndex(newCustomerItem.getFirstDialDate(), strategy.getStageDelayDays());
         if (strategy.hasGivenDayDialConfig(stageDayIndex)) {
-            ret = multiNumberRedialCustomerPool.add(newCustomerItem, strategy.getGivenDayDialConfig(stageDayIndex));
+            ret = customerPool.add(newCustomerItem, strategy.getGivenDayDialConfig(stageDayIndex));
         } else if (MultiNumberRedialStateEnum.PRESET_DIAL.equals(newCustomerItem.getState())) {
-            ret = multiNumberRedialCustomerPool.add(newCustomerItem, strategy.getGivenDayDialConfig(stageDayIndex));
+            ret = customerPool.add(newCustomerItem, strategy.getGivenDayDialConfig(stageDayIndex));
         }
 
         System.out.println("M4 add customer: bizId[" + newCustomerItem.getBizId()

@@ -24,7 +24,6 @@ public class OnePhoneTypeCustomerPool {
     }
 
     public MultiNumberCustomer extractCustomer(String userId) {
-
         MultiNumberCustomer shareDataItem = customerSharePool.extractCustomer(userId);
 
         Date now = new Date();

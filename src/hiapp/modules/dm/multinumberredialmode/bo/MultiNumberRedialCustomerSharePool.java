@@ -1,12 +1,9 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
 import hiapp.modules.dm.bo.CustomerBasic;
-import hiapp.modules.dm.util.GenericitySerializeUtil;
-import hiapp.modules.dm.util.RedisComparator;
+import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
+import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -15,50 +12,41 @@ import java.util.concurrent.PriorityBlockingQueue;
  * M4 多号码重拨外呼
  * 客户信息需要按照共享批次分类，由于存在访问权限问题
  */
-@Service
+
 public class MultiNumberRedialCustomerSharePool {
 
-    @Autowired
-    private JedisPool jedisPool;
-
-    private Jedis redisRedialMultiNumber;
     // 客户共享池
     //BizId + ShareBatchID <==> PriorityBlockingQueue<MultiNumberRedialCustomer>
-  /*  Map<String, PriorityBlockingQueue<MultiNumberRedialCustomer>> multiNumberRedialShareMapPreseCustomerSharePool;
-    Map<String, PriorityBlockingQueue<MultiNumberRedialCustomer>> multiNumberRedialShareMapCustomerSharePool;
+    Map<String, PriorityBlockingQueue<MultiNumberRedialCustomer>> mapPreseCustomerSharePool;
+    Map<String, PriorityBlockingQueue<MultiNumberRedialCustomer>> mapCustomerSharePool;
 
     // 用于处理共享停止/取消的客户池，共享批次维度，用于标注已经停止/取消共享的客户
     // BizId + ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberRedialCustomer}
-    Map<String, Map<String, MultiNumberRedialCustomer>> multiNumberRedialShareMapShareBatchWaitStopCustomerPool;*/
+    Map<String, Map<String, MultiNumberRedialCustomer>> mapShareBatchWaitStopCustomerPool;
 
 
     int bizId = 0;
 
-    public void initialize() {
-        redisRedialMultiNumber = jedisPool.getResource();
-    }
-    public MultiNumberRedialCustomerSharePool() {
-    }
     public MultiNumberRedialCustomerSharePool(int bizId) {
 
         this.bizId = bizId;
 
-        /*multiNumberRedialShareMapPreseCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberRedialCustomer>>();
-        multiNumberRedialShareMapCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberRedialCustomer>>();
+        mapPreseCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberRedialCustomer>>();
+        mapCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberRedialCustomer>>();
 
-        //multiNumberRedialShareMapPreseCustomerSharePool = new PriorityBlockingQueue<MultiNumberRedialCustomer>(1, nextDialTimeComparator);
-        //multiNumberRedialShareMapCustomerSharePool = new PriorityBlockingQueue<MultiNumberRedialCustomer>(1, shareBatchBeginTimeComparator);
+        //mapPreseCustomerSharePool = new PriorityBlockingQueue<MultiNumberRedialCustomer>(1, nextDialTimeComparator);
+        //mapCustomerSharePool = new PriorityBlockingQueue<MultiNumberRedialCustomer>(1, shareBatchBeginTimeComparator);
 
-        multiNumberRedialShareMapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberRedialCustomer>>();*/
+        mapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberRedialCustomer>>();
     }
-    //已改
+
     public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList) {
         Date now = new Date();
         MultiNumberRedialCustomer shareDataItem = null;
 
-        shareDataItem = retrievePresetCustomer(shareBatchIdList, "multiNumberRedialShareMapPreseCustomerSharePool");
+        shareDataItem = retrievePresetCustomer(shareBatchIdList, mapPreseCustomerSharePool);
         if (null == shareDataItem)
-            shareDataItem = retrieveGeneralCustomer(shareBatchIdList, "multiNumberRedialShareMapCustomerSharePool");
+            shareDataItem = retrieveGeneralCustomer(shareBatchIdList, mapCustomerSharePool);
 
 
         if (null != shareDataItem)
@@ -72,36 +60,34 @@ public class MultiNumberRedialCustomerSharePool {
      * 注意：MultiNumberRedialStateEnum.WAIT_NEXT_DAY_DIAL 放入非预约队列
      *
      */
-    //已改
     public void add(MultiNumberRedialCustomer customer) {
         PriorityBlockingQueue<MultiNumberRedialCustomer> queue;
         if (MultiNumberRedialStateEnum.PRESET_DIAL.equals(customer.getState())
             || MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL.equals(customer.getState())) {
-            byte[] queueSerialize = GenericitySerializeUtil.
-                    serialize("multiNumberRedialShareMapPreseCustomerSharePool" + customer.getShareToken());
-            queue = GenericitySerializeUtil.unserialize(redisRedialMultiNumber.get(queueSerialize));
+            queue = mapPreseCustomerSharePool.get(customer.getShareToken());
             if (null == queue) {
                 queue = new PriorityBlockingQueue<MultiNumberRedialCustomer>(1, nextDialTimeComparator);
+                mapPreseCustomerSharePool.put(customer.getShareToken(), queue);
             }
-            queue.put(customer);
-            redisRedialMultiNumber.set(queueSerialize, GenericitySerializeUtil.serialize(queue));
 
         } else {
-            byte[] queueSerialize = GenericitySerializeUtil.
-                    serialize("multiNumberRedialShareMapCustomerSharePool" + customer.getShareToken());
-            queue = GenericitySerializeUtil.unserialize(redisRedialMultiNumber.get(queueSerialize));
+            queue = mapCustomerSharePool.get(customer.getShareToken());
             if (null == queue) {
                 queue = new PriorityBlockingQueue<MultiNumberRedialCustomer>(1, shareBatchBeginTimeComparator);
+                mapCustomerSharePool.put(customer.getShareToken(), queue);
             }
-            queue.put(customer);
-            redisRedialMultiNumber.set(queueSerialize, GenericitySerializeUtil.serialize(queue));
         }
 
+        queue.put(customer);
 
         // step 2 : 放入 等停止/取消的客户池
-        redisRedialMultiNumber.hset(GenericitySerializeUtil.serialize("multiNumberRedialShareMapShareBatchWaitStopCustomerPool" + customer.getShareToken()),
-                GenericitySerializeUtil.serialize(customer.getCustomerToken()),
-                GenericitySerializeUtil.serialize(customer));
+        Map<String, MultiNumberRedialCustomer> mapWaitStopPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareToken());
+        if (null == mapWaitStopPool) {
+            mapWaitStopPool = new HashMap<String, MultiNumberRedialCustomer>();
+            mapShareBatchWaitStopCustomerPool.put(customer.getShareToken(), mapWaitStopPool);
+        }
+        mapWaitStopPool.put(customer.getCustomerToken(), customer);
+
     }
 
     /**
@@ -111,34 +97,36 @@ public class MultiNumberRedialCustomerSharePool {
     /*public void stopShareBatch(List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
             Map<String, MultiNumberRedialCustomer> mapWaitStopPool;
-            mapWaitStopPool = multiNumberRedialShareMapShareBatchWaitStopCustomerPool.remove(shareBatchId);
+            mapWaitStopPool = mapShareBatchWaitStopCustomerPool.remove(shareBatchId);
             for (MultiNumberRedialCustomer item : mapWaitStopPool.values()) {
                 item.setInvalid(true);
             }
         }
     }*/
 
-    //已改
+
     public void stopShareBatch(List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
-            redisRedialMultiNumber.del(GenericitySerializeUtil.serialize("multiNumberRedialShareMapPreseCustomerSharePool" + bizId + shareBatchId));
-            redisRedialMultiNumber.del(GenericitySerializeUtil.serialize("multiNumberRedialShareMapCustomerSharePool" + bizId + shareBatchId));
-            redisRedialMultiNumber.del(GenericitySerializeUtil.serialize("multiNumberRedialShareMapShareBatchWaitStopCustomerPool" + bizId + shareBatchId));
+            mapPreseCustomerSharePool.remove(bizId + shareBatchId);
+            mapCustomerSharePool.remove(bizId + shareBatchId);
+            mapShareBatchWaitStopCustomerPool.remove(bizId + shareBatchId);
         }
     }
-    //已改
+
     public List<MultiNumberRedialCustomer> cancelShare(List<CustomerBasic> customerBasicList) {
         List<MultiNumberRedialCustomer> customerList = new ArrayList<MultiNumberRedialCustomer>();
         for (CustomerBasic customerBasic : customerBasicList) {
-            byte[] mapSerialize = GenericitySerializeUtil.serialize("multiNumberRedialShareMapShareBatchWaitStopCustomerPool" + customerBasic.getSourceToken());
-            byte[] fieldSerialize = GenericitySerializeUtil.serialize(customerBasic.getCustomerToken());
-            MultiNumberRedialCustomer customer = GenericitySerializeUtil.unserialize(redisRedialMultiNumber.hget(mapSerialize, fieldSerialize));
+            Map<String, MultiNumberRedialCustomer> oneShareBatchCustomerPool = mapShareBatchWaitStopCustomerPool.get(customerBasic.getSourceToken());
+            if (null == oneShareBatchCustomerPool || oneShareBatchCustomerPool.isEmpty()) {
+                mapShareBatchWaitStopCustomerPool.remove(customerBasic.getSourceToken());
+                continue;
+            }
+
+            MultiNumberRedialCustomer customer = oneShareBatchCustomerPool.remove(customerBasic.getCustomerToken());
             if (null == customer)
                 continue;
 
             customer.setInvalid(true);
-            //存回去
-            redisRedialMultiNumber.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(customer));
             customerList.add(customer);
         }
 
@@ -146,20 +134,17 @@ public class MultiNumberRedialCustomerSharePool {
     }
 
     ///////////////////////////////////////////////////////////////////
-    //已改
+
     private MultiNumberRedialCustomer retrievePresetCustomer(List<String> shareBatchIdList,
-                          String preseCustomerSharePool) {
+                          Map<String, PriorityBlockingQueue<MultiNumberRedialCustomer>> preseCustomerSharePool) {
 
         Date now = new Date();
 
         MultiNumberRedialCustomer shareDataItem = null;
         for (String shareBatchId : shareBatchIdList) {
-            byte[] queueSerialize = GenericitySerializeUtil.serialize(preseCustomerSharePool + bizId + shareBatchId);
-            PriorityBlockingQueue<MultiNumberRedialCustomer> presetCustomerPool = GenericitySerializeUtil.unserialize(redisRedialMultiNumber.
-                    get(queueSerialize));
-
+            PriorityBlockingQueue<MultiNumberRedialCustomer> presetCustomerPool = preseCustomerSharePool.get(bizId + shareBatchId);
             if (null == presetCustomerPool || presetCustomerPool.isEmpty()) {
-                redisRedialMultiNumber.del(queueSerialize);
+                preseCustomerSharePool.remove(bizId + shareBatchId);
                 continue;
             }
 
@@ -167,36 +152,30 @@ public class MultiNumberRedialCustomerSharePool {
 
             if (shareDataItem.getInvalid()) {
                 presetCustomerPool.poll();  // 丢弃 作废的客户
-                //丢弃完成之后再存回去
-                redisRedialMultiNumber.set(queueSerialize, GenericitySerializeUtil.serialize(preseCustomerSharePool));
                 continue;
             }
 
             if (shareDataItem.getCurPresetDialTime().before(now)) {
                 shareDataItem = presetCustomerPool.poll();
-                redisRedialMultiNumber.set(queueSerialize, GenericitySerializeUtil.serialize(preseCustomerSharePool));
                 return shareDataItem;
             }
         }
 
         return null;
     }
-    //已改
+
     private MultiNumberRedialCustomer retrieveGeneralCustomer(List<String> shareBatchIdList,
-                      String customerSharePool) {
+                      Map<String, PriorityBlockingQueue<MultiNumberRedialCustomer>> customerSharePool) {
         MultiNumberRedialCustomer shareDataItem = null;
         for (String shareBatchId : shareBatchIdList) {
-            byte[] queueSerialize = GenericitySerializeUtil.serialize(customerSharePool + bizId + shareBatchId);
-            PriorityBlockingQueue<MultiNumberRedialCustomer> customerPool = GenericitySerializeUtil.unserialize(redisRedialMultiNumber.
-                    get(queueSerialize));
+            PriorityBlockingQueue<MultiNumberRedialCustomer> customerPool = customerSharePool.get(bizId + shareBatchId);
             if (null == customerPool || customerPool.isEmpty()) {
-                redisRedialMultiNumber.del(queueSerialize);
+                customerSharePool.remove(bizId + shareBatchId);
                 continue;
             }
 
             shareDataItem = customerPool.poll();
-            //丢弃完成之后再存回去
-            redisRedialMultiNumber.set(queueSerialize, GenericitySerializeUtil.serialize(customerPool));
+
             if (shareDataItem.getInvalid()) {
                 continue;   // 丢弃 作废的客户
             }
@@ -206,14 +185,16 @@ public class MultiNumberRedialCustomerSharePool {
 
         return null;
     }
-    //已改
+
     private void removeFromShareBatchStopWaitPool(MultiNumberRedialCustomer customer) {
-        redisRedialMultiNumber.hdel(GenericitySerializeUtil.serialize("multiNumberRedialShareMapShareBatchWaitStopCustomerPool" + customer.getShareToken()),
-                GenericitySerializeUtil.serialize(customer.getCustomerToken()));
+        Map<String, MultiNumberRedialCustomer> oneShareBatchPool = mapShareBatchWaitStopCustomerPool.get(customer.getShareToken());
+        oneShareBatchPool.remove(customer.getCustomerToken());
+        if (oneShareBatchPool.isEmpty())
+            mapShareBatchWaitStopCustomerPool.remove(customer.getShareToken());
     }
-    //已改
+
     //匿名Comparator实现
-    private static RedisComparator<MultiNumberRedialCustomer> nextDialTimeComparator = new RedisComparator<MultiNumberRedialCustomer>() {
+    private static Comparator<MultiNumberRedialCustomer> nextDialTimeComparator = new Comparator<MultiNumberRedialCustomer>() {
 
         @Override
         public int compare(MultiNumberRedialCustomer c1, MultiNumberRedialCustomer c2) {
@@ -222,7 +203,7 @@ public class MultiNumberRedialCustomerSharePool {
     };
 
     //匿名Comparator实现
-    private static RedisComparator<MultiNumberRedialCustomer> shareBatchBeginTimeComparator = new RedisComparator<MultiNumberRedialCustomer>() {
+    private static Comparator<MultiNumberRedialCustomer> shareBatchBeginTimeComparator = new Comparator<MultiNumberRedialCustomer>() {
 
         @Override
         public int compare(MultiNumberRedialCustomer c1, MultiNumberRedialCustomer c2) {

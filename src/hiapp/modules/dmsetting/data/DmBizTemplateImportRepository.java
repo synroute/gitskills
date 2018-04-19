@@ -444,7 +444,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	
 	
 	//获取单个导出导入模板配置excel数据信息
-	public List<DMBizTemplateExcelColums> dmGetBizExcel(MultipartFile file) throws Exception
+	public List<DMBizTemplateExcelColums> dmGetBizExcel(MultipartFile file,int sheetid) throws Exception
 	{
 		
 		String fileName=file.getOriginalFilename();
@@ -456,7 +456,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		}else if(".xlsx".equals(suffix)){
 			wookbook = new XSSFWorkbook(in);
 		}
-        Sheet sheet = wookbook.getSheetAt(0);
+        Sheet sheet = wookbook.getSheetAt(sheetid);
         Row row = sheet.getRow(sheet.getFirstRowNum());
         short firstCellNum = row.getFirstCellNum();
         short lastCellNum = row.getLastCellNum();

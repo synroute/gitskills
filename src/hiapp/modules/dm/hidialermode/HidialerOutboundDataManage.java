@@ -2,20 +2,26 @@ package hiapp.modules.dm.hidialermode;
 
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.bo.CustomerBasic;
-import hiapp.modules.dm.bo.ShareBatchItem;
-import hiapp.modules.dm.bo.ShareBatchStateEnum;
-import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.hidialermode.bo.*;
-import hiapp.modules.dm.hidialermode.dao.HidialerModeDAO;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
-import hiapp.modules.dm.util.DateUtil;
+import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
+import hiapp.modules.dm.multinumbermode.bo.MultiNumberPredictStateEnum;
+import hiapp.modules.dm.multinumbermode.bo.PhoneDialInfo;
 import hiapp.modules.dmmanager.AreaTypeEnum;
 import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
-import hiapp.modules.dmmanager.data.DataImportJdbc;
-import hiapp.modules.dmsetting.data.DmBizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import hiapp.modules.dm.bo.ShareBatchItem;
+import hiapp.modules.dm.bo.ShareBatchStateEnum;
+import hiapp.modules.dm.dao.DMDAO;
+import hiapp.modules.dm.hidialermode.dao.HidialerModeDAO;
+import hiapp.modules.dm.util.DateUtil;
+import hiapp.modules.dmmanager.data.DataImportJdbc;
+import hiapp.modules.dmsetting.DMBizPresetItem;
+import hiapp.modules.dmsetting.DMPresetStateEnum;
+import hiapp.modules.dmsetting.data.DmBizRepository;
 
 import java.util.*;
 
@@ -295,12 +301,11 @@ public class HidialerOutboundDataManage {
 
     public void initialize() {
         customerPool.initialize();
-        customerWaitPool.initialize();
     }
 
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {
         customerPool.clear();
-        customerWaitPool.clear();
+
         loadCustomersDaily(shareBatchItems);
     }
 

@@ -8,6 +8,8 @@ import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.multinumbermode.bo.*;
 import hiapp.modules.dm.multinumbermode.dao.MultiNumberPredictModeDAO;
+import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialCustomer;
+import hiapp.modules.dm.multinumberredialmode.bo.MultiNumberRedialStateEnum;
 import hiapp.modules.dm.util.DateUtil;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
@@ -32,12 +34,6 @@ public class MultiNumberOutboundDataManage {
 
     @Autowired
     MultiNumberPredictCustomerPool customerPool;
-
-    @Autowired
-    CustomerSharePool customerSharePool;
-
-    @Autowired
-    CustomerWaitPool customerWaitPool;
 
     @Autowired
     private DataImportJdbc dataImportJdbc;
@@ -188,7 +184,6 @@ public class MultiNumberOutboundDataManage {
     /**
      *   呼损处理
      */
-    //,,,
     public void lostProc(MultiNumberCustomer item, MultiNumberPredictStateEnum lossState) {
         String dialType = "dialType";
         String customerCallId = "customerCallId";
@@ -273,8 +268,6 @@ public class MultiNumberOutboundDataManage {
 
     public void initialize() {
         customerPool.initialize();
-        customerSharePool.initialize();
-        customerWaitPool.initialize();
     }
 
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {

@@ -72,10 +72,11 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param templateId
 	 */
 	public List<OutputFirstRow> getTemplateColums(Integer bizId,Integer templateId){
+		List<OutputFirstRow> columns=new ArrayList<OutputFirstRow>();
+		List<String> workSheetNameList=new ArrayList<String>();
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
-		List<OutputFirstRow> columns=new ArrayList<OutputFirstRow>();
 		try {
 			conn=this.getDbConnection();
 			String configJson=getConfigJson(bizId, templateId);
@@ -84,22 +85,46 @@ public class DataRecyleJdbc extends BaseRepository{
 			}
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
+				String workSheetName=null ;
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+					workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+					if(!"".equals(workSheetName)){
+						workSheetNameList.add(workSheetName);
+					}
+					
+				}
+				
+			}
+			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
+			for (int i = 0; i < dataArray.size(); i++) {
 				OutputFirstRow firstRow=new OutputFirstRow();
 				String title=null; 
 				String filed=null;
+				String workSheetName=null;
+				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+					workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+				}
 				if(!dataArray.get(i).getAsJsonObject().get("Title").isJsonNull()){
 					title=dataArray.get(i).getAsJsonObject().get("Title").getAsString();
 					if(!"".equals(title)){
 						firstRow.setTitle(title);
 					}
 				}
-				if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
-					filed=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
-					if(!"".equals(filed)){
-						firstRow.setField(filed);
+				for (int j = 0; j < newList.size(); j++) {
+					if(newList.get(j).equals(workSheetName)){
+						if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
+							filed=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
+							if(!"".equals(filed)&&!"IID".equals(filed.toUpperCase())&&!"CID".equals(filed.toUpperCase())&&!"DATAPOOLIDCUR".equals(filed.toUpperCase())&&!"AREACUR".equals(filed.toUpperCase())){
+								firstRow.setField(filed+j);
+							}else{
+								firstRow.setField(filed);
+							}
+						}
+						columns.add(firstRow);	
+						
 					}
 				}
-				columns.add(firstRow);		
+				
 			}
 			
 		} catch (SQLException e) {
@@ -178,8 +203,8 @@ public class DataRecyleJdbc extends BaseRepository{
 						}
 						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql2+=asName+columnName+",";
-							insertSql+=columnName+",";
-							createTableSql+=dataDistributeJdbc.getTempColumnType(columnName,workSheetId);
+							insertSql+=columnName+j+",";
+							createTableSql+=dataDistributeJdbc.getTempColumnType(columnName,workSheetId,j);
 							break;
 						}
 						
@@ -267,8 +292,8 @@ public class DataRecyleJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 			String configJson=getConfigJson(bizId, templateId);
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
-			String getDataSql1="select TEMPID,IID,CID,";
-			String getDataSql3="select TEMPID,IID,CID,";
+			String getDataSql1="select TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
+			String getDataSql3="select TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=null ;
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
@@ -296,9 +321,9 @@ public class DataRecyleJdbc extends BaseRepository{
 				}
 				for (int j = 0; j < newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName)){
-						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())){
-							getDataSql1+=columnName+",";
-							getDataSql3+=dataDistributeJdbc.getDataType(columnName,workSheetId)+",";
+						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
+							getDataSql1+=columnName+j+",";
+							getDataSql3+=dataDistributeJdbc.getDataType(columnName,workSheetId,j)+",";
 							break;
 						}
 						
@@ -317,14 +342,25 @@ public class DataRecyleJdbc extends BaseRepository{
 				map.put("tempId",rs.getObject(1));
 				map.put("IID",rs.getObject(2));
 				map.put("CID",rs.getObject(3));
+				map.put("DATAPOOLIDCUR",rs.getObject(4));
+				map.put("AREACUR",rs.getObject(5));
 				for (int i = 0; i < dataArray.size(); i++) {
 					String key=null;
-					if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
-						key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
-						if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
-							map.put(key,rs.getObject(key));
+					String workSheetName=null;
+					if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
+						workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
+					}
+					for (int j = 0; j < newList.size(); j++) {
+						if(newList.get(j).equals(workSheetName)){
+							if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
+								key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
+								if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())&&!"DATAPOOLIDCUR".equals(key.toUpperCase())&&!"AREACUR".equals(key.toUpperCase())){
+									map.put(key+j,rs.getObject(key+j));
+								}
+							}
 						}
 					}
+				
 				}
 				
 				dataList.add(map);

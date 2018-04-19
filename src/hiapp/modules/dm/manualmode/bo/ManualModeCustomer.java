@@ -3,10 +3,9 @@ package hiapp.modules.dm.manualmode.bo;
 import hiapp.modules.dmmanager.AreaTypeEnum;
 import hiapp.modules.dmmanager.OperationNameEnum;
 
-import java.io.Serializable;
 import java.util.Date;
 
-public class ManualModeCustomer implements Serializable{
+public class ManualModeCustomer {
     private Integer id; //ID
     private String sourceId;          //分配批次号
     private String importBatchId;        //导入批次号

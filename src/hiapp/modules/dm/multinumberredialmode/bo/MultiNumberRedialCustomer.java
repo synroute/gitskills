@@ -1,11 +1,10 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MultiNumberRedialCustomer implements Serializable{
+public class MultiNumberRedialCustomer {
 
     public Date getShareBatchStartTime() {
         return shareBatchStartTime;
