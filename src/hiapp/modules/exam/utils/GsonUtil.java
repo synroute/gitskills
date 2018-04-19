@@ -1,9 +1,12 @@
 package hiapp.modules.exam.utils;
 
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.poi.ss.usermodel.Cell;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,5 +39,27 @@ public class GsonUtil {
 		        }).create();
 		
 		return gson;
+	}
+	
+	public static String getStringcell(Cell cell){
+		String value="";
+		try{
+			if("yyyy/mm/dd".equals(cell.getCellStyle().getDataFormatString()) || "m/d/yy".equals(cell.getCellStyle().getDataFormatString())
+			        || "yy/m/d".equals(cell.getCellStyle().getDataFormatString()) || "mm/dd/yy".equals(cell.getCellStyle().getDataFormatString())
+			        || "dd-mmm-yy".equals(cell.getCellStyle().getDataFormatString())|| "yyyy/m/d".equals(cell.getCellStyle().getDataFormatString())){
+				
+				if(cell.getDateCellValue()!=null){
+					value= new SimpleDateFormat("yyyy/MM/dd").format(cell.getDateCellValue());
+				}
+			}else if("m/d/yy h:mm".equals(cell.getCellStyle().getDataFormatString())||"yyyy/m/d h:mm".equals(cell.getCellStyle().getDataFormatString())){
+				if(cell.getDateCellValue()!=null){
+					value= new SimpleDateFormat("yyyy/MM/dd hh:mm").format(cell.getDateCellValue());
+				}
+			}
+		}catch(IllegalStateException e){
+			value=cell.getRichStringCellValue().toString();
+		}
+	
+		return value;
 	}
 }
