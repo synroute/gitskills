@@ -8,8 +8,6 @@ import hiapp.modules.dmmanager.TreePool;
 import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.bean.DistributeTemplate;
 import hiapp.modules.dmmanager.bean.OutputFirstRow;
-import hiapp.system.buinfo.User;
-import hiapp.system.buinfo.data.UserRepository;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
@@ -39,8 +37,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	private SingleNumberOutboundDataManage singleNumberOutboundDataManage;
 	@Autowired
 	private DMService dMService;
-	@Autowired
-	private UserRepository userRepository;
+
 	/**
 	 * 获取所有分配模板
 	 * @param bizId
@@ -85,7 +82,6 @@ public class DataDistributeJdbc extends BaseRepository{
 	 */
 	public List<OutputFirstRow> getAllColumn(Integer bizId,Integer templateId){
 		List<OutputFirstRow> columns=new ArrayList<OutputFirstRow>();
-		List<String> workSheetNameList=new ArrayList<String>();
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -97,46 +93,22 @@ public class DataDistributeJdbc extends BaseRepository{
 			}
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
 			for (int i = 0; i < dataArray.size(); i++) {
-				String workSheetName=null ;
-				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
-					workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
-					if(!"".equals(workSheetName)){
-						workSheetNameList.add(workSheetName);
-					}
-					
-				}
-				
-			}
-			List<String> newList=new ArrayList<String>(new HashSet(workSheetNameList));
-			for (int i = 0; i < dataArray.size(); i++) {
 				OutputFirstRow firstRow=new OutputFirstRow();
 				String title=null; 
 				String filed=null;
-				String workSheetName=null;
-				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
-					workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
-				}
 				if(!dataArray.get(i).getAsJsonObject().get("Title").isJsonNull()){
 					title=dataArray.get(i).getAsJsonObject().get("Title").getAsString();
 					if(!"".equals(title)){
 						firstRow.setTitle(title);
 					}
 				}
-				for (int j = 0; j < newList.size(); j++) {
-					if(newList.get(j).equals(workSheetName)){
-						if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
-							filed=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
-							if(!"".equals(filed)&&!"IID".equals(filed.toUpperCase())&&!"CID".equals(filed.toUpperCase())&&!"DATAPOOLIDCUR".equals(filed.toUpperCase())&&!"AREACUR".equals(filed.toUpperCase())){
-								firstRow.setField(filed+j);
-							}else{
-								firstRow.setField(filed);
-							}
-						}
-						columns.add(firstRow);	
-						
+				if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
+					filed=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
+					if(!"".equals(filed)){
+						firstRow.setField(filed);
 					}
 				}
-				
+				columns.add(firstRow);		
 			}
 			
 		} catch (SQLException e) {
@@ -220,8 +192,8 @@ public class DataDistributeJdbc extends BaseRepository{
 						}
 						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
 							getDataSql2+=asName+columnName+",";
-							insertSql+=columnName+j+",";
-							createTableSql+=getTempColumnType(columnName,workSheetId,j);
+							insertSql+=columnName+",";
+							createTableSql+=getTempColumnType(columnName,workSheetId);
 							break;
 						}
 						
@@ -300,8 +272,8 @@ public class DataDistributeJdbc extends BaseRepository{
 			conn=this.getDbConnection();
 			String configJson=getConfigJson(bizId, templateId);
 			JsonArray dataArray= new JsonParser().parse(configJson).getAsJsonArray();
-			String getDataSql1="select TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
-			String getDataSql3="select TEMPID,IID,CID,DATAPOOLIDCUR,AREACUR,";
+			String getDataSql1="select TEMPID,IID,CID,";
+			String getDataSql3="select TEMPID,IID,CID,";
 			for (int i = 0; i < dataArray.size(); i++) {
 				String workSheetName=null ;
 				if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
@@ -329,9 +301,9 @@ public class DataDistributeJdbc extends BaseRepository{
 				}
 				for (int j = 0; j < newList.size(); j++) {
 					if(newList.get(j).equals(workSheetName)){
-						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())&&!"DATAPOOLIDCUR".equals(columnName.toUpperCase())&&!"AREACUR".equals(columnName.toUpperCase())){
-							getDataSql1+=columnName+j+",";
-							getDataSql3+=getDataType(columnName,workSheetId,j)+",";
+						if(!"IID".equals(columnName.toUpperCase())&&!"CID".equals(columnName.toUpperCase())){
+							getDataSql1+=columnName+",";
+							getDataSql3+=getDataType(columnName,workSheetId)+",";
 							break;
 						}
 						
@@ -350,25 +322,14 @@ public class DataDistributeJdbc extends BaseRepository{
 				map.put("tempId",rs.getObject(1));
 				map.put("IID",rs.getObject(2));
 				map.put("CID",rs.getObject(3));
-				map.put("DATAPOOLIDCUR",rs.getObject(4));
-				map.put("AREACUR",rs.getObject(5));
 				for (int i = 0; i < dataArray.size(); i++) {
 					String key=null;
-					String workSheetName=null;
-					if(!dataArray.get(i).getAsJsonObject().get("WorkSheetName").isJsonNull()){
-						workSheetName=dataArray.get(i).getAsJsonObject().get("WorkSheetName").getAsString();
-					}
-					for (int j = 0; j < newList.size(); j++) {
-						if(newList.get(j).equals(workSheetName)){
-							if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
-								key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
-								if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())&&!"DATAPOOLIDCUR".equals(key.toUpperCase())&&!"AREACUR".equals(key.toUpperCase())){
-									map.put(key+j,rs.getObject(key+j));
-								}
-							}
+					if(!dataArray.get(i).getAsJsonObject().get("ColumnName").isJsonNull()){
+						key=dataArray.get(i).getAsJsonObject().get("ColumnName").getAsString();
+						if(!"".equals(key)&&!"IID".equals(key.toUpperCase())&&!"CID".equals(key.toUpperCase())){
+							map.put(key,rs.getObject(key));
 						}
 					}
-				
 				}
 				
 				dataList.add(map);
@@ -404,23 +365,16 @@ public class DataDistributeJdbc extends BaseRepository{
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		TreePool treePool=new TreePool();
-		
-		
 		try {
 			conn=this.getDbConnection();
-			String sql="select a.ID,a.DATAPOOLNAME,a.PID,a.datapooltype from HASYS_DM_DATAPOOL a where a.id=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null)";
+			String sql="select a.ID,a.DATAPOOLNAME,a.PID from HASYS_DM_DATAPOOL a where a.id=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null)";
 			pst=conn.prepareStatement(sql);
 			pst.setInt(1, bizId);
 			pst.setInt(2,permissionId);
 			rs=pst.executeQuery();
 			while(rs.next()){
 				treePool.setId(rs.getInt(1));
-				
-				
-					treePool.setDataPoolName(rs.getString(2));
-				
-				
-				
+				treePool.setDataPoolName(rs.getString(2));
 				treePool.setPid(rs.getInt(3));
 			}
 			
@@ -440,7 +394,6 @@ public class DataDistributeJdbc extends BaseRepository{
 		ResultSet rs = null;
 		List<UserItem>	userItems=new ArrayList<UserItem>();
 		String poolName="HAU_DM_B"+bizId+"C_POOL";
-		User user = new User();
 		try {
 			conn=this.getDbConnection();
 			String sql="select a.ID,a.DATAPOOLNAME,a.POOLTOPLIMIT-(select nvl(sum(case when b.datapoolidcur = a.id then 1 else 0 end),0) from "+poolName+" b) topLimit,a.dataPoolType from HASYS_DM_DATAPOOL a where a.BusinessID=? and a.pid=?";
@@ -449,16 +402,9 @@ public class DataDistributeJdbc extends BaseRepository{
 			pst.setInt(2, pid);
 			rs=pst.executeQuery();
 			while(rs.next()){
-				user = userRepository.getUserById(rs.getString(2));
 				UserItem userItem=new UserItem();
 				userItem.setId(String.valueOf(rs.getInt(1)));
-				if(rs.getString(4).equals("3"))
-				{
-					userItem.setText(rs.getString(2)+"|"+user.getName());
-					
-				}else {
-					userItem.setText(rs.getString(2));;
-				}
+				userItem.setText(rs.getString(2));;
 				userItem.setTopLimit(rs.getInt(3));
 				userItem.setDataPoolType(rs.getInt(4));
 				userItems.add(userItem);
@@ -479,7 +425,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @return
 	 */
 	public UserItem getTreePoolByBizId(Integer bizId,String userId,int permissionId){
-		TreePool treePool=getRootPool(userId, bizId,permissionId); 
+		TreePool treePool=getRootPool(userId, bizId,permissionId);
 		UserItem userItem=new UserItem();
 		userItem.setId(String.valueOf(treePool.getId()));
 		userItem.setText(treePool.getDataPoolName());
@@ -925,7 +871,7 @@ public class DataDistributeJdbc extends BaseRepository{
 	 * @param asName
 	 * @return
 	 */
-	public String getDataType(String columnName,String workSheetId,int j){
+	public String getDataType(String columnName,String workSheetId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -943,9 +889,9 @@ public class DataDistributeJdbc extends BaseRepository{
 			}
 			
 			if("varchar".equals(dataType.toLowerCase())||"int".equals(dataType.toLowerCase())){
-				column=columnName+j;
+				column=columnName;
 			}else if("datetime".equals(dataType.toLowerCase())){
-				column="to_char("+columnName+j+",'yyyy-mm-dd hh24:mi:ss') "+columnName+j;
+				column="to_char("+columnName+",'yyyy-mm-dd hh24:mi:ss') "+columnName;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -958,7 +904,7 @@ public class DataDistributeJdbc extends BaseRepository{
 		return column;
 	}
 	
-	public String getTempColumnType(String columnName,String workSheetId,int j){
+	public String getTempColumnType(String columnName,String workSheetId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -977,11 +923,11 @@ public class DataDistributeJdbc extends BaseRepository{
 				length=rs.getInt(2);
 			}
 			if("varchar".equals(dataType.toLowerCase())){
-				tempColumnType=columnName+j+"  VARCHAR2("+length+"),";
+				tempColumnType=columnName+"  VARCHAR2("+length+"),";
 			}else if("int".equals(dataType.toLowerCase())){
-				tempColumnType=columnName+j+"  NUMBER,";
+				tempColumnType=columnName+"  NUMBER,";
 			}else if("datetime".equals(dataType.toLowerCase())){
-				tempColumnType=columnName+j+"  DATE,";
+				tempColumnType=columnName+"  DATE,";
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

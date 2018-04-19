@@ -1,25 +1,25 @@
 package hiapp.modules.dm.singlenumbermode;
 
 import com.google.gson.Gson;
+import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
-import hiapp.modules.dm.hidialermode.bo.HidialerModeCustomer;
+import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.singlenumbermode.bo.*;
 import hiapp.modules.dm.singlenumbermode.dao.SingleNumberModeDAO;
-import hiapp.modules.dm.dao.DMDAO;
-
 import hiapp.modules.dm.util.DateUtil;
+import hiapp.modules.dm.util.GenericitySerializeUtil;
+import hiapp.modules.dm.util.RedisComparator;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import hiapp.modules.dmmanager.data.DataImportJdbc;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMPresetStateEnum;
 import hiapp.modules.dmsetting.data.DmBizOutboundConfigRepository;
-import hiapp.utils.database.DBConnectionPool;
-import hiapp.modules.dm.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -47,24 +47,29 @@ public class SingleNumberOutboundDataManage {
     @Autowired
     private DMBizMangeShare dmBizMangeShare;
 
+    @Autowired
+    private JedisPool jedisPool;
+
+    // redis客户共享池
+    private Jedis redisSingleNumberOutboud;
     // 客户共享池
     // BizID <==> {ShareBatchID <==> PriorityBlockingQueue<SingleNumberModeShareCustomerItem>}
-    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapPresetDialCustomerSharePool;
-    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapStageDialCustomerSharePool;
-    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> mapDialCustomerSharePool;
+    /*Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> singleNumberOutboundMapPresetDialCustomerSharePool;
+    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> singleNumberOutboundMapStageDialCustomerSharePool;
+    Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> singleNumberOutboundMapDialCustomerSharePool;
 
     // 等待拨打结果的客户池，坐席人员维度
     // UserID <==> {BizID + ImportID + CustomerID <==> SingleNumberModeShareCustomerItem}
-    Map<String, Map<String, SingleNumberModeShareCustomerItem>> mapWaitResultCustomerPool;
+    Map<String, Map<String, SingleNumberModeShareCustomerItem>> singleNumberOutboundMapWaitResultCustomerPool;
 
     // 等待拨打超时的客户池，抽取时间的分钟SLOT维度
     // 分钟Slot <==> {BizId + ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
-    Map<Long, Map<String, SingleNumberModeShareCustomerItem>> mapWaitTimeOutCustomerPool;
+    Map<Long, Map<String, SingleNumberModeShareCustomerItem>> singleNumberOutboundMapWaitTimeOutCustomerPool;
 
     // 等待共享停止/取消的客户池，共享批次维度，用于标注已经停止共享的客户
     // BizId + ShareBatchId <==> {BizId + ImportId + CustomerId <==> SingleNumberModeShareCustomerItem}
-    Map<String, Map<String, SingleNumberModeShareCustomerItem>> mapWaitStopCustomerPool;
-
+    Map<String, Map<String, SingleNumberModeShareCustomerItem>> singleNumberOutboundMapWaitStopCustomerPool;
+*/
     Long earliestTimeSlot;
 
     // 重拨策略
@@ -77,6 +82,7 @@ public class SingleNumberOutboundDataManage {
      * @param bizId
      * @return
      */
+    //已改
     public synchronized SingleNumberModeShareCustomerItem extractNextOutboundCustomer(String userId, int bizId) {
         Date now = new Date();
 
@@ -89,12 +95,12 @@ public class SingleNumberOutboundDataManage {
         PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = null;
 
 
-        shareDataItem = retrievePresetCustomer(bizId, shareBatchIdList, mapPresetDialCustomerSharePool);
+        shareDataItem = retrievePresetCustomer(bizId, shareBatchIdList, "singleNumberOutboundMapPresetDialCustomerSharePool");
         if (null == shareDataItem) {
-            shareDataItem = retrieveGeneralCustomer(bizId, shareBatchIdList, mapStageDialCustomerSharePool);
+            shareDataItem = retrieveGeneralCustomer(bizId, shareBatchIdList, "singleNumberOutboundMapStageDialCustomerSharePool");
         }
         if (null == shareDataItem) {
-            shareDataItem = retrieveGeneralCustomer(bizId, shareBatchIdList, mapDialCustomerSharePool);
+            shareDataItem = retrieveGeneralCustomer(bizId, shareBatchIdList, "singleNumberOutboundMapDialCustomerSharePool");
         }
 
         if (null != shareDataItem) {
@@ -110,7 +116,7 @@ public class SingleNumberOutboundDataManage {
 
         return shareDataItem;
     }
-
+    //,,,
     public String submitOutboundResult(String userId, int bizId,
                        String shareBatchId, String importBatchId, String customerId,
                        String resultCodeType, String resultCode, Boolean isPreset, Date presetTime,
@@ -145,6 +151,7 @@ public class SingleNumberOutboundDataManage {
      * 重新初始化处理不适合，举例说明：系统运行中，进行启用共享批次操作，会导致获取外呼客户的功能暂停一段时间。
      *
      */
+    //,,,
     public String startShareBatch(int bizId, List<String> shareBatchIds) {
 
         // 设置共享批次状态
@@ -155,15 +162,15 @@ public class SingleNumberOutboundDataManage {
         loadCustomersIncremental(shareBatchItems);
         return "";
     }
-
+    //已改
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
-        removeFromCustomerSharePool(bizId, shareBatchIds, mapPresetDialCustomerSharePool);
-        removeFromCustomerSharePool(bizId, shareBatchIds, mapStageDialCustomerSharePool);
-        removeFromCustomerSharePool(bizId, shareBatchIds, mapDialCustomerSharePool);
+        removeFromCustomerSharePool(bizId, shareBatchIds, "singleNumberOutboundMapPresetDialCustomerSharePool");
+        removeFromCustomerSharePool(bizId, shareBatchIds, "singleNumberOutboundMapStageDialCustomerSharePool");
+        removeFromCustomerSharePool(bizId, shareBatchIds, "singleNumberOutboundMapDialCustomerSharePool");
 
         markShareBatchStopFromCustomerWaitPool(bizId, shareBatchIds);
     }
-
+    //,,,
     public Boolean appendCustomersToShareBatch(int bizId, List<String> shareBatchIds) {
 
         // 获取ACTIVE状态的 shareBatchIds
@@ -175,12 +182,15 @@ public class SingleNumberOutboundDataManage {
     }
 
     // 用户登录通知
+    //已改
     public void onLogin(String userId) {
-        Map<String, SingleNumberModeShareCustomerItem> mapUserWaitResultPool = mapWaitResultCustomerPool.remove(userId);
+        Map<byte[], byte[]> mapUserWaitResultPool = redisSingleNumberOutboud.hgetAll(GenericitySerializeUtil.serialize(
+                "singleNumberOutboundMapWaitResultCustomerPool" + userId));
         if (null == mapUserWaitResultPool)
             return;
-
-        for (SingleNumberModeShareCustomerItem customerItem : mapUserWaitResultPool.values()) {
+        Set<Map.Entry<byte[], byte[]>> entries = mapUserWaitResultPool.entrySet();
+        for (Map.Entry<byte[], byte[]> entry : entries) {
+            SingleNumberModeShareCustomerItem customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
             // 放回客户共享池
             if (!customerItem.getInvalid()) {
                 addCustomerToSharePool(customerItem);
@@ -194,37 +204,26 @@ public class SingleNumberOutboundDataManage {
         }
 
     }
-
+    //已改
     public void initialize() {
-
-        mapPresetDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
-        mapStageDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
-        mapDialCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>>();
-
-        mapWaitResultCustomerPool = new HashMap<String, Map<String, SingleNumberModeShareCustomerItem>>();
-        mapWaitTimeOutCustomerPool = new HashMap<Long, Map<String, SingleNumberModeShareCustomerItem>>();
-        mapWaitStopCustomerPool = new HashMap<String, Map<String, SingleNumberModeShareCustomerItem>>();
-
+        //初始化redis
+        redisSingleNumberOutboud = jedisPool.getResource();
         mapBizIdVsEndCodeRedialStrategy = new HashMap<Integer, EndCodeRedialStrategy>();
 
         Date now = new Date();
         earliestTimeSlot = now.getTime()/Constants.timeSlotSpan;
-
         System.out.println("SingleNumber Outbound InitComplete ...");
     }
-
+    //已改
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {
-        mapPresetDialCustomerSharePool.clear();
-        mapStageDialCustomerSharePool.clear();
-        mapDialCustomerSharePool.clear();
-
-        mapWaitResultCustomerPool.clear();
-        mapWaitTimeOutCustomerPool.clear();
-        mapWaitStopCustomerPool.clear();
-
+        //每天清空单号码重播的数据，再加载
+        Set<byte[]> keys = redisSingleNumberOutboud.keys(GenericitySerializeUtil.serialize("singleNumberOutbound*"));
+        for (byte[] key : keys) {
+            redisSingleNumberOutboud.del(key);
+        }
         loadCustomersDaily(shareBatchItems);
     }
-
+    //,,,
     public void cancelOutboundTask(int bizId, List<CustomerBasic> customerBasicList) {
         // step 1 : remove from share pool
         List<SingleNumberModeShareCustomerItem> customerList = cancelShare(bizId, customerBasicList);
@@ -240,21 +239,24 @@ public class SingleNumberOutboundDataManage {
 
         singleNumberModeDAO.updateCustomerShareStateToCancel(bizId, customerDBIdList, SingleNumberModeShareCustomerStateEnum.CANCELLED);
     }
-
+    //已改
     public List<SingleNumberModeShareCustomerItem> cancelShare(int bizId, List<CustomerBasic> customerBasicList) {
         List<SingleNumberModeShareCustomerItem> customerList = new ArrayList<SingleNumberModeShareCustomerItem>();
         for (CustomerBasic customerBasic : customerBasicList) {
-            Map<String, SingleNumberModeShareCustomerItem> oneShareBatchCustomerPool = mapWaitStopCustomerPool.get(customerBasic.getSourceToken());
-            if (null == oneShareBatchCustomerPool || oneShareBatchCustomerPool.isEmpty()) {
-                mapWaitStopCustomerPool.remove(customerBasic.getSourceToken());
-                continue;
-            }
-
-            SingleNumberModeShareCustomerItem customer = oneShareBatchCustomerPool.get(customerBasic.getCustomerToken());
+            byte[] mapSerialize = GenericitySerializeUtil.
+                    serialize("singleNumberOutboundMapWaitStopCustomerPool" + customerBasic.getSourceToken());
+            //先从redis中取出来设置
+            Map<byte[], byte[]> oneShareBatchCustomerPool = redisSingleNumberOutboud.hgetAll(mapSerialize);
+            byte[] fieldSerialize = GenericitySerializeUtil.serialize(customerBasic.getCustomerToken());
+            SingleNumberModeShareCustomerItem customer = GenericitySerializeUtil.unserialize(oneShareBatchCustomerPool.
+                    get(fieldSerialize));
             if (null == customer)
                 continue;
 
             customer.setInvalid(true);
+            //再存回redis中
+            oneShareBatchCustomerPool.put(fieldSerialize, GenericitySerializeUtil.serialize(customer));
+            redisSingleNumberOutboud.hmset(mapSerialize, oneShareBatchCustomerPool);
             customerList.add(customer);
         }
 
@@ -268,6 +270,7 @@ public class SingleNumberOutboundDataManage {
      * @param bizId
      * @param shareBatchIds
      */
+    //,,,
     private List<ShareBatchItem> shareBatchIncrementalProc(int bizId, /*IN*/List<String> shareBatchIds) {
         //List<String> expiredShareBatchIds = new ArrayList<String>();
         dmDAO.expireShareBatchsByEndTime(/*expiredShareBatchIds*/);
@@ -279,7 +282,7 @@ public class SingleNumberOutboundDataManage {
         return shareBatchItems;
     }
 
-    //
+    //,,,
     private void loadCustomersDaily(List<ShareBatchItem> shareBatchItems) {
 
         Date now = new Date();
@@ -347,6 +350,7 @@ public class SingleNumberOutboundDataManage {
     }
 
     // 用于共享批次的启用，根据共享批次，不会导致重复加载
+    //,,,
     private void loadCustomersIncremental(List<ShareBatchItem> shareBatchItems) {
 
         // 根据BizId, 归类共享客户数据
@@ -390,43 +394,42 @@ public class SingleNumberOutboundDataManage {
             addCustomerToSharePool(customerItem);
         }
     }
-
+    //已改
     //匿名Comparator实现
-    private static Comparator<SingleNumberModeShareCustomerItem> nextDialTimeComparator = new Comparator<SingleNumberModeShareCustomerItem>() {
+    private static RedisComparator<SingleNumberModeShareCustomerItem> nextDialTimeComparator = new RedisComparator<SingleNumberModeShareCustomerItem>() {
 
         @Override
         public int compare(SingleNumberModeShareCustomerItem c1, SingleNumberModeShareCustomerItem c2) {
-            return (c1.getNextDialTime().before(c2.getNextDialTime())) ? 1 : -1;
+            if (c1 != null && c2 != null && c1.getNextDialTime() != null && c2.getNextDialTime() != null){
+                return (c1.getNextDialTime().before(c2.getNextDialTime())) ? 1 : -1;
+            }
+            return 0;
         }
     };
 
     //匿名Comparator实现
-    private static Comparator<SingleNumberModeShareCustomerItem> shareBatchBeginTimeComparator = new Comparator<SingleNumberModeShareCustomerItem>() {
+    private static RedisComparator<SingleNumberModeShareCustomerItem> shareBatchBeginTimeComparator = new RedisComparator<SingleNumberModeShareCustomerItem>() {
 
         @Override
         public int compare(SingleNumberModeShareCustomerItem c1, SingleNumberModeShareCustomerItem c2) {
-            return (c1.getShareBatchStartTime().before(c2.getShareBatchStartTime())) ? 1 : -1;
+            if (c1 != null && c2 != null&& c1.getShareBatchStartTime() != null && c2.getShareBatchStartTime() != null){
+                return (c1.getShareBatchStartTime().before(c2.getShareBatchStartTime())) ? 1 : -1;
+            }
+            return 0;
         }
     };
-
+    //已改
     private void addWaitCustomer(String userId, int bizId, SingleNumberModeShareCustomerItem customerItem) {
-        Map<String, SingleNumberModeShareCustomerItem> mapWaitResultPool = mapWaitResultCustomerPool.get(userId);
-        if (null == mapWaitResultPool) {
-            mapWaitResultPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
-            mapWaitResultCustomerPool.put(userId, mapWaitResultPool);
-        }
-        mapWaitResultPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
+        redisSingleNumberOutboud.hset(GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitResultCustomerPool" + userId),
+                GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                GenericitySerializeUtil.serialize(customerItem));
 
         Long timeSlot = customerItem.getExtractTime().getTime()/Constants.timeSlotSpan;
-        Map<String, SingleNumberModeShareCustomerItem> mapWaitTimeOutPool = mapWaitTimeOutCustomerPool.get(timeSlot);
-        if (null == mapWaitTimeOutPool) {
-            mapWaitTimeOutPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
-            mapWaitTimeOutCustomerPool.put(timeSlot, mapWaitTimeOutPool);
-        }
-        mapWaitTimeOutPool.put(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId(), customerItem);
-
+        redisSingleNumberOutboud.hset(GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitTimeOutCustomerPool" + timeSlot),
+                GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                GenericitySerializeUtil.serialize(customerItem));
     }
-
+    //已改
     private SingleNumberModeShareCustomerItem removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
 
         SingleNumberModeShareCustomerItem customerItem = removeWaitResultCustome(userId, bizId, importBatchId, customerId);
@@ -440,37 +443,29 @@ public class SingleNumberOutboundDataManage {
 
         return customerItem;
     }
-
+    //已改
     private SingleNumberModeShareCustomerItem removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
         SingleNumberModeShareCustomerItem customerItem = null;
-
-        Map<String, SingleNumberModeShareCustomerItem> mapWaitResultPool = mapWaitResultCustomerPool.get(userId);
-        if (null != mapWaitResultPool) {
-            customerItem = mapWaitResultPool.remove(bizId + importBatchId + customerId);
-            if (mapWaitResultPool.isEmpty())
-                mapWaitResultCustomerPool.remove(userId);
+        byte[] removeSerialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitResultCustomerPool" + userId);
+        byte[] fieldSerialize = GenericitySerializeUtil.serialize(bizId + importBatchId + customerId);
+        Boolean hexists = redisSingleNumberOutboud.hexists(removeSerialize, fieldSerialize);
+        if (hexists){
+            customerItem =  GenericitySerializeUtil.unserialize(redisSingleNumberOutboud.hget(removeSerialize, fieldSerialize));
+            redisSingleNumberOutboud.hdel(removeSerialize, fieldSerialize);
         }
         return customerItem;
     }
-
+    //已改
     private void removeWaitTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<String, SingleNumberModeShareCustomerItem> mapWaitTimeOutPool = mapWaitTimeOutCustomerPool.get(timeSlot);
-        if (null != mapWaitTimeOutPool) {
-            mapWaitTimeOutPool.remove(bizId + importBatchId + customerId);
-            if (mapWaitTimeOutPool.isEmpty())
-                mapWaitTimeOutCustomerPool.remove(timeSlot);
-        }
+        redisSingleNumberOutboud.hdel(GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitTimeOutCustomerPool" + timeSlot),
+                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
     }
-
+    //已改
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
-        Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + shareBatchId);
-        if (null != mapWaitStopPool) {
-            mapWaitStopPool.remove(bizId + importBatchId + customerId);
-            if (mapWaitStopPool.isEmpty())
-                mapWaitStopCustomerPool.remove(bizId + shareBatchId);
-        }
+        redisSingleNumberOutboud.hdel(GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitStopCustomerPool" + bizId + shareBatchId),
+                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
     }
-
+    //不用redis
     private void procEndcode(String userId, SingleNumberModeShareCustomerItem originCustomerItem,
                              EndCodeRedialStrategy endCodeRedialStrategy,
                              String resultCodeType, String resultCode, Boolean isPreset, Date presetTime) {
@@ -594,7 +589,7 @@ public class SingleNumberOutboundDataManage {
         }
 
     }
-
+    //,,,
     private EndCodeRedialStrategy getEndCodeRedialStrategyByBizId(int bizId) {
         String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
 
@@ -603,64 +598,64 @@ public class SingleNumberOutboundDataManage {
 
         return EndCodeRedialStrategy.getInstance(endCodeRedialStrategyFromDB);
     }
-
+    //已改
     private void addCustomerToSharePool(SingleNumberModeShareCustomerItem newCustomerItem) {
-        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
-        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
+        Map<byte[], byte[]> shareBatchIdVsCustomerMap;
+        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue = null;
+        byte[] mapSerialize = GenericitySerializeUtil.serialize(newCustomerItem.getShareBatchId());
         if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DIAL.equals(newCustomerItem.getState())) {
-            shareBatchIdVsCustomerMap = mapStageDialCustomerSharePool.get(newCustomerItem.getBizId());
-            if (null == shareBatchIdVsCustomerMap) {
-                shareBatchIdVsCustomerMap = new HashMap<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
-                mapStageDialCustomerSharePool.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
+            //先从redis中取出来
+            byte[] serialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapStageDialCustomerSharePool" + newCustomerItem.getBizId());
+            shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(serialize);
+            if (!shareBatchIdVsCustomerMap.isEmpty()){
+                queue = GenericitySerializeUtil.unserialize(shareBatchIdVsCustomerMap.get(mapSerialize));
             }
-
-            queue = shareBatchIdVsCustomerMap.get(newCustomerItem.getShareBatchId());
-            if (null == queue) {
+            if (null == queue || queue.isEmpty()) {
                 queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
-                shareBatchIdVsCustomerMap.put(newCustomerItem.getShareBatchId(), queue);
             }
+                queue.put(newCustomerItem);
+                shareBatchIdVsCustomerMap.put(mapSerialize, GenericitySerializeUtil.serialize(queue));
+            //操作完成之后，再存回redis中
+            redisSingleNumberOutboud.hmset(serialize, shareBatchIdVsCustomerMap);
+           // 下面两个同理
         } else if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(newCustomerItem.getState())) {
-            shareBatchIdVsCustomerMap = mapPresetDialCustomerSharePool.get(newCustomerItem.getBizId());
-            if (null == shareBatchIdVsCustomerMap) {
-                shareBatchIdVsCustomerMap = new HashMap<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
-                mapPresetDialCustomerSharePool.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
+            //先从redis中取出来
+            byte[] serialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapPresetDialCustomerSharePool" + newCustomerItem.getBizId());
+            shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(serialize);
+            if (!shareBatchIdVsCustomerMap.isEmpty()){
+                queue = GenericitySerializeUtil.unserialize(shareBatchIdVsCustomerMap.get(mapSerialize));
             }
-
-
-            queue = shareBatchIdVsCustomerMap.get(newCustomerItem.getShareBatchId());
-            if (null == queue) {
+            if (null == queue || queue.isEmpty()) {
                 queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
-                shareBatchIdVsCustomerMap.put(newCustomerItem.getShareBatchId(), queue);
             }
+            queue.put(newCustomerItem);
+            shareBatchIdVsCustomerMap.put(mapSerialize, GenericitySerializeUtil.serialize(queue));
+            //操作完成之后，再存回redis中
+            redisSingleNumberOutboud.hmset(serialize, shareBatchIdVsCustomerMap);
         } else {
-            shareBatchIdVsCustomerMap = mapDialCustomerSharePool.get(newCustomerItem.getBizId());
-            if (null == shareBatchIdVsCustomerMap) {
-                shareBatchIdVsCustomerMap = new HashMap<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>();
-                mapDialCustomerSharePool.put(newCustomerItem.getBizId(), shareBatchIdVsCustomerMap);
+            //先从redis中取出来
+            byte[] serialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapDialCustomerSharePool" + newCustomerItem.getBizId());
+            shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(serialize);
+            if (!shareBatchIdVsCustomerMap.isEmpty()){
+                queue = GenericitySerializeUtil.unserialize(shareBatchIdVsCustomerMap.get(mapSerialize));
             }
-
-            queue = shareBatchIdVsCustomerMap.get(newCustomerItem.getShareBatchId());
-            if (null == queue) {
+            if (null == queue || queue.isEmpty()) {
                 queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, shareBatchBeginTimeComparator);
-                shareBatchIdVsCustomerMap.put(newCustomerItem.getShareBatchId(), queue);
             }
+            queue.put(newCustomerItem);
+            shareBatchIdVsCustomerMap.put(mapSerialize, GenericitySerializeUtil.serialize(queue));
+            //操作完成之后，再存回redis中
+            redisSingleNumberOutboud.hmset(serialize, shareBatchIdVsCustomerMap);
         }
-
-        queue.put(newCustomerItem);
-
-        Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool = mapWaitStopCustomerPool.get(newCustomerItem.getShareToken());
-        if (null == mapWaitStopPool) {
-            mapWaitStopPool = new HashMap<String, SingleNumberModeShareCustomerItem>();
-            mapWaitStopCustomerPool.put(newCustomerItem.getShareToken(), mapWaitStopPool);
-        }
-        mapWaitStopPool.put(newCustomerItem.getCustomerToken(), newCustomerItem);
-
+        redisSingleNumberOutboud.hset(GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitStopCustomerPool" + newCustomerItem.getShareToken()),
+                GenericitySerializeUtil.serialize(newCustomerItem.getCustomerToken()),GenericitySerializeUtil.serialize(newCustomerItem));
         System.out.println("M3 add customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
                 + "] CID[" + newCustomerItem.getCustomerId() + "]");
     }
 
     // 用于过滤 当日重拨已满的客户
+    //,,,
     Boolean needJoinCustomerPool(int bizId, SingleNumberModeShareCustomerItem customerItem) {
 
         if (!SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL.equals(customerItem.getState()))
@@ -692,6 +687,7 @@ public class SingleNumberOutboundDataManage {
     }
 
     // 处理追加客户的情形
+    //,,,,
     private void loadCustomersAppend(int bizId, List<ShareBatchItem> shareBatchItems) {
         System.out.println("bizId : " + bizId);
 
@@ -719,19 +715,16 @@ public class SingleNumberOutboundDataManage {
         singleNumberModeDAO.updateCustomerShareState(bizId, appendedStateShareBatchIdSet,
                 SingleNumberModeShareCustomerStateEnum.APPENDED, SingleNumberModeShareCustomerStateEnum.CREATED);
     }
-
+    //已改
     private void removeFromCustomerSharePool(int bizId, List<String> shareBatchIds,
-                                             Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> customerPool)  {
-        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
-        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap = null;
-        shareBatchIdVsCustomerMap = customerPool.get(bizId);
-        if (null != shareBatchIdVsCustomerMap) {
+                                             String customerPoolString)  {
+        byte[] mapSerialize = GenericitySerializeUtil.serialize(
+                customerPoolString + bizId);
+        Map<byte[], byte[]> shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(mapSerialize);
+        if (!shareBatchIdVsCustomerMap.isEmpty()) {
             for (String shareBatchId : shareBatchIds) {
-                queue = shareBatchIdVsCustomerMap.remove(shareBatchId);
+                redisSingleNumberOutboud.hdel(mapSerialize, GenericitySerializeUtil.serialize(shareBatchId));
             }
-
-            if (shareBatchIdVsCustomerMap.isEmpty())
-                customerPool.remove(bizId);
         }
     }
 
@@ -740,12 +733,16 @@ public class SingleNumberOutboundDataManage {
      * @param bizId
      * @param shareBatchIds
      */
+    //已改
     private void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
         for (String shareBatchId : shareBatchIds) {
-            Map<String, SingleNumberModeShareCustomerItem> mapWaitStopPool;
-            mapWaitStopPool = mapWaitStopCustomerPool.get(bizId + shareBatchId);
-            for (SingleNumberModeShareCustomerItem item : mapWaitStopPool.values()) {
+            byte[] mapSerialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitStopCustomerPool" + bizId + shareBatchId);
+            Map<byte[], byte[]> mapWaitStopPool = redisSingleNumberOutboud.hgetAll(mapSerialize);
+            Set<Map.Entry<byte[], byte[]>> entries = mapWaitStopPool.entrySet();
+            for (Map.Entry<byte[], byte[]> entry : entries) {
+                SingleNumberModeShareCustomerItem item = GenericitySerializeUtil.unserialize(entry.getValue());
                 item.setInvalid(true);
+                redisSingleNumberOutboud.hset(mapSerialize, entry.getKey(), GenericitySerializeUtil.serialize(item));
             }
         }
     }
@@ -756,12 +753,12 @@ public class SingleNumberOutboundDataManage {
      * @param shareBatchIdList
      * @return
      */
+    //已改
     private SingleNumberModeShareCustomerItem retrievePresetCustomer(int bizId, List<String> shareBatchIdList,
-                       Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> customerSharePool) {
-        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap;
-        shareBatchIdVsCustomerMap = customerSharePool.get(bizId);
-        if (null == shareBatchIdVsCustomerMap) {
-            customerSharePool.remove(bizId);
+                       String customerSharePoolString) {
+        byte[] mapSerialize = GenericitySerializeUtil.serialize(customerSharePoolString + bizId);
+        Map<byte[], byte[]> shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(mapSerialize);
+        if (shareBatchIdVsCustomerMap.isEmpty()) {
             return null;
         }
 
@@ -769,9 +766,11 @@ public class SingleNumberOutboundDataManage {
 
         // TODO 目前在一个共享批次中取得就返回了，其实可以PEEK遍所有共享批次后比较拨打时间，确定先取那个客户
         for (String shareBatchId : shareBatchIdList) {
-            PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
+            byte[] fieldSerialize = GenericitySerializeUtil.serialize(shareBatchId);
+            PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = GenericitySerializeUtil.
+                    unserialize(redisSingleNumberOutboud.hget(mapSerialize, fieldSerialize));
+
             if (null == customerQueue || customerQueue.isEmpty()) {
-                shareBatchIdVsCustomerMap.remove(shareBatchId);
                 continue;
             }
 
@@ -783,6 +782,7 @@ public class SingleNumberOutboundDataManage {
 
             if (shareDataItem.getNextDialTime().before(now)) {
                 shareDataItem = customerQueue.poll();
+                redisSingleNumberOutboud.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(customerQueue));
                 return shareDataItem;
             }
         }
@@ -796,44 +796,46 @@ public class SingleNumberOutboundDataManage {
      * @param shareBatchIdList
      * @return
      */
+    //已改
     private SingleNumberModeShareCustomerItem retrieveGeneralCustomer(int bizId, List<String> shareBatchIdList,
-                   Map<Integer, Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>>> customerSharePool) {
-        Map<String, PriorityBlockingQueue<SingleNumberModeShareCustomerItem>> shareBatchIdVsCustomerMap;
-        shareBatchIdVsCustomerMap = customerSharePool.get(bizId);
-        if (null == shareBatchIdVsCustomerMap) {
-            customerSharePool.remove(bizId);
+                   String customerSharePoolString) {
+
+        byte[] mapSerialize = GenericitySerializeUtil.serialize(customerSharePoolString + bizId);
+        Map<byte[], byte[]> shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(mapSerialize);
+        if (shareBatchIdVsCustomerMap.isEmpty()) {
             return null;
         }
 
         for (String shareBatchId : shareBatchIdList) {
-            PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = shareBatchIdVsCustomerMap.get(shareBatchId);
+            byte[] fieldSerialize = GenericitySerializeUtil.serialize(shareBatchId);
+            PriorityBlockingQueue<SingleNumberModeShareCustomerItem> customerQueue = GenericitySerializeUtil.
+                    unserialize(redisSingleNumberOutboud.hget(mapSerialize, fieldSerialize));
             if (null == customerQueue || customerQueue.isEmpty()) {
-                shareBatchIdVsCustomerMap.remove(shareBatchId);
                 continue;
             }
 
             SingleNumberModeShareCustomerItem shareDataItem = customerQueue.poll();
             if (shareDataItem.getInvalid())
                 continue;
-
+            redisSingleNumberOutboud.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(customerQueue));
             return shareDataItem;
         }
 
         return null;
     }
-
+    //已改
     public void timeoutProc() {
         Date now =  new Date();
         Long curTimeSlot = now.getTime()/Constants.timeSlotSpan;
         Long timeoutTimeSlot = curTimeSlot - Constants.timeoutThreshold/Constants.timeSlotSpan;
 
         while (earliestTimeSlot < timeoutTimeSlot) {
-            Map<String, SingleNumberModeShareCustomerItem> mapTimeSlotWaitTimeOutPool;
-            mapTimeSlotWaitTimeOutPool =  mapWaitTimeOutCustomerPool.get(earliestTimeSlot++);
-            if (null == mapTimeSlotWaitTimeOutPool)
+            Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = redisSingleNumberOutboud.hgetAll(GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitTimeOutCustomerPool" + earliestTimeSlot++));
+            if (mapTimeSlotWaitTimeOutPool.isEmpty())
                 continue;
-
-            for (SingleNumberModeShareCustomerItem customerItem : mapTimeSlotWaitTimeOutPool.values()) {
+            Set<Map.Entry<byte[], byte[]>> entries = mapTimeSlotWaitTimeOutPool.entrySet();
+            for (Map.Entry<byte[], byte[]> entry : entries) {
+                SingleNumberModeShareCustomerItem customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
                 // 放回客户共享池
                 if (!customerItem.getInvalid()) {
                     addCustomerToSharePool(customerItem);

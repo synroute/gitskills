@@ -1,8 +1,9 @@
 package hiapp.modules.dm.hidialermode.bo;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class HidialerModeCustomer {
+public class HidialerModeCustomer implements Serializable{
     private Integer id; //ID
     private Integer bizId;
     private String shareBatchId;          //分配批次号
@@ -197,7 +198,39 @@ public class HidialerModeCustomer {
     }
 
     public String getShareToken() { return bizId + shareBatchId; }
+
     public String getCustomerToken() { return bizId + importBatchId + customerId; }
+    //用于redis删除数据
+    public String getMapPreseCustomerSharePoolId() { return "hidialerMapPreseCustomerSharePool" + bizId; }
+
+    public String getMapCustomerSharePoolId() { return "hidialerMapCustomerSharePool" + bizId; }
+
+    @Override
+    public String toString() {
+        return "HidialerModeCustomer{" +
+                "id=" + id +
+                ", bizId=" + bizId +
+                ", shareBatchId='" + shareBatchId + '\'' +
+                ", importBatchId='" + importBatchId + '\'' +
+                ", customerId='" + customerId + '\'' +
+                ", state=" + state +
+                ", modifyId=" + modifyId +
+                ", modifyUserId='" + modifyUserId + '\'' +
+                ", modifyTime=" + modifyTime +
+                ", modifyDesc='" + modifyDesc + '\'' +
+                ", isAppend=" + isAppend +
+                ", customerCallId='" + customerCallId + '\'' +
+                ", endCodeType='" + endCodeType + '\'' +
+                ", endCode='" + endCode + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", lastDialTime=" + lastDialTime +
+                ", callLossCount=" + callLossCount +
+                ", nextDialTime=" + nextDialTime +
+                ", redialCount=" + redialCount +
+                ", shareBatchStartTime=" + shareBatchStartTime +
+                ", invalid=" + invalid +
+                '}';
+    }
 
     public HidialerModeCustomer deepClone() {
 
