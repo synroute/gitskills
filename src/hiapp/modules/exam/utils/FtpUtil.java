@@ -9,9 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
-import org.springframework.web.multipart.MultipartFile;
 
 public class FtpUtil {
 	private static final String basePath="/ftp/upload";
