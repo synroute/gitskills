@@ -20,7 +20,7 @@ public class OnePhoneTypeCustomerPool {
         customerSharePool = new MultiNumberRedialCustomerSharePool(bizId);
 
     }
-
+    //,,,
     public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList) {
         MultiNumberRedialCustomer shareDataItem = customerSharePool.extractCustomer(userId, shareBatchIdList);
 

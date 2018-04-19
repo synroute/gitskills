@@ -3,11 +3,13 @@ package hiapp.modules.dm.manualmode.bo;
 import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.manualmode.dao.ManualModeDAO;
-import hiapp.modules.dm.multinumbermode.bo.MultiNumberCustomer;
-
+import hiapp.modules.dm.util.GenericitySerializeUtil;
+import hiapp.modules.dm.util.RedisComparator;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -24,22 +26,36 @@ public class ManualModeCustomerPool {
     @Autowired
     private DMBizMangeShare dmBizMangeShare;
 
-
+    @Autowired
+    private JedisPool jedisPool;
     // BizId <==> {shareBatchId <==> PriorityBlockingQueue<ManualModeCustomer>}
-    Map<Integer, Map<String, PriorityBlockingQueue<ManualModeCustomer>>> mapCustomerSharePool;
 
     // BizId + IID + CID <==> ManualModeCustomer
     Map<String, ManualModeCustomer> mapWaitCustomerCancellation;
 
+    Jedis mapCustomerSharePoolRedis;
+    //set集合用于存储mapCustomerSharePool所有的的key,便于清除操作
+    Set<byte[]> mapCustomerSharePoolKeys;
     public void initialize() {
-        mapCustomerSharePool = new HashMap<Integer, Map<String, PriorityBlockingQueue<ManualModeCustomer>>>();
+        mapCustomerSharePoolRedis = jedisPool.getResource();
+        mapCustomerSharePoolKeys = new HashSet<>();
 
         mapWaitCustomerCancellation = new HashMap<String, ManualModeCustomer>();
     }
 
     public void clear() {
-        mapCustomerSharePool.clear();
+        //先删除redis中的共享数据
+        for (byte[] mapCustomerSharePoolKey : mapCustomerSharePoolKeys) {
+            mapCustomerSharePoolRedis.del(mapCustomerSharePoolKey);
+        }
+        //再清空set集合中的数据
+        mapCustomerSharePoolKeys.clear();
+
         mapWaitCustomerCancellation.clear();
+        //redis释放连接
+        if (mapCustomerSharePoolRedis != null){
+            mapCustomerSharePoolRedis.close();
+        }
     }
 
     public void addCustomer(ManualModeCustomer customer) {
@@ -48,58 +64,63 @@ public class ManualModeCustomerPool {
                 + "] shareId[" + customer.getSourceId() + "] IID[" + customer.getImportBatchId()
                 + "] CID[" + customer.getCustomerId() + "] ");
 
-        Map<String, PriorityBlockingQueue<ManualModeCustomer>> oneBizCustomerSharePool = mapCustomerSharePool.get(customer.getBizId());
-        if (null == oneBizCustomerSharePool) {
-            oneBizCustomerSharePool = new HashMap<String, PriorityBlockingQueue<ManualModeCustomer>>();
-            mapCustomerSharePool.put(customer.getBizId(), oneBizCustomerSharePool);
+        Map<byte[], byte[]> oneBizCustomerSharePoolRedis = mapCustomerSharePoolRedis.hgetAll(GenericitySerializeUtil.serialize(customer.getBizId()));
+        if (0 != oneBizCustomerSharePoolRedis.size()) {
+            //保存key值到set集合
+            mapCustomerSharePoolKeys.add(GenericitySerializeUtil.serialize(customer.getBizId()));
+            //保存到redis中
+            //mapCustomerSharePoolRedis.hmset(SerializeUtil.serialize(customer.getBizId()),oneBizCustomerSharePoolRedis);
         }
 
-        PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerSharePool = oneBizCustomerSharePool.get(customer.getSourceId());
-        if (null == oneShareBatchCustomerSharePool) {
+        PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerSharePool = GenericitySerializeUtil.unserialize(oneBizCustomerSharePoolRedis.get(customer.getSourceId()));
+        if (null == oneShareBatchCustomerSharePool || oneShareBatchCustomerSharePool.isEmpty()) {
             oneShareBatchCustomerSharePool = new PriorityBlockingQueue<ManualModeCustomer>(1, shareBatchBeginTimeComparator);
-            oneBizCustomerSharePool.put(customer.getSourceId(), oneShareBatchCustomerSharePool);
         }
-
         oneShareBatchCustomerSharePool.put(customer);
-
+        oneBizCustomerSharePoolRedis.put(GenericitySerializeUtil.serialize(customer.getSourceId()), GenericitySerializeUtil.serialize(oneShareBatchCustomerSharePool));
+        mapCustomerSharePoolRedis.hmset(GenericitySerializeUtil.serialize(customer.getBizId()), oneBizCustomerSharePoolRedis);
         mapWaitCustomerCancellation.put(customer.getCustomerToken(), customer);
+
     }
-
+    //已改
     public void stopShareBatch(int bizId, List<String> shareBatchIds) {
-        Map<String, PriorityBlockingQueue<ManualModeCustomer>> oneBizCustomerSharePool = mapCustomerSharePool.get(bizId);
-        if (null == oneBizCustomerSharePool)
+        if (mapCustomerSharePoolRedis.hgetAll(GenericitySerializeUtil.serialize(bizId)).isEmpty()){
             return;
-
+        }
         for (String shareBatchId : shareBatchIds) {
-            oneBizCustomerSharePool.remove(shareBatchId);
+            mapCustomerSharePoolRedis.hdel(GenericitySerializeUtil.serialize(bizId), GenericitySerializeUtil.serialize(shareBatchId));
         }
     }
-
+    //已改
     public ManualModeCustomer extractCustomer(String userId, int bizId) {
 
         // 根据userID，获取有权限访问的shareBatchIds
         List<String> shareBatchIdList = dmBizMangeShare.getSidUserPool(bizId, userId);
 
-        Map<String, PriorityBlockingQueue<ManualModeCustomer>> oneBizCustomerSharePool = mapCustomerSharePool.get(bizId);
-        if (null == oneBizCustomerSharePool)
+        Map<byte[], byte[]> oneBizCustomerSharePoolRedis = mapCustomerSharePoolRedis.hgetAll(GenericitySerializeUtil.serialize(bizId));
+        if (0 == oneBizCustomerSharePoolRedis.size())
             return null;
 
         for (String shareBatchId : shareBatchIdList) {
-            PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerPool = oneBizCustomerSharePool.get(shareBatchId);
-            if (null == oneShareBatchCustomerPool)
+            PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerPoolRedis = GenericitySerializeUtil.unserialize(oneBizCustomerSharePoolRedis.get(GenericitySerializeUtil.serialize(shareBatchId)));
+            if (null == oneShareBatchCustomerPoolRedis || oneShareBatchCustomerPoolRedis.isEmpty())
                 continue;
 
-            ManualModeCustomer customer = oneShareBatchCustomerPool.poll();
-            if (null == customer) {
-                oneBizCustomerSharePool.remove(shareBatchId);
+            ManualModeCustomer customerRedis = oneShareBatchCustomerPoolRedis.poll();
+            if (null == customerRedis) {
+                oneBizCustomerSharePoolRedis.remove(shareBatchId.getBytes());
                 continue;
             }
 
-            if (customer.getInvalid())
+            if (customerRedis.getInvalid())
                 continue;
 
-            mapWaitCustomerCancellation.remove( customer.getCustomerToken() );
-            return customer;
+            mapWaitCustomerCancellation.remove( customerRedis.getCustomerToken() );
+            if (!oneShareBatchCustomerPoolRedis.isEmpty()){
+                oneBizCustomerSharePoolRedis.put(GenericitySerializeUtil.serialize(shareBatchId), GenericitySerializeUtil.serialize(oneShareBatchCustomerPoolRedis));
+                mapCustomerSharePoolRedis.hmset(GenericitySerializeUtil.serialize(bizId), oneBizCustomerSharePoolRedis);
+            }
+            return customerRedis;
 
         }
         return null;
@@ -121,11 +142,10 @@ public class ManualModeCustomerPool {
     }
 
     //匿名Comparator实现
-    private static Comparator<ManualModeCustomer> shareBatchBeginTimeComparator = new Comparator<ManualModeCustomer>() {
-
+    private static RedisComparator shareBatchBeginTimeComparator = new RedisComparator<ManualModeCustomer>() {
         @Override
-        public int compare(ManualModeCustomer c1, ManualModeCustomer c2) {
-            return (c1.getShareBatchStartTime().before(c2.getShareBatchStartTime())) ? 1 : -1;
+        public int compare(ManualModeCustomer o1, ManualModeCustomer o2) {
+            return (o1.getShareBatchStartTime().before(o2.getShareBatchStartTime())) ? 1 : -1;
         }
     };
 

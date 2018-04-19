@@ -294,7 +294,7 @@ public class DataOutputJdbc extends BaseRepository{
 	 * @throws IOException
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes" })
-	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId,Integer ifDial,String importData) throws IOException{
+	public List<Map<String,Object>> getOutputDataByTime(String startTime,String endTime,Integer templateId,Integer bizId,Integer ifDial) throws IOException{
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -388,10 +388,6 @@ public class DataOutputJdbc extends BaseRepository{
 			}
 			getOutDataSql=getOutDataSql.substring(0,getOutDataSql.lastIndexOf("left join"))+" where ";
 			getOutDataSql+="b.IID in(select IID from HASYS_DM_IID where IMPORTTIME>to_date(?,'yyyy-mm-dd hh24:mi:ss') and IMPORTTIME<to_date(?,'yyyy-mm-dd hh24:mi:ss') and BUSINESSID=?)"+getOutDataSql2;
-			if(importData!=null&&!"".equals(importData)){
-				importData=importData.substring(0,importData.lastIndexOf(","));
-				getOutDataSql+=" and b.CID in("+importData+")";
-			}
 			if(ifDial==0){
 				getOutDataSql+=" and exists(select * from "+resultTableName+" c where c.iid=b.iid and c.cid=b.cid)";
 			}else if(ifDial==1){

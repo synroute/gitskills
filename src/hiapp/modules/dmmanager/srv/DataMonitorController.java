@@ -50,14 +50,19 @@ public class DataMonitorController {
 		}
 	}
 	@RequestMapping(value="/srv/DataMonitorController/exportData.srv")
+	@SuppressWarnings("unchecked")
 	public void exportData(HttpServletRequest request, HttpServletResponse response){
 		String startTime=request.getParameter("startTime");
 		String endTime=request.getParameter("endTime");
 		String importId=request.getParameter("importId");
-		
 		Integer bizId=Integer.valueOf(request.getParameter("bizId"));
 		String importData=request.getParameter("importData");
-		List<Map<String,Object>> dataList=dataMonitorJdbc.getExportData(bizId, startTime, endTime, importId,importData);
+		List<Map<String,Object>> dataList=null;
+		if(importData!=null&&!"".equals(importData)){
+			dataList=new Gson().fromJson(importData, List.class);
+		}else{
+			dataList=dataMonitorJdbc.getExportData(bizId, startTime, endTime, importId);
+		}
 		List<String> excelHeader =new ArrayList<String>();
 		List<String> sheetCulomn =new ArrayList<String>();
 		excelHeader.add("导入批次号");

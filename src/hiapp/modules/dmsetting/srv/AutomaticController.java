@@ -32,12 +32,12 @@ public class AutomaticController {
 	@Autowired
 	private IdFactory idFactory;
 	@RequestMapping(value = "/srv/dm/dmGetBizResultColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmGetBizResultColumns(@RequestParam("bizId") String bizId,@RequestParam("type") int type) {
+	public String dmGetBizResultColumns(@RequestParam("bizId") String bizId) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try {
 			
 			List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
-			if (!dmBizAutomatic.getResultColumns(listDMBizAutomaticColumns,bizId,type)) {
+			if (!dmBizAutomatic.getResultColumns(listDMBizAutomaticColumns,bizId)) {
 				return null;
 			}
 			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
@@ -52,12 +52,12 @@ public class AutomaticController {
 	}
 	
 	@RequestMapping(value = "/srv/dm/dmGetBizCustomerColumns.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String dmGetBizCustomerColumns(@RequestParam("bizId") int bizId,@RequestParam("type") int type) {
+	public String dmGetBizCustomerColumns(@RequestParam("bizId") int bizId) {
 		RecordsetResult recordsetResult = new RecordsetResult();
 		try {
-			//type=0网格  type=1待选列
+			
 			List<DMBizAutomaticColumns> listDMBizAutomaticColumns = new ArrayList<DMBizAutomaticColumns>();
-			listDMBizAutomaticColumns=dmBizAutomatic.dmGetBizCustomerColumns(bizId,type);
+			listDMBizAutomaticColumns=dmBizAutomatic.dmGetBizCustomerColumns(bizId);
 			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
 			recordsetResult.setPage(0);
 			recordsetResult.setTotal(listDMBizAutomaticColumns.size());

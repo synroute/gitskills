@@ -1,5 +1,10 @@
 package hiapp.modules.dmmanager.data;
 
+import hiapp.modules.dmmanager.bean.MonitorData;
+import hiapp.modules.dmmanager.bean.OutputFirstRow;
+import hiapp.utils.DbUtil;
+import hiapp.utils.database.BaseRepository;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,12 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Repository;
 
-import hiapp.modules.dmmanager.bean.MonitorData;
-import hiapp.modules.dmmanager.bean.OutputFirstRow;
-import hiapp.utils.DbUtil;
-import hiapp.utils.database.BaseRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class DataMonitorJdbc extends BaseRepository{
@@ -80,7 +81,7 @@ public class DataMonitorJdbc extends BaseRepository{
 		return resultMap;
 	}
 	
-	public List<Map<String,Object>> getExportData(Integer bizId,String startTime,String endTime,String importId,String importData){
+	public List<Map<String,Object>> getExportData(Integer bizId,String startTime,String endTime,String importId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -93,10 +94,6 @@ public class DataMonitorJdbc extends BaseRepository{
 					   "(select b.iid,sum(case when e.datapooltype = 1 then 1 else 0 end) sl1,sum(case when e.datapooltype = 2 then 1 else 0 end) sl2,"+
 					   "sum(case when e.datapooltype = 3 then 1 else 0 end) sl3 from HASYS_DM_DATAPOOL e, HAU_DM_B"+bizId+"C_POOL b "+
 					   "where e.id = b.datapoolidcur and e.businessid=? group by b.iid) t where a.iid = c.iid and t.iid = a.iid and a.businessid=? and a.importtime>to_date(?,'yyyy-mm-dd') and a.importtime<to_date(?,'yyyy-mm-dd')";
-			if(importData!=null&&!"".equals(importData)){
-				importData=importData.substring(0,importData.lastIndexOf(","));
-				getDataSql+=" and a.IID in ("+importData+")";
-			}
 			if(importId!=null&&!"".equals(importId)){
 				getDataSql+=" and a.iid='"+importId+"'";
 			}
