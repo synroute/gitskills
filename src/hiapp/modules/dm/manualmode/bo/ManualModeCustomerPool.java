@@ -111,6 +111,7 @@ public class ManualModeCustomerPool {
             mapCustomerSharePoolRedis.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(oneShareBatchCustomerPoolRedis));
             if (null == customerRedis) {
                 oneBizCustomerSharePoolRedis.remove(fieldSerialize);
+                mapCustomerSharePoolRedis.hdel(mapSerialize, fieldSerialize);
                 continue;
             }
 
