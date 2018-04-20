@@ -65,7 +65,7 @@ public class HidialerModeCustomerSharePool {
         HidialerModeCustomer shareDataItem = null;
 
         PriorityBlockingQueue<HidialerModeCustomer> oneBizPresetCustomerPool =  GenericitySerializeUtil.unserialize(hidailerJedis.get(GenericitySerializeUtil.serialize("hidialerMapPreseCustomerSharePool" + bizId)));
-        while (null != oneBizPresetCustomerPool) {
+        while (oneBizPresetCustomerPool.isEmpty() || oneBizPresetCustomerPool == null) {
             shareDataItem = oneBizPresetCustomerPool.peek();
             if (null == shareDataItem)
                 break;
@@ -127,31 +127,30 @@ public class HidialerModeCustomerSharePool {
     */
     //已改
     public void add(HidialerModeCustomer customer) {
-        PriorityBlockingQueue<HidialerModeCustomer> queue = null;
+        PriorityBlockingQueue<HidialerModeCustomer> queue;
         if (HidialerModeCustomerStateEnum.WAIT_REDIAL.equals(customer.getState()) ) {
                 queue = GenericitySerializeUtil.unserialize(hidailerJedis.get(GenericitySerializeUtil.serialize(customer.getMapPreseCustomerSharePoolId())));
-            if (null == queue) {
+            if (null == queue || queue.isEmpty()) {
                 queue = new PriorityBlockingQueue<HidialerModeCustomer>(1, nextDialTimeComparator);
                 //存入set集合，用于删除
-                hidailerJedis.set(GenericitySerializeUtil.serialize(customer.getMapPreseCustomerSharePoolId()),GenericitySerializeUtil.serialize(queue));
                 hidialerSet.add(GenericitySerializeUtil.serialize(customer.getMapPreseCustomerSharePoolId()));
             }
             queue.put(customer);
+            hidailerJedis.set(GenericitySerializeUtil.serialize(customer.getMapPreseCustomerSharePoolId()),GenericitySerializeUtil.serialize(queue));
         } else {
             queue = GenericitySerializeUtil.unserialize(hidailerJedis.get(GenericitySerializeUtil.serialize(customer.getMapCustomerSharePoolId())));
-            if (null == queue) {
+            if (null == queue || queue.isEmpty()) {
                 queue = new PriorityBlockingQueue<HidialerModeCustomer>(1, shareBatchBeginTimeComparator);
-                mapCustomerSharePool.put(customer.getBizId(), queue);
-                hidailerJedis.set(GenericitySerializeUtil.serialize(customer.getMapCustomerSharePoolId()), GenericitySerializeUtil.serialize(queue));
                 //存入set集合，用于删除
                 hidialerSet.add(GenericitySerializeUtil.serialize(customer.getMapPreseCustomerSharePoolId()));
             }
             queue.put(customer);
+            hidailerJedis.set(GenericitySerializeUtil.serialize(customer.getMapCustomerSharePoolId()), GenericitySerializeUtil.serialize(queue));
         }
 
-        Map<byte[], byte[]> mapWaitStopPoolRedis = hidailerJedis.hgetAll(GenericitySerializeUtil.serialize(customer.getShareToken()));
-        mapWaitStopPoolRedis.put(GenericitySerializeUtil.serialize(customer.getCustomerToken()), GenericitySerializeUtil.serialize(customer));
-        hidailerJedis.hmset(GenericitySerializeUtil.serialize(customer.getShareToken()), mapWaitStopPoolRedis);
+        hidailerJedis.hset(GenericitySerializeUtil.serialize(customer.getShareToken()),
+                GenericitySerializeUtil.serialize(customer.getCustomerToken()), GenericitySerializeUtil.serialize(customer));
+
         //存入set集合，用于删除
         hidialerSet.add(GenericitySerializeUtil.serialize(customer.getShareToken()));
     }
@@ -213,8 +212,6 @@ public class HidialerModeCustomerSharePool {
         }
         //在redis中移除
         hidailerJedis.hdel(GenericitySerializeUtil.serialize(customer.getShareToken()), GenericitySerializeUtil.serialize(customer.getCustomerToken()));
-        if (hidailerJedis.hgetAll(GenericitySerializeUtil.serialize(customer.getShareToken())).isEmpty())
-            hidailerJedis.hdel(GenericitySerializeUtil.serialize(customer.getShareToken()));
     }
 
     //匿名Comparator实现
