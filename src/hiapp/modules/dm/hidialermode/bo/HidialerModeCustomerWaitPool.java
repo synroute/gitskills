@@ -98,7 +98,7 @@ public class HidialerModeCustomerWaitPool {
         }
 
     }
-    //已改
+    //已改,,,
     public void hidialerPhoneConnect(HidialerModeCustomer customer, Date originModifyTime) {
         Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
         //必须先取出来，不然如果为空，会报空指针异常
@@ -331,49 +331,44 @@ public class HidialerModeCustomerWaitPool {
         }
         return customerItem;
     }
-    //已改
+    //已改,,,
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
-        Map<byte[], byte[]> mapWaitStopPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId));
+        byte[] mapSerialize = GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId);
+        Map<byte[], byte[]> mapWaitStopPool = hidialerWaitPool.hgetAll(mapSerialize);
         if (!mapWaitStopPool.isEmpty()) {
             mapWaitStopPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
-            if (mapWaitStopPool.isEmpty())
-                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId));
-        }else {
-            hidialerWaitPool.hmset(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId),mapWaitStopPool);
+            if (!mapWaitStopPool.isEmpty())
+                hidialerWaitPool.hmset(mapSerialize,mapWaitStopPool);
         }
     }
-    //已改
+    //已改,,,
     private void removeWaitPhoneConnectTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-
-        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot));
+        byte[] mapSerialize = GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot);
+        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
         if (!mapWaitTimeOutPool.isEmpty()) {
             mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
-            if (mapWaitTimeOutPool.isEmpty())
-                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot));
-        }else {
-            hidialerWaitPool.hmset(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),mapWaitTimeOutPool);
+            if (!mapWaitTimeOutPool.isEmpty())
+                hidialerWaitPool.hmset(mapSerialize,mapWaitTimeOutPool);
         }
     }
-    //已改
+    //已改,,
     private void removeWaitScreenPopUpTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot));
+        byte[] mapSerialize = GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot);
+        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
         if (!mapWaitTimeOutPool.isEmpty()) {
             mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
-            if (mapWaitTimeOutPool.isEmpty())
-                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot));
-        }else {
-            hidialerWaitPool.hmset(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),mapWaitTimeOutPool);
+            if (!mapWaitTimeOutPool.isEmpty())
+                hidialerWaitPool.hmset(mapSerialize,mapWaitTimeOutPool);
         }
     }
-    //已改
+    //已改,,
     private void removeWaitResultTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot));
+        byte[] mapSerialize = GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot);
+        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
         if (!mapWaitTimeOutPool.isEmpty()) {
             mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
-            if (mapWaitTimeOutPool.isEmpty())
-                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot));
-        }else {
-            hidialerWaitPool.hmset(GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot),mapWaitTimeOutPool);
+            if (!mapWaitTimeOutPool.isEmpty())
+                hidialerWaitPool.hmset(mapSerialize,mapWaitTimeOutPool);
         }
     }
 

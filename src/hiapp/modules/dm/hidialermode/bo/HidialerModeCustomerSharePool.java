@@ -59,25 +59,27 @@ public class HidialerModeCustomerSharePool {
             hidailerJedis.close();
         }
     }
-    //已改
+    //已改,,,
     public HidialerModeCustomer extractCustomer(String userId, Integer bizId) {
         Date now = new Date();
         HidialerModeCustomer shareDataItem = null;
-
-        PriorityBlockingQueue<HidialerModeCustomer> oneBizPresetCustomerPool =  GenericitySerializeUtil.unserialize(hidailerJedis.get(GenericitySerializeUtil.serialize("hidialerMapPreseCustomerSharePool" + bizId)));
-        while (oneBizPresetCustomerPool.isEmpty() || oneBizPresetCustomerPool == null) {
+        byte[] priSerialize = GenericitySerializeUtil.serialize("hidialerMapPreseCustomerSharePool" + bizId);
+        PriorityBlockingQueue<HidialerModeCustomer> oneBizPresetCustomerPool =  GenericitySerializeUtil.unserialize(hidailerJedis.get(priSerialize));
+        while (!oneBizPresetCustomerPool.isEmpty()) {
             shareDataItem = oneBizPresetCustomerPool.peek();
             if (null == shareDataItem)
                 break;
 
             if (shareDataItem.getInvalid()) {
                 oneBizPresetCustomerPool.poll();  // 扔掉已经停止共享批次的客户
+                hidailerJedis.set(priSerialize, GenericitySerializeUtil.serialize(oneBizPresetCustomerPool));
                 removeFromShareBatchStopWaitPool(shareDataItem);
                 continue;
             }
 
             if (null != shareDataItem && shareDataItem.getNextDialTime().before(now)) {
                 shareDataItem = oneBizPresetCustomerPool.poll();
+                hidailerJedis.set(priSerialize, GenericitySerializeUtil.serialize(oneBizPresetCustomerPool));
                 removeFromShareBatchStopWaitPool(shareDataItem);
                 return shareDataItem;
             }
@@ -86,7 +88,7 @@ public class HidialerModeCustomerSharePool {
         }
 
         PriorityBlockingQueue<HidialerModeCustomer> oneBizCustomerPoolRedis = GenericitySerializeUtil.unserialize(hidailerJedis.get(GenericitySerializeUtil.serialize("hidialerMapCustomerSharePool" + bizId)));
-        while (null != oneBizCustomerPoolRedis) {
+        while (null != oneBizCustomerPoolRedis && oneBizCustomerPoolRedis != null) {
             shareDataItem = oneBizCustomerPoolRedis.poll();
             hidailerJedis.set(GenericitySerializeUtil.serialize("hidialerMapCustomerSharePool" + bizId), GenericitySerializeUtil.serialize(oneBizCustomerPoolRedis));
             if (null == shareDataItem)
@@ -125,7 +127,7 @@ public class HidialerModeCustomerSharePool {
         queue.put(customer);
     }
     */
-    //已改
+    //已改,,,
     public void add(HidialerModeCustomer customer) {
         PriorityBlockingQueue<HidialerModeCustomer> queue;
         if (HidialerModeCustomerStateEnum.WAIT_REDIAL.equals(customer.getState()) ) {
@@ -187,7 +189,7 @@ public class HidialerModeCustomerSharePool {
         for (CustomerBasic customerBasic : customerBasicList) {
             Map<byte[], byte[]> oneShareBatchCustomerPoolRedis = hidailerJedis.hgetAll(GenericitySerializeUtil.serialize(customerBasic.getSourceToken()));
 
-            if (null == oneShareBatchCustomerPoolRedis)
+            if (oneShareBatchCustomerPoolRedis.isEmpty())
                 continue;
 
             HidialerModeCustomer customer = GenericitySerializeUtil.unserialize(oneShareBatchCustomerPoolRedis.get(GenericitySerializeUtil.serialize(customerBasic.getCustomerToken())));
@@ -204,7 +206,7 @@ public class HidialerModeCustomerSharePool {
     }
 
     //////////////////////////////////////////////////////////
-    //已改
+    //已改,,,
     private void removeFromShareBatchStopWaitPool(HidialerModeCustomer customer) {
         Map<byte[], byte[]> oneShareBatchPoolRedis = hidailerJedis.hgetAll(GenericitySerializeUtil.serialize(customer.getShareToken()));
         if (oneShareBatchPoolRedis.isEmpty()){
@@ -219,7 +221,9 @@ public class HidialerModeCustomerSharePool {
 
         @Override
         public int compare(HidialerModeCustomer c1, HidialerModeCustomer c2) {
+            if (c1 != null && c2 != null && c1.getNextDialTime() != null && c2.getNextDialTime() != null)
             return (c1.getNextDialTime().before(c2.getNextDialTime())) ? 1 : -1;
+        return 0;
         }
     };
 
@@ -228,7 +232,9 @@ public class HidialerModeCustomerSharePool {
 
         @Override
         public int compare(HidialerModeCustomer c1, HidialerModeCustomer c2) {
+            if (c1 != null && c2 != null && c1.getShareBatchStartTime() != null && c2.getShareBatchStartTime() != null)
             return (c1.getShareBatchStartTime().before(c2.getShareBatchStartTime())) ? 1 : -1;
+        return 0;
         }
     };
 
