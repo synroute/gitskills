@@ -168,9 +168,10 @@ public class ExamDao extends BaseRepository{
 	public  void  deleteQuestions(String questionIds) {
 		Connection conn=null;
 		PreparedStatement pst=null;
+		String[] arr=questionIds.split(",");
 		try {
 			conn=this.getDbConnection();
-			String deleteSql="delete from ";
+			String deleteSql="delete from EM_INF_EMQUESTIONBASE";
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

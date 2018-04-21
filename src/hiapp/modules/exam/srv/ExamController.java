@@ -40,7 +40,7 @@ public class ExamController {
 	public ExamDao examDao;
 	/**
 	 * 添加或修改试题
-	 * @param request
+	 * @param requestes
 	 * @param response
 	 * @param file
 	 */
