@@ -87,12 +87,6 @@ public class ExamController {
 	}
 	
 	
-	public void deleteQuestion(HttpServletRequest request,HttpServletResponse response) {
-		String questionId=request.getParameter("questionIds");
-		Map<String,Object> resultMap=new HashMap<>();
-		
-		
-	}
 	/**
 	 * 查询试题类别
 	 * @param request
