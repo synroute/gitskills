@@ -31,14 +31,13 @@ public class ExamDao extends BaseRepository{
 	 * @param questionType
 	 * @param questionLevel
 	 * @param score
-	 * @param importTime
 	 * @param isUsed
 	 * @param ftpPath
 	 * @param anwser
 	 * @param userId
 	 * @return
 	 */
-	public Map<String,Object> insertQuestion(String questiondes,String questionClass,String questionsType,String questionType,String questionLevel,String score,String importTime,Integer isUsed,String ftpPath,String anwser,String userId) {
+	public Map<String,Object> insertQuestion(String questiondes,String questionClass,String questionsType,String questionType,String questionLevel,String score,Integer isUsed,String ftpPath,String anwser,String userId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		String questionId=idFactory.newId("EX_QS");
@@ -46,7 +45,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String insertQuestionSql="insert into EM_INF_ANSWER(QUESTIONID,QUESTIONDES,QUESTIONCLASS,QUESTIONSTYLE,QUESTIONTYPE,QUESTIONLEVE,DEFAULSCORE,INPUTTIME,INPUTER,ISUSED,ISUPDATE,FTPATH) values(?,?,?,?,?,?,?,sysdate,?,?,?,?)";
+			String insertQuestionSql="insert into EM_INF_EMQUESTIONBASE(QUESTIONID,QUESTIONDES,QUESTIONCLASS,QUESTIONSTYLE,QUESTIONTYPE,QUESTIONLEVE,DEFAULSCORE,INPUTTIME,INPUTER,ISUSED,ISUPDATE,FTPATH) values(?,?,?,?,?,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertQuestionSql);
 			pst.setString(1, questionId);
 			pst.setString(2, questiondes);
@@ -76,6 +75,7 @@ public class ExamDao extends BaseRepository{
 				pst.addBatch();
 			}
 			pst.executeBatch();
+			conn.commit();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
 		} catch (SQLException e) {
@@ -90,7 +90,92 @@ public class ExamDao extends BaseRepository{
 		}
 		return resultMap;
 	}
+	/**
+	 * 修改试题
+	 * @param questionId
+	 * @param questiondes
+	 * @param questionClass
+	 * @param questionsType
+	 * @param questionType
+	 * @param questionLevel
+	 * @param score
+	 * @param importTime
+	 * @param isUsed
+	 * @param ftpPath
+	 * @param anwser
+	 * @param userId
+	 * @return
+	 */
+	public Map<String,Object>  updateQuestion(String questionId,String questiondes,String questionClass,String questionsType,String questionType,String questionLevel,String score,Integer isUsed,String ftpPath,String anwser,String userId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
+			String updateSql="update EM_INF_EMQUESTIONBASE set QUESTIONDES=?,QUESTIONCLAS=?,QUESTIONSTYLE=?,QUESTIONTYPE=?,QUESTIONLEVE=?,DEFAULSCORE=?,INPUTTIME=sysdate,INPUTER=?,ISUSED=?,ISUPDATE=ISUPDATE+1,ftpPath=? where QUESTIONID=?";
+			pst=conn.prepareStatement(updateSql);
+			pst.setString(1, questiondes);
+			pst.setString(2, questionClass);
+			pst.setString(3, questionsType);
+			pst.setString(4, questionType);
+			pst.setString(5, questionLevel);
+			pst.setString(6, score);
+			pst.setString(7, userId);
+			pst.setInt(8, isUsed);
+			pst.setInt(9, 1);
+			pst.setString(10, ftpPath);
+			pst.setString(11, questionId);
+			pst.executeUpdate();
+			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			List<Map<String,Object>> list=GsonUtil.getGson().fromJson(anwser, List.class);
+			String deleteSql="delete from EM_INF_ANSWER where QUESTIONID=?";
+			pst=conn.prepareStatement(deleteSql);
+			pst.setString(1, questionId);
+			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			String insertAnwserSql="insert into EM_INF_ANSWER(ANSWERID,QUESTIONID,ANSWERSN,ANSWERBODY,ISRIGHT) values(S_EM_INF_ANSWER.NEXTVAL,?,?,?,?)";
+			pst=conn.prepareStatement(insertAnwserSql);
+			for (int i = 0; i < list.size(); i++) {
+				Map<String,Object> map=list.get(i);
+				String answerSn=(String) map.get("anwsersn");
+				String answerBody=(String) map.get("anwserBody");
+				Integer isRight=Integer.valueOf(String.valueOf(map.get("isRight")));
+				pst.setString(1, questionId);
+				pst.setString(2, answerSn);
+				pst.setString(3, answerBody);
+				pst.setInt(4, isRight);
+				pst.addBatch();
+			}
+			pst.executeBatch();
+			conn.commit();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","修改成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","修改失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return  resultMap;
+	}
 	
+	
+	public  void  deleteQuestions(String questionIds) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		try {
+			conn=this.getDbConnection();
+			String deleteSql="delete from ";
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	public Map<String,Object> excelImportQuestion(List<Map<Integer,Object>> list,String userId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -186,17 +271,29 @@ public class ExamDao extends BaseRepository{
 		}
 		return list;
 	}
-	public void selectQuestion(String questiongnType,String questionLevel,Integer minScore,Integer maxScore,String questionType,Integer num,Integer pageSize) {
+	/**
+	 * 查询题库
+	 * @param questiongnType
+	 * @param questionLevel
+	 * @param minScore
+	 * @param maxScore
+	 * @param questionType
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectQuestion(String questiongnType,String questionLevel,Integer minScore,Integer maxScore,String questionType,Integer num,Integer pageSize) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		ResultSet rs=null;
 		Integer startNum=(num-1)*pageSize+1;
 		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
 		List<Map<String,Object>> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select QUESTIONID,QUESTIONSTYLE,QUESTIONTYPE,DEFAULSCORE from (";
-			String selectSql="select QUESTIONID,QUESTIONSTYLE,QUESTIONTYPE,DEFAULSCORE,rownum rn from EM_INF_ANSWER where 1=1";
+			String sql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE from (";
+			String selectSql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE,rownum rn from EM_INF_ANSWER where 1=1";
 			if(questiongnType!=null&&!"".equals(questiongnType)) {
 				selectSql+=" and QUESTIONTYPE='"+questiongnType+"'";
 			}
@@ -216,9 +313,34 @@ public class ExamDao extends BaseRepository{
 			sql=sql+selectSql+" and rownum<"+endNum+") where rn>="+startNum;
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("questionId", rs.getObject(1));
+				map.put("questingnType", rs.getObject(2));
+				map.put("questionLevel", rs.getObject(3));
+				map.put("score", rs.getObject(4));
+				list.add(map);
+			}
+			DbUtil.DbCloseQuery(rs,pst);
+			String getCountSql="select count(1) from ("+selectSql+")";
+			pst=conn.prepareStatement(getCountSql);
+			pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows", list);
+			resultMap.put("total",total);
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
 		}
+		return resultMap;
 	}
+	
+
 }
