@@ -63,22 +63,17 @@ public class ManualModeCustomerPool {
         System.out.println("M1 add customer: bizId[" + customer.getBizId()
                 + "] shareId[" + customer.getSourceId() + "] IID[" + customer.getImportBatchId()
                 + "] CID[" + customer.getCustomerId() + "] ");
+        //保存key值到set集合
+        mapCustomerSharePoolKeys.add(GenericitySerializeUtil.serialize(customer.getBizId()));
 
-        Map<byte[], byte[]> oneBizCustomerSharePoolRedis = mapCustomerSharePoolRedis.hgetAll(GenericitySerializeUtil.serialize(customer.getBizId()));
-        if (0 != oneBizCustomerSharePoolRedis.size()) {
-            //保存key值到set集合
-            mapCustomerSharePoolKeys.add(GenericitySerializeUtil.serialize(customer.getBizId()));
-            //保存到redis中
-            //mapCustomerSharePoolRedis.hmset(SerializeUtil.serialize(customer.getBizId()),oneBizCustomerSharePoolRedis);
-        }
-
-        PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerSharePool = GenericitySerializeUtil.unserialize(oneBizCustomerSharePoolRedis.get(customer.getSourceId()));
+        byte[] mapSerialize = GenericitySerializeUtil.serialize(customer.getBizId());
+        byte[] fieldSerialize = GenericitySerializeUtil.serialize(customer.getSourceId());
+        PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerSharePool = GenericitySerializeUtil.unserialize(mapCustomerSharePoolRedis.hget(mapSerialize,fieldSerialize));
         if (null == oneShareBatchCustomerSharePool || oneShareBatchCustomerSharePool.isEmpty()) {
             oneShareBatchCustomerSharePool = new PriorityBlockingQueue<ManualModeCustomer>(1, shareBatchBeginTimeComparator);
         }
         oneShareBatchCustomerSharePool.put(customer);
-        oneBizCustomerSharePoolRedis.put(GenericitySerializeUtil.serialize(customer.getSourceId()), GenericitySerializeUtil.serialize(oneShareBatchCustomerSharePool));
-        mapCustomerSharePoolRedis.hmset(GenericitySerializeUtil.serialize(customer.getBizId()), oneBizCustomerSharePoolRedis);
+        mapCustomerSharePoolRedis.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(oneShareBatchCustomerSharePool));
         mapWaitCustomerCancellation.put(customer.getCustomerToken(), customer);
 
     }
@@ -97,20 +92,15 @@ public class ManualModeCustomerPool {
         // 根据userID，获取有权限访问的shareBatchIds
         List<String> shareBatchIdList = dmBizMangeShare.getSidUserPool(bizId, userId);
         byte[] mapSerialize = GenericitySerializeUtil.serialize(bizId);
-        Map<byte[], byte[]> oneBizCustomerSharePoolRedis = mapCustomerSharePoolRedis.hgetAll(mapSerialize);
-        if (0 == oneBizCustomerSharePoolRedis.size())
-            return null;
-
         for (String shareBatchId : shareBatchIdList) {
             byte[] fieldSerialize = GenericitySerializeUtil.serialize(shareBatchId);
-            PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerPoolRedis = GenericitySerializeUtil.unserialize(oneBizCustomerSharePoolRedis.get(fieldSerialize));
+            PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerPoolRedis = GenericitySerializeUtil.unserialize(mapCustomerSharePoolRedis.hget(mapSerialize, fieldSerialize));
             if (null == oneShareBatchCustomerPoolRedis || oneShareBatchCustomerPoolRedis.isEmpty())
                 continue;
 
             ManualModeCustomer customerRedis = oneShareBatchCustomerPoolRedis.poll();
             mapCustomerSharePoolRedis.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(oneShareBatchCustomerPoolRedis));
             if (null == customerRedis) {
-                oneBizCustomerSharePoolRedis.remove(fieldSerialize);
                 mapCustomerSharePoolRedis.hdel(mapSerialize, fieldSerialize);
                 continue;
             }
@@ -119,10 +109,10 @@ public class ManualModeCustomerPool {
                 continue;
 
             mapWaitCustomerCancellation.remove( customerRedis.getCustomerToken() );
-            if (!oneShareBatchCustomerPoolRedis.isEmpty()){
+          /*  if (!oneShareBatchCustomerPoolRedis.isEmpty()){
                 oneBizCustomerSharePoolRedis.put(GenericitySerializeUtil.serialize(shareBatchId), GenericitySerializeUtil.serialize(oneShareBatchCustomerPoolRedis));
                 mapCustomerSharePoolRedis.hmset(GenericitySerializeUtil.serialize(bizId), oneBizCustomerSharePoolRedis);
-            }
+            }*/
             return customerRedis;
 
         }
