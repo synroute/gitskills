@@ -6,6 +6,7 @@ import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
+import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
 import hiapp.modules.dm.singlenumbermode.bo.*;
 import hiapp.modules.dm.singlenumbermode.dao.SingleNumberModeDAO;
 import hiapp.modules.dm.util.DateUtil;
@@ -598,54 +599,39 @@ public class SingleNumberOutboundDataManage {
 
         return EndCodeRedialStrategy.getInstance(endCodeRedialStrategyFromDB);
     }
-    //已改
+    //已改,,,
     private void addCustomerToSharePool(SingleNumberModeShareCustomerItem newCustomerItem) {
-        Map<byte[], byte[]> shareBatchIdVsCustomerMap;
-        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue = null;
-        byte[] mapSerialize = GenericitySerializeUtil.serialize(newCustomerItem.getShareBatchId());
+        PriorityBlockingQueue<SingleNumberModeShareCustomerItem> queue;
+        byte[] fieldSerialize = GenericitySerializeUtil.serialize(newCustomerItem.getShareBatchId());
         if (SingleNumberModeShareCustomerStateEnum.WAIT_NEXT_STAGE_DIAL.equals(newCustomerItem.getState())) {
             //先从redis中取出来
-            byte[] serialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapStageDialCustomerSharePool" + newCustomerItem.getBizId());
-            shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(serialize);
-            if (!shareBatchIdVsCustomerMap.isEmpty()){
-                queue = GenericitySerializeUtil.unserialize(shareBatchIdVsCustomerMap.get(mapSerialize));
-            }
-            if (null == queue || queue.isEmpty()) {
-                queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
-            }
-                queue.put(newCustomerItem);
-                shareBatchIdVsCustomerMap.put(mapSerialize, GenericitySerializeUtil.serialize(queue));
-            //操作完成之后，再存回redis中
-            redisSingleNumberOutboud.hmset(serialize, shareBatchIdVsCustomerMap);
-           // 下面两个同理
-        } else if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(newCustomerItem.getState())) {
-            //先从redis中取出来
-            byte[] serialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapPresetDialCustomerSharePool" + newCustomerItem.getBizId());
-            shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(serialize);
-            if (!shareBatchIdVsCustomerMap.isEmpty()){
-                queue = GenericitySerializeUtil.unserialize(shareBatchIdVsCustomerMap.get(mapSerialize));
-            }
+            byte[] mapSerialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapStageDialCustomerSharePool" + newCustomerItem.getBizId());
+            queue = GenericitySerializeUtil.unserialize(redisSingleNumberOutboud.hget(mapSerialize,fieldSerialize));
             if (null == queue || queue.isEmpty()) {
                 queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
             }
             queue.put(newCustomerItem);
-            shareBatchIdVsCustomerMap.put(mapSerialize, GenericitySerializeUtil.serialize(queue));
-            //操作完成之后，再存回redis中
-            redisSingleNumberOutboud.hmset(serialize, shareBatchIdVsCustomerMap);
+            redisSingleNumberOutboud.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(queue));
+
+           // 下面两个同理
+        } else if (SingleNumberModeShareCustomerStateEnum.PRESET_DIAL.equals(newCustomerItem.getState())) {
+            //先从redis中取出来
+            byte[] mapSerialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapPresetDialCustomerSharePool" + newCustomerItem.getBizId());
+            queue = GenericitySerializeUtil.unserialize(redisSingleNumberOutboud.hget(mapSerialize,fieldSerialize));
+            if (null == queue || queue.isEmpty()) {
+                queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, nextDialTimeComparator);
+            }
+            queue.put(newCustomerItem);
+            redisSingleNumberOutboud.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(queue));
         } else {
             //先从redis中取出来
-            byte[] serialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapDialCustomerSharePool" + newCustomerItem.getBizId());
-            shareBatchIdVsCustomerMap = redisSingleNumberOutboud.hgetAll(serialize);
-            if (!shareBatchIdVsCustomerMap.isEmpty()){
-                queue = GenericitySerializeUtil.unserialize(shareBatchIdVsCustomerMap.get(mapSerialize));
-            }
+            byte[] mapSerialize = GenericitySerializeUtil.serialize("singleNumberOutboundMapDialCustomerSharePool" + newCustomerItem.getBizId());
+            queue = GenericitySerializeUtil.unserialize(redisSingleNumberOutboud.hget(mapSerialize,fieldSerialize));
             if (null == queue || queue.isEmpty()) {
                 queue = new PriorityBlockingQueue<SingleNumberModeShareCustomerItem>(1, shareBatchBeginTimeComparator);
             }
             queue.put(newCustomerItem);
-            shareBatchIdVsCustomerMap.put(mapSerialize, GenericitySerializeUtil.serialize(queue));
-            //操作完成之后，再存回redis中
-            redisSingleNumberOutboud.hmset(serialize, shareBatchIdVsCustomerMap);
+            redisSingleNumberOutboud.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(queue));
         }
         redisSingleNumberOutboud.hset(GenericitySerializeUtil.serialize("singleNumberOutboundMapWaitStopCustomerPool" + newCustomerItem.getShareToken()),
                 GenericitySerializeUtil.serialize(newCustomerItem.getCustomerToken()),GenericitySerializeUtil.serialize(newCustomerItem));
