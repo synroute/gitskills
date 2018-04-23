@@ -763,6 +763,7 @@ public class SingleNumberOutboundDataManage {
             SingleNumberModeShareCustomerItem shareDataItem = customerQueue.peek();
             if (shareDataItem.getInvalid()) {
                 customerQueue.poll();  // 丢弃 作废的客户
+                redisSingleNumberOutboud.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(customerQueue));
                 continue;
             }
 
@@ -801,9 +802,10 @@ public class SingleNumberOutboundDataManage {
             }
 
             SingleNumberModeShareCustomerItem shareDataItem = customerQueue.poll();
-            if (shareDataItem.getInvalid())
-                continue;
             redisSingleNumberOutboud.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(customerQueue));
+            if (shareDataItem.getInvalid()){
+                continue;
+            }
             return shareDataItem;
         }
 
