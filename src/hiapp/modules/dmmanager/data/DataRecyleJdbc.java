@@ -145,7 +145,7 @@ public class DataRecyleJdbc extends BaseRepository{
 	 * @param endTime
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes" })
-	public void getDistributeDataByTime(Integer bizId,String userId,Integer templateId,String startTime,String endTime,int permissionId){
+	public void getDistributeDataByTime(Integer bizId,String userId,Integer templateId,String startTime,String endTime,int permissionId,String agentId){
 		Connection conn=null;
 		PreparedStatement pst = null;
 		ResultSet rs = null;
@@ -225,8 +225,16 @@ public class DataRecyleJdbc extends BaseRepository{
 				getDataSql2+=" on b.IID="+asName+".IID and b.CID="+asName+".CID left join ";
 			}
 			getDataSql2=getDataSql2.substring(0,getDataSql2.lastIndexOf("left join"))+" where ";
-			getDataSql2=getDataSql2+" b.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>to_date(?,'yyyy-mm-dd hh24:mi:ss') and a.ModifyTime<to_date(?,'yyyy-mm-dd hh24:mi:ss') "
-					+ " and b.AreaCur="+areaCur+" and b.ISRecover=0 and b.DataPoolIDCur in(select id from HASYS_DM_DATAPOOL p where p.pid=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null) and p.BusinessID=?) )";
+			if(agentId.equals(""))
+			{
+				getDataSql2=getDataSql2+" b.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>to_date(?,'yyyy-mm-dd hh24:mi:ss') and a.ModifyTime<to_date(?,'yyyy-mm-dd hh24:mi:ss') "
+						+ " and b.AreaCur="+areaCur+" and b.ISRecover=0 and b.DataPoolIDCur in(select id from HASYS_DM_DATAPOOL p where p.pid=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null) and p.BusinessID=?) )";
+				
+			}else {
+				getDataSql2=getDataSql2+" b.CID in(select b.CID from HASYS_DM_DID a,"+dataPoolName+" b where a.DID=b.SourceID and a.BUSINESSID=? and a.ModifyTime>to_date(?,'yyyy-mm-dd hh24:mi:ss') and a.ModifyTime<to_date(?,'yyyy-mm-dd hh24:mi:ss') "
+						+ " and b.AreaCur="+areaCur+" and b.ISRecover=0 and b.DataPoolIDCur in(select id from HASYS_DM_DATAPOOL p where p.pid=(select DataPoolID from HASYS_DM_PER_MAP_POOL b where b.BusinessID=? and b.PermissionID=? and b.DataPoolID is not null) and p.BusinessID=? AND DATAPOOLNAME='"+agentId+"') )";
+				
+			}
 			createTableSql=createTableSql.substring(0,createTableSql.length()-1)+")";
 			insertSql=insertSql.substring(0,insertSql.length()-1)+") "+getDataSql2;
 			if(dbTableName==null){
@@ -259,7 +267,7 @@ public class DataRecyleJdbc extends BaseRepository{
 			pst.setString(3,endTime);
 			pst.setInt(4,bizId);
 			pst.setInt(5, permissionId);
-			pst.setInt(6, bizId);;
+			pst.setInt(6, bizId);
 			pst.executeUpdate();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
