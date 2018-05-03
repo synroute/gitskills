@@ -1,11 +1,14 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
 import hiapp.modules.dm.bo.CustomerBasic;
+import org.springframework.stereotype.Service;
+import redis.clients.jedis.Jedis;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-
-public class OnePhoneTypeCustomerPool {
+@Service
+public class OnePhoneTypeCustomerPool implements Serializable {
 
     CustomerSharePool customerSharePool;
     //CustomerWaitPool customerWaitPool;
@@ -13,12 +16,12 @@ public class OnePhoneTypeCustomerPool {
     int bizId = 0;
     int phoneType;
 
-    public OnePhoneTypeCustomerPool(int bizId, int dialType) {
+    public OnePhoneTypeCustomerPool(int bizId, int dialType, Jedis redisMultiNumberPredict) {
 
         this.bizId = bizId;
         this.phoneType = dialType;
 
-        customerSharePool = new CustomerSharePool(bizId);
+        customerSharePool = new CustomerSharePool(bizId, redisMultiNumberPredict);
         //customerWaitPool = new CustomerWaitPool(bizId);
 
     }

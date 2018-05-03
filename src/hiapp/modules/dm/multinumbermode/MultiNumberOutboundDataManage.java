@@ -272,8 +272,8 @@ public class MultiNumberOutboundDataManage {
 
 
     public void initialize() {
-        customerPool.initialize();
         customerSharePool.initialize();
+        customerPool.initialize();
         customerWaitPool.initialize();
     }
 

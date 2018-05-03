@@ -77,10 +77,15 @@ public class MultiNumberPredictCustomerPool {
                 hget(GenericitySerializeUtil.serialize("multiNumberPredictCustomerSharePool" + customer.getBizId()),
                 GenericitySerializeUtil.serialize(nextDialPhoneType)));
         if (null == onePhoneTypeCustomerPool) {
-            onePhoneTypeCustomerPool = new OnePhoneTypeCustomerPool(customer.getBizId(), nextDialPhoneType);
+            onePhoneTypeCustomerPool = new OnePhoneTypeCustomerPool(customer.getBizId(), nextDialPhoneType, redisMultiNumberPredict);
+            System.out.println(customer.getBizId());
+            System.out.println(redisMultiNumberPredict);
+            System.out.println(nextDialPhoneType);
+            System.out.println(onePhoneTypeCustomerPool);
             redisMultiNumberPredict.
                     hset(GenericitySerializeUtil.serialize("multiNumberPredictCustomerSharePool" + customer.getBizId()),
-                            GenericitySerializeUtil.serialize(nextDialPhoneType), GenericitySerializeUtil.serialize(onePhoneTypeCustomerPool));
+                            GenericitySerializeUtil.serialize(nextDialPhoneType),
+                            GenericitySerializeUtil.serialize(onePhoneTypeCustomerPool));
         }
 
         onePhoneTypeCustomerPool.add(customer);

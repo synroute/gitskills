@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.PriorityBlockingQueue;
  * Hidialer 抽取数据，客户信息不需要按照共享批次分类，由于不存在访问权限问题
  */
 @Service
-public class CustomerSharePool {
+public class CustomerSharePool implements Serializable {
 
     @Autowired
     private DMBizMangeShare dmBizMangeShare;
@@ -48,11 +49,11 @@ public class CustomerSharePool {
         redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator)));
         redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator)));
     }
-    public CustomerSharePool() {
-    }
-    public CustomerSharePool(int bizId) {
-
+    public CustomerSharePool(int bizId, Jedis redisMultiNumberPredict) {
         this.bizId = bizId;
+        redisMultiNumber = redisMultiNumberPredict;
+    }
+    public CustomerSharePool() {
 
         //multiNumberMapPreseCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
         //multiNumberMapCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
@@ -111,6 +112,8 @@ public class CustomerSharePool {
             //再存进去
             redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(queue));
         } else {
+            System.out.println("redisMultiNumber----------------" + redisMultiNumber);
+            System.out.println("redisMultiNumber.get(serializeCustomer)----------------" + redisMultiNumber.get(serializeCustomer));
             //先取出来
             queue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializeCustomer));
             queue.put(customer);

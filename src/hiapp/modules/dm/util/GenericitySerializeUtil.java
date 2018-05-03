@@ -15,6 +15,9 @@ public final class GenericitySerializeUtil {
      * @return
      */
     public static byte[] serialize(Object object) {
+        if (object == null){
+            return null;
+        }
         ObjectOutputStream oos = null;
         ByteArrayOutputStream baos = null;
         byte[] bytes = null;
@@ -22,6 +25,9 @@ public final class GenericitySerializeUtil {
             // 序列化
             baos = new ByteArrayOutputStream();
             oos = new ObjectOutputStream(baos);
+            if (oos == null){
+                return null;
+            }
             oos.writeObject(object);
             bytes = baos.toByteArray();
         } catch (Exception e) {
@@ -47,6 +53,9 @@ public final class GenericitySerializeUtil {
      * @return
      */
     public static <T> T unserialize(byte[] bytes) {
+        if (bytes == null){
+            return null;
+        }
         Object obj = null;
         ByteArrayInputStream bais = null;
         try {
