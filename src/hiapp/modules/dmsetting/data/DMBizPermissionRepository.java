@@ -39,7 +39,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 	private DmBizRepository dmBizRepository;
 	@Autowired
 	private UserRepository userRepository;
-	Connection dbConn = null;
+	
 	//获取所有权限接口
 	public JsonObject getAll(){
 		
@@ -47,7 +47,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		List<DMBizPermission> listBizPermissionsiz=new ArrayList<DMBizPermission>();
 		List<DMBusiness> listdmBusinesses=new ArrayList<DMBusiness>();
 		List<Permission> listPermissions=new ArrayList<Permission>();
-		
+		Connection dbConn = null;
 		
 		JsonObject jsonObject=new  JsonObject();
 		
@@ -243,6 +243,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		//查询所有权限信息
 		List<DMBizPermission> listBizPermissions=new ArrayList<DMBizPermission>();
 		PreparedStatement stmt = null;
+		Connection dbConn = null;
 		ResultSet rs = null;
 		try {
 			dbConn=this.getDbConnection();
@@ -263,7 +264,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		} 
 		finally {
 			DbUtil.DbCloseQuery(rs, stmt);
-			
+			DbUtil.DbCloseConnection(dbConn);
 		}
 		return listBizPermissions;
 	}
@@ -276,6 +277,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 		List<DMDataPool> listDataPools=new ArrayList<DMDataPool>();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		//查询数据池信息
 				try {
 					dbConn =this.getDbConnection();
@@ -295,6 +297,8 @@ public class DMBizPermissionRepository extends BaseRepository {
 				} 
 				finally {
 					DbUtil.DbCloseQuery(rs, stmt);
+					
+					DbUtil.DbCloseConnection(dbConn);
 				}
 				
 				return listDataPools;
@@ -305,6 +309,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 	public  boolean submit(JsonArray jArray){
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		try {
 			dbConn =this.getDbConnection();
 			String szSql = "delete from HASYS_DM_PER_MAP_POOL";
@@ -353,6 +358,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 							} 
 							finally {
 								DbUtil.DbCloseQuery(rs, stmt);
+								DbUtil.DbCloseConnection(dbConn);
 							}
 						}
 							

@@ -17,12 +17,13 @@ import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 @Repository
 public class DmBizOutboundConfigRepository extends BaseRepository {
-	Connection conn = null;
+	
 	//获取所有外呼策略配置接口
 	public String dmGetAllBizOutboundSetting(int bizId)
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection conn = null;
 		String xml="";
 		JsonObject jsonObject=new JsonObject();
 		try {
@@ -74,7 +75,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 	//修改外呼策略接口
 	public boolean dmModifyBizRedailState(int bizId,String MapColumns)
 	{
-		
+		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String xml="";
@@ -158,7 +159,7 @@ public class DmBizOutboundConfigRepository extends BaseRepository {
 	//修改外呼策略重拨状态接口
 	public boolean dmModifyOutboundSetting(int bizId,String MapColumns,StringBuffer err)
 	{
-		
+		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String xml="";

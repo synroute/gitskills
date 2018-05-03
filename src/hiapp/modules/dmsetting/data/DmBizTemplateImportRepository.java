@@ -39,7 +39,7 @@ import hiapp.utils.database.BaseRepository;
 import hiapp.utils.serviceresult.ServiceResultCode;
 @Repository
 public class DmBizTemplateImportRepository extends BaseRepository {
-	Connection dbConn = null;
+	
 	
 	@Autowired
 	private WorkSheetRepository workSheetRepository;
@@ -50,6 +50,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	public   List<DMBizImportTemplate> getAllTemplates(int bizId){
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		List<DMBizImportTemplate> listDmBizImportTemplate=new ArrayList<DMBizImportTemplate>();
 		try {
 			dbConn =this.getDbConnection();
@@ -85,6 +86,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		public   List<DMBizImportTemplate> getTemplates(int bizId,int templateid){
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
+			Connection dbConn = null;
 			List<DMBizImportTemplate> listDmBizImportTemplate=new ArrayList<DMBizImportTemplate>();
 			try {
 				dbConn =this.getDbConnection();
@@ -119,6 +121,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	public   boolean dmCreateCustomerImportTemplate(DMBizImportTemplate dmBizImportTemplate,StringBuffer errMessage){
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		try {
 			dbConn =this.getDbConnection();
 			try {
@@ -179,6 +182,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	public   boolean dmModifyCustomerImportTemplate(DMBizImportTemplate dmBizImportTemplate){
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		try {
 			dbConn =this.getDbConnection();
 			String szSql = "UPDATE HASYS_DM_BIZTEMPLATEIMPORT SET Name = ? ,Description = ? ,IsDefault = ? ,SourceType =?  WHERE TemplateID=? AND BusinessId=? ";
@@ -202,6 +206,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	public   boolean dmDeleteBizImportTemplate(DMBizImportTemplate dmBizImportTemplate){
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		try {
 			dbConn =this.getDbConnection();
 			String szSql = "DELETE FROM HASYS_DM_BIZTEMPLATEIMPORT WHERE TemplateID=? AND BusinessId=? ";
@@ -223,6 +228,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		List<DMBizTemplateImportTableName> listDmTableName=new ArrayList<DMBizTemplateImportTableName>();
 		try {
 			dbConn =this.getDbConnection();
@@ -251,6 +257,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		List<DMBizTemplateImportTableColumns> listDmTableColumns=new ArrayList<DMBizTemplateImportTableColumns>();
 		try {
 			dbConn =this.getDbConnection();
@@ -279,6 +286,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String json="";
+		Connection dbConn = null;
 		String SourceType="";
 		try {
 			dbConn =this.getDbConnection();
@@ -401,6 +409,7 @@ public class DmBizTemplateImportRepository extends BaseRepository {
 	public   boolean dmModifyBizImportMapColumns(DMBizImportTemplate dmBizImportTemplate,String mapColumns){
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		JsonObject jsonObject=new JsonParser().parse(mapColumns).getAsJsonObject();
 		try {
 			dbConn =this.getDbConnection();

@@ -13,12 +13,12 @@ import hiapp.utils.database.BaseRepository;
 @Repository
 public class DmBizHidialerSetting extends BaseRepository {
 	
-	Connection dbConn = null;
+	
 	public boolean dmModifyHidialerSetting(String bizid,String mapcolumn)
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		
+		Connection dbConn = null;
 		try {
 			dbConn =this.getDbConnection();
 			String sql = "update  HASYS_DM_Business set CONFIGJSON='"+mapcolumn+"' where BusinessID="+bizid+"";
@@ -38,7 +38,7 @@ public class DmBizHidialerSetting extends BaseRepository {
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		
+		Connection dbConn = null;
 		try {
 			dbConn =this.getDbConnection();
 			
@@ -69,6 +69,7 @@ public class DmBizHidialerSetting extends BaseRepository {
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		String hidialer="";
 		try {
 			dbConn =this.getDbConnection();
