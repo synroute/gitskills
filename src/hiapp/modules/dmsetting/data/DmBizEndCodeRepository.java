@@ -27,12 +27,13 @@ import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 @Repository
 public class DmBizEndCodeRepository extends BaseRepository {
-	Connection conn = null;
+	
 	@Autowired
 	 private DictRepository dictManager;
 	//添加结束码
 	public boolean dmAddBizEndCode(String mapColmns,int bizId,StringBuffer err)throws SQLException, IOException
 	{
+		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -172,6 +173,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	//修改结束码
 	public boolean dmModifyBizEndCode(DMEndCode dmEndCode, String codetype_old,String code_old,StringBuffer err) throws SQLException, IOException
 	{
+		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -224,6 +226,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	//修改addsetting的字符串
 	public void modift(int bizid,String EndCodeType,String EndCode,String codetype_old,String code_old ) throws SQLException{
 		PreparedStatement stmt = null;
+		Connection conn = null;
 		ResultSet rs = null;
 		int count=0;
 		String xml="";
@@ -262,6 +265,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	//添加addsettingjson字符串
 	public void add(int bizid,String EndCodeType,String EndCode,String Description) throws SQLException, IOException
 	{
+		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int count=0;
@@ -347,6 +351,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	//添加addsettingjson字符串
 		public void addModel4(int bizid,String EndCodeType,String EndCode,String Description,int type) throws SQLException, IOException
 		{
+			Connection conn = null;
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
 			int count=0;
@@ -450,6 +455,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	//添加addsettingjson字符串
 		public void addModel6(int bizid,String EndCodeType,String EndCode,String Description,int type) throws SQLException, IOException
 		{
+			Connection conn = null;
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
 			int count=0;
@@ -541,6 +547,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	//删除结束码信息
 	public boolean dmDeleteBizEndCode(DMEndCode dmEndCode,StringBuffer err) throws SQLException
 	{
+		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -679,6 +686,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	
 	public List<DMEndCode> dmGetAllBizEndCode(String bizid,String Code)
 	{
+		Connection conn = null;
 		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -720,6 +728,7 @@ public class DmBizEndCodeRepository extends BaseRepository {
 	//删除结束码信息
 		public boolean dmGetPersetByEndCode(DMEndCode dmEndCode,StringBuffer err) throws SQLException
 		{
+			Connection conn = null;
 			PreparedStatement stmt = null;
 			ResultSet rs = null;
 			boolean isperset=false;
