@@ -17,14 +17,12 @@ import java.util.concurrent.PriorityBlockingQueue;
  * M6 多号码预测外呼
  * Hidialer 抽取数据，客户信息不需要按照共享批次分类，由于不存在访问权限问题
  */
-@Service
+
 public class CustomerSharePool implements Serializable {
 
-    @Autowired
-    private DMBizMangeShare dmBizMangeShare;
+   /* @Autowired
+    private DMBizMangeShare dmBizMangeShare;*/
 
-    @Autowired
-    private JedisPool jedisPool;
     // 客户共享池
     // ShareBatchID <==> PriorityBlockingQueue<MultiNumberCustomer>
     //Map<String, PriorityBlockingQueue<MultiNumberCustomer>> multiNumberMapPreseCustomerSharePool;
@@ -44,7 +42,7 @@ public class CustomerSharePool implements Serializable {
     byte[] serializeWaitMap = GenericitySerializeUtil.serialize("multiNumberMapShareBatchWaitStopCustomerPool");
     //用于注入redis
     public void initialize() {
-        redisMultiNumber = jedisPool.getResource();
+
         //初始化
         redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator)));
         redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator)));

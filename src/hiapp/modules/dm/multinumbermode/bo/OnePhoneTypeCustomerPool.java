@@ -7,7 +7,6 @@ import redis.clients.jedis.Jedis;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-@Service
 public class OnePhoneTypeCustomerPool implements Serializable {
 
     CustomerSharePool customerSharePool;
