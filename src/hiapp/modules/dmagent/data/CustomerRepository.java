@@ -484,7 +484,7 @@ public class CustomerRepository extends BaseRepository {
 			}
 
 
-			dbConn = this.getDbConnection();
+			
 			stmt = dbConn.prepareStatement(sb.toString());
 			rs = stmt.executeQuery();
 			if (rs.next()) {

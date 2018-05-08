@@ -207,8 +207,9 @@ public class DmBizRepository extends BaseRepository{
 			serviceresult.setReturnCode(0);
 			serviceresult.setReturnMessage("失败");
 		} finally {
-			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseExecute(stmt);
+			DbUtil.DbCloseConnection(dbConn);
+			
 		}
 		return ServiceResultCode.SUCCESS;
 	}
