@@ -358,7 +358,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 							} 
 							finally {
 								DbUtil.DbCloseQuery(rs, stmt);
-								DbUtil.DbCloseConnection(dbConn);
+								
 							}
 						}
 							
