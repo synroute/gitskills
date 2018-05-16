@@ -19,12 +19,13 @@ import hiapp.utils.database.BaseRepository;
 @Repository
 public class DmBizPhoneTypeRepository extends BaseRepository {
 	
-	Connection dbConn = null;
+	
 	//添加号码类型
 	public boolean dmAddBizPhoneType(String bizId,JsonArray jsonArray,StringBuffer errMessage)
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		dmDeleteBizPhoneType(bizId);
 		try {
 			dbConn =this.getDbConnection();
@@ -91,8 +92,9 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseExecute(stmt);
+			DbUtil.DbCloseConnection(dbConn);
+			
 		}
 		return true;
 	}
@@ -173,7 +175,7 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		
+		Connection dbConn = null;
 		try {
 			dbConn =this.getDbConnection();
 			
@@ -185,8 +187,9 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseExecute(stmt);
+			DbUtil.DbCloseConnection(dbConn);
+			
 		}
 		return true;
 	}
@@ -196,6 +199,7 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 	{
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		Connection dbConn = null;
 		List<DMBizPhoneType> listDmBizPhoneType=new ArrayList<DMBizPhoneType>();
 		try {
 			dbConn =this.getDbConnection();
@@ -226,8 +230,9 @@ public class DmBizPhoneTypeRepository extends BaseRepository {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DbUtil.DbCloseConnection(dbConn);
 			DbUtil.DbCloseExecute(stmt);
+			DbUtil.DbCloseConnection(dbConn);
+			
 		}
 		return listDmBizPhoneType;
 	}
