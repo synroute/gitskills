@@ -1,6 +1,7 @@
 package hiapp.modules.dm.dao;
 
 import com.google.gson.JsonObject;
+
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.util.SQLUtil;
@@ -10,8 +11,10 @@ import hiapp.modules.dmsetting.DMBizOutboundModelEnum;
 import hiapp.modules.dmsetting.DMBizPresetItem;
 import hiapp.modules.dmsetting.DMBusiness;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
+import hiapp.system.buinfo.User;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -430,6 +433,41 @@ public class DMDAO extends BaseRepository {
         return true;
     }
 
+    public boolean getPresetcount(int bizId, DMBizPresetItem presetItem)
+	{
+    	String presetTimeTableName = String.format("HASYS_DM_B%dC_PRESETTIME", bizId);
+		String sql="";
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		int count=0;
+		sql="select count(*) from "+presetTimeTableName+" where CID='"+presetItem.getCustomerId()+"' and IID='"+presetItem.getImportId()+"' and SOURCEID='"+presetItem.getSourceId()+"' ";
+		try {
+			dbConn =this.getDbConnection();
+			stmt = dbConn.prepareStatement(sql);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				count=rs.getInt(1);
+			}
+			stmt.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+			
+		
+		if(count>0)
+		{
+			return true;
+		}else {
+			return false;
+		}
+	}
+    
     public Boolean insertPresetItem(int bizId, DMBizPresetItem presetItem) {
 
         String presetTimeTableName = String.format("HASYS_DM_B%dC_PRESETTIME", bizId);
@@ -471,7 +509,35 @@ public class DMDAO extends BaseRepository {
 
         return true;
     }
+    public Boolean updatePresetItem(int bizId, DMBizPresetItem presetItem,String state) {
 
+        String presetTimeTableName = String.format("HASYS_DM_B%dC_PRESETTIME", bizId);
+
+        StringBuilder sqlBuilder = new StringBuilder("");
+        if(state.equals("使用中"))
+        {
+        	sqlBuilder.append("update "+presetTimeTableName+" set PRESETTIME=" + SQLUtil.getSqlString(presetItem.getPresetTime()) + ",ModifyTime=sysdate where CID='"+presetItem.getCustomerId()+"' and IID='"+presetItem.getImportId()+"' and SOURCEID='"+presetItem.getSourceId()+"' ");
+        }else {
+        	sqlBuilder.append("update "+presetTimeTableName+" set STATE='预约完成',ModifyTime=sysdate where CID='"+presetItem.getCustomerId()+"' and IID='"+presetItem.getImportId()+"' and SOURCEID='"+presetItem.getSourceId()+"' ");
+		}
+        System.out.println(sqlBuilder.toString());
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+        try {
+            dbConn = this.getDbConnection();
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return true;
+    }
     public Boolean updatePresetState(int bizId, String shareBatchId, String importBatchId, String customerId, int modifyId, String newState) {
 
         String presetTimeTableName = String.format("HASYS_DM_B%dC_PRESETTIME", bizId);

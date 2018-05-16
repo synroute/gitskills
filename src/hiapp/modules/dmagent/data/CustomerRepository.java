@@ -43,9 +43,9 @@ public class CustomerRepository extends BaseRepository {
 	@Autowired
 	private DmBizDataPoolRepository dmBizDataPoolRepository;
 
-	private final String INPUT_TIME_TEMPLATE = "MM/dd/YYYY HH24:mi:ss";
-	private final String INPUT_TIME_JTEMPLATE = "MM/dd/YYYY HH:mm:ss";
-	private final String OUTPUT_TIME_TEMPLATE = "yyyy/MM/dd HH:mm:ss";
+	private final String INPUT_TIME_TEMPLATE = "yyyy-mm-dd hh24:mi:ss";
+	private final String INPUT_TIME_JTEMPLATE = "yyyy-MM-dd HH:mm:ss";
+	private final String OUTPUT_TIME_TEMPLATE = "yyyy-MM-dd HH:mm:ss";
 
 	// 根据业务ID获取结果表中作为待选列的非固定列
 	public List<Map<String, Object>> getResultTableColumn(String bizId)
@@ -326,6 +326,7 @@ public class CustomerRepository extends BaseRepository {
 			while (rs.next()) {
 				outid=rs.getInt(1);
 			}
+			stmt.close();
 			if(outid==1)
 			{
 				// 要查哪些表
@@ -483,7 +484,7 @@ public class CustomerRepository extends BaseRepository {
 			}
 
 
-			dbConn = this.getDbConnection();
+			
 			stmt = dbConn.prepareStatement(sb.toString());
 			rs = stmt.executeQuery();
 			if (rs.next()) {
@@ -713,6 +714,10 @@ public class CustomerRepository extends BaseRepository {
 		ResultSet rs = null;
 		String bizId = queryRequest.getBizId();
 		int outid=0;
+		if(bizId.equals(""))
+		{
+			bizId="-1";
+		}
 		try {
 			dbConn = this.getDbConnection();
 			String sql="select OutboundID from HASYS_DM_Business a left join Hasys_DM_BIZTypeMode b on a.outboundmddeid=b.OutboundMode where businessid="+bizId+"";
@@ -726,8 +731,9 @@ public class CustomerRepository extends BaseRepository {
 			e.printStackTrace();
 		} 
 		finally {
+			DbUtil.DbCloseQuery(rs, stmt);
 			DbUtil.DbCloseConnection(dbConn);
-			DbUtil.DbCloseExecute(stmt);
+			
 		}
 		return outid;
 	}
@@ -823,9 +829,21 @@ public class CustomerRepository extends BaseRepository {
 				// 要查哪些表
 				//sb.append("HAU_DM_B"+bizId+"C_IMPORT DR left join hau_dm_b"+bizId+"c_result JG on DR.iid=JG.iid and DR.cid=JG.cid and DR.modifyid=JG.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on DR.IID=C.IID AND DR.CID=C.CID where DR.modifylast=1 AND c.sourceid not in (select sourceid from hau_dm_b"+bizId+"c_result where modifyid=1)");
 				/*sb.append("HAU_DM_B"+bizId+"C_IMPORT DR left join hau_dm_b"+bizId+"c_result JG on DR.iid = JG.iid and DR.cid = JG.cid and DR.modifyid = JG.modifyid LEFT join HAU_DM_B"+bizId+"C_POOL C on  DR.IID = C.IID AND DR.CID = C.CID where C.DATAPOOLIDCUR in (select id from HASYS_DM_DATAPOOL where businessid="+bizId+" and datapoolname='"+userId+"') and DR.modifylast = 1 AND nvl(JG.MODIFYUSERID,00)<>"+userId+"");
-	
-				sb.append(" AND ");*/
-
+	*/
+		/*	sb.append(" HAU_DM_B"+bizId+"C_IMPORT DR\n" +
+					"     LEFT JOIN (\n" +
+					"     (SELECT *\n" +
+					"                       FROM hau_dm_b"+bizId+"c_result\n" +
+					"                       WHERE modifyuserid = "+userId+" AND modifylast = 1 \n" +
+					
+					"               ) JG ON DR.iid = JG.iid AND DR.cid = JG.cid AND DR.modifyid = JG.modifyid\n" +
+					
+					"     LEFT JOIN HAU_DM_B"+bizId+"C_POOL C ON DR.IID = C.IID AND DR.CID = C.CID\n" +
+					"   WHERE C.DATAPOOLIDCUR IN (SELECT id\n" +
+					"                             FROM HASYS_DM_DATAPOOL\n" +
+					"                             WHERE businessid = "+bizId+" AND datapoolname = '"+userId+"')\n" +
+					"         AND DR.modifylast = 1 AND nvl(JG.MODIFYUSERID, 00) <> "+userId+" AND ");
+*/
 			sb.append(" HAU_DM_B"+bizId+"C_IMPORT DR\n" +
 					"     LEFT JOIN (\n" +
 					"                 SELECT a.*\n" +
@@ -855,9 +873,9 @@ public class CustomerRepository extends BaseRepository {
 						+ "MODIFYLAST");
 				sb.append(" = ");
 				sb.append("1");
-	
+	*/
 				
-				sb.append("and a1.datapoolname='"+userId+"'");*/
+				/*sb.append("and a1.datapoolname='"+userId+"'");*/
 			
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
@@ -1738,6 +1756,7 @@ public class CustomerRepository extends BaseRepository {
 			while (rs.next()) {
 				outid=rs.getInt(1);
 			}
+			stmt.close();
 			if(outid==1)
 			{
 				// 要查哪些表
@@ -2479,7 +2498,7 @@ public class CustomerRepository extends BaseRepository {
 	
 			sb.append(")");
 	
-			sb.append(" LEFT JOIN ");
+			/*sb.append(" LEFT JOIN ");
 	
 			sb.append(TableNameEnume.PRESETTABLENAME.getPrefix());
 			sb.append(bizId);
@@ -2505,7 +2524,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "." + "MODIFYLAST");
 	
 			sb.append(")");
-	
+	*/
 			sb.append(" WHERE ");
 			
 			/*sb.append("  SID.CREATEUSERID =  ");*/
@@ -2722,7 +2741,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "." + "MODIFYLAST");
 	
 			sb.append(")");
-	
+	/*
 			sb.append(" LEFT JOIN ");
 	
 			sb.append(TableNameEnume.PRESETTABLENAME.getPrefix());
@@ -2749,7 +2768,7 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "." + "MODIFYLAST");
 	
 			sb.append(")");
-	
+	*/
 	
 			sb.append(" WHERE ");
 			// 查询条件
@@ -2839,9 +2858,9 @@ public class CustomerRepository extends BaseRepository {
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
 			sb.append(" DESC,");
-			sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
+			/*sb.append(TableNameEnume.PRESETTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
-			sb.append(" DESC,");
+			sb.append(" DESC,");*/
 			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
 			sb.append(" DESC)");
@@ -2903,6 +2922,9 @@ public class CustomerRepository extends BaseRepository {
 			System.out.println(sb);
 			e.printStackTrace();
 			throw new HiAppException("queryAllCustomers Exception", 1);
+		}finally {
+			DbUtil.DbCloseQuery(rs, stmt);
+			DbUtil.DbCloseConnection(dbConn);
 		}
 	
 		return result;

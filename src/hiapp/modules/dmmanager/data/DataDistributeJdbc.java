@@ -1042,6 +1042,9 @@ public class DataDistributeJdbc extends BaseRepository{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			resultMap.put("result",false);
+		}finally{
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
 		}
 		
 		return resultMap;

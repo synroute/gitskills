@@ -322,9 +322,13 @@ public class DmBizAutomaticRepository extends BaseRepository {
 			resultsql=resultsql.substring(0, resultsql.length()-1);
 			*/
 			//String szSelectSql="select "+columns+" from HAU_DM_B"+bizId+"C_IMPORT where Cid='"+Cid+"'";
-			String szSelectSql="select "+repcolumn+",HAU_DM_B"+bizId+"C_RESULT.SOURCEID as RESULTSOURCEID,HAU_DM_B"+bizId+"C_RESULT.IID as RESULTIID,HAU_DM_B"+bizId+"C_RESULT.CID as RESULTCID,HAU_DM_B"+bizId+"C_RESULT.MODIFYID as RESULTMODIFYID  from  HAU_DM_B"+bizId+"C_RESULT  left join (select * from HAU_DM_B"+bizId+"C_IMPORT where modifylast=1) HAU_DM_B"+bizId+"C_IMPORT on HAU_DM_B"+bizId+"C_IMPORT.cid=HAU_DM_B"+bizId+"C_RESULT.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HAU_DM_B"+bizId+"C_RESULT.iid"+
+			/*String szSelectSql="select "+repcolumn+",HAU_DM_B"+bizId+"C_RESULT.SOURCEID as RESULTSOURCEID,HAU_DM_B"+bizId+"C_RESULT.IID as RESULTIID,HAU_DM_B"+bizId+"C_RESULT.CID as RESULTCID,HAU_DM_B"+bizId+"C_RESULT.MODIFYID as RESULTMODIFYID  from  HAU_DM_B"+bizId+"C_RESULT  left join (select * from HAU_DM_B"+bizId+"C_IMPORT where modifylast=1) HAU_DM_B"+bizId+"C_IMPORT on HAU_DM_B"+bizId+"C_IMPORT.cid=HAU_DM_B"+bizId+"C_RESULT.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HAU_DM_B"+bizId+"C_RESULT.iid"+
 					" left join (select * from HASYS_DM_B"+bizId+"C_PresetTime where modifylast=1) HASYS_DM_B"+bizId+"C_PresetTime on HAU_DM_B"+bizId+"C_IMPORT.cid=HASYS_DM_B"+bizId+"C_PresetTime.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HASYS_DM_B"+bizId+"C_PresetTime.iid"+
-					" where HAU_DM_B"+bizId+"C_IMPORT.Cid='"+Cid+"' and HAU_DM_B"+bizId+"C_IMPORT.modifylast=1";
+					" where HAU_DM_B"+bizId+"C_IMPORT.Cid='"+Cid+"' and HAU_DM_B"+bizId+"C_IMPORT.modifylast=1";*/
+			String szSelectSql="select "+repcolumn+",HAU_DM_B"+bizId+"C_RESULT.SOURCEID as RESULTSOURCEID,HAU_DM_B"+bizId+"C_RESULT.IID as RESULTIID,HAU_DM_B"+bizId+"C_RESULT.CID as RESULTCID,HAU_DM_B"+bizId+"C_RESULT.MODIFYID as RESULTMODIFYID,APP_INF_CALLINFO.startCallTime,APP_INF_CALLINFO.endCallTime,APP_INF_CALLINFO.ETime  from  HAU_DM_B"+bizId+"C_RESULT  left join (select * from HAU_DM_B"+bizId+"C_IMPORT where modifylast=1) HAU_DM_B"+bizId+"C_IMPORT on HAU_DM_B"+bizId+"C_IMPORT.cid=HAU_DM_B"+bizId+"C_RESULT.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HAU_DM_B"+bizId+"C_RESULT.iid"+
+			" left join (select * from HASYS_DM_B"+bizId+"C_PresetTime where modifylast=1) HASYS_DM_B"+bizId+"C_PresetTime on HAU_DM_B"+bizId+"C_IMPORT.cid=HASYS_DM_B"+bizId+"C_PresetTime.cid and HAU_DM_B"+bizId+"C_IMPORT.iid=HASYS_DM_B"+bizId+"C_PresetTime.iid"+
+			"  left join APP_INF_CALLINFO on HAU_DM_B"+bizId+"C_RESULT.CUSTOMERCALLID=APP_INF_CALLINFO.CUSTOMERCALLID"+
+			" where HAU_DM_B"+bizId+"C_IMPORT.Cid='"+Cid+"' and HAU_DM_B"+bizId+"C_IMPORT.modifylast=1";
 			stmt = dbConn.prepareStatement(szSelectSql);
 			rs = stmt.executeQuery();
 			String[] column=columns.split(",");
@@ -342,6 +346,13 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				map.put("RESULTIID", rs.getString("RESULTIID"));
 				map.put("RESULTCID", rs.getString("RESULTCID"));
 				map.put("RESULTMODIFYID", rs.getString("RESULTMODIFYID"));
+				
+				map.put("startCallTime", rs.getString("startCallTime"));
+				map.put("endCallTime", rs.getString("endCallTime"));
+				int etime=rs.getInt("ETime")/1000;
+				map.put("ETime", String.valueOf(etime));
+				
+				
 				list.add(map);
 				jsonArray.add(jsonObject_row);
 			}
