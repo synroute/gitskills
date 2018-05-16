@@ -1,10 +1,11 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
 import hiapp.modules.dm.bo.CustomerBasic;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-
 public class OnePhoneTypeCustomerPool {
 
     MultiNumberRedialCustomerSharePool customerSharePool;
