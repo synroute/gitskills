@@ -1,7 +1,5 @@
 package hiapp.modules.exam.data;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,8 +13,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.context.ContextLoader;
-import org.springframework.web.context.WebApplicationContext;
+
+import com.google.gson.reflect.TypeToken;
 
 import hiapp.modules.exam.utils.FtpUtil;
 import hiapp.modules.exam.utils.GsonUtil;
@@ -67,13 +65,13 @@ public class ExamDao extends BaseRepository{
 			pst.setString(11, ftpPath);
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
-			List<Map<String,Object>> list=GsonUtil.getGson().fromJson(anwser, List.class);
+			List<Map<String,Object>> list=GsonUtil.getGson().fromJson(anwser, new TypeToken<List<Map<String,Object>>>(){}.getType());
 			String insertAnwserSql="insert into EM_INF_ANSWER(ANSWERID,QUESTIONID,ANSWERSN,ANSWERBODY,ISRIGHT) values(S_EM_INF_ANSWER.NEXTVAL,?,?,?,?)";
 			pst=conn.prepareStatement(insertAnwserSql);
 			for (int i = 0; i < list.size(); i++) {
 				Map<String,Object> map=list.get(i);
-				String answerSn=(String) map.get("anwsersn");
-				String answerBody=(String) map.get("anwserBody");
+				String answerSn=String.valueOf(map.get("anwsersn"));
+				String answerBody=String.valueOf(map.get("anwserBody"));
 				Integer isRight=Integer.valueOf(String.valueOf(map.get("isRight")));
 				pst.setString(1, questionId);
 				pst.setString(2, answerSn);
@@ -136,7 +134,7 @@ public class ExamDao extends BaseRepository{
 			pst.executeUpdate();
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
-			List<Map<String,Object>> list=GsonUtil.getGson().fromJson(anwser, List.class);
+			List<Map<String,Object>> list=GsonUtil.getGson().fromJson(anwser,  new TypeToken<List<Map<String,Object>>>(){}.getType());
 			String deleteSql="delete from EM_INF_ANSWER where QUESTIONID=?";
 			pst=conn.prepareStatement(deleteSql);
 			pst.setString(1, questionId);
@@ -146,8 +144,8 @@ public class ExamDao extends BaseRepository{
 			pst=conn.prepareStatement(insertAnwserSql);
 			for (int i = 0; i < list.size(); i++) {
 				Map<String,Object> map=list.get(i);
-				String answerSn=(String) map.get("anwsersn");
-				String answerBody=(String) map.get("anwserBody");
+				String answerSn=String.valueOf(map.get("anwsersn"));
+				String answerBody=String.valueOf(map.get("anwserBody"));
 				Integer isRight=Integer.valueOf(String.valueOf(map.get("isRight")));
 				pst.setString(1, questionId);
 				pst.setString(2, answerSn);
@@ -247,7 +245,7 @@ public class ExamDao extends BaseRepository{
 				pst.setObject(9, map.get(6));
 				pst.setInt(10,1);
 				pst.setString(11, "");
-				String anWsers=(String) map.get(7);
+				String anWsers=String.valueOf(map.get(7));
 				String[] arr=anWsers.split(";".trim());
 				for (int j = 0; j < arr.length; j++) {
 					String anwser=arr[i];
@@ -507,8 +505,8 @@ public class ExamDao extends BaseRepository{
 			String useScores="";
 			for (int i = 0; i < list.size(); i++) {
 				Map<String,Object> map=list.get(i);
-				String questionId=(String) map.get("questionId");
-				String useScore=(String) map.get("useScore");
+				String questionId=String.valueOf(map.get("questionId"));
+				String useScore=String.valueOf(map.get("useScore"));
 				questionIds+=questionId+",";
 				useScores+=useScore+",";
 			}
@@ -593,8 +591,8 @@ public class ExamDao extends BaseRepository{
 			DbUtil.DbCloseQuery(rs, pst);
 			for (int i = 0; i < questionList.size(); i++) {
 				Map<String,Object> map=questionList.get(i);
-				String questionId=(String) map.get("questionId");
-				String ftpPath=(String) map.get("ftpPath");
+				String questionId=String.valueOf(map.get("questionId"));
+				String ftpPath=String.valueOf(map.get("ftpPath"));
 				if(ftpPath!=null&&!"".equals(ftpPath)) {
 					String newName = FtpUtil.getExamFile(ftpPath, examPath, questionId);
 					map.put("ftpPath","/exam/"+newName);
