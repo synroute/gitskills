@@ -46,7 +46,7 @@ public class ExamController {
 	 * @param response
 	 * @param file
 	 */
-	@RequestMapping(value="/srv/ExamController/insertQuestion.srv")
+	@RequestMapping(value="/srv/ExamController/insertOrUpdateQuestion.srv")
 	public  void insertOrUpdateQuestion(HttpServletRequest request,HttpServletResponse response,MultipartFile file) {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
@@ -210,7 +210,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/insertExam.srv", method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/insertOrUpdateExam.srv", method = RequestMethod.POST, produces = "application/json")
 	public String insertExam(HttpServletRequest request,HttpServletResponse response) {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
