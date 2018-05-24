@@ -149,7 +149,7 @@ public class CustomerController {
     public Map<String, Object> getAdvancedFilterTemplateForHTML(
             QueryTemplate queryTemplate) {
         Map<String, Object> result = new HashMap<String, Object>();
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> list=null;
 
         try {
             list = new Gson().fromJson(
@@ -160,7 +160,8 @@ public class CustomerController {
             result.put("reason", e.getMessage());
             return result;
         }
-
+        if(list!=null)
+        {
         StringBuffer sb = new StringBuffer();
         sb.append("<form id='gjSearch' class='easyui-form'>");
         for (Map<String, Object> map : list) {
@@ -203,6 +204,7 @@ public class CustomerController {
         sb.append("</form>");
         result.put("data", sb.toString());
         result.put("result", 0);
+        }
         return result;
     }
 

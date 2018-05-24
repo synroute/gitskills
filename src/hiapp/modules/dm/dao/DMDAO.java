@@ -454,7 +454,10 @@ public class DMDAO extends BaseRepository {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
-		}
+		}finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
 			
 		
 		if(count>0)

@@ -358,7 +358,7 @@ public class DMBizPermissionRepository extends BaseRepository {
 							} 
 							finally {
 								DbUtil.DbCloseQuery(rs, stmt);
-								DbUtil.DbCloseConnection(dbConn);
+								
 							}
 						}
 							
@@ -538,14 +538,15 @@ public class DMBizPermissionRepository extends BaseRepository {
 			JsonObject jsonObject_perm=new JsonObject();	
 			jsonObject_perm.addProperty("userId", user.getId());
 			jsonObject_perm.addProperty("userName", user.getName());	
-			UserWithPermission userWithPermission = userRepository.getUserWithPermissionById(user.getId());
-			if (userWithPermission.getPermission()!=null) {				
-				jsonObject_perm.addProperty("permissionId", userWithPermission.getPermissionId());
-				jsonObject_perm.addProperty("permissionName", userWithPermission.getPermissionName());
+			Permission permission = permissionRepository.getPermissionByUserId(user.getId());
+//			UserWithPermission userWithPermission = userRepository.getUserWithPermissionById(user.getId());
+			if (permission!=null) {				
+				jsonObject_perm.addProperty("permissionId", permission.getId());
+				jsonObject_perm.addProperty("permissionName", permission.getName());
 				for(int col=0;col<listBizMapPermission.size();col++)
 				{
 					BizMapPermission bizMapPermission=listBizMapPermission.get(col);	
-					if(userWithPermission.getPermissionId()==bizMapPermission.getPermissionId())
+					if(permission.getId()==bizMapPermission.getPermissionId())
 					{
 						if(bizMapPermission.getPermItemName()!=null)
 						{
