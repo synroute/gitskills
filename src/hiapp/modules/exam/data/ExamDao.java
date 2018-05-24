@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import com.google.gson.reflect.TypeToken;
 
+import hiapp.modules.exam.bean.ExamStatus;
 import hiapp.modules.exam.utils.FtpUtil;
 import hiapp.modules.exam.utils.GsonUtil;
 import hiapp.utils.DbUtil;
@@ -484,6 +485,18 @@ public class ExamDao extends BaseRepository{
 		return resultMap;
 	}
 
+	
+	public void selectExam(String examName,Integer isUsed,String createUser,String createTime,Integer examType) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		try {
+			conn=this.getDbConnection();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	/**
 	 * 给考试选择试题
 	 * @param examId
@@ -615,11 +628,157 @@ public class ExamDao extends BaseRepository{
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
 	}
 	
-	public void saveEaxmScroe() {
+	/**
+	 * 选择考生
+	 * @param examId
+	 * @param examUserIds
+	 * @param invigilateUsers
+	 */
+	public Map<String,Object> selectExamUser(String examId,String examUserIds,String invigilateUsers) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		PreparedStatement pst1=null;
+		String[] userArr=examUserIds.split(",");
+		String[] invigilateArr=invigilateUsers.split(",");
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
+			String insertSql="insert into EM_INF_EMALLOT(EXAMINATIONID,EXAMINEETYPE,EXAMINEEID) values(?,?,?)";
+			pst=conn.prepareStatement(insertSql);
+			String insertExamUserSql="insert into EM_INF_EMPAPER(EXAMINATIONID,EXAMINEEID,EMSTATUS) values(?,?,?)";
+			pst1=conn.prepareStatement(insertExamUserSql);
+			for (int i = 0; i < userArr.length; i++) {
+				String examUserId=userArr[i];
+				if(examUserId==null||"".equals(examUserId)) {
+					continue;
+				}
+				pst.setString(1, examId);
+				pst.setInt(2, 0);
+				pst.setString(3, examUserId);
+				pst.addBatch();
+				
+				pst1.setString(1, examId);
+				pst1.setString(2, examUserId);
+				pst1.setString(3, ExamStatus.NOEXAM.getName());
+				pst1.addBatch();
+			}
+			
+			for (int i = 0; i < invigilateArr.length; i++) {
+				String invigilateUser=invigilateArr[i];
+				if(invigilateUser==null||"".equals(invigilateUser)) {
+					continue;
+				}
+				pst.setString(1, examId);
+				pst.setInt(2, 1);
+				pst.setString(3, invigilateUser);
+				pst.addBatch();
+			}
+			
+			pst.executeBatch();
+			pst1.executeBatch();
+			conn.commit();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","保存成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error("selectExamUser",e);
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","保存失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst1);
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
 		
+		return resultMap;
+	}
+	public Map<String,Object> updateEaxmStausForExaming(String examUserId,String examId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="update EM_INF_EMPAPER set EMSTATUS=?,LOGINTIME=sysdate where EXAMINATIONID=? and EXAMINEEID=?";
+			pst=conn.prepareStatement(sql);
+			pst.setString(1, ExamStatus.EXAMING.getName());
+			pst.setString(2, examId);
+			pst.setString(3, examUserId);
+			pst.executeUpdate();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","更新成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error("updateEaxmStausForExaming",e);
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","更新失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	
+	
+
+	
+	public Map<String,Object> saveEaxmScroe(String examInfo,Integer totalScore,String examUserId,String examId,String examStatus,String reason) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		List<Map<String,Object>> list=GsonUtil.getGson().fromJson(examInfo,new TypeToken<List<Map<String,Object>>>(){}.getType());
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
+			String insertSql="insert into EM_INF_EMSCORES(SCOREID,EMSN,EXAMINEEID,EXAMINATIONID,QUESTIONID,SCORE) values(S_EM_INF_EMSCORES.nextval,?,?,?,?,?)";
+			pst=conn.prepareStatement(insertSql);
+			for (int i = 0; i < list.size(); i++) {
+				Map<String,Object> map=new HashMap<>();
+				Integer emsn=Integer.valueOf(String.valueOf(map.get("emsn")));
+				String questionId=String.valueOf(map.get("questionId"));
+				Integer score=Integer.valueOf(String.valueOf(map.get("score")));
+				
+				pst.setInt(1, emsn);
+				pst.setString(2, examUserId);
+				pst.setString(3, examId);
+				pst.setString(4, questionId);
+				pst.setInt(5, score);
+				pst.addBatch();
+			}
+			
+			pst.executeBatch();
+			DbUtil.DbCloseExecute(pst);
+			String sql="update EM_INF_EMPAPER set EMSTATUS=?,SCORES=?,FORCEREASON=?,SUBMITTIME=sysdate where EXAMINATIONID=? and EXAMINEEID=?";
+			pst=conn.prepareStatement(sql);
+			pst.setString(1, examStatus);
+			pst.setInt(2, totalScore);
+			pst.setString(3, reason);
+			pst.setString(4, examId);
+			pst.setString(5, examUserId);
+			pst.executeUpdate();
+			conn.commit();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","保存成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error("saveEaxmScroe",e);
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","保存失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+		return  resultMap;
 	}
 }

@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 
+import hiapp.modules.exam.bean.ExamStatus;
 import hiapp.modules.exam.data.ExamDao;
 import hiapp.modules.exam.utils.FtpUtil;
 import hiapp.modules.exam.utils.GsonUtil;
@@ -267,6 +268,51 @@ public class ExamController {
 		Map<String, Object> resultMap = examDao.selectExamInfo(examId, examPath);
 		return new Gson().toJson(resultMap);
 	}
+	/**
+	 * 选择考生
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/selectExamUser.srv",method = RequestMethod.POST, produces = "application/json")
+	public String selectExamUser(HttpServletRequest request,HttpServletResponse response) {
+		String examId=request.getParameter("examId");
+		String examUserIds=request.getParameter("examUserIds");
+		String invigilateUsers=request.getParameter("invigilateUsers");
+		Map<String, Object> resultMap = examDao.selectExamUser(examId, examUserIds, invigilateUsers);
+		return new Gson().toJson(resultMap);
+	}
+	/**
+	 * 修改考生状态
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/updateExamStatus.srv",method = RequestMethod.POST, produces = "application/json")
+	public String updateExamStatus(HttpServletRequest request,HttpServletResponse response) {
+		String examId=request.getParameter("examId");
+		String examUserId=request.getParameter("examUserId");
+		Map<String,Object> resultMap=examDao.updateEaxmStausForExaming(examUserId, examId);
+		return new Gson().toJson(resultMap);
+	}
+	/**
+	 * 保存考试成绩
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/saveEaxmScroe.srv",method = RequestMethod.POST, produces = "application/json")
+	public String saveEaxmScroe(HttpServletRequest request,HttpServletResponse response) {
+		String examInfo=request.getParameter("examInfo");
+		Integer totalScore=Integer.valueOf(request.getParameter("totalScore"));
+		String examUserId=request.getParameter("examUserId");
+		String examId=request.getParameter("examId");
+		String examStatus=request.getParameter("examStatus");
+		String reason=request.getParameter("reason");
+		Map<String,Object> resultMap=examDao.saveEaxmScroe(examInfo, totalScore, examUserId, examId, examStatus, reason);
+		return new Gson().toJson(resultMap);
+	}
+	
 	
 	
 	
