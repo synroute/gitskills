@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisSentinelPool;
 
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -24,7 +25,7 @@ public class HidialerModeCustomerSharePool {
     private DMBizMangeShare dmBizMangeShare;
     //注入连接池
     @Autowired
-    private JedisPool jedisPool;
+    private JedisSentinelPool jedisPool;
 
     // 客户共享池
     // BizId <==> PriorityBlockingQueue<HidialerModeCustomer>

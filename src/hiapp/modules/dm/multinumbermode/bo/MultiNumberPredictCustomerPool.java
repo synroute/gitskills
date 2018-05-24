@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisSentinelPool;
 
 import java.util.*;
 
@@ -20,7 +21,7 @@ public class MultiNumberPredictCustomerPool {
     CustomerWaitPool customerWaitPool;
 
     @Autowired
-    private JedisPool jedisPool;
+    private JedisSentinelPool jedisPool;
 
     // bizId <==> {号码类型 <==> 号码类型对应的客户池}
     Map<Integer, Map<Integer, OnePhoneTypeCustomerPool>> multiNumberPredictCustomerSharePool;

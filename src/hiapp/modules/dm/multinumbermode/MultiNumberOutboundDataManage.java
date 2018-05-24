@@ -34,9 +34,6 @@ public class MultiNumberOutboundDataManage {
     MultiNumberPredictCustomerPool customerPool;
 
     @Autowired
-    CustomerSharePool customerSharePool;
-
-    @Autowired
     CustomerWaitPool customerWaitPool;
 
     @Autowired
@@ -272,7 +269,6 @@ public class MultiNumberOutboundDataManage {
 
 
     public void initialize() {
-        customerSharePool.initialize();
         customerPool.initialize();
         customerWaitPool.initialize();
     }

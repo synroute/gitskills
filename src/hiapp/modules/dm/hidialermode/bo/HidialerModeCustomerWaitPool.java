@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisSentinelPool;
 
 import java.util.*;
 
@@ -17,7 +18,7 @@ public class HidialerModeCustomerWaitPool {
     HidialerOutboundDataManage hidialerOutboundDataManage;
 
     @Autowired
-    JedisPool jedisPool;
+    JedisSentinelPool jedisPool;
 
    /* // 等待拨打结果的客户池，坐席人员维度
     // UserID <==> {BizID + ImportID + CustomerID <==> HidialerModeCustomer}

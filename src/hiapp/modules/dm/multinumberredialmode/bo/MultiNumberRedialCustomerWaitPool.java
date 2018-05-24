@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisSentinelPool;
 
 import java.util.Date;
 import java.util.List;
@@ -19,7 +20,7 @@ public class MultiNumberRedialCustomerWaitPool {
     MultiNumberRedialDataManage multiNumberOutboundDataManage;
     
     @Autowired
-    private JedisPool jedisPool;
+    private JedisSentinelPool jedisPool;
     
     private Jedis redisMultiNumberRedial;
     // 等待拨打结果的客户池，坐席人员维度

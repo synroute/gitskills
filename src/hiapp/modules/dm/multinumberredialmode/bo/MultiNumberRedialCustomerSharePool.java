@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisSentinelPool;
 
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -19,7 +20,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 public class MultiNumberRedialCustomerSharePool {
 
     @Autowired
-    private JedisPool jedisPool;
+    private JedisSentinelPool jedisPool;
 
     private Jedis redisRedialMultiNumber;
     // 客户共享池
