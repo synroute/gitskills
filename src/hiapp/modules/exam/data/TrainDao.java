@@ -33,9 +33,9 @@ public class TrainDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			if(itemId!=null&&!"".equals(itemId)){
-				sql="select itemId,itemTxt from hasys_dic_item where ITEMPARENT="+itemId;
+				sql="select itemId,itemText from hasys_dic_item where ITEMPARENT="+itemId;
 			}else{
-				sql="select itemId,itemTxt from hasys_dic_item where dicId=131 and ITEMPARENT=-1 ";
+				sql="select itemId,itemText from hasys_dic_item where dicId=131 and ITEMPARENT=-1 ";
 			}
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();

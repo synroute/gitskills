@@ -1,5 +1,6 @@
 package hiapp.modules.exam.srv;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -29,9 +30,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 
+import hiapp.modules.exam.bean.ExamStatus;
 import hiapp.modules.exam.data.ExamDao;
 import hiapp.modules.exam.utils.FtpUtil;
 import hiapp.modules.exam.utils.GsonUtil;
+import hiapp.modules.exam.utils.OfficeToPdfUtil;
 import hiapp.system.buinfo.User;
 
 @Controller
@@ -44,7 +47,7 @@ public class ExamController {
 	 * @param response
 	 * @param file
 	 */
-	@RequestMapping(value="srv/ExamController/insertQuestion.srv")
+	@RequestMapping(value="/srv/ExamController/insertOrUpdateQuestion.srv")
 	public  void insertOrUpdateQuestion(HttpServletRequest request,HttpServletResponse response,MultipartFile file) {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
@@ -58,24 +61,29 @@ public class ExamController {
 		String score=request.getParameter("score");
 		Integer isUsed=Integer.valueOf(request.getParameter("isUsed"));
 		String anwser=request.getParameter("anwser");
-		String filePath="/"+new SimpleDateFormat("yyyyMMdd").format(new Date());
-		String fileName=file.getOriginalFilename();
-		String ftpPath=filePath+"/"+fileName;
+		
 		InputStream in=null;
 		Map<String,Object> resultMap=new HashMap<>();
 		try {
-			in = file.getInputStream();
-			boolean flag = FtpUtil.uploadFile(filePath, fileName, in);
-			if(flag) {
-				if(questionId==null||"".equals(questionId)) {
-					resultMap=examDao.insertQuestion(questiondes, questionClass, questionsType, questionType, questionLevel, score,  isUsed, ftpPath, anwser, userId);
+			String ftpPath="";
+			String fileName=file.getOriginalFilename();
+			if(file!=null) {
+				String filePath="/"+new SimpleDateFormat("yyyyMMdd").format(new Date());
+				ftpPath=filePath+"/"+fileName;
+				in = file.getInputStream();
+				boolean flag = FtpUtil.uploadFile(filePath, fileName, in);
+				if(flag) {
+					if(questionId==null||"".equals(questionId)) {
+						resultMap=examDao.insertQuestion(questiondes, questionClass, questionsType, questionType, questionLevel, score,  isUsed, ftpPath, anwser, userId);
+					}else {
+						resultMap=examDao.updateQuestion(questionId, questiondes, questionClass, questionsType, questionType, questionLevel, score, isUsed, ftpPath, anwser, userId);
+					}
 				}else {
-					resultMap=examDao.updateQuestion(questionId, questiondes, questionClass, questionsType, questionType, questionLevel, score, isUsed, ftpPath, anwser, userId);
+					resultMap.put("dealSts","02");
+					resultMap.put("dealDesc","上传失败");
 				}
-			}else {
-				resultMap.put("dealSts","02");
-				resultMap.put("dealDesc","上传失败");
 			}
+
 			String jsonObject=new Gson().toJson(resultMap);
 			PrintWriter printWriter = response.getWriter();
 			printWriter.print(jsonObject);
@@ -85,14 +93,30 @@ public class ExamController {
 		}
 		
 	}
-	
-	
+	/**
+	 * 删除试题
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/ExamController/deleteQuestion.srv",method= RequestMethod.POST)
+	public void deleteQuestion(HttpServletRequest request,HttpServletResponse response) {
+		String questionIds=request.getParameter("questionIds");
+		Map<String, Object> resultMap = examDao.deleteQuestions(questionIds);
+		try {
+			String jsonObject=new Gson().toJson(resultMap);
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(jsonObject);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	/**
 	 * 查询试题类别
 	 * @param request
 	 * @param response
 	 */
-	@RequestMapping(value="srv/ExamController/selectQuestionClass.srv")
+	@RequestMapping(value="/srv/ExamController/selectQuestionClass.srv")
 	public void selectQuestionClass(HttpServletRequest request,HttpServletResponse response) {
 		List<Map<String, Object>> resultList = examDao.selectQuestionClass();
 		try {
@@ -111,7 +135,7 @@ public class ExamController {
 	 * @param file
 	 * @return
 	 */
-	@RequestMapping(value="srv/ExamController/excelImportQuestion.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value="/srv/ExamController/excelImportQuestion.srv", method = RequestMethod.POST, produces = "application/json")
 	public String excelImportQuestion(HttpServletRequest request,HttpServletResponse response,@RequestParam("file") MultipartFile file) {
 		String fileName=file.getOriginalFilename();
 		List<Map<Integer,Object>> list=new ArrayList<Map<Integer,Object>>();
@@ -168,7 +192,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="srv/ExamController/selectQuestion.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	@RequestMapping(value="/srv/ExamController/selectQuestion.srv", method = RequestMethod.POST, produces = "application/json")
 	public String selectQuestion(HttpServletRequest request,HttpServletResponse response) {
 		String questiongnType=request.getParameter("questiongnType");
 		String questionLevel=request.getParameter("questionLevel");
@@ -180,5 +204,116 @@ public class ExamController {
 		Map<String, Object> resultMap = examDao.selectQuestion(questiongnType, questionLevel, minScore, maxScore, questionType, num, pageSize);
 		return new Gson().toJson(resultMap);
 	}
+	
+	/**
+	 * 添加或修改考试信息
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/insertOrUpdateExam.srv", method = RequestMethod.POST, produces = "application/json")
+	public String insertExam(HttpServletRequest request,HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
+		String examId=request.getParameter("examId");
+		String examName=request.getParameter("examName");
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
+		Integer isUsed=Integer.valueOf(request.getParameter("isUsed"));
+		Integer passLine=Integer.valueOf(request.getParameter("passLine"));
+		Integer minLine=Integer.valueOf(request.getParameter("minLine"));
+		Integer excellentLine=Integer.valueOf(request.getParameter("excellentLine"));
+		Integer examType=Integer.valueOf(request.getParameter("examType"));
+		Map<String, Object> resultMap=null;
+		if(examId!=null&&!"".equals(examId)) {
+			resultMap=examDao.updateExam(examId, examName, startTime, endTime, isUsed, passLine, minLine, excellentLine, examType, userId);
+		}else {
+			resultMap = examDao.insertExam(examName, startTime, endTime, isUsed, passLine, minLine, excellentLine, examType, userId);
+		}
+		return new Gson().toJson(resultMap);
+	}
+	/**	
+	 * 给考试选择试题
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/insertQuestionForExam.srv", method = RequestMethod.POST, produces = "application/json")
+	public String insertQuestionForExam(HttpServletRequest request,HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
+		String examId=request.getParameter("examId");
+		String questions=request.getParameter("questions");
+		Map<String, Object> resultMap = examDao.insertQuestionForExam(examId, questions, userId);
+		return new Gson().toJson(resultMap);
+	}
+	/**
+	 * 查询试卷信息
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/selectExamInfo.srv",method = RequestMethod.POST, produces = "application/json")
+	public String selectExamInfo(HttpServletRequest request,HttpServletResponse response) {
+		String examId=request.getParameter("examId");
+		String examPath=request.getSession().getServletContext().getRealPath("/exam");
+		File file=new File(examPath);
+		if(file.exists()) {
+			OfficeToPdfUtil.delAllFile(examPath);
+		}else {
+			file.mkdirs();
+		}
+		Map<String, Object> resultMap = examDao.selectExamInfo(examId, examPath);
+		return new Gson().toJson(resultMap);
+	}
+	/**
+	 * 选择考生
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/selectExamUser.srv",method = RequestMethod.POST, produces = "application/json")
+	public String selectExamUser(HttpServletRequest request,HttpServletResponse response) {
+		String examId=request.getParameter("examId");
+		String examUserIds=request.getParameter("examUserIds");
+		String invigilateUsers=request.getParameter("invigilateUsers");
+		Map<String, Object> resultMap = examDao.selectExamUser(examId, examUserIds, invigilateUsers);
+		return new Gson().toJson(resultMap);
+	}
+	/**
+	 * 修改考生状态
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/updateExamStatus.srv",method = RequestMethod.POST, produces = "application/json")
+	public String updateExamStatus(HttpServletRequest request,HttpServletResponse response) {
+		String examId=request.getParameter("examId");
+		String examUserId=request.getParameter("examUserId");
+		Map<String,Object> resultMap=examDao.updateEaxmStausForExaming(examUserId, examId);
+		return new Gson().toJson(resultMap);
+	}
+	/**
+	 * 保存考试成绩
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/saveEaxmScroe.srv",method = RequestMethod.POST, produces = "application/json")
+	public String saveEaxmScroe(HttpServletRequest request,HttpServletResponse response) {
+		String examInfo=request.getParameter("examInfo");
+		Integer totalScore=Integer.valueOf(request.getParameter("totalScore"));
+		String examUserId=request.getParameter("examUserId");
+		String examId=request.getParameter("examId");
+		String examStatus=request.getParameter("examStatus");
+		String reason=request.getParameter("reason");
+		Map<String,Object> resultMap=examDao.saveEaxmScroe(examInfo, totalScore, examUserId, examId, examStatus, reason);
+		return new Gson().toJson(resultMap);
+	}
+	
+	
+	
 	
 }
