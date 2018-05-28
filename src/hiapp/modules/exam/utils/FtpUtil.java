@@ -1,5 +1,7 @@
 package hiapp.modules.exam.utils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -216,6 +218,69 @@ public class FtpUtil {
 		}
     	
     	return is;
+    }
+    
+    /**
+     * 获取ftp文件流
+     * @param url
+     * @param port
+     * @param username
+     * @param password
+     * @param path
+     * @param fileName
+     * @param response
+     * @return
+     */
+    public static String getExamFile(String fileAdress,String examPath,String questionId){
+    	FTPClient ftp=new FTPClient();
+    	InputStream is=null;
+    	String newName=null;
+    	try {
+    		int reply;  
+			ftp.connect(host,port);
+			ftp.login(userName, passWord);// 登录  
+			ftp.enterLocalActiveMode();
+			ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
+			reply=ftp.getReplyCode();
+			if(!FTPReply.isPositiveCompletion(reply))
+			{
+				ftp.disconnect();
+				return null;
+			} 
+		    String path=fileAdress.substring(0, fileAdress.lastIndexOf("/"));
+		    String fileName=fileAdress.substring(fileAdress.lastIndexOf("/")+1);
+		    String suffix=fileAdress.substring(fileAdress.lastIndexOf("."));
+			ftp.changeWorkingDirectory(basePath+path);
+			ftp.enterLocalPassiveMode();
+			is=ftp.retrieveFileStream(new String(fileName.getBytes("GBK"), "iso-8859-1"));
+			newName=questionId+suffix;
+			File file=new File(examPath);
+			byte[] buff = new byte[8192];
+			OutputStream out =new FileOutputStream(file);
+			int count = 0;
+		    while ( (count = is.read(buff)) != -1) {
+		    	  out.write(buff, 0, count);
+		    }
+		    File file1=new File(examPath+File.separator+fileName);
+		    file1.renameTo(new File(examPath+File.separator+newName));
+		    out.close();
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			if(ftp.isConnected()){
+				try {
+					ftp.disconnect();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+    	return newName;
     }
     /**
      * 删除文件
