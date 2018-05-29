@@ -10,6 +10,13 @@ public class CourseWare {
 	private Integer useNumber;
 	private String createTime;
 	private String createUser;
+	private String address;
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
 	public String getCourseWare() {
 		return courseWare;
 	}

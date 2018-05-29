@@ -123,8 +123,8 @@ public class TrainDao extends BaseRepository{
 		List<CourseWare> list=new ArrayList<CourseWare>();
 		try {
 			conn=this.getDbConnection();
-			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed from (";
-			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
+			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed,ADDRESS from (";
+			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,ADDRESS,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
 			if(courseWare!=null&&!"".equals(courseWare)){
 				sql+="and COURSEWARETYPE='"+courseWare+"' ";
 			}
@@ -159,6 +159,7 @@ public class TrainDao extends BaseRepository{
 				course.setCreateTime(rs.getString(7));
 				course.setCreateUser(rs.getString(8));
 				course.setIsUsed(rs.getInt(9));
+				course.setAddress(rs.getString(10));
 				list.add(course);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
