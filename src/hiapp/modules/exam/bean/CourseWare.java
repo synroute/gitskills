@@ -11,6 +11,14 @@ public class CourseWare {
 	private String createTime;
 	private String createUser;
 	private String address;
+	private String isUsedChina;
+	public String getIsUsedChina() {
+
+		return isUsedChina;
+	}
+	public void setIsUsedChina(String isUsedChina) {
+		this.isUsedChina = isUsedChina;
+	}
 	public String getAddress() {
 		return address;
 	}
@@ -52,6 +60,11 @@ public class CourseWare {
 	}
 	public void setIsUsed(Integer isUsed) {
 		this.isUsed = isUsed;
+		if(this.isUsed==0) {
+			this.isUsedChina="启用";
+		}else {
+			this.isUsedChina="停用";
+		}	
 	}
 	public Integer getUseNumber() {
 		return useNumber;
