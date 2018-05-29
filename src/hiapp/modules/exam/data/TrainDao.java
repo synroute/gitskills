@@ -74,7 +74,7 @@ public class TrainDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			String sql="insert into EM_INF_COURSEWARE(COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,ADDRESS,USENUMBER,CREATETIME,USERID,ISUSED,ISUPDATE,COURSEWAREID)"+
-					   " values(?,?,?,?,?,?,?,sysdate,?,?,?)";
+					   " values(?,?,?,?,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(sql);
 			pst.setString(1,courseWare);
 			pst.setString(2,courseWareSub);
