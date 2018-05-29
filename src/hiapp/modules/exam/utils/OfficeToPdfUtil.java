@@ -32,7 +32,7 @@ public class OfficeToPdfUtil {
 	    String pdfName = null;
 	    if("doc".equals(type)){
 	      docFileName =  fileName + ".doc";
-	      pdfName = fileName + ".html";
+	      pdfName = fileName + ".pdf";
 	    }else if("docx".equals(type)){
 	      docFileName = fileName + ".docx";
 	      pdfName = fileName + ".pdf";
