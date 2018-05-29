@@ -96,10 +96,10 @@ public class TrainController {
 				address=address.substring(0,address.length()-1);
 				if(courseWareId!=null&&!"".equals(courseWareId)) {
 					resultMap=trainDao.updateCourseWare(courseWareId, courseWare, courseWareSub, subject, content, isUsed, address, userId);
-					names=names.substring(0,names.length()-1);
-					resultMap.put("names", names);
 				}else {
 					resultMap=trainDao.insertCourseWare(courseWare, courseWareSub, subject, content, isUsed, address, userId);
+					names=names.substring(0,names.length()-1);
+					resultMap.put("names", names);
 				}
 			}else{
 				resultMap.put("dealSts","02");
