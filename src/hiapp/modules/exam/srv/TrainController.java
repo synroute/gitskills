@@ -81,7 +81,7 @@ public class TrainController {
 				for (int i = 0; i < file.length; i++) {
 					String fileName=file[i].getOriginalFilename();
 					in = file[i].getInputStream();
-					address=path+ "/"+fileName+",";
+					address+=path+ "/"+fileName+",";
 					boolean uploadResult = FtpUtil.uploadFile( path, fileName, in);
 					if(!uploadResult) {
 						flag=false;
@@ -89,7 +89,9 @@ public class TrainController {
 					}
 				}
 			}
+			
 			if(flag){
+				address=address.substring(0,address.length()-1);
 				if(courseWareId!=null&&!"".equals(courseWareId)) {
 					resultMap=trainDao.updateCourseWare(courseWareId, courseWare, courseWareSub, subject, content, isUsed, address, userId);
 				}else {
@@ -651,5 +653,12 @@ public class TrainController {
 	    	  out.write(buffer, 0, bytesRead);
 	      }
 	      out.close();
+	}
+	
+	@RequestMapping(value="/srv/TrainController/test.srv")
+	public void test(HttpServletRequest request,HttpServletResponse response,@RequestParam MultipartFile[] file) {
+		String fileName=file[0].getOriginalFilename();
+		System.out.println(fileName);
+		System.out.println(123123);
 	}
 }
