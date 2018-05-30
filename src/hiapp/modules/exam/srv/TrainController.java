@@ -218,17 +218,18 @@ public class TrainController {
 		OutputStream out=null;
 		try {
 			out = response.getOutputStream();
+			String fileName=address.substring(address.lastIndexOf("/")+1);
+			fileName=new String(fileName.getBytes("GBK"), "iso-8859-1");
+	        String headStr = "attachment; filename=\"" + fileName + "\"";
 	        response.setContentType("application/force-download");// 设置强制下载不打开
 	        response.setContentType("APPLICATION/OCTET-STREAM");
-/*		    int bytesRead = 0;
+	        response.setHeader("Content-Disposition", headStr);
+		    int bytesRead = 0;
 		    byte[] buffer = new byte[1024 * 8];
 		    while ((bytesRead = in.read(buffer)) != -1) {
 		    	out.write(buffer, 0, bytesRead);
 		    }
-			in.close();*/
-			String basePath=address.substring(0, address.lastIndexOf("/"));
-			String fileName=address.substring(address.lastIndexOf("/")+1);
-			FtpUtil.downloadFromFTP(basePath, fileName, response);
+			in.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
