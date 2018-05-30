@@ -295,10 +295,8 @@ public class TrainDao extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String updateSql="update EM_INF_COURSEWARE set address=replace(address,?,'') where COURSEWAREID=?";
+			String updateSql="update EM_INF_COURSEWARE set address=replace(address,'"+address+",','') where COURSEWAREID='"+courseWareId+"'";
 			pst=conn.prepareStatement(updateSql);
-			pst.setString(1, address+",");
-			pst.setString(2, courseWareId);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","删除成功");
