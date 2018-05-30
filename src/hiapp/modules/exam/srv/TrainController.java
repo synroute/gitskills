@@ -214,9 +214,30 @@ public class TrainController {
 	@RequestMapping(value="srv/TrainController/downLoadCourse.srv")
 	public void downLoadCourse(HttpServletRequest request,HttpServletResponse response) {
 		String address=request.getParameter("address");
-		String basePath=address.substring(0, address.lastIndexOf("/"));
-		String fileName=address.substring(address.lastIndexOf("/")+1);
-		FtpUtil.downloadFromFTP(basePath, fileName, response);
+		InputStream in = FtpUtil.getFtpInputStream(address);
+		OutputStream out=null;
+		try {
+			out = response.getOutputStream();
+		   int bytesRead = 0;
+		    byte[] buffer = new byte[1024 * 8];
+		    while ((bytesRead = in.read(buffer)) != -1) {
+		    	out.write(buffer, 0, bytesRead);
+		    }
+			    in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			if(out!=null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	 
 	}
 	/**
 	 * 删除文件
