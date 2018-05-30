@@ -24,6 +24,9 @@ public class CourseWare {
 	}
 	public void setAddress(String address) {
 		this.address = address;
+		if(this.address==null) {
+			this.address="";
+		}
 	}
 	public String getCourseWare() {
 		return courseWare;
