@@ -255,9 +255,15 @@ public class TrainDao extends BaseRepository{
 		Connection conn=null;
 		PreparedStatement pst=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
+		String updateAddress="ADDRESS=ADDRESS||','||?";
+		if(address==null||"".equals(address)) {
+			updateAddress="ADDRESS=ADDRESS";
+		}else {
+			updateAddress="ADDRESS=ADDRESS||',"+address+"'";
+		}
 		try {
 			conn=this.getDbConnection();
-			String updateSql="update EM_INF_COURSEWARE set COURSEWARETYPE=?,courseWareSub=?,subject=?,content=?,USERID=?,ISUSED=?,ISUPDATE=ISUPDATE+1,ADDRESS=ADDRESS||','||? where COURSEWAREID=?";
+			String updateSql="update EM_INF_COURSEWARE set COURSEWARETYPE=?,courseWareSub=?,subject=?,content=?,USERID=?,ISUSED=?,ISUPDATE=ISUPDATE+1,"+updateAddress+" where COURSEWAREID=?";
 			pst=conn.prepareStatement(updateSql);
 			pst.setString(1,courseWare);
 			pst.setString(2,courseWareSub);
@@ -265,8 +271,7 @@ public class TrainDao extends BaseRepository{
 			pst.setString(4,content);
 			pst.setString(5, userId);
 			pst.setInt(6, isUsed);
-			pst.setString(7, address);
-			pst.setString(8, courseWareId);
+			pst.setString(7, courseWareId);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","修改成功");
