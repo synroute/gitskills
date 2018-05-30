@@ -26,8 +26,8 @@ public class FtpUtil {
 		return result;
 	}
 	
-	public static boolean downloadFromFTP(String path, String filename,HttpServletResponse response){
-		boolean result = downloadFromFTP(host,port,userName,passWord,path,filename,response);
+	public static boolean downloadFromFTP(String address,HttpServletResponse response){
+		boolean result = downloadFromFTP(host,port,userName,passWord,address,response);
 		return result;
 	}
 	
@@ -120,7 +120,7 @@ public class FtpUtil {
      * @param response
      * @return
      */
-    public static boolean downloadFromFTP(String url,int port,String username,String password,String path,String fileName,HttpServletResponse response){
+    public static boolean downloadFromFTP(String url,int port,String username,String password,String address,HttpServletResponse response){
     	boolean result=false;
     	FTPClient ftp=new FTPClient();
     	InputStream is=null;
@@ -137,13 +137,19 @@ public class FtpUtil {
 				ftp.disconnect();
 				return result;
 			} 
-			ftp.changeWorkingDirectory(basePath+"/"+path);
+			String path=address.substring(0, address.lastIndexOf("/"));
+			String fileName=address.substring(address.lastIndexOf("/")+1);
+			fileName=setResponse(response, fileName);
+			ftp.changeWorkingDirectory(basePath+path);
 			ftp.enterLocalPassiveMode();
 			is=ftp.retrieveFileStream(fileName);
-		    byte[] buffer = new byte[is.available()];  
-		    is.read(buffer);
 			out=response.getOutputStream();
-			out.write(buffer);
+		    int bytesRead = 0;
+		    byte[] buffer = new byte[1024 * 8];
+		    while ((bytesRead = is.read(buffer)) != -1) {
+		    	out.write(buffer, 0, bytesRead);
+		    }
+	
 			is.close();
 			out.flush();  
 			out.close();

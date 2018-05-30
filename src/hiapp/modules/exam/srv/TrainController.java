@@ -197,9 +197,7 @@ public class TrainController {
 		String userId =String.valueOf(user.getId());
 		String address=request.getParameter("address");
 		String trainId=request.getParameter("trainId");
-		String basePath=address.substring(0, address.lastIndexOf("/"));
-		String fileName=address.substring(address.lastIndexOf("/")+1);
-		boolean result = FtpUtil.downloadFromFTP(basePath, fileName, response);
+		boolean result = FtpUtil.downloadFromFTP(address, response);
 		if(result) {
 			trainDao.downLoadCourseWare(userId, trainId);
 		}
@@ -214,32 +212,7 @@ public class TrainController {
 	@RequestMapping(value="srv/TrainController/downLoadCourse.srv")
 	public void downLoadCourse(HttpServletRequest request,HttpServletResponse response) {
 		String address=request.getParameter("address");
-		InputStream in = FtpUtil.getFtpInputStream(address);
-		OutputStream out=null;
-		try {
-			out = response.getOutputStream();
-			String fileName=address.substring(address.lastIndexOf("/")+1);
-			fileName=FtpUtil.setResponse(response, fileName);
-		    int bytesRead = 0;
-		    byte[] buffer = new byte[1024 * 8];
-		    while ((bytesRead = in.read(buffer)) != -1) {
-		    	out.write(buffer, 0, bytesRead);
-		    }
-			in.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}finally {
-			if(out!=null) {
-				try {
-					out.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	 
+		FtpUtil.downloadFromFTP(address, response);
 	}
 	/**
 	 * 删除文件
