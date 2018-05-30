@@ -32,17 +32,18 @@ public class Course {
 	}
 	public void setUserId(String userId) {
 		this.userId = userId;
-		if(this.isUsed==0) {
-			this.isUsedChina="启用";
-		}else {
-			this.isUsedChina="停用";
-		}	
+		
 	}
 	public Integer getIsUsed() {
 		return isUsed;
 	}
 	public void setIsUsed(Integer isUsed) {
 		this.isUsed = isUsed;
+		if(this.isUsed==0) {
+			this.isUsedChina="启用";
+		}else {
+			this.isUsedChina="停用";
+		}
 	}
 	public Integer getCourseType() {
 		return courseType;
