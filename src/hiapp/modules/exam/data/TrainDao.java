@@ -596,7 +596,7 @@ public class TrainDao extends BaseRepository{
 		
 	}
 	/**
-	 * 查询课程下所有课件
+	 * 查询课程下未拥有课件
 	 * @param courseId
 	 * @param courseWare
 	 * @param courseWareSub
@@ -616,11 +616,10 @@ public class TrainDao extends BaseRepository{
 		Integer endNum=num*pageSize+1;
 		Map<String,Object> resultMap=new HashMap<String,Object>();
 		List<CourseWare> list=new ArrayList<CourseWare>();
-		List<String> courseWareIdList=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
-			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed from (";
-			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
+			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed,address from (";
+			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,address,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
 			if(courseWare!=null&&!"".equals(courseWare)){
 				sql+="and COURSEWARETYPE='"+courseWare+"' ";
 			}
@@ -638,6 +637,66 @@ public class TrainDao extends BaseRepository{
 			}
 			if(createUser!=null&&!"".equals(createUser)){
 				sql+="and USERID='"+createUser+"' ";
+			}
+			if(courseId!=null&&!"".equals(courseId)) {
+				sql+="and not exists(select COURSEWAREID from EM_MAP_COURSE b where b.COURSEID='"+courseId+"' and a.COURSEWAREID=b.COURSEWAREID)";
+			}
+			selectSql=selectSql+sql+" and rownum<?) where rn>=?";
+			pst=conn.prepareStatement(selectSql);
+			pst.setInt(1, endNum);
+			pst.setInt(2, startNum);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				CourseWare course=new CourseWare();
+				course.setCourseWareId(rs.getString(1));
+				course.setCourseWare(rs.getString(2));
+				course.setCourseWareSub(rs.getString(3));
+				course.setSubject(rs.getString(4));
+				course.setContent(rs.getString(5));
+				course.setUseNumber(rs.getInt(6));
+				course.setCreateTime(rs.getString(7));
+				course.setCreateUser(rs.getString(8));
+				course.setIsUsed(rs.getInt(9));
+				course.setAddress(rs.getString(10));
+				list.add(course);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(*) from ("+sql+")";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			resultMap.put("rows", list);
+			resultMap.put("total", total);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	
+	
+	public Map<String,Object> selectExistCourseWareByCourseId(String courseId,String subject,Integer num,Integer pageSize){
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<String,Object>();
+		List<CourseWare> list=new ArrayList<CourseWare>();
+		try {
+			conn=this.getDbConnection();
+			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed,address from (";
+			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,address,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
+			if(subject!=null&&!"".equals(subject)){
+				sql+="and SUBJECT like '%"+subject+"%' ";
 			}
 			if(courseId!=null&&!"".equals(courseId)) {
 				sql+="and exists(select COURSEWAREID from EM_MAP_COURSE b where b.COURSEID='"+courseId+"' and a.COURSEWAREID=b.COURSEWAREID)";
@@ -658,6 +717,7 @@ public class TrainDao extends BaseRepository{
 				course.setCreateTime(rs.getString(7));
 				course.setCreateUser(rs.getString(8));
 				course.setIsUsed(rs.getInt(9));
+				course.setAddress(rs.getString(10));
 				list.add(course);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
@@ -669,16 +729,8 @@ public class TrainDao extends BaseRepository{
 				total=rs.getInt(1);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
-			String selectCourseWareSql="select COURSEWAREID from EM_INF_COURSEWARE a where "+
-					 "exsits(select COURSEWAREID from EM_MAP_COURSE b where b.COURSEID=? and a.COURSEWAREID=b.COURSEWAREID)";
-			pst=conn.prepareStatement(selectCourseWareSql);
-			rs=pst.executeQuery();
-			while(rs.next()) {
-				courseWareIdList.add(rs.getString(1));
-			}
 			resultMap.put("rows", list);
 			resultMap.put("total", total);
-			resultMap.put("courseWareIds", courseWareIdList);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -689,7 +741,6 @@ public class TrainDao extends BaseRepository{
 		}
 		return resultMap;
 	}
-	
 	/**
 	 * 新增培训
 	 * @param trainName

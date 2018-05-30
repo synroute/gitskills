@@ -372,7 +372,7 @@ public class TrainController {
 	}
 	
 	/**
-	 * 查询课程下所有课件
+	 * 查询课程下未拥有的课件
 	 * @param request
 	 * @param response
 	 */
@@ -397,7 +397,27 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	}
-	
+	/**
+	 * 查询课程下所有课件
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/selectCourseWareByCourseId.srv")
+	public void selectExitCourseWareByCourseId(HttpServletRequest request,HttpServletResponse response) {
+		String courseId=request.getParameter("courseId");
+		String subject=request.getParameter("subject");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = trainDao.selectExistCourseWareByCourseId(courseId, subject, num, pageSize);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	/**
 	 * 新增或修改培训
 	 * @param request
