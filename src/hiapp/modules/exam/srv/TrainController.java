@@ -165,13 +165,13 @@ public class TrainController {
 		if(!uploadFile.exists()) {
 			uploadFile.mkdirs();
 		}
-		String endPath=uploadPath+File.separator+fileName;
+		String endPath=uploadPath+File.separator+fileName+".pdf";
 		InputStream ftpInputStream = FtpUtil.getFtpInputStream(path+"/"+fileName);
 		OfficeToPdfUtil.delAllFile(uploadPath);//删除文件
 	    try {
 	  		File file=new File(endPath);
 			if(!file.exists()) {
-				 file.createNewFile();;
+				 file.createNewFile();
 			}
 			OutputStream out=new FileOutputStream(file);
 		    int bytesRead = 0;
