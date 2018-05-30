@@ -124,9 +124,9 @@ public class TrainController {
 		String names=request.getParameter("names");
 		String[] arr=names.split(",");
 		String toFilePath=request.getSession().getServletContext().getRealPath("/office");
-		String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
 		InputStream in=null;
 		for (int i = 0; i < arr.length; i++) {
+			String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
 			String name=arr[i];
 			String suffix=name.substring(name.lastIndexOf(".")+1);
 			String fileName=name.substring(0, name.lastIndexOf(".")+1);
@@ -161,6 +161,10 @@ public class TrainController {
 			path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date())+"pdf";
 		}
 		String uploadPath=request.getSession().getServletContext().getRealPath("/upload");
+		File uploadFile=new File(uploadPath);
+		if(!uploadFile.exists()) {
+			uploadFile.mkdirs();
+		}
 		String endPath=uploadPath+File.separator+fileName;
 		InputStream ftpInputStream = FtpUtil.getFtpInputStream(path+"/"+fileName);
 		OfficeToPdfUtil.delAllFile(uploadPath);//删除文件
