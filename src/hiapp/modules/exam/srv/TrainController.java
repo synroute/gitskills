@@ -204,6 +204,20 @@ public class TrainController {
 			trainDao.downLoadCourseWare(userId, trainId);
 		}
 	}
+	
+	
+	/**
+	 * 下载课件文件
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="srv/TrainController/downLoadCourse.srv")
+	public void downLoadCourse(HttpServletRequest request,HttpServletResponse response) {
+		String address=request.getParameter("address");
+		String basePath=address.substring(0, address.lastIndexOf("/"));
+		String fileName=address.substring(address.lastIndexOf("/")+1);
+		FtpUtil.downloadFromFTP(basePath, fileName, response);
+	}
 	/**
 	 * 删除文件
 	 * @param request
