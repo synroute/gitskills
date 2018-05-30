@@ -291,11 +291,12 @@ public class TrainController {
 		String courseId=request.getParameter("courseId");
 		Integer isUsed=Integer.valueOf(request.getParameter("isUsed"));
 		Integer action=Integer.valueOf(request.getParameter("action"));
+		Integer courseType=Integer.valueOf(request.getParameter("courseType"));
 		Map<String, Object> resultMap=null;
 		if(action==0) {
-			resultMap=trainDao.insertCourse(userId, courseName, isUsed);
+			resultMap=trainDao.insertCourse(userId, courseName, isUsed,courseType);
 		}else {
-			resultMap=trainDao.updateCourse(userId, courseName, isUsed, courseId);
+			resultMap=trainDao.updateCourse(userId, courseName, isUsed, courseId,courseType);
 		}
 		String result=GsonUtil.getGson().toJson(resultMap);
 		try {
@@ -673,10 +674,4 @@ public class TrainController {
 	      out.close();
 	}
 	
-	@RequestMapping(value="/srv/TrainController/test.srv")
-	public void test(HttpServletRequest request,HttpServletResponse response,@RequestParam MultipartFile[] file) {
-		String fileName=file[0].getOriginalFilename();
-		System.out.println(fileName);
-		System.out.println(123123);
-	}
 }

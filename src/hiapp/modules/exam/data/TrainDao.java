@@ -360,19 +360,20 @@ public class TrainDao extends BaseRepository{
 	 * @param isUsed
 	 * @return
 	 */
-	public Map<String,Object> insertCourse(String userId,String courseName,Integer isUsed) {
+	public Map<String,Object> insertCourse(String userId,String courseName,Integer isUsed,Integer courseType) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		String courseId=idFactory.newId("EX_CS");
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String insertSql="insert into EM_INF_COURSE(COUSERID,COURSENAME,CREATETIME,USERID,ISUSED,ISUPDATE) values(?,?,sysdate,?,?)";
+			String insertSql="insert into EM_INF_COURSE(COUSERID,COURSENAME,CREATETIME,USERID,ISUSED,ISUPDATE,courseType) values(?,?,sysdate,?,?,?)";
 			pst=conn.prepareStatement(insertSql);
 			pst.setString(1,courseId);
 			pst.setString(2,courseName);
 			pst.setInt(3, isUsed);
 			pst.setInt(4, 0);
+			pst.setInt(5, courseType);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
@@ -396,18 +397,19 @@ public class TrainDao extends BaseRepository{
 	 * @param courseId
 	 * @return
 	 */
-	public  Map<String,Object>  updateCourse(String userId,String courseName,Integer isUsed,String courseId) {
+	public  Map<String,Object>  updateCourse(String userId,String courseName,Integer isUsed,String courseId,Integer courseType) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String updateSql="update EM_INF_COURSE set COURSENAME=?,CREATETIME=sysdate,USERID=?,ISUSED=?,ISUPDATE=ISUPDATE+1 where COUSERID=?";
+			String updateSql="update EM_INF_COURSE set COURSENAME=?,CREATETIME=sysdate,USERID=?,ISUSED=?,ISUPDATE=ISUPDATE+1,courseType=? where COUSERID=?";
 			pst=conn.prepareStatement(updateSql);
 			pst.setString(1, courseName);
 			pst.setString(2, userId);
 			pst.setInt(3, isUsed);
-			pst.setString(4, courseId);
+			pst.setInt(4, courseType);
+			pst.setString(5, courseId);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
