@@ -1,10 +1,5 @@
 package hiapp.modules.exam.data;
 
-import hiapp.modules.exam.bean.CourseWare;
-import hiapp.utils.DbUtil;
-import hiapp.utils.database.BaseRepository;
-import hiapp.utils.idfactory.IdFactory;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +12,12 @@ import java.util.Map;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import hiapp.modules.exam.bean.Course;
+import hiapp.modules.exam.bean.CourseWare;
+import hiapp.utils.DbUtil;
+import hiapp.utils.database.BaseRepository;
+import hiapp.utils.idfactory.IdFactory;
 
 @Repository
 public class TrainDao extends BaseRepository{
@@ -536,7 +537,7 @@ public class TrainDao extends BaseRepository{
 		Integer startNum=(num-1)*pageSize+1;
 		Integer endNum=num*pageSize+1;
 		Map<String,Object> resultMap=new HashMap<>();
-		List<Map<String,Object>> list=new ArrayList<>();
+		List<Course> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
 			String sql="select COUSERID,COURSENAME,CREATETIME,userId,ISUSED,courseType from(";
@@ -563,14 +564,14 @@ public class TrainDao extends BaseRepository{
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
 			while(rs.next()) {
-				Map<String,Object> map=new HashMap<>();
-				map.put("courseId", rs.getObject(1));
-				map.put("courseName", rs.getObject(2));
-				map.put("createTime", rs.getObject(3));
-				map.put("userId", rs.getObject(4));
-				map.put("isUsed", rs.getObject(5));
-				map.put("courseType", rs.getObject(6));
-				list.add(map);
+				Course course=new  Course();
+				course.setCourseId(rs.getString(1));
+				course.setCourseName(rs.getString(2));
+				course.setCreateTime(rs.getString(3));
+				course.setUserId(rs.getString(4));
+				course.setIsUsed(rs.getInt(5));
+				course.setCourseType(rs.getInt(6));
+				list.add(course);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
 			String getCountSql="select count(*) from ("+selectSql+")";
