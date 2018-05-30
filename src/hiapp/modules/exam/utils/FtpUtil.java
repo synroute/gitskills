@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 
 import javax.servlet.http.HttpServletResponse;
@@ -314,4 +315,12 @@ public class FtpUtil {
           return result;
     }
     
+    public static String setResponse(HttpServletResponse response,String fileName) throws UnsupportedEncodingException {
+    	fileName=new String(fileName.getBytes("GBK"), "iso-8859-1");
+        String headStr = "attachment; filename=\"" + fileName + "\"";
+        response.setContentType("application/force-download");// 设置强制下载不打开
+        response.setContentType("APPLICATION/OCTET-STREAM");
+        response.setHeader("Content-Disposition", headStr);
+        return fileName;
+    }
 }

@@ -219,11 +219,7 @@ public class TrainController {
 		try {
 			out = response.getOutputStream();
 			String fileName=address.substring(address.lastIndexOf("/")+1);
-			fileName=new String(fileName.getBytes("GBK"), "iso-8859-1");
-	        String headStr = "attachment; filename=\"" + fileName + "\"";
-	        response.setContentType("application/force-download");// 设置强制下载不打开
-	        response.setContentType("APPLICATION/OCTET-STREAM");
-	        response.setHeader("Content-Disposition", headStr);
+			fileName=FtpUtil.setResponse(response, fileName);
 		    int bytesRead = 0;
 		    byte[] buffer = new byte[1024 * 8];
 		    while ((bytesRead = in.read(buffer)) != -1) {
