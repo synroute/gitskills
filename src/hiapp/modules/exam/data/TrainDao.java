@@ -368,13 +368,14 @@ public class TrainDao extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String insertSql="insert into EM_INF_COURSE(COUSERID,COURSENAME,CREATETIME,USERID,ISUSED,ISUPDATE,courseType) values(?,?,sysdate,?,?,?)";
+			String insertSql="insert into EM_INF_COURSE(COUSERID,COURSENAME,CREATETIME,USERID,ISUSED,ISUPDATE,courseType) values(?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertSql);
 			pst.setString(1,courseId);
 			pst.setString(2,courseName);
-			pst.setInt(3, isUsed);
-			pst.setInt(4, 0);
-			pst.setInt(5, courseType);
+			pst.setString(3,userId);
+			pst.setInt(4, isUsed);
+			pst.setInt(5, 1);
+			pst.setInt(6, courseType);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
