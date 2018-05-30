@@ -90,7 +90,6 @@ public class TrainController {
 						break;
 					}
 				}
-				address=address.substring(0,address.length()-1);
 				names=names.substring(0,names.length()-1);
 			}
 			
