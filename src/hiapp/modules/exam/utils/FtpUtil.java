@@ -136,7 +136,7 @@ public class FtpUtil {
 				ftp.disconnect();
 				return result;
 			} 
-			ftp.changeWorkingDirectory(path);
+			ftp.changeWorkingDirectory(basePath+"/"+path);
 			ftp.enterLocalPassiveMode();
 			is=ftp.retrieveFileStream(fileName);
 		    byte[] buffer = new byte[is.available()];  
