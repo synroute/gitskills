@@ -446,9 +446,7 @@ public class TrainDao extends BaseRepository{
 			rs=pst.executeQuery();
 			int m=1;
 			while(rs.next()) {
-				if(rs.getInt(1)!=0) {
-					m=rs.getInt(1);
-				}
+				m=rs.getInt(1)+1;
 			}
 			DbUtil.DbCloseExecute(pst);
 			String insertSql="insert into EM_MAP_COURSE(COURSEID,COURSEWAREID,SHOWORDER) values(?,?,?)";
