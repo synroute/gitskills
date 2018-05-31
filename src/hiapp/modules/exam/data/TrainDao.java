@@ -737,7 +737,7 @@ public class TrainDao extends BaseRepository{
 				sql+=" and b.courseid='"+courseId+"'";
 			}
 			if(subject!=null&&!"".equals(subject)){
-				sql+=" and SUBJECT like '%"+subject+"%' ";
+				sql+=" and a.SUBJECT like '%"+subject+"%' ";
 			}
 			selectSql=selectSql+sql+" and rownum<? order by b.showorder asc) where rn>=?";
 			pst=conn.prepareStatement(selectSql);
