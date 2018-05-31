@@ -766,8 +766,8 @@ public class CustomerController {
                 customerCount.put("bizId", String.valueOf(business.getId()));
                 customerCount.put("bizName", business.getName());
                 customerCount.put("bizDesc", business.getDescription());
-                customerCount.put("myPresetCustomersCount", customerRepository.queryAllCustomersCount(queryRequest, userId));
-                customerCount.put("myCustomersCount", customerRepository.queryAllCustomersCount(queryRequest, userId));
+                customerCount.put("myPresetCustomersCount", customerRepository.queryPendingCount(queryRequest, userId));
+                customerCount.put("myCustomersCount", customerRepository.queryMyCustomersCount(queryRequest, userId));
                 customerCount.put("allCustomersCount", customerRepository.queryAllCustomersCount(queryRequest, userId));
                 customerCounts.add(customerCount);
             }
