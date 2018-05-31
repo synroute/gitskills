@@ -402,7 +402,7 @@ public class TrainController {
 	 * @param request
 	 * @param response
 	 */
-	/*@RequestMapping(value="/srv/TrainController/selectCourseWareByCourseId.srv")
+	@RequestMapping(value="/srv/TrainController/selectExitCourseWareByCourseId.srv")
 	public void selectExitCourseWareByCourseId(HttpServletRequest request,HttpServletResponse response) {
 		String courseId=request.getParameter("courseId");
 		String subject=request.getParameter("subject");
@@ -417,7 +417,7 @@ public class TrainController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}*/
+	}
 	/**
 	 * 新增或修改培训
 	 * @param request
