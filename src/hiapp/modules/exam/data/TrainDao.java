@@ -435,14 +435,22 @@ public class TrainDao extends BaseRepository{
 	public Map<String,Object> insertCourseWareToCourse(String courseId,String courseWareIds){
 		Connection conn=null;
 		PreparedStatement pst=null;
+		ResultSet rs=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		String[] arr=courseWareIds.split(",");
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
+			String selectSql="select max(SHOWORDER) SHOWORDER from EM_MAP_COURSE where COURSEID='"+courseId+"'";
+			pst=conn.prepareStatement(selectSql);
+			rs=pst.executeQuery();
+			int m=1;
+			while(rs.next()) {
+				m=rs.getInt(1);
+			}
+			DbUtil.DbCloseExecute(pst);
 			String insertSql="insert into EM_MAP_COURSE(COURSEID,COURSEWAREID,SHOWORDER) values(?,?,?)";
 			pst=conn.prepareStatement(insertSql);
-			int m=1;
 			for (int i = 0; i < arr.length; i++) {
 				String courseWareId=arr[i];
 				if(courseWareId==null||"".equals(courseWareId)) {
