@@ -20,6 +20,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -417,6 +418,18 @@ public class TrainController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	/**
+	 * 删除课程下课件
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/deleteCourseWareFromCourse.srv",method = RequestMethod.POST, produces = "application/json")
+	public String deleteCourseWareFromCourse(HttpServletRequest request,HttpServletResponse response) {
+		String courseId=request.getParameter("courseId");
+		String courseWareId=request.getParameter("courseWareId");
+		Map<String, Object> resultMap = trainDao.deleteCourseWareFromCourse(courseId, courseWareId);
+		return new Gson().toJson(resultMap);
 	}
 	/**
 	 * 新增或修改培训

@@ -448,7 +448,7 @@ public class TrainDao extends BaseRepository{
 			while(rs.next()) {
 				m=rs.getInt(1)+1;
 			}
-			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseQuery(rs, pst);
 			String insertSql="insert into EM_MAP_COURSE(COURSEID,COURSEWAREID,SHOWORDER) values(?,?,?)";
 			pst=conn.prepareStatement(insertSql);
 			for (int i = 0; i < arr.length; i++) {
@@ -473,12 +473,41 @@ public class TrainDao extends BaseRepository{
 			resultMap.put("dealSts","02");
 			resultMap.put("dealDesc","保存失败");
 		}finally {
-			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseQuery(rs, pst);
 			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
 	}
 
+	public Map<String,Object>  deleteCourseWareFromCourse(String courseId,String courseWareId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		Map<String,Object> resultMap=new HashMap<String, Object>();
+		try {
+			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
+			String updateSql="update EM_MAP_COURSE set SHOWORDER=SHOWORDER-1 where SHOWORDER>(select SHOWORDER from EM_MAP_COURSE where courseId='"+courseId+"'"+
+							 " and COURSEWAREID='"+courseWareId+"')";
+			pst=conn.prepareStatement(updateSql);
+			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			String deleteSql="delete from EM_MAP_COURSE where courseId='"+courseId+"' and COURSEWAREID='"+courseWareId+"'";
+			pst=conn.prepareStatement(deleteSql);
+			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","删除成功");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			logger.info(e+"=======");
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","删除失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
 	/**
 	 * 删除课程
 	 * @param courseIds
