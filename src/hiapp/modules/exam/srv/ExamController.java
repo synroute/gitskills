@@ -134,7 +134,7 @@ public class ExamController {
 	 * @param file
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/excelImportQuestion.srv", method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/excelImportQuestion.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String excelImportQuestion(HttpServletRequest request,HttpServletResponse response,@RequestParam("file") MultipartFile file) {
 		String fileName=file.getOriginalFilename();
 		List<Map<Integer,Object>> list=new ArrayList<Map<Integer,Object>>();
@@ -191,7 +191,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/selectQuestion.srv", method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/selectQuestion.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String selectQuestion(HttpServletRequest request,HttpServletResponse response) {
 		String questiongnType=request.getParameter("questiongnType");
 		String questionLevel=request.getParameter("questionLevel");
@@ -210,7 +210,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/insertOrUpdateExam.srv", method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/insertOrUpdateExam.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String insertExam(HttpServletRequest request,HttpServletResponse response) {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
@@ -238,7 +238,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/insertQuestionForExam.srv", method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/insertQuestionForExam.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String insertQuestionForExam(HttpServletRequest request,HttpServletResponse response) {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
@@ -254,7 +254,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/selectExamInfo.srv",method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/selectExamInfo.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String selectExamInfo(HttpServletRequest request,HttpServletResponse response) {
 		String examId=request.getParameter("examId");
 		String examPath=request.getSession().getServletContext().getRealPath("/exam");
@@ -273,7 +273,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/selectExamUser.srv",method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/selectExamUser.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String selectExamUser(HttpServletRequest request,HttpServletResponse response) {
 		String examId=request.getParameter("examId");
 		String examUserIds=request.getParameter("examUserIds");
@@ -287,7 +287,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/updateExamStatus.srv",method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/updateExamStatus.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String updateExamStatus(HttpServletRequest request,HttpServletResponse response) {
 		String examId=request.getParameter("examId");
 		String examUserId=request.getParameter("examUserId");
@@ -300,7 +300,7 @@ public class ExamController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value="/srv/ExamController/saveEaxmScroe.srv",method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/ExamController/saveEaxmScroe.srv",method = RequestMethod.POST,produces = "application/json;charset=utf-8")
 	public String saveEaxmScroe(HttpServletRequest request,HttpServletResponse response) {
 		String examInfo=request.getParameter("examInfo");
 		Integer totalScore=Integer.valueOf(request.getParameter("totalScore"));
