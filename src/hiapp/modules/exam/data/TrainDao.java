@@ -1095,8 +1095,11 @@ public class TrainDao extends BaseRepository{
 				}else {
 					map.put("isUsed", "停用");
 				}
-			
-				map.put("courseType", rs.getObject(6));
+				if(rs.getInt(6)==0) {
+					map.put("courseType", "公开");
+				}else {
+					map.put("courseType", "非公开");
+				}
 				list.add(map);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
@@ -1157,7 +1160,11 @@ public class TrainDao extends BaseRepository{
 					map.put("isUsed", "停用");
 				}
 			
-				map.put("courseType", rs.getObject(6));
+				if(rs.getInt(6)==0) {
+					map.put("courseType", "公开");
+				}else {
+					map.put("courseType", "非公开");
+				}
 				list.add(map);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
