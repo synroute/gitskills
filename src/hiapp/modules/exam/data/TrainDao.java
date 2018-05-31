@@ -526,7 +526,7 @@ public class TrainDao extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			conn.setAutoCommit(true);
+			conn.setAutoCommit(false);
 			String deletSql="delete from EM_INF_COURSE where COUSERID in(";
 			String deleteCourseWareSql="delete from EM_MAP_COURSE where COURSEID in(";
 			for (int i = 0; i < arr.length; i++) {
