@@ -22,22 +22,21 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 
-import hiapp.modules.exam.bean.ExamStatus;
 import hiapp.modules.exam.data.ExamDao;
 import hiapp.modules.exam.utils.FtpUtil;
 import hiapp.modules.exam.utils.GsonUtil;
 import hiapp.modules.exam.utils.OfficeToPdfUtil;
 import hiapp.system.buinfo.User;
 
-@Controller
+@RestController
 public class ExamController {
 	@Autowired
 	public ExamDao examDao;
