@@ -926,17 +926,26 @@ public class TrainDao extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
 			String deleteSql="delete from EM_INF_TRAIN where TRAINID in(";
+			String deleteCourseSql="delete from EM_MAP_TRAIN where trainid in(";
 			for (int i = 0; i < arr.length; i++) {
 				String trainId=arr[i];
 				if(trainId==null||"".equals(trainId)) {
 					continue;
 				}
 				deleteSql+="'"+trainId+"',";
+				deleteCourseSql+="'"+trainId+"',";
 			}
 			deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
 			pst=conn.prepareStatement(deleteSql);
 			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			deleteCourseSql=deleteCourseSql.substring(0,deleteCourseSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteCourseSql);
+			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			conn.commit();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","删除成功");
 		} catch (SQLException e) {
