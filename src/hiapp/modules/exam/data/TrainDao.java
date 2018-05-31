@@ -439,11 +439,6 @@ public class TrainDao extends BaseRepository{
 		String[] arr=courseWareIds.split(",");
 		try {
 			conn=this.getDbConnection();
-			String deleteSql="delete from EM_MAP_COURSE where COURSEID=?";
-			pst=conn.prepareStatement(deleteSql);
-			pst.setString(1, courseId);
-			pst.executeUpdate();
-			DbUtil.DbCloseExecute(pst);
 			conn.setAutoCommit(false);
 			String insertSql="insert into EM_MAP_COURSE(COURSEID,COURSEWAREID,SHOWORDER) values(?,?,?)";
 			pst=conn.prepareStatement(insertSql);
