@@ -527,7 +527,7 @@ public class TrainController {
 		}
 	}
 	/**
-	 * 查询培训下所有课程
+	 * 查询培训下未拥有课程
 	 * @param request
 	 * @param response
 	 */
@@ -542,6 +542,28 @@ public class TrainController {
 		Integer num=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 		Map<String, Object> resultMap = trainDao.selectCourseByTrainId(trainId, courseName, isUsed, startTime, endTime, courseType, num, pageSize);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 查询培训下所有课程
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/selectExitCourseByTrainId.srv")
+	public void selectExitCourseByTrainId(HttpServletRequest request,HttpServletResponse response) {
+		String trainId=request.getParameter("trainId");
+		String courseName=request.getParameter("courseName");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = trainDao.selectExitCourseByTrainId(trainId, courseName, num, pageSize);
 		String result=GsonUtil.getGson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();
