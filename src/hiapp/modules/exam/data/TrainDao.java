@@ -731,14 +731,15 @@ public class TrainDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed,address from (";
-			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,address,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
-			if(subject!=null&&!"".equals(subject)){
-				sql+="and SUBJECT like '%"+subject+"%' ";
-			}
+			String sql="select a.COURSEWAREID,a.COURSEWARETYPE,a.COURSEWARESUB,a.SUBJECT,a.CONTENT,a.USENUMBER,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,a.USERID,a.isUsed,a.address,rownum rn from EM_INF_COURSEWARE a "+
+					   " left join Em_Map_Course b on a.coursewareid=b.coursewareid where 1=1";
 			if(courseId!=null&&!"".equals(courseId)) {
-				sql+="and exists(select COURSEWAREID from EM_MAP_COURSE b where b.COURSEID='"+courseId+"' and a.COURSEWAREID=b.COURSEWAREID)";
+				sql+=" and b.courseid='"+courseId+"'";
 			}
-			selectSql=selectSql+sql+" and rownum<?) where rn>=?";
+			if(subject!=null&&!"".equals(subject)){
+				sql+=" and SUBJECT like '%"+subject+"%' ";
+			}
+			selectSql=selectSql+sql+" and rownum<? order by b.showorder asc) where rn>=?";
 			pst=conn.prepareStatement(selectSql);
 			pst.setInt(1, endNum);
 			pst.setInt(2, startNum);
