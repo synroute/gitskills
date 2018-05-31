@@ -429,8 +429,6 @@ public class TrainController {
 		String courseId=request.getParameter("courseId");
 		String courseWareIds=request.getParameter("courseWareIds");
 		Map<String, Object> resultMap = trainDao.deleteCourseWareFromCourse(courseId, courseWareIds);
-		
-		
 		return new Gson().toJson(resultMap);
 	}
 	/**

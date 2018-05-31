@@ -500,6 +500,7 @@ public class TrainDao extends BaseRepository{
 			deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
 			pst=conn.prepareStatement(deleteSql);
 			pst.executeUpdate();
+			conn.commit();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","删除成功");
 		} catch (SQLException e) {
