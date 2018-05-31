@@ -22,6 +22,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
@@ -34,7 +36,7 @@ import hiapp.modules.exam.utils.OfficeToPdfUtil;
 import hiapp.modules.exam.utils.WordToHtml;
 import hiapp.system.buinfo.User;
 
-@Controller
+@RestController
 public class TrainController {
 	@Autowired
 	private TrainDao trainDao;
@@ -424,11 +426,13 @@ public class TrainController {
 	 * @param request
 	 * @param response
 	 */
-	@RequestMapping(value="/srv/TrainController/deleteCourseWareFromCourse.srv",method = RequestMethod.POST, produces = "application/json")
+	@RequestMapping(value="/srv/TrainController/deleteCourseWareFromCourse.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String deleteCourseWareFromCourse(HttpServletRequest request,HttpServletResponse response) {
 		String courseId=request.getParameter("courseId");
 		String courseWareIds=request.getParameter("courseWareIds");
 		Map<String, Object> resultMap = trainDao.deleteCourseWareFromCourse(courseId, courseWareIds);
+		
+		
 		return new Gson().toJson(resultMap);
 	}
 	/**
