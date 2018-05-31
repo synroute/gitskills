@@ -527,7 +527,7 @@ public class TrainDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(true);
-			String deletSql="delete from EM_INF_COURSE where COURSEID in(";
+			String deletSql="delete from EM_INF_COURSE where COUSERID in(";
 			String deleteCourseWareSql="delete from EM_MAP_COURSE where COURSEID in(";
 			for (int i = 0; i < arr.length; i++) {
 				String courseId=arr[i];
