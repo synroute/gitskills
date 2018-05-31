@@ -427,8 +427,8 @@ public class TrainController {
 	@RequestMapping(value="/srv/TrainController/deleteCourseWareFromCourse.srv",method = RequestMethod.POST, produces = "application/json")
 	public String deleteCourseWareFromCourse(HttpServletRequest request,HttpServletResponse response) {
 		String courseId=request.getParameter("courseId");
-		String courseWareId=request.getParameter("courseWareId");
-		Map<String, Object> resultMap = trainDao.deleteCourseWareFromCourse(courseId, courseWareId);
+		String courseWareIds=request.getParameter("courseWareIds");
+		Map<String, Object> resultMap = trainDao.deleteCourseWareFromCourse(courseId, courseWareIds);
 		return new Gson().toJson(resultMap);
 	}
 	/**

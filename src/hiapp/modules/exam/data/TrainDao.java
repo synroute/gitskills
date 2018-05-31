@@ -478,23 +478,28 @@ public class TrainDao extends BaseRepository{
 		}
 		return resultMap;
 	}
-
-	public Map<String,Object>  deleteCourseWareFromCourse(String courseId,String courseWareId) {
+	/**
+	 * 删除课程下课件
+	 * @param courseId
+	 * @param courseWareIds
+	 * @return
+	 */
+	public Map<String,Object>  deleteCourseWareFromCourse(String courseId,String courseWareIds) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
+		String[] arr=courseWareIds.split(",");
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String updateSql="update EM_MAP_COURSE set SHOWORDER=SHOWORDER-1 where SHOWORDER>(select SHOWORDER from EM_MAP_COURSE where courseId='"+courseId+"'"+
-							 " and COURSEWAREID='"+courseWareId+"')";
-			pst=conn.prepareStatement(updateSql);
-			pst.executeUpdate();
-			DbUtil.DbCloseExecute(pst);
-			String deleteSql="delete from EM_MAP_COURSE where courseId='"+courseId+"' and COURSEWAREID='"+courseWareId+"'";
+			String deleteSql="delete from EM_MAP_COURSE where courseId='"+courseId+"' and COURSEWAREID in(";
+			for (int i = 0; i < arr.length; i++) {
+				String courseWareId=arr[i];
+				deleteSql+="'"+courseWareId+"',";
+			}
+			deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
 			pst=conn.prepareStatement(deleteSql);
 			pst.executeUpdate();
-			DbUtil.DbCloseExecute(pst);
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","删除成功");
 		} catch (SQLException e) {
