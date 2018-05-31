@@ -996,7 +996,11 @@ public class TrainDao extends BaseRepository{
 				map.put("userId", rs.getObject(4));
 				map.put("startTime", rs.getObject(5));
 				map.put("endTime", rs.getObject(6));
-				map.put("isUsed", rs.getObject(7));
+				if(rs.getInt(7)==0) {
+					map.put("isUsed", "启用");
+				}else {
+					map.put("isUsed", "停用");
+				}
 				list.add(map);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
