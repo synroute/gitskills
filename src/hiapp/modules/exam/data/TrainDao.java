@@ -1137,7 +1137,7 @@ public class TrainDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			String sql="select COUSERID,COURSENAME,CREATETIME,userId,ISUSED,courseType from(";
-			String selectSql="select a.COUSERID,a.COURSENAME,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,a.userId,a.ISUSED,a.courseType,rownum rn from EM_INF_COURSE a left join EM_MAP_TRAIN on a.COUSERID=b.COURSEID where 1=1 ";
+			String selectSql="select a.COUSERID,a.COURSENAME,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,a.userId,a.ISUSED,a.courseType,rownum rn from EM_INF_COURSE a left join EM_MAP_TRAIN b on a.COUSERID=b.COURSEID where 1=1 ";
 			if(trainId!=null&&!"".equals(trainId)) {
 				selectSql+=" and b.TRAINID='"+trainId+"'";
 			}
@@ -1145,7 +1145,7 @@ public class TrainDao extends BaseRepository{
 				selectSql+=" and COURSENAME like '%"+courseName+"%'";
 			}
 			
-			sql=sql+selectSql+" and rownum<"+endNum+" order by a.SHOWORDER asc) where rn>="+startNum;
+			sql=sql+selectSql+" and rownum<"+endNum+" order by b.SHOWORDER asc) where rn>="+startNum;
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
 			while(rs.next()) {

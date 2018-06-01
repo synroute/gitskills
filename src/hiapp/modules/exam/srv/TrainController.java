@@ -186,6 +186,7 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	}
+	
 	/**
 	 * 下载课件文件
 	 * @param request
@@ -507,9 +508,7 @@ public class TrainController {
 	 */
 	@RequestMapping(value="/srv/TrainController/selectTrains.srv")
 	public void selectTrains(HttpServletRequest request,HttpServletResponse response) {
-		HttpSession session = request.getSession();
-		User user=(User) session.getAttribute("user");
-		String userId =String.valueOf(user.getId());
+		String userId =request.getParameter("userId");
 		String trainName=request.getParameter("trainName");
 		Integer isUsed=Integer.valueOf(request.getParameter("isUsed"));
 		String startTime=request.getParameter("startTime");
