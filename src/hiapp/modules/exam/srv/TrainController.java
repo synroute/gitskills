@@ -130,7 +130,7 @@ public class TrainController {
 			String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
 			String name=arr[i];
 			String suffix=name.substring(name.lastIndexOf(".")+1);
-			String fileName=name.substring(0, name.lastIndexOf(".")+1);
+			String fileName=name.substring(0, name.lastIndexOf("."));
 			String type=name.substring(name.lastIndexOf(".")+1);
 			path=path+"/"+name;
 			if(name==null||"".equals(name)||"pdf".equals(suffix.toLowerCase())) {
@@ -153,20 +153,18 @@ public class TrainController {
 	@RequestMapping(value="srv/TrainController/getPdfFile.srv")
 	public void getPdfFile(HttpServletRequest request,HttpServletResponse response) {
 		String address=request.getParameter("address");
-		String fileName=address.substring(address.lastIndexOf("/")+1);
-		String suffix=fileName.substring(fileName.lastIndexOf(".")+1);
-		String path="";
-		if("pdf".equals(suffix.toLowerCase())) {
-			path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
-		}else {
-			path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date())+"pdf";
+		String path=address.substring(0,address.lastIndexOf("/")-1);
+		String fileName=address.substring(address.lastIndexOf("/")+1,address.lastIndexOf(".")+1)+"pdf";
+		String suffix=fileName.substring(address.lastIndexOf(".")+1);
+		if(!"pdf".equals(suffix.toLowerCase())) {
+			path=path+"pdf";
 		}
 		String uploadPath=request.getSession().getServletContext().getRealPath("/upload");
 		File uploadFile=new File(uploadPath);
 		if(!uploadFile.exists()) {
 			uploadFile.mkdirs();
 		}
-		String endPath=uploadPath+File.separator+fileName+".pdf";
+		String endPath=uploadPath+File.separator+fileName;
 		InputStream ftpInputStream = FtpUtil.getFtpInputStream(path+"/"+fileName);
 		OfficeToPdfUtil.delAllFile(uploadPath);//删除文件
 	    try {
@@ -676,6 +674,9 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	
 	@RequestMapping(value="/srv/TrainController/upload.srv")
 	public void upload(Integer id,@RequestParam MultipartFile[] file,HttpServletRequest request,HttpServletResponse response) throws IOException {
 		InputStream in=null;
