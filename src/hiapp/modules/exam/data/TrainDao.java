@@ -1331,6 +1331,7 @@ public class TrainDao extends BaseRepository{
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.info(e+"=======");
 			resultMap.put("dealSts","02");
 			resultMap.put("dealDesc","添加失败");
 		}finally {
@@ -1338,6 +1339,40 @@ public class TrainDao extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
+	}
+	
+	/**
+	 * 判断培训是否开始
+	 * @param trainId
+	 * @return
+	 */
+	public String decideTime(String trainId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		String result="";
+		try {
+			conn=this.getDbConnection();
+			String sql="select count(1) from EM_INF_COURSE a where a.TRAINSTARTTIME<sysdate and a.trainId='"+trainId+"'" ;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			int num=0;
+			while(rs.next()) {
+				num=rs.getInt(1);
+			}
+			if(num>0) {
+				result="{\"result\":true}";
+			}else {
+				result="{\"result\":false}";
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+			result="{\"result\":false}";
+		}
+		
+		return result;
 	}
 	
 	/**

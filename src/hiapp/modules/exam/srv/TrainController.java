@@ -591,6 +591,8 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	}
+	
+	
 	/**
 	 * 选择培训人员
 	 * @param request
@@ -635,6 +637,24 @@ public class TrainController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	/**
+	 * 判断培训是否开始
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/selectOwerTrain.srv")
+	public void decideTime(HttpServletRequest request,HttpServletResponse response) {
+		String trainId=request.getParameter("trainId");
+		String result = trainDao.decideTime(trainId);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	/**
 	 * 获取当前用户角色
