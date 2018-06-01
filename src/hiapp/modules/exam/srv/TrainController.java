@@ -150,12 +150,12 @@ public class TrainController {
 	 * @param request
 	 * @param response
 	 */
-	@RequestMapping(value="srv/TrainController/getPdfFile.srv")
-	public void getPdfFile(HttpServletRequest request,HttpServletResponse response) {
+	@RequestMapping(value="srv/TrainController/getPdfFile.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String getPdfFile(HttpServletRequest request,HttpServletResponse response) {
 		String address=request.getParameter("address");
-		String path=address.substring(0,address.lastIndexOf("/")-1);
+		String path=address.substring(0,address.lastIndexOf("/"));
 		String fileName=address.substring(address.lastIndexOf("/")+1,address.lastIndexOf(".")+1)+"pdf";
-		String suffix=fileName.substring(address.lastIndexOf(".")+1);
+		String suffix=address.substring(address.lastIndexOf(".")+1);
 		if(!"pdf".equals(suffix.toLowerCase())) {
 			path=path+"pdf";
 		}
@@ -183,6 +183,8 @@ public class TrainController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	    
+	    return "{\"fileName\":\""+fileName+"\"}";
 	}
 	
 	/**
