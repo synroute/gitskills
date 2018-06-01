@@ -1198,7 +1198,12 @@ public class TrainDao extends BaseRepository{
 		
 	}
 	
-	
+	/**
+	 * 从培训中删除课程
+	 * @param trainId
+	 * @param courseIds
+	 * @return
+	 */
 	public Map<String,Object>  deleteCoursesFromTrain(String trainId,String courseIds) {
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -1227,6 +1232,56 @@ public class TrainDao extends BaseRepository{
 			resultMap.put("dealDesc","删除失败");
 		}finally {
 			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	/**
+	 * 查询当前用户的培训任务
+	 * @param userId
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectOwerTrain(String userId,Integer num,Integer pageSize) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select trainName,userId,createTime from (";
+			String selectSql="select a.TRAINNAME trainName,a.userId,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') createTime,rownum rn from EM_INF_TRAIN a left join EM_INF_TRAINUSER b on a.trainId=b.trainId where b.userId='"+userId+"'";
+			sql=sql+selectSql+" and rownum <"+endNum+") where rn>="+startNum;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("trainName", rs.getString(1));
+				map.put("createUser", rs.getString(2));
+				map.put("createTime", rs.getString(3));
+				list.add(map);
+				
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(1) from ("+selectSql+")";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows",list);
+			resultMap.put("total", total);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
 			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
