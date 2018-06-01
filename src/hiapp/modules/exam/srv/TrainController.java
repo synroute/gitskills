@@ -620,9 +620,13 @@ public class TrainController {
 		HttpSession session = request.getSession();
 		User user=(User) session.getAttribute("user");
 		String userId =String.valueOf(user.getId());
+		String createUserId=request.getParameter("createUserId");
+		String trainName=request.getParameter("trainName");
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
 		Integer num=Integer.valueOf(request.getParameter("page"));
 		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
-		Map<String, Object> resultMap = trainDao.selectOwerTrain(userId, num, pageSize);
+		Map<String, Object> resultMap = trainDao.selectOwerTrain(userId, createUserId, trainName, startTime, endTime, num, pageSize);
 		String result=GsonUtil.getGson().toJson(resultMap);
 		try {
 			PrintWriter printWriter = response.getWriter();

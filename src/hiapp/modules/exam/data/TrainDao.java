@@ -1243,7 +1243,7 @@ public class TrainDao extends BaseRepository{
 	 * @param pageSize
 	 * @return
 	 */
-	public Map<String,Object> selectOwerTrain(String userId,Integer num,Integer pageSize) {
+	public Map<String,Object> selectOwerTrain(String userId,String createUserId,String trainName,String startTime,String endTime,Integer num,Integer pageSize) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		ResultSet rs=null;
@@ -1255,6 +1255,18 @@ public class TrainDao extends BaseRepository{
 			conn=this.getDbConnection();
 			String sql="select trainName,userId,createTime from (";
 			String selectSql="select a.TRAINNAME trainName,a.userId,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') createTime,rownum rn from EM_INF_TRAIN a left join EM_INF_TRAINUSER b on a.trainId=b.trainId where b.userId='"+userId+"'";
+			if(createUserId!=null&&!"".equals(createUserId)) {
+				selectSql+=" and a.USERID='"+createUserId+"'";
+			}
+			if(trainName!=null&&!"".equals(trainName)) {
+				selectSql+=" and a.TRAINNAME like '%"+trainName+"%'";
+			}
+			if(startTime!=null&&!"".equals(startTime)) {
+				selectSql+=" and a.CREATETIME >=to_date('"+startTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			if(endTime!=null&&!"".equals(endTime)) {
+				selectSql+=" and a.CREATETIME <to_date('"+endTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
 			sql=sql+selectSql+" and rownum <"+endNum+") where rn>="+startNum;
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
