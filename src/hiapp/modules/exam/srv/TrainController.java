@@ -573,6 +573,25 @@ public class TrainController {
 		}
 	}
 	/**
+	 * 删除培训下课程
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/deleteCoursesFromTrain.srv")
+	public void deleteCoursesFromTrain(HttpServletRequest request,HttpServletResponse response) {
+		String trainId=request.getParameter("trainId");
+		String courseIds=request.getParameter("courseIds");
+		Map<String, Object> resultMap = trainDao.deleteCoursesFromTrain(trainId, courseIds);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
 	 * 选择培训人员
 	 * @param request
 	 * @param response

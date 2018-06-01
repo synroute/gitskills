@@ -1036,7 +1036,7 @@ public class TrainDao extends BaseRepository{
 		return resultMap;
 	}
 	/**
-	 * 查询培训下所有课程
+	 * 查询培训未拥有课程
 	 * @param trainId
 	 * @param courseName
 	 * @param isUsed
@@ -1125,7 +1125,14 @@ public class TrainDao extends BaseRepository{
 		return resultMap;
 		
 	}
-	
+	/**
+	 * 查询培训下拥有课程
+	 * @param trainId
+	 * @param courseName
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
 	public Map<String,Object> selectExitCourseByTrainId(String trainId,String courseName,Integer num,Integer pageSize) {
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -1189,6 +1196,40 @@ public class TrainDao extends BaseRepository{
 		}
 		return resultMap;
 		
+	}
+	
+	
+	public Map<String,Object>  deleteCoursesFromTrain(String trainId,String courseIds) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		String arr[]=courseIds.split(",");
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			String deleteSql="delete from EM_MAP_TRAIN where trainId='"+trainId+"' and COURSEID in(";
+			for (int i = 0; i < arr.length; i++) {
+				String courseId=arr[i];
+				if(courseId==null||"".equals(courseId)) {
+					continue;
+				}
+				deleteSql+="'"+courseId+"',";
+			}
+			deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteSql);
+			pst.executeUpdate();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","删除成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","删除失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
 	}
 	/**
 	 * 选择培训人员
