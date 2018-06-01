@@ -1253,8 +1253,8 @@ public class TrainDao extends BaseRepository{
 		List<Map<String,Object>> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select trainName,userId,createTime from (";
-			String selectSql="select a.TRAINNAME trainName,a.userId,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') createTime,rownum rn from EM_INF_TRAIN a left join EM_INF_TRAINUSER b on a.trainId=b.trainId where b.userId='"+userId+"'";
+			String sql="select trainName,userId,createTime,trainId from (";
+			String selectSql="select a.TRAINNAME trainName,a.userId,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') createTime,a.trainId,rownum rn from EM_INF_TRAIN a left join EM_INF_TRAINUSER b on a.trainId=b.trainId where b.userId='"+userId+"'";
 			if(createUserId!=null&&!"".equals(createUserId)) {
 				selectSql+=" and a.USERID='"+createUserId+"'";
 			}
@@ -1275,6 +1275,7 @@ public class TrainDao extends BaseRepository{
 				map.put("trainName", rs.getString(1));
 				map.put("createUser", rs.getString(2));
 				map.put("createTime", rs.getString(3));
+				map.put("trainId", rs.getString(4));
 				list.add(map);
 				
 			}
@@ -1373,6 +1374,11 @@ public class TrainDao extends BaseRepository{
 		}
 		
 		return result;
+	}
+	
+	
+	public void selectTrainSchedule() {
+		
 	}
 	
 	/**
