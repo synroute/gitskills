@@ -643,7 +643,7 @@ public class TrainController {
 	 * @param request
 	 * @param response
 	 */
-	@RequestMapping(value="/srv/TrainController/selectOwerTrain.srv")
+	@RequestMapping(value="/srv/TrainController/decideTime.srv")
 	public void decideTime(HttpServletRequest request,HttpServletResponse response) {
 		String trainId=request.getParameter("trainId");
 		String result = trainDao.decideTime(trainId);
