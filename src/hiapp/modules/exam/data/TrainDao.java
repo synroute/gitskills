@@ -228,7 +228,7 @@ public class TrainDao extends BaseRepository{
 			DbUtil.DbCloseExecute(pst);
 			
 			if(trainId!=null&&!"".equals(trainId)) {
-				String updateTrainUserSql="update EM_INF_TRAINUSER set DOWNLOADNUM=BROWSENUM+1 where userId=? and trainId=?";
+				String updateTrainUserSql="update EM_INF_TRAINUSER set BROWSENUM=BROWSENUM+1 where userId=? and trainId=?";
 				pst=conn.prepareStatement(updateTrainUserSql);
 				pst.setString(1, userId);
 				pst.setString(2, trainId);
