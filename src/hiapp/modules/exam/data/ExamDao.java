@@ -295,7 +295,7 @@ public class ExamDao extends BaseRepository{
 		List<Map<String,Object>> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select itemId,itemTxt from hasys_dic_item where dicId=131 and ITEMPARENT=-1";
+			String sql="select itemId,itemText from hasys_dic_item where dicId=125 and ITEMPARENT=-1";
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
 			while(rs.next()) {
