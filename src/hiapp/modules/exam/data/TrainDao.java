@@ -1341,7 +1341,7 @@ public class TrainDao extends BaseRepository{
 			pst.executeBatch();
 			conn.commit();
 			try {
-				String message="你有一个新的培训任务,请前往学习计划里面查看";
+				String message="{\"title\":\"培训计划\",\"content\":\"你有一个新的培训任务,请前往学习计划里面查看\"}";
 				TextMessage textMessage=new TextMessage(message);
 				for (int i = 0; i < arr.length; i++) {
 					String userId=arr[i];
@@ -1513,7 +1513,7 @@ public class TrainDao extends BaseRepository{
 			}
 			
 			if(count>0) {
-				String message="你有"+count+"个新的培训任务,请前往学习任务计划里面查看";
+				String message="{\"title\":\"培训计划\",\"content\":\"你有"+count+"个新的培训任务,请前往学习计划里面查看\"}";
 				TextMessage testMessage=new TextMessage(message);	
 				boolean result = examWebSocketHandler.sendMessageToUser(userId, testMessage);
 				if(result) {
