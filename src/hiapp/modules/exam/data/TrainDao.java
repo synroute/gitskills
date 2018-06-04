@@ -1371,14 +1371,68 @@ public class TrainDao extends BaseRepository{
 			e.printStackTrace();
 			logger.info(e+"=======");
 			result="{\"result\":false}";
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
 		}
 		
 		return result;
 	}
 	
 	
-	public void selectTrainSchedule() {
-		
+	public Map<String,Object> selectTrainSchedule(String trainName,String startTime,String endTime,Integer num,Integer pageSize) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String selectSql="select trainid,trainname,downloadnum,browsenum,userTotal from(";
+			String sql="select a.trainid,a.trainname,nvl(sum(b.downloadnum), 0) downloadnum,nvl(sum(b.browsenum), 0) browsenum,count(1) userTotal,rownum rn from Em_Inf_Train a left join em_inf_trainuser b on a.trainid = b.trainid  where 1=1";
+			
+			if(trainName!=null&&!"".equals(trainName)) {
+				sql+=" and a.trainname like '%"+trainName+"%'";
+			}
+			if(startTime!=null&&!"".equals(startTime)) {
+				sql+=" and a.trainstarttime>=to_date('"+startTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			if(endTime!=null&&!"".equals(endTime)) {
+				sql+=" and a.trainstarttime<to_date('"+endTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			selectSql=selectSql+sql+" and rownum<"+endNum+" group by a.trainid, a.trainname) where rn>="+startNum;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("trainId", rs.getString(1));
+				map.put("trainName", rs.getString(2));
+				map.put("downloadnum", rs.getInt(3));
+				map.put("browsenum", rs.getInt(4));
+				map.put("userTotal", rs.getInt(5));
+				list.add(map);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(1) from "+sql+" group by a.trainid,a.trainname) t";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows", list);
+			resultMap.put("total", total);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
 	}
 	
 	/**

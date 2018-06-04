@@ -680,8 +680,28 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	}
-	
-	
+	/**
+	 * 查看培训进度
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/selectTrainSchedule.srv")
+	public void selectTrainSchedule(HttpServletRequest request,HttpServletResponse response) {
+		String trainName=request.getParameter("trainName");
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = trainDao.selectTrainSchedule(trainName, startTime, endTime, num, pageSize);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	@RequestMapping(value="/srv/TrainController/upload.srv")
 	public void upload(Integer id,@RequestParam MultipartFile[] file,HttpServletRequest request,HttpServletResponse response) throws IOException {
