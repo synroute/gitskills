@@ -65,24 +65,25 @@ public class ExamController {
 		Map<String,Object> resultMap=new HashMap<>();
 		try {
 			String ftpPath="";
+			boolean flag =true;
 			if(file!=null) {
 				String fileName=file.getOriginalFilename();
 				String filePath="/"+new SimpleDateFormat("yyyyMMdd").format(new Date());
 				ftpPath=filePath+"/"+fileName;
 				in = file.getInputStream();
-				boolean flag = FtpUtil.uploadFile(filePath, fileName, in);
-				if(flag) {
-					if(questionId==null||"".equals(questionId)) {
-						resultMap=examDao.insertQuestion(questiondes, questionClass, questionsType, questionType, questionLevel, score,  isUsed, ftpPath, anwser, userId);
-					}else {
-						resultMap=examDao.updateQuestion(questionId, questiondes, questionClass, questionsType, questionType, questionLevel, score, isUsed, ftpPath, anwser, userId);
-					}
-				}else {
-					resultMap.put("dealSts","02");
-					resultMap.put("dealDesc","上传失败");
-				}
+				flag = FtpUtil.uploadFile(filePath, fileName, in);
+			
 			}
-
+			if(flag) {
+				if(questionId==null||"".equals(questionId)) {
+					resultMap=examDao.insertQuestion(questiondes, questionClass, questionsType, questionType, questionLevel, score,  isUsed, ftpPath, anwser, userId);
+				}else {
+					resultMap=examDao.updateQuestion(questionId, questiondes, questionClass, questionsType, questionType, questionLevel, score, isUsed, ftpPath, anwser, userId);
+				}
+			}else {
+				resultMap.put("dealSts","02");
+				resultMap.put("dealDesc","上传失败");
+			}
 			String jsonObject=new Gson().toJson(resultMap);
 			PrintWriter printWriter = response.getWriter();
 			printWriter.print(jsonObject);

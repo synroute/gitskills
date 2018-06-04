@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import hiapp.modules.exam.bean.ExamStatus;
@@ -43,6 +44,7 @@ public class ExamDao extends BaseRepository{
 	 * @param userId
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public Map<String,Object> insertQuestion(String questiondes,String questionClass,String questionsType,String questionType,String questionLevel,String score,Integer isUsed,String ftpPath,String anwser,String userId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -66,14 +68,14 @@ public class ExamDao extends BaseRepository{
 			pst.setString(11, ftpPath);
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
-			List<Map<String,Object>> list=GsonUtil.getGson().fromJson(anwser, new TypeToken<List<Map<String,Object>>>(){}.getType());
+			List<Map<String,Object>> list=new Gson().fromJson(anwser, List.class);
 			String insertAnwserSql="insert into EM_INF_ANSWER(ANSWERID,QUESTIONID,ANSWERSN,ANSWERBODY,ISRIGHT) values(S_EM_INF_ANSWER.NEXTVAL,?,?,?,?)";
 			pst=conn.prepareStatement(insertAnwserSql);
 			for (int i = 0; i < list.size(); i++) {
 				Map<String,Object> map=list.get(i);
 				String answerSn=String.valueOf(map.get("anwsersn"));
 				String answerBody=String.valueOf(map.get("anwserBody"));
-				Integer isRight=Integer.valueOf(String.valueOf(map.get("isRight")));
+				Integer isRight=GsonUtil.getIntegerValue(String.valueOf(map.get("isRight")));
 				pst.setString(1, questionId);
 				pst.setString(2, answerSn);
 				pst.setString(3, answerBody);
@@ -228,7 +230,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String insertQuestionSql="insert into EM_INF_ANSWER(QUESTIONID,QUESTIONDES,QUESTIONCLASS,QUESTIONSTYLE,QUESTIONTYPE,QUESTIONLEVE,DEFAULSCORE,INPUTTIME,INPUTER,ISUSED,ISUPDATE,FTPATH) values(?,?,?,?,?,?,?,sysdate,?,?,?,?)";
+			String insertQuestionSql="insert into EM_INF_QUESTIONBASE(QUESTIONID,QUESTIONDES,QUESTIONCLASS,QUESTIONSTYLE,QUESTIONTYPE,QUESTIONLEVE,DEFAULSCORE,INPUTTIME,INPUTER,ISUSED,ISUPDATE,FTPATH) values(?,?,?,?,?,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertQuestionSql);
 			String insertAnwserSql="insert into EM_INF_ANSWER(ANSWERID,QUESTIONID,ANSWERSN,ANSWERBODY,ISRIGHT) values(S_EM_INF_ANSWER.NEXTVAL,?,?,?,?)";
 			pst1=conn.prepareStatement(insertAnwserSql);

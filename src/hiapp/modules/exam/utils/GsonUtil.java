@@ -1,6 +1,7 @@
 package hiapp.modules.exam.utils;
 
 import java.lang.reflect.Type;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,4 +63,19 @@ public class GsonUtil {
 	
 		return value;
 	}
+	
+    public static Integer getIntegerValue(String value) {
+    	Integer result=-1;
+    	if("".equals(value)||value==null) {
+    		return result;
+    	}
+    	if(value.contains(".")) {
+    		Double douValue=Double.valueOf(value);
+    		result=Integer.parseInt(new DecimalFormat("0").format(douValue));
+    	}else {
+    		result=Integer.valueOf(value);
+    	}
+    	
+    	return result;
+    }
 }
