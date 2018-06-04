@@ -22,8 +22,8 @@ public class ExamWebSocketConfig  extends WebMvcConfigurerAdapter implements Web
         //String[] allowsOrigins = {"http://http://localhost:8080"};
 		String[] allowsOrigins = {"*"};
 		//WebIM WebSocket通道
-        registry.addHandler(examWebSocketHandler(),"/IMDmServer.sock").setAllowedOrigins(allowsOrigins).addInterceptors(examWebSocketInteceptor());
-        registry.addHandler(examWebSocketHandler(), "/sockjs/IMDmServer.sock").setAllowedOrigins(allowsOrigins).addInterceptors(examWebSocketInteceptor()).withSockJS();
+        registry.addHandler(examWebSocketHandler(),"/ExamServer.sock").setAllowedOrigins(allowsOrigins).addInterceptors(examWebSocketInteceptor());
+        registry.addHandler(examWebSocketHandler(), "/sockjs/ExamServer.sock").setAllowedOrigins(allowsOrigins).addInterceptors(examWebSocketInteceptor()).withSockJS();
 	}
 		
 	@Bean
