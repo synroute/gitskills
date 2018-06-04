@@ -65,8 +65,8 @@ public class ExamController {
 		Map<String,Object> resultMap=new HashMap<>();
 		try {
 			String ftpPath="";
-			String fileName=file.getOriginalFilename();
 			if(file!=null) {
+				String fileName=file.getOriginalFilename();
 				String filePath="/"+new SimpleDateFormat("yyyyMMdd").format(new Date());
 				ftpPath=filePath+"/"+fileName;
 				in = file.getInputStream();
