@@ -214,30 +214,38 @@ public class TrainDao extends BaseRepository{
 	 * @param userId
 	 * @param trainId
 	 */
-	public void checkCourseWare(String userId,String trainId,String courseWareId) {
+	public String checkCourseWare(String userId,String trainId,String courseWareId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
+		String result="";
 		try {
 			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
 			String updateCourseWareSql="update EM_INF_COURSEWARE set USENUMBER=USENUMBER+1 where COURSEWAREID=?";
 			pst=conn.prepareStatement(updateCourseWareSql);
 			pst.setString(1, courseWareId);
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
-			String updateTrainUserSql="update EM_INF_TRAINUSER set DOWNLOADNUM=BROWSENUM+1 where userId=? and trainId=?";
-			pst=conn.prepareStatement(updateTrainUserSql);
-			pst.setString(1, userId);
-			pst.setString(2, trainId);
-			pst.executeUpdate();
+			
+			if(trainId!=null&&!"".equals(trainId)) {
+				String updateTrainUserSql="update EM_INF_TRAINUSER set DOWNLOADNUM=BROWSENUM+1 where userId=? and trainId=?";
+				pst=conn.prepareStatement(updateTrainUserSql);
+				pst.setString(1, userId);
+				pst.setString(2, trainId);
+				pst.executeUpdate();
+			}
+			conn.commit();
+			result="{\"result\":true}";
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			logger.info(e+"=======");
+			result="{\"result\":false}";
 		}finally {
 			DbUtil.DbCloseExecute(pst);
 			DbUtil.DbCloseConnection(conn);
 		}
-		
+		return result;
 	}
 	/**
 	 * 修改课件

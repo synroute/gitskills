@@ -150,7 +150,7 @@ public class TrainController {
 		}
 	}
 	/**
-	 * 非视频文件展示
+	 * 非视频文件浏览
 	 * @param request
 	 * @param response
 	 */
@@ -192,7 +192,7 @@ public class TrainController {
 	}
 
 	/**
-	 * 下载课件文件
+	 * 培训任务下载课件文件
 	 * @param request
 	 * @param response
 	 */
@@ -211,7 +211,7 @@ public class TrainController {
 	
 	
 	/**
-	 * 下载课件文件
+	 * 公开课下载课件文件
 	 * @param request
 	 * @param response
 	 */
@@ -219,6 +219,28 @@ public class TrainController {
 	public void downLoadCourse(HttpServletRequest request,HttpServletResponse response) {
 		String address=request.getParameter("address");
 		FtpUtil.downloadFromFTP(address, response);
+	}
+	
+	/**
+	 * 课件教学使用次数更新
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="srv/TrainController/updateCourseWareUserNum.srv")
+	public void updateCourseWareUserNum(HttpServletRequest request,HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
+		String trainId=request.getParameter("trainId");
+		String courseWareId=request.getParameter("courseWareId");
+		String result = trainDao.checkCourseWare(userId, trainId, courseWareId);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	/**
 	 * 删除文件
