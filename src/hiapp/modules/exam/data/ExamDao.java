@@ -345,10 +345,10 @@ public class ExamDao extends BaseRepository{
 			if(questionLevel!=null&&!"".equals(questionLevel)) {
 				selectSql+=" and questionLevel='"+questionLevel+"'";
 			}
-			if(minScore!=null) {
+			if(minScore!=-1) {
 				selectSql+=" and DEFAULSCORE >="+minScore;
 			}
-			if(maxScore!=null) {
+			if(maxScore!=-1) {
 				selectSql+=" and DEFAULSCORE <"+maxScore;
 			}
 			if(questionType!=null&&!"".equals(questionType)) {
