@@ -1324,7 +1324,7 @@ public class TrainDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String sql="insert into EM_INF_TRAINUSER(id,TRAINID,USERID,DOWNLOADNUM,BROWSENUM,remindnum) values(S_EM_INF_TRAINUSER.NEXTVAL,?,?,?,?)";
+			String sql="insert into EM_INF_TRAINUSER(id,TRAINID,USERID,DOWNLOADNUM,BROWSENUM,remindnum) values(S_EM_INF_TRAINUSER.NEXTVAL,?,?,?,?,?)";
 			pst=conn.prepareStatement(sql);
 			for (int i = 0; i < arr.length; i++) {
 				String userId=arr[i];
