@@ -121,7 +121,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String updateSql="update EM_INF_EMQUESTIONBASE set QUESTIONDES=?,QUESTIONCLAS=?,QUESTIONSTYLE=?,QUESTIONTYPE=?,QUESTIONLEVE=?,DEFAULSCORE=?,INPUTTIME=sysdate,INPUTER=?,ISUSED=?,ISUPDATE=ISUPDATE+1,ftpPath=? where QUESTIONID=?";
+			String updateSql="update EM_INF_QUESTIONBASE set QUESTIONDES=?,QUESTIONCLAS=?,QUESTIONSTYLE=?,QUESTIONTYPE=?,QUESTIONLEVE=?,DEFAULSCORE=?,INPUTTIME=sysdate,INPUTER=?,ISUSED=?,ISUPDATE=ISUPDATE+1,ftpPath=? where QUESTIONID=?";
 			pst=conn.prepareStatement(updateSql);
 			pst.setString(1, questiondes);
 			pst.setString(2, questionClass);
@@ -338,14 +338,14 @@ public class ExamDao extends BaseRepository{
 		List<Map<String,Object>> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE from (";
-			String selectSql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE,rownum rn from EM_INF_ANSWER where 1=1";
+			String sql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE,QUESTIONCLASS,QUESTIONTYPE,QUESTIONDES,ISUSED,INPUTER,ftPath from (";
+			String selectSql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE,QUESTIONCLASS,QUESTIONTYPE,QUESTIONDES,ISUSED,INPUTER,ftPath,rownum rn from EM_INF_QUESTIONBASE where 1=1";
 			if(questiongnType!=null&&!"".equals(questiongnType)) {
-				selectSql+=" and QUESTIONTYPE='"+questiongnType+"'";
+				selectSql+=" and QUESTIONSTYLE='"+questiongnType+"'";
 			}
 			
 			if(questionLevel!=null&&!"".equals(questionLevel)) {
-				selectSql+=" and questionLevel='"+questionLevel+"'";
+				selectSql+=" and QUESTIONLEVE='"+questionLevel+"'";
 			}
 			if(minScore!=-1) {
 				selectSql+=" and DEFAULSCORE >="+minScore;
@@ -354,7 +354,7 @@ public class ExamDao extends BaseRepository{
 				selectSql+=" and DEFAULSCORE <"+maxScore;
 			}
 			if(questionType!=null&&!"".equals(questionType)) {
-				selectSql+=" and QUESTIONCLASS="+questionType;
+				selectSql+=" and QUESTIONCLASS='"+questionType+"'";
 			}
 			sql=sql+selectSql+" and rownum<"+endNum+") where rn>="+startNum;
 			pst=conn.prepareStatement(sql);
@@ -365,12 +365,21 @@ public class ExamDao extends BaseRepository{
 				map.put("questingnType", rs.getObject(2));
 				map.put("questionLevel", rs.getObject(3));
 				map.put("score", rs.getObject(4));
+				map.put("questionClass", rs.getObject(5));
+				map.put("questionType", rs.getObject(6));
+				map.put("questionDes",  rs.getObject(7));
+				if(rs.getInt(8)==0) {
+					map.put("isUsed","启用");
+				}else {
+					map.put("isUsed","停用");
+				}
+				map.put("userId",  rs.getObject(9));
 				list.add(map);
 			}
 			DbUtil.DbCloseQuery(rs,pst);
 			String getCountSql="select count(1) from ("+selectSql+")";
 			pst=conn.prepareStatement(getCountSql);
-			pst.executeQuery();
+			rs=pst.executeQuery();
 			Integer total=0;
 			while(rs.next()) {
 				total=rs.getInt(1);
