@@ -118,10 +118,15 @@ public class ExamDao extends BaseRepository{
 		Connection conn=null;
 		PreparedStatement pst=null;
 		Map<String,Object> resultMap=new HashMap<>();
+	
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String updateSql="update EM_INF_QUESTIONBASE set QUESTIONDES=?,QUESTIONCLAS=?,QUESTIONSTYLE=?,QUESTIONTYPE=?,QUESTIONLEVE=?,DEFAULSCORE=?,INPUTTIME=sysdate,INPUTER=?,ISUSED=?,ISUPDATE=ISUPDATE+1,ftpPath=? where QUESTIONID=?";
+			String updateSql="update EM_INF_QUESTIONBASE set QUESTIONDES=?,QUESTIONCLAS=?,QUESTIONSTYLE=?,QUESTIONTYPE=?,QUESTIONLEVE=?,DEFAULSCORE=?,INPUTTIME=sysdate,INPUTER=?,ISUSED=?,ISUPDATE=ISUPDATE+1";
+			if(!"".equals(ftpPath)) {
+				updateSql+=",ftpath='"+ftpPath+"'";
+			}
+			updateSql+= " where QUESTIONID=?";
 			pst=conn.prepareStatement(updateSql);
 			pst.setString(1, questiondes);
 			pst.setString(2, questionClass);
@@ -132,8 +137,7 @@ public class ExamDao extends BaseRepository{
 			pst.setString(7, userId);
 			pst.setInt(8, isUsed);
 			pst.setInt(9, 1);
-			pst.setString(10, ftpPath);
-			pst.setString(11, questionId);
+			pst.setString(10, questionId);
 			pst.executeUpdate();
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
