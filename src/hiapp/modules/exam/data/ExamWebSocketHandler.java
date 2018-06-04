@@ -17,6 +17,9 @@ public class ExamWebSocketHandler extends TextWebSocketHandler{
 	private Logger logger;
 	@Autowired
 	private ExamSession examSession;
+	@Autowired
+	private TrainDao trainDao;
+	
 	
 	//接收文本消息，并发送出去
 	@Override
@@ -32,6 +35,7 @@ public class ExamWebSocketHandler extends TextWebSocketHandler{
 		logger.debug("connect success......" + session.getId());
 		String userId=(String) session.getAttributes().get("userId");
 		examSession.addSession(session, userId);
+		trainDao.pushInfo(userId);
 		super.afterConnectionEstablished(session);
 	}
 
@@ -57,7 +61,7 @@ public class ExamWebSocketHandler extends TextWebSocketHandler{
     public boolean sendMessageToUser(String userId, TextMessage message) {
     	logger.info(String.format("webSocket预约进入"));
     	List<WebSocketSession> userSessions = examSession.getSession(userId);
-		if (null == userSessions) {
+		if (null == userSessions||userSessions.size()<=0) {
 			return false;
 		}else {
 			logger.info(String.format("webSocket预约提醒用户数量%s",userSessions.size()));
@@ -73,6 +77,7 @@ public class ExamWebSocketHandler extends TextWebSocketHandler{
     	            return false;
     	        }
 			}
+    		
     		return true;
 		}
         

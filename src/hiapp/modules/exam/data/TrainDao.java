@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.socket.TextMessage;
 
 import hiapp.modules.exam.bean.Course;
 import hiapp.modules.exam.bean.CourseWare;
@@ -25,6 +26,8 @@ public class TrainDao extends BaseRepository{
 	private Logger logger;
 	@Autowired
 	private IdFactory idFactory;
+	@Autowired
+	private ExamWebSocketHandler examWebSocketHandler;
 	public List<Map<String,Object>> getCourseWareType(String itemId){
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -1316,11 +1319,12 @@ public class TrainDao extends BaseRepository{
 		Connection conn=null;
 		PreparedStatement pst=null;
 		String arr[]=userIds.split(",");
+		List<String> users=new ArrayList<>();
 		Map<String,Object> resultMap=new HashMap<>();
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String sql="insert into EM_INF_TRAINUSER(id,TRAINID,USERID,DOWNLOADNUM,BROWSENUM) values(S_EM_INF_TRAINUSER.NEXTVAL,?,?,?,?)";
+			String sql="insert into EM_INF_TRAINUSER(id,TRAINID,USERID,DOWNLOADNUM,BROWSENUM,remindnum) values(S_EM_INF_TRAINUSER.NEXTVAL,?,?,?,?)";
 			pst=conn.prepareStatement(sql);
 			for (int i = 0; i < arr.length; i++) {
 				String userId=arr[i];
@@ -1331,10 +1335,27 @@ public class TrainDao extends BaseRepository{
 				pst.setString(2, userId);
 				pst.setInt(3, 0);
 				pst.setInt(4, 0);
+				pst.setInt(5, 0);
 				pst.addBatch();
 			}
 			pst.executeBatch();
 			conn.commit();
+			try {
+				String message="你有一个新的培训任务,请前往学习计划里面查看";
+				TextMessage textMessage=new TextMessage(message);
+				for (int i = 0; i < arr.length; i++) {
+					String userId=arr[i];
+					boolean result = examWebSocketHandler.sendMessageToUser(userId, textMessage);
+					if(result) {
+						users.add(userId);
+					}
+				}
+				updateRemindnums(users, trainId);
+			}catch(Exception e) {
+				e.printStackTrace();
+				logger.info(e+"发送消息失败=======");
+			}
+	
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
 		} catch (SQLException e) {
@@ -1471,5 +1492,90 @@ public class TrainDao extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		return list;
+	}
+	
+	/**
+	 * 推送培训任务消息
+	 * @param userId
+	 */
+	public void pushInfo(String userId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		try {
+			conn=this.getDbConnection();
+			String selectSql="select count(*) from em_inf_train a where exists (select b.trainid from em_inf_trainuser b where a.trainid = b.trainid and b.userid = '"+userId+"' and b.remindnum = 0) and a.trainstarttime>sysdate";
+			pst=conn.prepareStatement(selectSql);
+			rs=pst.executeQuery();
+			Integer count=0;
+			while(rs.next()) {
+				count=rs.getInt(1);
+			}
+			
+			if(count>0) {
+				String message="你有"+count+"个新的培训任务,请前往学习任务计划里面查看";
+				TextMessage testMessage=new TextMessage(message);	
+				boolean result = examWebSocketHandler.sendMessageToUser(userId, testMessage);
+				if(result) {
+					updateRemindnum(userId);
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+	}
+	/**
+	 * 登陆时任务消息提醒
+	 * @param userId
+	 * @param trainId
+	 */
+	public void updateRemindnum(String userId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		try {
+			conn=this.getDbConnection();
+			String updateSql="update em_inf_trainuser set remindnum=1 where userid='"+userId+"'";
+			pst=conn.prepareStatement(updateSql);
+			pst.executeUpdate();	
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+	}
+	/**
+	 * 分配培训任务时修改提醒次数
+	 * @param users
+	 * @param trainId
+	 */
+	public  void  updateRemindnums(List<String> users,String trainId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		try {
+			conn=this.getDbConnection();
+			String updateSql="update em_inf_trainuser set remindnum=1 where trainId='"+trainId+"' and userId in(";
+			for (int i = 0; i < users.size(); i++) {
+				String userId= users.get(i);
+				updateSql+="'"+userId+"',";
+			}
+			updateSql=updateSql.substring(0,updateSql.length()-1)+")";
+			pst=conn.prepareStatement(updateSql);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
 	}
 }
