@@ -23,9 +23,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.socket.TextMessage;
 
 import com.google.gson.Gson;
 
+import hiapp.modules.exam.data.ExamWebSocketHandler;
 import hiapp.modules.exam.data.TrainDao;
 import hiapp.modules.exam.utils.ConverPPTFileToImageUtil;
 import hiapp.modules.exam.utils.FtpUtil;
@@ -38,6 +40,8 @@ import hiapp.system.buinfo.User;
 public class TrainController {
 	@Autowired
 	private TrainDao trainDao;
+	@Autowired
+	private ExamWebSocketHandler examWebSocketHandler;
 	/**
 	 * 查询课件类别
 	 * @param request
@@ -146,7 +150,7 @@ public class TrainController {
 		}
 	}
 	/**
-	 * 将ftp上文件放到uplaod下
+	 * 非视频文件展示
 	 * @param request
 	 * @param response
 	 */
@@ -186,7 +190,7 @@ public class TrainController {
 	    
 	    return "{\"fileName\":\""+fileName+"\"}";
 	}
-	
+
 	/**
 	 * 下载课件文件
 	 * @param request
@@ -795,5 +799,11 @@ public class TrainController {
 	      }
 	      out.close();
 	}
-	
+	@RequestMapping(value="/srv/TrainController/send.srv")
+	public void send() {
+		String userId="0001";
+		String info="{\"result\":\"你好啊,周杰伦!\"}";
+		TextMessage message=new TextMessage(info);
+		examWebSocketHandler.sendMessageToUser(userId, message);
+	}
 }
