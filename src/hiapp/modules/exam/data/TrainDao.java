@@ -1354,7 +1354,7 @@ public class TrainDao extends BaseRepository{
 		String result="";
 		try {
 			conn=this.getDbConnection();
-			String sql="select count(1) from EM_INF_COURSE a where a.TRAINSTARTTIME<sysdate and a.trainId='"+trainId+"'" ;
+			String sql="select count(1) from Em_Inf_Train a where a.TRAINSTARTTIME<sysdate and a.trainId='"+trainId+"'" ;
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
 			int num=0;
