@@ -402,6 +402,38 @@ public class ExamDao extends BaseRepository{
 		return resultMap;
 	}
 	
+	public List<Map<String,Object>> getAnswerByQuestionId(String questionId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select ANSWERSN,ANSWERBODY,ISRIGHT from em_inf_answer where ANSWERID=?";
+			pst=conn.prepareStatement(sql);
+			pst.setString(1, questionId);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("anwserSn",rs.getObject(1));
+				map.put("anwserBody", rs.getObject(2));
+				if(rs.getInt(3)==1) {
+					map.put("isRight", "是");
+				}else {
+					map.put("isRight", "否");
+				}
+				list.add(map);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=========================");
+		}finally {
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return list;
+	}
 	/**
 	 * 添加考试信息
 	 * @param examName

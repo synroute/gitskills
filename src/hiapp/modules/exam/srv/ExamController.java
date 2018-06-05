@@ -186,6 +186,8 @@ public class ExamController {
 		return new Gson().toJson(resultMap);
 	}
 	
+	
+	
 	/**
 	 * 查询试题
 	 * @param request
@@ -204,7 +206,19 @@ public class ExamController {
 		Map<String, Object> resultMap = examDao.selectQuestion(questiongnType, questionLevel, minScore, maxScore, questionType, num, pageSize);
 		return new Gson().toJson(resultMap);
 	}
-	
+	/**
+	 * 根据问题Id获取答案
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/getAnswerByQuestionId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String getAnswerByQuestionId(HttpServletRequest request,HttpServletResponse response) {
+		String questionId=request.getParameter("questionId");
+		List<Map<String, Object>> list = examDao.getAnswerByQuestionId(questionId);
+		return new Gson().toJson(list);
+		
+	}
 	/**
 	 * 添加或修改考试信息
 	 * @param request
