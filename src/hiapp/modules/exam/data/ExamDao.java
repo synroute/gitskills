@@ -114,6 +114,7 @@ public class ExamDao extends BaseRepository{
 	 * @param userId
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public Map<String,Object>  updateQuestion(String questionId,String questiondes,String questionClass,String questionsType,String questionType,String questionLevel,String score,Integer isUsed,String ftpPath,String anwser,String userId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -190,7 +191,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String deleteQuestionSql="delete from EM_INF_EMQUESTIONBASE where QUESTIONID=in(";
+			String deleteQuestionSql="delete from EM_INF_QUESTIONBASE where QUESTIONID=in(";
 			String deleteAnswerSql="delete from EM_INF_ANSWER where QUESTIONID in(";
 			for (int i = 0; i < arr.length; i++) {
 				String questionId=arr[i];
