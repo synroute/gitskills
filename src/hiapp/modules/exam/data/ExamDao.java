@@ -140,6 +140,7 @@ public class ExamDao extends BaseRepository{
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
 			List<Map<String,Object>> list=new Gson().fromJson(anwser,  List.class);
+			
 			String deleteSql="delete from EM_INF_ANSWER where QUESTIONID=?";
 			pst=conn.prepareStatement(deleteSql);
 			pst.setString(1, questionId);
@@ -147,18 +148,20 @@ public class ExamDao extends BaseRepository{
 			DbUtil.DbCloseExecute(pst);
 			String insertAnwserSql="insert into EM_INF_ANSWER(ANSWERID,QUESTIONID,ANSWERSN,ANSWERBODY,ISRIGHT) values(S_EM_INF_ANSWER.NEXTVAL,?,?,?,?)";
 			pst=conn.prepareStatement(insertAnwserSql);
-			for (int i = 0; i < list.size(); i++) {
-				Map<String,Object> map=list.get(i);
-				String answerSn=String.valueOf(map.get("anwsersn"));
-				String answerBody=String.valueOf(map.get("anwserBody"));
-				Integer isRight=GsonUtil.getIntegerValue(String.valueOf(map.get("isRight")));
-				pst.setString(1, questionId);
-				pst.setString(2, answerSn);
-				pst.setString(3, answerBody);
-				pst.setInt(4, isRight);
-				pst.addBatch();
+			if(list!=null&&list.size()>0) {
+				for (int i = 0; i < list.size(); i++) {
+					Map<String,Object> map=list.get(i);
+					String answerSn=String.valueOf(map.get("anwsersn"));
+					String answerBody=String.valueOf(map.get("anwserBody"));
+					Integer isRight=GsonUtil.getIntegerValue(String.valueOf(map.get("isRight")));
+					pst.setString(1, questionId);
+					pst.setString(2, answerSn);
+					pst.setString(3, answerBody);
+					pst.setInt(4, isRight);
+					pst.addBatch();
+				}
+				pst.executeBatch();
 			}
-			pst.executeBatch();
 			conn.commit();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","修改成功");
