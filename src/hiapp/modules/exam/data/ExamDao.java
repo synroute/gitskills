@@ -409,7 +409,7 @@ public class ExamDao extends BaseRepository{
 		List<Map<String,Object>> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
-			String sql="select ANSWERSN,ANSWERBODY,ISRIGHT from em_inf_answer where ANSWERID=?";
+			String sql="select ANSWERSN,ANSWERBODY,ISRIGHT from em_inf_answer where QUESTIONID=?";
 			pst=conn.prepareStatement(sql);
 			pst.setString(1, questionId);
 			rs=pst.executeQuery();
