@@ -129,6 +129,10 @@ public class TrainController {
 		String names=request.getParameter("names");
 		String[] arr=names.split(",");
 		String toFilePath=request.getSession().getServletContext().getRealPath("/office");
+		File file=new File(toFilePath);
+		if(!file.exists()) {
+			file.mkdirs();
+		}
 		InputStream in=null;
 		for (int i = 0; i < arr.length; i++) {
 			String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
