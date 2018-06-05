@@ -122,7 +122,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String updateSql="update EM_INF_QUESTIONBASE set QUESTIONDES=?,QUESTIONCLAS=?,QUESTIONSTYLE=?,QUESTIONTYPE=?,QUESTIONLEVE=?,DEFAULSCORE=?,INPUTTIME=sysdate,INPUTER=?,ISUSED=?,ISUPDATE=ISUPDATE+1";
+			String updateSql="update EM_INF_QUESTIONBASE set QUESTIONDES=?,QUESTIONCLASS=?,QUESTIONSTYLE=?,QUESTIONTYPE=?,QUESTIONLEVE=?,DEFAULSCORE=?,INPUTTIME=sysdate,INPUTER=?,ISUSED=?,ISUPDATE=ISUPDATE+1";
 			if(!"".equals(ftpPath)) {
 				updateSql+=",ftpath='"+ftpPath+"'";
 			}
@@ -136,12 +136,10 @@ public class ExamDao extends BaseRepository{
 			pst.setString(6, score);
 			pst.setString(7, userId);
 			pst.setInt(8, isUsed);
-			pst.setInt(9, 1);
-			pst.setString(10, questionId);
-			pst.executeUpdate();
+			pst.setString(9, questionId);
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
-			List<Map<String,Object>> list=GsonUtil.getGson().fromJson(anwser,  new TypeToken<List<Map<String,Object>>>(){}.getType());
+			List<Map<String,Object>> list=new Gson().fromJson(anwser,  List.class);
 			String deleteSql="delete from EM_INF_ANSWER where QUESTIONID=?";
 			pst=conn.prepareStatement(deleteSql);
 			pst.setString(1, questionId);
@@ -153,7 +151,7 @@ public class ExamDao extends BaseRepository{
 				Map<String,Object> map=list.get(i);
 				String answerSn=String.valueOf(map.get("anwsersn"));
 				String answerBody=String.valueOf(map.get("anwserBody"));
-				Integer isRight=Integer.valueOf(String.valueOf(map.get("isRight")));
+				Integer isRight=GsonUtil.getIntegerValue(String.valueOf(map.get("isRight")));
 				pst.setString(1, questionId);
 				pst.setString(2, answerSn);
 				pst.setString(3, answerBody);
