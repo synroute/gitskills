@@ -165,6 +165,9 @@ public class ExamController {
 						String value=GsonUtil.getStringcell(cell);
 						if(value!=null){
 							cellValue=value;
+	            		}else {
+	            			sheet.getRow(i).getCell(j).setCellType(Cell.CELL_TYPE_STRING);
+	            			cellValue=sheet.getRow(i).getCell(j).getRichStringCellValue().toString();
 	            		}
 					}
 					map.put(j, cellValue);

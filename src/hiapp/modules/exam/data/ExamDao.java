@@ -239,6 +239,11 @@ public class ExamDao extends BaseRepository{
 			pst=conn.prepareStatement(insertQuestionSql);
 			String insertAnwserSql="insert into EM_INF_ANSWER(ANSWERID,QUESTIONID,ANSWERSN,ANSWERBODY,ISRIGHT) values(S_EM_INF_ANSWER.NEXTVAL,?,?,?,?)";
 			pst1=conn.prepareStatement(insertAnwserSql);
+			if(list==null||list.size()<=0) {
+				resultMap.put("dealSts","02");
+				resultMap.put("dealDesc","Excle里面没有数据");
+				return resultMap;
+			}
 			for (int i = 0; i < list.size(); i++) {
 				Map<Integer,Object> map=list.get(i);
 				String questionId=questIdList.get(i);
@@ -256,7 +261,7 @@ public class ExamDao extends BaseRepository{
 				String anWsers=String.valueOf(map.get(7));
 				String[] arr=anWsers.split(";".trim());
 				for (int j = 0; j < arr.length; j++) {
-					String anwser=arr[i];
+					String anwser=arr[j];
 					if(anwser==null||"".equals(anwser)) {
 						continue;
 					}
@@ -274,6 +279,7 @@ public class ExamDao extends BaseRepository{
 			
 			pst1.executeBatch();
 			pst.executeBatch();
+			conn.commit();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
 		} catch (SQLException e) {

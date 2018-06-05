@@ -43,7 +43,7 @@ public class GsonUtil {
 	}
 	
 	public static String getStringcell(Cell cell){
-		String value="";
+		String value=null;
 		try{
 			if("yyyy/mm/dd".equals(cell.getCellStyle().getDataFormatString()) || "m/d/yy".equals(cell.getCellStyle().getDataFormatString())
 			        || "yy/m/d".equals(cell.getCellStyle().getDataFormatString()) || "mm/dd/yy".equals(cell.getCellStyle().getDataFormatString())
