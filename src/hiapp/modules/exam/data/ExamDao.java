@@ -191,7 +191,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String deleteQuestionSql="delete from EM_INF_QUESTIONBASE where QUESTIONID=in(";
+			String deleteQuestionSql="delete from EM_INF_QUESTIONBASE where QUESTIONID in(";
 			String deleteAnswerSql="delete from EM_INF_ANSWER where QUESTIONID in(";
 			for (int i = 0; i < arr.length; i++) {
 				String questionId=arr[i];
