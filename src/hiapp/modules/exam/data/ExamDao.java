@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import hiapp.modules.exam.bean.ExamInfo;
 import hiapp.modules.exam.bean.ExamStatus;
 import hiapp.modules.exam.utils.FtpUtil;
 import hiapp.modules.exam.utils.GsonUtil;
@@ -540,17 +541,83 @@ public class ExamDao extends BaseRepository{
 		return resultMap;
 	}
 
-	
-	public void selectExam(String examName,Integer isUsed,String createUser,String createTime,Integer examType) {
+	/**
+	 * 查询考试
+	 * @param examName
+	 * @param isUsed
+	 * @param createUser
+	 * @param startTime
+	 * @param endTime
+	 * @param examType
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectExam(String examName,Integer isUsed,String createUser,String startTime,String endTime,Integer examType,Integer num,Integer pageSize) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<ExamInfo> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
+			String selectSql="select EXAMINATIONID,EXAMINATIONNAME,STARTTIME,ENDTIME,ISUSED,CREATER,CREATTIME,PASSLINE,MEDIUMLINE,EXCELLENTLINE,EXAMTYPE from (";
+			String sql="select EXAMINATIONID,EXAMINATIONNAME,to_char(STARTTIME,'yyyy-mm-dd hh24:mi:ss') STARTTIME,to_char(ENDTIME,'yyyy-mm-dd hh24:mi:ss') ENDTIME,ISUSED,CREATER,to_char(CREATTIME,'yyyy-mm-dd hh24:mi:ss') CREATTIME,PASSLINE,MEDIUMLINE,EXCELLENTLINE,EXAMTYPE,rownum rn from EM_INF_EXAMINATION where 1=1";
+			if(examName!=null&&!"".equals(examName)) {
+				sql+=" and EXAMINATIONNAME like '%"+examName+"%'";
+			}
+			if(isUsed!=-1) {
+				sql+=" and ISUSED="+isUsed;	
+			}
+			if(startTime!=null&&!"".equals(startTime)) {
+				sql+=" and CREATTIME>=to_date('"+startTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			if(endTime!=null&&!"".equals(endTime)) {
+				sql+=" and CREATTIME<to_date('"+endTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			if(examType!=-1) {
+				sql+=" and EXAMTYPE="+examType;
+			}
+			selectSql=selectSql+sql+" and rownum<"+endNum+") where rn>="+startNum;
+			pst=conn.prepareStatement(selectSql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				ExamInfo examInfo=new ExamInfo();
+				examInfo.setExamId(rs.getString(1));
+				examInfo.setExamName(rs.getString(2));
+				examInfo.setStartTime(rs.getString(3));
+				examInfo.setEndTime(rs.getString(4));
+				examInfo.setIsUsedChina(rs.getInt(5));
+				examInfo.setCreatUserId(rs.getString(6));
+				examInfo.setCreateTime(rs.getString(7));
+				examInfo.setPassLine(rs.getInt(8));
+				examInfo.setMidLine(rs.getInt(9));
+				examInfo.setGoodLine(rs.getInt(10));
+				examInfo.setExamTypeNum(rs.getInt(11));
+				list.add(examInfo);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(1) from ("+sql+") t";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows", list);
+			resultMap.put("total", total);
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.info(e+"=========================");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
 		}
+		return resultMap;
 	}
 	/**
 	 * 给考试选择试题

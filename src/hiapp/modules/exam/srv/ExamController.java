@@ -250,6 +250,25 @@ public class ExamController {
 		}
 		return new Gson().toJson(resultMap);
 	}
+	/**
+	 * 查询考试
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/selectExam.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String selectExam(HttpServletRequest request,HttpServletResponse response) {
+		String examName=request.getParameter("examName");
+		Integer isUsed=Integer.valueOf(request.getParameter("isUsed"));
+		String createUser=request.getParameter("createUser");
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
+		Integer examType=Integer.valueOf(request.getParameter("examType"));
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = examDao.selectExam(examName, isUsed, createUser, startTime, endTime, examType, num, pageSize);
+		return new Gson().toJson(resultMap);
+	}
 	/**	
 	 * 给考试选择试题
 	 * @param request
