@@ -1096,6 +1096,20 @@ public class ExamDao extends BaseRepository{
 				map.put("submitTime", rs.getObject(5));
 				list.add(map);
 			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(b.examineeid) total,nvl(sum(case when b.logintime is not null and a.starttime<=sysdate and a.endtime>=sysdate then 1 else 0 end),0) actualNum,"+
+							   "nvl(sum(case when (b.emstatus = '正在考试' or b.emstatus='未考试') then 1 else 0 end),0) noSubmitNum,"+
+							   "nvl(sum(case when (b.emstatus = '完成考试' or b.emstatus = '强制交卷') then 1 else 0 end),0) submitNum from " + 
+							   "EM_INF_EMPAPER b left join EM_INF_EXAMINATION a on b.examinationid=a.examinationid  where b.EXAMINATIONID = '"+examId+"'";
+			
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				resultMap.put("total", rs.getInt(1));
+				resultMap.put("actualNum", rs.getInt(2));
+				resultMap.put("noSubmitNum", rs.getInt(3));
+				resultMap.put("submitNum", rs.getInt(4));
+			}
 			resultMap.put("result", list);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
