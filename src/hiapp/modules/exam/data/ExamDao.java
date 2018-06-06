@@ -619,7 +619,11 @@ public class ExamDao extends BaseRepository{
 		}
 		return resultMap;
 	}
-	
+	/**
+	 * 删除考试
+	 * @param examIds
+	 * @return
+	 */
 	public Map<String,Object> deleteExam(String examIds) {
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -629,7 +633,7 @@ public class ExamDao extends BaseRepository{
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
 			String deleteExamSql="delete from EM_INF_EXAMINATION where EXAMINATIONID in(";
-			String deleteQuestionSql="deltete from EM_INF_EMQUESTION where EXAMINATIONID in(";
+			String deleteQuestionSql="delete from EM_INF_EMQUESTION where EXAMINATIONID in(";
 			for (int i = 0; i < arr.length; i++) {
 				String examId=arr[i];
 				if(examId==null||"".equals(examId)) {
