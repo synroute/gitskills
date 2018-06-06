@@ -357,10 +357,13 @@ public class ExamController {
 	 */
 	@RequestMapping(value="/srv/ExamController/selectExamUser.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String selectExamUser(HttpServletRequest request,HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
 		String examId=request.getParameter("examId");
 		String examUserIds=request.getParameter("examUserIds");
 		String invigilateUsers=request.getParameter("invigilateUsers");
-		Map<String, Object> resultMap = examDao.selectExamUser(examId, examUserIds, invigilateUsers);
+		Map<String, Object> resultMap = examDao.selectExamUser(userId,examId,examUserIds, invigilateUsers);
 		return new Gson().toJson(resultMap);
 	}
 	/**

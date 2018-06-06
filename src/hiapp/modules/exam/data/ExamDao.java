@@ -958,7 +958,7 @@ public class ExamDao extends BaseRepository{
 	 * @param examUserIds
 	 * @param invigilateUsers
 	 */
-	public Map<String,Object> selectExamUser(String examId,String examUserIds,String invigilateUsers) {
+	public Map<String,Object> selectExamUser(String userId,String examId,String examUserIds,String invigilateUsers) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		PreparedStatement pst1=null;
@@ -968,7 +968,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String insertSql="insert into EM_INF_EMALLOT(EXAMINATIONID,EXAMINEETYPE,EXAMINEEID) values(?,?,?)";
+			String insertSql="insert into EM_INF_EMALLOT(EXAMINATIONID,EXAMINEETYPE,AGTID,CREATEUSER,INPUTTIME) values(?,?,?,?,sysdate)";
 			pst=conn.prepareStatement(insertSql);
 			String insertExamUserSql="insert into EM_INF_EMPAPER(EXAMINATIONID,EXAMINEEID,EMSTATUS) values(?,?,?)";
 			pst1=conn.prepareStatement(insertExamUserSql);
@@ -980,6 +980,7 @@ public class ExamDao extends BaseRepository{
 				pst.setString(1, examId);
 				pst.setInt(2, 0);
 				pst.setString(3, examUserId);
+				pst.setString(4, userId);
 				pst.addBatch();
 				
 				pst1.setString(1, examId);
@@ -996,6 +997,7 @@ public class ExamDao extends BaseRepository{
 				pst.setString(1, examId);
 				pst.setInt(2, 1);
 				pst.setString(3, invigilateUser);
+				pst.setString(4, userId);
 				pst.addBatch();
 			}
 			
@@ -1018,6 +1020,8 @@ public class ExamDao extends BaseRepository{
 		
 		return resultMap;
 	}
+	
+
 	public Map<String,Object> updateEaxmStausForExaming(String examUserId,String examId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
