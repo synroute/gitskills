@@ -1020,8 +1020,46 @@ public class ExamDao extends BaseRepository{
 		
 		return resultMap;
 	}
-	
-
+	/**
+	 * 判断当前用户是否是考试监考人
+	 * @param examId
+	 * @param userId
+	 * @return
+	 */
+	public Map<String,Object> getinvigilateUserInfo(String examId,String userId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			String selectSql="select count(1) from EM_INF_EMALLOT where EXAMINATIONID=? and agtId=?";
+			pst=conn.prepareStatement(selectSql);
+			pst.setString(1, examId);
+			pst.setString(2, userId);
+			rs=pst.executeQuery();
+			Integer num=0;
+			while(rs.next()) {
+				num=rs.getInt(1);	
+			}
+			if(num>0) {
+				resultMap.put("dealSts","01");
+				resultMap.put("dealDesc","允许监考");
+			}else {
+				resultMap.put("dealSts","02");
+				resultMap.put("dealDesc","您不是当前考试的监考官,无法监考!");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","系统错误");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
 	public Map<String,Object> updateEaxmStausForExaming(String examUserId,String examId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
