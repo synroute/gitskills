@@ -968,7 +968,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String insertSql="insert into EM_INF_EMALLOT(EXAMINATIONID,EXAMINEETYPE,AGTID,CREATEUSER,INPUTTIME) values(?,?,?,?,sysdate)";
+			String insertSql="insert into EM_INF_EMALLOT(EXAMINATIONID,EXAMINEETYPE,USERID,CREATEUSER,INPUTTIME) values(?,?,?,?,sysdate)";
 			pst=conn.prepareStatement(insertSql);
 			String insertExamUserSql="insert into EM_INF_EMPAPER(EXAMINATIONID,EXAMINEEID,EMSTATUS) values(?,?,?)";
 			pst1=conn.prepareStatement(insertExamUserSql);
@@ -1052,6 +1052,7 @@ public class ExamDao extends BaseRepository{
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error("getinvigilateUserInfo",e);
 			resultMap.put("dealSts","02");
 			resultMap.put("dealDesc","系统错误");
 		}finally {
@@ -1059,6 +1060,45 @@ public class ExamDao extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
+	}
+	
+
+	/**
+	 * 查询当前考试的考生情况		
+	 * @param examId
+	 * @return
+	 */
+	public List<Map<String,Object>> getExamUserInfoByExamId(String examId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select a.userId,b.userName,c.EMSTATUS,to_char(c.LOGINTIME,'yyyy-mm-dd hh24:mi:ss') LOGINTIME,to_char(c.SUBMITTIME,'yyyy-mm-dd hh24:mi:ss') SUBMITTIME "
+					+ " from  EM_INF_EMALLOT a left join bu_inf_group b on a.USERID=b.userId left join "
+					+ "EM_INF_EMPAPER c on a.EXAMINATIONID=c.EXAMINATIONID where a.EXAMINATIONID='"+examId+"'";
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("examId",examId);
+				map.put("userId", rs.getObject(1));
+				map.put("userName", rs.getObject(2));
+				map.put("status", rs.getObject(3));
+				map.put("loginTime", rs.getObject(4));
+				map.put("submitTime", rs.getObject(5));
+				list.add(map);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error("getExamUserInfoByExamId",e);
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return list;
 	}
 	public Map<String,Object> updateEaxmStausForExaming(String examUserId,String examId) {
 		Connection conn=null;

@@ -380,7 +380,18 @@ public class ExamController {
 		Map<String, Object> resultMap = examDao.getinvigilateUserInfo(examId, userId);
 		return new Gson().toJson(resultMap);
 	}
-	
+	/**
+	 * 查询当前考试的考生情况	
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/getExamUserInfoByExamId.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String  getExamUserInfoByExamId(HttpServletRequest request,HttpServletResponse response) {
+		String examId=request.getParameter("examId");
+		List<Map<String, Object>> list = examDao.getExamUserInfoByExamId(examId);
+		return new Gson().toJson(list);
+	}
 	/**
 	 * 修改考生状态
 	 * @param request
