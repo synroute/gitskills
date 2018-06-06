@@ -619,6 +619,47 @@ public class ExamDao extends BaseRepository{
 		}
 		return resultMap;
 	}
+	
+	public Map<String,Object> deleteExam(String examIds) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		String[] arr=examIds.split(",");
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
+			String deleteExamSql="delete from EM_INF_EXAMINATION where EXAMINATIONID in(";
+			String deleteQuestionSql="deltete from EM_INF_EMQUESTION where EXAMINATIONID in(";
+			for (int i = 0; i < arr.length; i++) {
+				String examId=arr[i];
+				if(examId==null||"".equals(examId)) {
+					continue;
+				}
+				deleteExamSql+="'"+examId+"',";
+				deleteQuestionSql+="'"+examId+"',";
+			}
+			deleteExamSql=deleteExamSql.substring(0,deleteExamSql.length()-1)+")";
+			deleteQuestionSql=deleteQuestionSql.substring(0,deleteQuestionSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteExamSql);
+			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			pst=conn.prepareStatement(deleteQuestionSql);
+			pst.executeUpdate();
+			conn.commit();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","删除成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=========================");
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","删除失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
 	/**
 	 * 给考试选择试题
 	 * @param examId
@@ -757,6 +798,7 @@ public class ExamDao extends BaseRepository{
 		return resultMap;
 	}
 	
+
 	/**
 	 * 选择考生
 	 * @param examId

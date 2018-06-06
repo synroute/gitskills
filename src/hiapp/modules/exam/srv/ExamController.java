@@ -269,6 +269,19 @@ public class ExamController {
 		Map<String, Object> resultMap = examDao.selectExam(examName, isUsed, createUser, startTime, endTime, examType, num, pageSize);
 		return new Gson().toJson(resultMap);
 	}
+	/**
+	 * 删除考试
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/deleteExam.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String deleteExam(HttpServletRequest request,HttpServletResponse response) {
+		String examIds=request.getParameter("examIds");
+		Map<String, Object> resultMap = examDao.deleteExam(examIds);
+		return new Gson().toJson(resultMap);
+	}
+
 	/**	
 	 * 给考试选择试题
 	 * @param request
