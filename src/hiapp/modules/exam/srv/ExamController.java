@@ -281,7 +281,25 @@ public class ExamController {
 		Map<String, Object> resultMap = examDao.deleteExam(examIds);
 		return new Gson().toJson(resultMap);
 	}
-
+	/**
+	 * 查询当前考试下未拥有的试题
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/selectQuestionByExamId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String selectQuestionByExamId(HttpServletRequest request,HttpServletResponse response) {
+		String examId=request.getParameter("examId");
+		String questiongnType=request.getParameter("questiongnType");
+		String questionLevel=request.getParameter("questionLevel");
+		Integer minScore=Integer.valueOf(request.getParameter("minScore"));
+		Integer maxScore=Integer.valueOf(request.getParameter("maxScore"));
+		String questionType=request.getParameter("questionType");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = examDao.selectQuestionByExamId(examId, questiongnType, questionLevel, minScore, maxScore, questionType, num, pageSize);
+		return new Gson().toJson(resultMap);
+	}
 	/**	
 	 * 给考试选择试题
 	 * @param request
