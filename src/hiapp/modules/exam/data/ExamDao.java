@@ -861,7 +861,7 @@ public class ExamDao extends BaseRepository{
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
 			String insertEmSql="insert into EM_INF_EMQUESTIONBASE(QUESTIONID,QUESTIONBODY,QUESTIONTYPENAME,QUESTIONBODYTYPENAME,QUESTIONLEVENAME,DEFAULSCORE,INPUTTIME,INPUTER,ISUSED,ISUPDATE,FTPATH) "+
-							 "select a.examationId,b.QUESTIONDES,b.QUESTIONCLASS,b.QUESTIONTYPE,b.QUESTIONLEVE,a.DEFAULSCORE,sysdate,'"+userId+"',b.ISUSED,1,b.FTPATH from EM_INF_EMQUESTION a left join EM_INF_QUESTIONBASE b on a.QUESTIONID=b.QUESTIONID where a.EXAMINATIONID='"+examId+"'";
+							 "select a.EXAMINATIONID,b.QUESTIONDES,b.QUESTIONCLASS,b.QUESTIONTYPE,b.QUESTIONLEVE,a.DEFAULSCORE,sysdate,'"+userId+"',b.ISUSED,1,b.FTPATH from EM_INF_EMQUESTION a left join EM_INF_QUESTIONBASE b on a.QUESTIONID=b.QUESTIONID where a.EXAMINATIONID='"+examId+"'";
 			
 			pst=conn.prepareStatement(insertEmSql);
 			pst.executeUpdate();
