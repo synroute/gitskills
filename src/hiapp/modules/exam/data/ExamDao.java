@@ -1082,7 +1082,7 @@ public class ExamDao extends BaseRepository{
 			}
 			conn=this.getDbConnection();
 			String sql="select a.userId,b.userName,c.EMSTATUS,to_char(c.LOGINTIME,'yyyy-mm-dd hh24:mi:ss') LOGINTIME,to_char(c.SUBMITTIME,'yyyy-mm-dd hh24:mi:ss') SUBMITTIME "
-					+ " from  EM_INF_EMALLOT a left join bu_inf_group b on a.USERID=b.userId left join "
+					+ " from  EM_INF_EMALLOT a left join bu_inf_user b on a.USERID=b.userId left join "
 					+ "EM_INF_EMPAPER c on a.EXAMINATIONID=c.EXAMINATIONID where a.EXAMINATIONID='"+examId+"'";
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
