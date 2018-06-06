@@ -1033,7 +1033,7 @@ public class ExamDao extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<>();
 		try {
 			conn=this.getDbConnection();
-			String selectSql="select count(1) from EM_INF_EMALLOT where EXAMINATIONID=? and agtId=?";
+			String selectSql="select count(1) from EM_INF_EMALLOT where EXAMINATIONID=? and userId=?";
 			pst=conn.prepareStatement(selectSql);
 			pst.setString(1, examId);
 			pst.setString(2, userId);
@@ -1044,7 +1044,6 @@ public class ExamDao extends BaseRepository{
 			}
 			if(num>0) {
 				resultMap.put("dealSts","01");
-				resultMap.put("dealDesc","允许监考");
 			}else {
 				resultMap.put("dealSts","02");
 				resultMap.put("dealDesc","您不是当前考试的监考官,无法监考!");
@@ -1068,12 +1067,19 @@ public class ExamDao extends BaseRepository{
 	 * @param examId
 	 * @return
 	 */
-	public List<Map<String,Object>> getExamUserInfoByExamId(String examId) {
+	public Map<String,Object> getExamUserInfoByExamId(String userId,String examId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		ResultSet rs=null;
 		List<Map<String,Object>> list=new ArrayList<>();
+		Map<String,Object> resultMap=new HashMap<>();
 		try {
+			
+			resultMap=getinvigilateUserInfo(examId,userId);
+			String dealSts=String.valueOf(resultMap.get("dealSts"));
+			if("02".equals(dealSts)) {
+				return resultMap;
+			}
 			conn=this.getDbConnection();
 			String sql="select a.userId,b.userName,c.EMSTATUS,to_char(c.LOGINTIME,'yyyy-mm-dd hh24:mi:ss') LOGINTIME,to_char(c.SUBMITTIME,'yyyy-mm-dd hh24:mi:ss') SUBMITTIME "
 					+ " from  EM_INF_EMALLOT a left join bu_inf_group b on a.USERID=b.userId left join "
@@ -1090,6 +1096,7 @@ public class ExamDao extends BaseRepository{
 				map.put("submitTime", rs.getObject(5));
 				list.add(map);
 			}
+			resultMap.put("result", list);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1098,7 +1105,7 @@ public class ExamDao extends BaseRepository{
 			DbUtil.DbCloseQuery(rs, pst);
 			DbUtil.DbCloseConnection(conn);
 		}
-		return list;
+		return resultMap;
 	}
 	public Map<String,Object> updateEaxmStausForExaming(String examUserId,String examId) {
 		Connection conn=null;

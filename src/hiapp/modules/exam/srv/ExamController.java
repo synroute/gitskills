@@ -367,20 +367,6 @@ public class ExamController {
 		return new Gson().toJson(resultMap);
 	}
 	/**
-	 * 判断当前用户是否是考试监考人
-	 * @param request
-	 * @param response
-	 */
-	@RequestMapping(value="/srv/ExamController/getinvigilateUserInfo.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-	public String getinvigilateUserInfo(HttpServletRequest request,HttpServletResponse response) {
-		HttpSession session = request.getSession();
-		User user=(User) session.getAttribute("user");
-		String userId =String.valueOf(user.getId());
-		String examId=request.getParameter("examId");
-		Map<String, Object> resultMap = examDao.getinvigilateUserInfo(examId, userId);
-		return new Gson().toJson(resultMap);
-	}
-	/**
 	 * 查询当前考试的考生情况	
 	 * @param request
 	 * @param response
@@ -388,9 +374,12 @@ public class ExamController {
 	 */
 	@RequestMapping(value="/srv/ExamController/getExamUserInfoByExamId.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String  getExamUserInfoByExamId(HttpServletRequest request,HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
 		String examId=request.getParameter("examId");
-		List<Map<String, Object>> list = examDao.getExamUserInfoByExamId(examId);
-		return new Gson().toJson(list);
+		Map<String, Object> resultMap = examDao.getExamUserInfoByExamId(userId,examId);
+		return new Gson().toJson(resultMap);
 	}
 	/**
 	 * 修改考生状态
