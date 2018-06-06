@@ -300,6 +300,20 @@ public class ExamController {
 		Map<String, Object> resultMap = examDao.selectQuestionByExamId(examId, questiongnType, questionLevel, minScore, maxScore, questionType, num, pageSize);
 		return new Gson().toJson(resultMap);
 	}
+	/**
+	 * 查询当前考试下的试题
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/srv/ExamController/selectExistsQuestionByExamId.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String selectExistsQuestionByExamId(HttpServletRequest request,HttpServletResponse response) {
+		String examId=request.getParameter("examId");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = examDao.selectExistsQuestionByExamId(examId, num, pageSize);
+		return new Gson().toJson(resultMap);
+	}
 	/**	
 	 * 给考试选择试题
 	 * @param request

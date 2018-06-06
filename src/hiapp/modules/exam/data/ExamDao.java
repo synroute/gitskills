@@ -752,6 +752,67 @@ public class ExamDao extends BaseRepository{
 		
 		return resultMap;
 	}
+	
+	/**
+	 * 查询当前考试下的试题
+	 * @param examId
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectExistsQuestionByExamId(String examId,Integer num,Integer pageSize) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE,QUESTIONCLASS,QUESTIONTYPE,QUESTIONDES,ISUSED,INPUTER,ftPath from (";
+			String selectSql="select a.QUESTIONID,a.QUESTIONSTYLE,a.QUESTIONLEVE,a.DEFAULSCORE,a.QUESTIONCLASS,a.QUESTIONTYPE,a.QUESTIONDES,a.ISUSED,a.INPUTER,a.ftPath,rownum rn from EM_INF_QUESTIONBASE a left join EM_INF_EMQUESTION b"+
+							 " on a.QUESTIONID=b.QUESTIONID where b.EXAMINATIONID='"+examId+"'";
+			sql=sql+selectSql+" and rownum<"+endNum+") where rn>="+startNum;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("questionId", rs.getObject(1));
+				map.put("questingnType", rs.getObject(2));
+				map.put("questionLevel", rs.getObject(3));
+				map.put("score", rs.getObject(4));
+				map.put("questionClass", rs.getObject(5));
+				map.put("questionType", rs.getObject(6));
+				map.put("questionDes",  rs.getObject(7));
+				if(rs.getInt(8)==0) {
+					map.put("isUsed","启用");
+				}else {
+					map.put("isUsed","停用");
+				}
+				map.put("userId",  rs.getObject(9));
+				list.add(map);
+			}
+			DbUtil.DbCloseQuery(rs,pst);
+			String getCountSql="select count(1) from ("+selectSql+")";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows", list);
+			resultMap.put("total",total);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			logger.info(e+"=========================");
+		}finally {
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+		return resultMap;
+	}
 	/**
 	 * 给考试选择试题
 	 * @param examId
