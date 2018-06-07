@@ -18,13 +18,16 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.socket.TextMessage;
 
 import com.google.gson.Gson;
 
+import hiapp.modules.exam.data.ExamWebSocketHandler;
 import hiapp.modules.exam.data.TrainDao;
 import hiapp.modules.exam.utils.ConverPPTFileToImageUtil;
 import hiapp.modules.exam.utils.FtpUtil;
@@ -33,10 +36,12 @@ import hiapp.modules.exam.utils.OfficeToPdfUtil;
 import hiapp.modules.exam.utils.WordToHtml;
 import hiapp.system.buinfo.User;
 
-@Controller
+@RestController
 public class TrainController {
 	@Autowired
 	private TrainDao trainDao;
+	@Autowired
+	private ExamWebSocketHandler examWebSocketHandler;
 	/**
 	 * 查询课件类别
 	 * @param request
@@ -75,25 +80,31 @@ public class TrainController {
 		String address="";
 		InputStream in=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
+		String names="";
 		try {
 			boolean flag=true;
 			if(file!=null&&file.length>0) {
 				for (int i = 0; i < file.length; i++) {
 					String fileName=file[i].getOriginalFilename();
+					names+=fileName+",";
 					in = file[i].getInputStream();
-					address=path+ "/"+fileName+",";
+					address+=path+ "/"+fileName+",";
 					boolean uploadResult = FtpUtil.uploadFile( path, fileName, in);
 					if(!uploadResult) {
 						flag=false;
 						break;
 					}
 				}
+				names=names.substring(0,names.length()-1);
 			}
+			
 			if(flag){
 				if(courseWareId!=null&&!"".equals(courseWareId)) {
 					resultMap=trainDao.updateCourseWare(courseWareId, courseWare, courseWareSub, subject, content, isUsed, address, userId);
+					resultMap.put("names", names);
 				}else {
 					resultMap=trainDao.insertCourseWare(courseWare, courseWareSub, subject, content, isUsed, address, userId);
+					resultMap.put("names", names);
 				}
 			}else{
 				resultMap.put("dealSts","02");
@@ -118,12 +129,16 @@ public class TrainController {
 		String names=request.getParameter("names");
 		String[] arr=names.split(",");
 		String toFilePath=request.getSession().getServletContext().getRealPath("/office");
-		String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
+		File file=new File(toFilePath);
+		if(!file.exists()) {
+			file.mkdirs();
+		}
 		InputStream in=null;
 		for (int i = 0; i < arr.length; i++) {
+			String path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
 			String name=arr[i];
 			String suffix=name.substring(name.lastIndexOf(".")+1);
-			String fileName=name.substring(0, name.lastIndexOf(".")+1);
+			String fileName=name.substring(0, name.lastIndexOf("."));
 			String type=name.substring(name.lastIndexOf(".")+1);
 			path=path+"/"+name;
 			if(name==null||"".equals(name)||"pdf".equals(suffix.toLowerCase())) {
@@ -139,29 +154,31 @@ public class TrainController {
 		}
 	}
 	/**
-	 * 将ftp上文件放到uplaod下
+	 * 非视频文件浏览
 	 * @param request
 	 * @param response
 	 */
-	@RequestMapping(value="srv/TrainController/getPdfFile.srv")
-	public void getPdfFile(HttpServletRequest request,HttpServletResponse response) {
+	@RequestMapping(value="srv/TrainController/getPdfFile.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String getPdfFile(HttpServletRequest request,HttpServletResponse response) {
 		String address=request.getParameter("address");
-		String fileName=address.substring(address.lastIndexOf("/")+1);
-		String suffix=fileName.substring(fileName.lastIndexOf(".")+1);
-		String path="";
-		if("pdf".equals(suffix.toLowerCase())) {
-			path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date());
-		}else {
-			path="/"+ new SimpleDateFormat("yyyyMMdd").format(new Date())+"pdf";
+		String path=address.substring(0,address.lastIndexOf("/"));
+		String fileName=address.substring(address.lastIndexOf("/")+1,address.lastIndexOf(".")+1)+"pdf";
+		String suffix=address.substring(address.lastIndexOf(".")+1);
+		if(!"pdf".equals(suffix.toLowerCase())) {
+			path=path+"pdf";
 		}
 		String uploadPath=request.getSession().getServletContext().getRealPath("/upload");
+		File uploadFile=new File(uploadPath);
+		if(!uploadFile.exists()) {
+			uploadFile.mkdirs();
+		}
 		String endPath=uploadPath+File.separator+fileName;
 		InputStream ftpInputStream = FtpUtil.getFtpInputStream(path+"/"+fileName);
 		OfficeToPdfUtil.delAllFile(uploadPath);//删除文件
 	    try {
 	  		File file=new File(endPath);
 			if(!file.exists()) {
-				 file.createNewFile();;
+				 file.createNewFile();
 			}
 			OutputStream out=new FileOutputStream(file);
 		    int bytesRead = 0;
@@ -174,9 +191,12 @@ public class TrainController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	    
+	    return "{\"fileName\":\""+fileName+"\"}";
 	}
+
 	/**
-	 * 下载课件文件
+	 * 培训任务下载课件文件
 	 * @param request
 	 * @param response
 	 */
@@ -187,11 +207,43 @@ public class TrainController {
 		String userId =String.valueOf(user.getId());
 		String address=request.getParameter("address");
 		String trainId=request.getParameter("trainId");
-		String basePath=address.substring(0, address.lastIndexOf("/"));
-		String fileName=address.substring(address.lastIndexOf("/")+1);
-		boolean result = FtpUtil.downloadFromFTP(basePath, fileName, response);
+		boolean result = FtpUtil.downloadFromFTP(address, response);
 		if(result) {
 			trainDao.downLoadCourseWare(userId, trainId);
+		}
+	}
+	
+	
+	/**
+	 * 公开课下载课件文件
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="srv/TrainController/downLoadCourse.srv")
+	public void downLoadCourse(HttpServletRequest request,HttpServletResponse response) {
+		String address=request.getParameter("address");
+		FtpUtil.downloadFromFTP(address, response);
+	}
+	
+	/**
+	 * 课件教学使用次数更新
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="srv/TrainController/updateCourseWareUserNum.srv")
+	public void updateCourseWareUserNum(HttpServletRequest request,HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
+		String trainId=request.getParameter("trainId");
+		String courseWareId=request.getParameter("courseWareId");
+		String result = trainDao.checkCourseWare(userId, trainId, courseWareId);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	/**
@@ -271,11 +323,12 @@ public class TrainController {
 		String courseId=request.getParameter("courseId");
 		Integer isUsed=Integer.valueOf(request.getParameter("isUsed"));
 		Integer action=Integer.valueOf(request.getParameter("action"));
+		Integer courseType=Integer.valueOf(request.getParameter("courseType"));
 		Map<String, Object> resultMap=null;
 		if(action==0) {
-			resultMap=trainDao.insertCourse(userId, courseName, isUsed);
+			resultMap=trainDao.insertCourse(userId, courseName, isUsed,courseType);
 		}else {
-			resultMap=trainDao.updateCourse(userId, courseName, isUsed, courseId);
+			resultMap=trainDao.updateCourse(userId, courseName, isUsed, courseId,courseType);
 		}
 		String result=GsonUtil.getGson().toJson(resultMap);
 		try {
@@ -351,7 +404,7 @@ public class TrainController {
 	}
 	
 	/**
-	 * 查询课程下所有课件
+	 * 查询课程下未拥有的课件
 	 * @param request
 	 * @param response
 	 */
@@ -376,7 +429,39 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	}
-	
+	/**
+	 * 查询课程下所有课件
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/selectExitCourseWareByCourseId.srv")
+	public void selectExitCourseWareByCourseId(HttpServletRequest request,HttpServletResponse response) {
+		String courseId=request.getParameter("courseId");
+		String subject=request.getParameter("subject");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = trainDao.selectExistCourseWareByCourseId(courseId, subject, num, pageSize);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 删除课程下课件
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/deleteCourseWareFromCourse.srv",method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String deleteCourseWareFromCourse(HttpServletRequest request,HttpServletResponse response) {
+		String courseId=request.getParameter("courseId");
+		String courseWareIds=request.getParameter("courseWareIds");
+		Map<String, Object> resultMap = trainDao.deleteCourseWareFromCourse(courseId, courseWareIds);
+		return new Gson().toJson(resultMap);
+	}
 	/**
 	 * 新增或修改培训
 	 * @param request
@@ -453,9 +538,7 @@ public class TrainController {
 	 */
 	@RequestMapping(value="/srv/TrainController/selectTrains.srv")
 	public void selectTrains(HttpServletRequest request,HttpServletResponse response) {
-		HttpSession session = request.getSession();
-		User user=(User) session.getAttribute("user");
-		String userId =String.valueOf(user.getId());
+		String userId =request.getParameter("userId");
 		String trainName=request.getParameter("trainName");
 		Integer isUsed=Integer.valueOf(request.getParameter("isUsed"));
 		String startTime=request.getParameter("startTime");
@@ -473,7 +556,7 @@ public class TrainController {
 		}
 	}
 	/**
-	 * 查询培训下所有课程
+	 * 查询培训下未拥有课程
 	 * @param request
 	 * @param response
 	 */
@@ -497,6 +580,49 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * 查询培训下所有课程
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/selectExitCourseByTrainId.srv")
+	public void selectExitCourseByTrainId(HttpServletRequest request,HttpServletResponse response) {
+		String trainId=request.getParameter("trainId");
+		String courseName=request.getParameter("courseName");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = trainDao.selectExitCourseByTrainId(trainId, courseName, num, pageSize);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 删除培训下课程
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/deleteCoursesFromTrain.srv")
+	public void deleteCoursesFromTrain(HttpServletRequest request,HttpServletResponse response) {
+		String trainId=request.getParameter("trainId");
+		String courseIds=request.getParameter("courseIds");
+		Map<String, Object> resultMap = trainDao.deleteCoursesFromTrain(trainId, courseIds);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
 	/**
 	 * 选择培训人员
 	 * @param request
@@ -515,6 +641,50 @@ public class TrainController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	/**
+	 * 查询当前用户下的所有培训任务
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/selectOwerTrain.srv")
+	public void selectOwerTrain(HttpServletRequest request,HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		User user=(User) session.getAttribute("user");
+		String userId =String.valueOf(user.getId());
+		String createUserId=request.getParameter("createUserId");
+		String trainName=request.getParameter("trainName");
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = trainDao.selectOwerTrain(userId, createUserId, trainName, startTime, endTime, num, pageSize);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 判断培训是否开始
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/decideTime.srv")
+	public void decideTime(HttpServletRequest request,HttpServletResponse response) {
+		String trainId=request.getParameter("trainId");
+		String result = trainDao.decideTime(trainId);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	/**
 	 * 获取当前用户角色
@@ -536,6 +706,29 @@ public class TrainController {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 * 查看培训进度
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value="/srv/TrainController/selectTrainSchedule.srv")
+	public void selectTrainSchedule(HttpServletRequest request,HttpServletResponse response) {
+		String trainName=request.getParameter("trainName");
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
+		Integer num=Integer.valueOf(request.getParameter("page"));
+		Integer pageSize=Integer.valueOf(request.getParameter("rows"));
+		Map<String, Object> resultMap = trainDao.selectTrainSchedule(trainName, startTime, endTime, num, pageSize);
+		String result=GsonUtil.getGson().toJson(resultMap);
+		try {
+			PrintWriter printWriter = response.getWriter();
+			printWriter.print(result);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	@RequestMapping(value="/srv/TrainController/upload.srv")
 	public void upload(Integer id,@RequestParam MultipartFile[] file,HttpServletRequest request,HttpServletResponse response) throws IOException {
 		InputStream in=null;
@@ -651,5 +844,12 @@ public class TrainController {
 	    	  out.write(buffer, 0, bytesRead);
 	      }
 	      out.close();
+	}
+	@RequestMapping(value="/srv/TrainController/send.srv")
+	public void send() {
+		String userId="0001";
+		String info="{\"result\":\"你好啊,周杰伦!\"}";
+		TextMessage message=new TextMessage(info);
+		examWebSocketHandler.sendMessageToUser(userId, message);
 	}
 }

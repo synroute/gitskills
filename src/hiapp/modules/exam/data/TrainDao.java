@@ -1,10 +1,5 @@
 package hiapp.modules.exam.data;
 
-import hiapp.modules.exam.bean.CourseWare;
-import hiapp.utils.DbUtil;
-import hiapp.utils.database.BaseRepository;
-import hiapp.utils.idfactory.IdFactory;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +12,13 @@ import java.util.Map;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.socket.TextMessage;
+
+import hiapp.modules.exam.bean.Course;
+import hiapp.modules.exam.bean.CourseWare;
+import hiapp.utils.DbUtil;
+import hiapp.utils.database.BaseRepository;
+import hiapp.utils.idfactory.IdFactory;
 
 @Repository
 public class TrainDao extends BaseRepository{
@@ -24,6 +26,8 @@ public class TrainDao extends BaseRepository{
 	private Logger logger;
 	@Autowired
 	private IdFactory idFactory;
+	@Autowired
+	private ExamWebSocketHandler examWebSocketHandler;
 	public List<Map<String,Object>> getCourseWareType(String itemId){
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -74,7 +78,7 @@ public class TrainDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			String sql="insert into EM_INF_COURSEWARE(COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,ADDRESS,USENUMBER,CREATETIME,USERID,ISUSED,ISUPDATE,COURSEWAREID)"+
-					   " values(?,?,?,?,?,?,?,sysdate,?,?,?)";
+					   " values(?,?,?,?,?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(sql);
 			pst.setString(1,courseWare);
 			pst.setString(2,courseWareSub);
@@ -123,8 +127,8 @@ public class TrainDao extends BaseRepository{
 		List<CourseWare> list=new ArrayList<CourseWare>();
 		try {
 			conn=this.getDbConnection();
-			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed from (";
-			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
+			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed,ADDRESS from (";
+			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,ADDRESS,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
 			if(courseWare!=null&&!"".equals(courseWare)){
 				sql+="and COURSEWARETYPE='"+courseWare+"' ";
 			}
@@ -159,6 +163,7 @@ public class TrainDao extends BaseRepository{
 				course.setCreateTime(rs.getString(7));
 				course.setCreateUser(rs.getString(8));
 				course.setIsUsed(rs.getInt(9));
+				course.setAddress(rs.getString(10));
 				list.add(course);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
@@ -212,30 +217,38 @@ public class TrainDao extends BaseRepository{
 	 * @param userId
 	 * @param trainId
 	 */
-	public void checkCourseWare(String userId,String trainId,String courseWareId) {
+	public String checkCourseWare(String userId,String trainId,String courseWareId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
+		String result="";
 		try {
 			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
 			String updateCourseWareSql="update EM_INF_COURSEWARE set USENUMBER=USENUMBER+1 where COURSEWAREID=?";
 			pst=conn.prepareStatement(updateCourseWareSql);
 			pst.setString(1, courseWareId);
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
-			String updateTrainUserSql="update EM_INF_TRAINUSER set DOWNLOADNUM=BROWSENUM+1 where userId=? and trainId=?";
-			pst=conn.prepareStatement(updateTrainUserSql);
-			pst.setString(1, userId);
-			pst.setString(2, trainId);
-			pst.executeUpdate();
+			
+			if(trainId!=null&&!"".equals(trainId)) {
+				String updateTrainUserSql="update EM_INF_TRAINUSER set BROWSENUM=BROWSENUM+1 where userId=? and trainId=?";
+				pst=conn.prepareStatement(updateTrainUserSql);
+				pst.setString(1, userId);
+				pst.setString(2, trainId);
+				pst.executeUpdate();
+			}
+			conn.commit();
+			result="{\"result\":true}";
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			logger.info(e+"=======");
+			result="{\"result\":false}";
 		}finally {
 			DbUtil.DbCloseExecute(pst);
 			DbUtil.DbCloseConnection(conn);
 		}
-		
+		return result;
 	}
 	/**
 	 * 修改课件
@@ -254,9 +267,15 @@ public class TrainDao extends BaseRepository{
 		Connection conn=null;
 		PreparedStatement pst=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
+		String updateAddress="ADDRESS=ADDRESS||','||?";
+		if(address==null||"".equals(address)) {
+			updateAddress="ADDRESS=ADDRESS";
+		}else {
+			updateAddress="ADDRESS=ADDRESS||',"+address+"'";
+		}
 		try {
 			conn=this.getDbConnection();
-			String updateSql="update EM_INF_COURSEWARE set COURSEWARETYPE=?,courseWareSub=?,subject=?,content=?,USERID=?,ISUSED=?,ISUPDATE=ISUPDATE+1,ADDRESS=ADDRESS||','||? where COURSEWAREID=?";
+			String updateSql="update EM_INF_COURSEWARE set COURSEWARETYPE=?,courseWareSub=?,subject=?,content=?,USERID=?,ISUSED=?,ISUPDATE=ISUPDATE+1,"+updateAddress+" where COURSEWAREID=?";
 			pst=conn.prepareStatement(updateSql);
 			pst.setString(1,courseWare);
 			pst.setString(2,courseWareSub);
@@ -264,8 +283,7 @@ public class TrainDao extends BaseRepository{
 			pst.setString(4,content);
 			pst.setString(5, userId);
 			pst.setInt(6, isUsed);
-			pst.setString(7, address);
-			pst.setString(8, courseWareId);
+			pst.setString(7, courseWareId);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","修改成功");
@@ -294,10 +312,8 @@ public class TrainDao extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String updateSql="update EM_INF_COURSEWARE set address=replace(addree,?,'') where COURSEWAREID=?";
+			String updateSql="update EM_INF_COURSEWARE set address=replace(address,'"+address+",','') where COURSEWAREID='"+courseWareId+"'";
 			pst=conn.prepareStatement(updateSql);
-			pst.setString(1, address);
-			pst.setString(2, courseWareId);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","删除成功");
@@ -356,19 +372,21 @@ public class TrainDao extends BaseRepository{
 	 * @param isUsed
 	 * @return
 	 */
-	public Map<String,Object> insertCourse(String userId,String courseName,Integer isUsed) {
+	public Map<String,Object> insertCourse(String userId,String courseName,Integer isUsed,Integer courseType) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		String courseId=idFactory.newId("EX_CS");
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String insertSql="insert into EM_INF_COURSE(COUSERID,COURSENAME,CREATETIME,USERID,ISUSED,ISUPDATE) values(?,?,sysdate,?,?)";
+			String insertSql="insert into EM_INF_COURSE(COUSERID,COURSENAME,CREATETIME,USERID,ISUSED,ISUPDATE,courseType) values(?,?,sysdate,?,?,?,?)";
 			pst=conn.prepareStatement(insertSql);
 			pst.setString(1,courseId);
 			pst.setString(2,courseName);
-			pst.setInt(3, isUsed);
-			pst.setInt(4, 0);
+			pst.setString(3,userId);
+			pst.setInt(4, isUsed);
+			pst.setInt(5, 1);
+			pst.setInt(6, courseType);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
@@ -392,18 +410,19 @@ public class TrainDao extends BaseRepository{
 	 * @param courseId
 	 * @return
 	 */
-	public  Map<String,Object>  updateCourse(String userId,String courseName,Integer isUsed,String courseId) {
+	public  Map<String,Object>  updateCourse(String userId,String courseName,Integer isUsed,String courseId,Integer courseType) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			String updateSql="update EM_INF_COURSE set COURSENAME=?,CREATETIME=sysdate,USERID=?,ISUSED=?,ISUPDATE=ISUPDATE+1 where COUSERID=?";
+			String updateSql="update EM_INF_COURSE set COURSENAME=?,CREATETIME=sysdate,USERID=?,ISUSED=?,ISUPDATE=ISUPDATE+1,courseType=? where COUSERID=?";
 			pst=conn.prepareStatement(updateSql);
 			pst.setString(1, courseName);
 			pst.setString(2, userId);
 			pst.setInt(3, isUsed);
-			pst.setString(4, courseId);
+			pst.setInt(4, courseType);
+			pst.setString(5, courseId);
 			pst.executeUpdate();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
@@ -427,19 +446,22 @@ public class TrainDao extends BaseRepository{
 	public Map<String,Object> insertCourseWareToCourse(String courseId,String courseWareIds){
 		Connection conn=null;
 		PreparedStatement pst=null;
+		ResultSet rs=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		String[] arr=courseWareIds.split(",");
 		try {
 			conn=this.getDbConnection();
-			String deleteSql="delete from EM_MAP_COURSE where COURSEID=?";
-			pst=conn.prepareStatement(deleteSql);
-			pst.setString(1, courseId);
-			pst.executeUpdate();
-			DbUtil.DbCloseExecute(pst);
 			conn.setAutoCommit(false);
+			String selectSql="select max(SHOWORDER) SHOWORDER from EM_MAP_COURSE where COURSEID='"+courseId+"'";
+			pst=conn.prepareStatement(selectSql);
+			rs=pst.executeQuery();
+			int m=1;
+			while(rs.next()) {
+				m=rs.getInt(1)+1;
+			}
+			DbUtil.DbCloseQuery(rs, pst);
 			String insertSql="insert into EM_MAP_COURSE(COURSEID,COURSEWAREID,SHOWORDER) values(?,?,?)";
 			pst=conn.prepareStatement(insertSql);
-			int m=1;
 			for (int i = 0; i < arr.length; i++) {
 				String courseWareId=arr[i];
 				if(courseWareId==null||"".equals(courseWareId)) {
@@ -462,12 +484,47 @@ public class TrainDao extends BaseRepository{
 			resultMap.put("dealSts","02");
 			resultMap.put("dealDesc","保存失败");
 		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	/**
+	 * 删除课程下课件
+	 * @param courseId
+	 * @param courseWareIds
+	 * @return
+	 */
+	public Map<String,Object>  deleteCourseWareFromCourse(String courseId,String courseWareIds) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		Map<String,Object> resultMap=new HashMap<String, Object>();
+		String[] arr=courseWareIds.split(",");
+		try {
+			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
+			String deleteSql="delete from EM_MAP_COURSE where courseId='"+courseId+"' and COURSEWAREID in(";
+			for (int i = 0; i < arr.length; i++) {
+				String courseWareId=arr[i];
+				deleteSql+="'"+courseWareId+"',";
+			}
+			deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteSql);
+			pst.executeUpdate();
+			conn.commit();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","删除成功");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			logger.info(e+"=======");
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","删除失败");
+		}finally {
 			DbUtil.DbCloseExecute(pst);
 			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
 	}
-
 	/**
 	 * 删除课程
 	 * @param courseIds
@@ -480,8 +537,8 @@ public class TrainDao extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
-			conn.setAutoCommit(true);
-			String deletSql="delete from EM_INF_COURSE where COURSEID in(";
+			conn.setAutoCommit(false);
+			String deletSql="delete from EM_INF_COURSE where COUSERID in(";
 			String deleteCourseWareSql="delete from EM_MAP_COURSE where COURSEID in(";
 			for (int i = 0; i < arr.length; i++) {
 				String courseId=arr[i];
@@ -530,7 +587,7 @@ public class TrainDao extends BaseRepository{
 		Integer startNum=(num-1)*pageSize+1;
 		Integer endNum=num*pageSize+1;
 		Map<String,Object> resultMap=new HashMap<>();
-		List<Map<String,Object>> list=new ArrayList<>();
+		List<Course> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
 			String sql="select COUSERID,COURSENAME,CREATETIME,userId,ISUSED,courseType from(";
@@ -557,14 +614,14 @@ public class TrainDao extends BaseRepository{
 			pst=conn.prepareStatement(sql);
 			rs=pst.executeQuery();
 			while(rs.next()) {
-				Map<String,Object> map=new HashMap<>();
-				map.put("courseId", rs.getObject(1));
-				map.put("courseName", rs.getObject(2));
-				map.put("createTime", rs.getObject(3));
-				map.put("userId", rs.getObject(4));
-				map.put("isUsed", rs.getObject(5));
-				map.put("courseType", rs.getObject(6));
-				list.add(map);
+				Course course=new  Course();
+				course.setCourseId(rs.getString(1));
+				course.setCourseName(rs.getString(2));
+				course.setCreateTime(rs.getString(3));
+				course.setUserId(rs.getString(4));
+				course.setIsUsed(rs.getInt(5));
+				course.setCourseType(rs.getInt(6));
+				list.add(course);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
 			String getCountSql="select count(*) from ("+selectSql+")";
@@ -588,7 +645,7 @@ public class TrainDao extends BaseRepository{
 		
 	}
 	/**
-	 * 查询课程下所有课件
+	 * 查询课程下未拥有课件
 	 * @param courseId
 	 * @param courseWare
 	 * @param courseWareSub
@@ -608,11 +665,10 @@ public class TrainDao extends BaseRepository{
 		Integer endNum=num*pageSize+1;
 		Map<String,Object> resultMap=new HashMap<String,Object>();
 		List<CourseWare> list=new ArrayList<CourseWare>();
-		List<String> courseWareIdList=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
-			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed from (";
-			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
+			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed,address from (";
+			String sql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,USERID,isUsed,address,rownum rn from EM_INF_COURSEWARE a where 1=1 ";
 			if(courseWare!=null&&!"".equals(courseWare)){
 				sql+="and COURSEWARETYPE='"+courseWare+"' ";
 			}
@@ -632,7 +688,7 @@ public class TrainDao extends BaseRepository{
 				sql+="and USERID='"+createUser+"' ";
 			}
 			if(courseId!=null&&!"".equals(courseId)) {
-				sql+="and exists(select COURSEWAREID from EM_MAP_COURSE b where b.COURSEID='"+courseId+"' and a.COURSEWAREID=b.COURSEWAREID)";
+				sql+="and not exists(select COURSEWAREID from EM_MAP_COURSE b where b.COURSEID='"+courseId+"' and a.COURSEWAREID=b.COURSEWAREID)";
 			}
 			selectSql=selectSql+sql+" and rownum<?) where rn>=?";
 			pst=conn.prepareStatement(selectSql);
@@ -650,6 +706,7 @@ public class TrainDao extends BaseRepository{
 				course.setCreateTime(rs.getString(7));
 				course.setCreateUser(rs.getString(8));
 				course.setIsUsed(rs.getInt(9));
+				course.setAddress(rs.getString(10));
 				list.add(course);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
@@ -661,16 +718,8 @@ public class TrainDao extends BaseRepository{
 				total=rs.getInt(1);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
-			String selectCourseWareSql="select COURSEWAREID from EM_INF_COURSEWARE a where "+
-					 "exsits(select COURSEWAREID from EM_MAP_COURSE b where b.COURSEID=? and a.COURSEWAREID=b.COURSEWAREID)";
-			pst=conn.prepareStatement(selectCourseWareSql);
-			rs=pst.executeQuery();
-			while(rs.next()) {
-				courseWareIdList.add(rs.getString(1));
-			}
 			resultMap.put("rows", list);
 			resultMap.put("total", total);
-			resultMap.put("courseWareIds", courseWareIdList);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -682,6 +731,66 @@ public class TrainDao extends BaseRepository{
 		return resultMap;
 	}
 	
+	
+	public Map<String,Object> selectExistCourseWareByCourseId(String courseId,String subject,Integer num,Integer pageSize){
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<String,Object>();
+		List<CourseWare> list=new ArrayList<CourseWare>();
+		try {
+			conn=this.getDbConnection();
+			String selectSql="select COURSEWAREID,COURSEWARETYPE,COURSEWARESUB,SUBJECT,CONTENT,USENUMBER,CREATETIME,USERID,isUsed,address from (";
+			String sql="select a.COURSEWAREID,a.COURSEWARETYPE,a.COURSEWARESUB,a.SUBJECT,a.CONTENT,a.USENUMBER,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,a.USERID,a.isUsed,a.address,rownum rn from EM_INF_COURSEWARE a "+
+					   " left join Em_Map_Course b on a.coursewareid=b.coursewareid where 1=1";
+			if(courseId!=null&&!"".equals(courseId)) {
+				sql+=" and b.courseid='"+courseId+"'";
+			}
+			if(subject!=null&&!"".equals(subject)){
+				sql+=" and a.SUBJECT like '%"+subject+"%' ";
+			}
+			selectSql=selectSql+sql+" and rownum<? order by b.showorder asc) where rn>=?";
+			pst=conn.prepareStatement(selectSql);
+			pst.setInt(1, endNum);
+			pst.setInt(2, startNum);
+			rs=pst.executeQuery();
+			while(rs.next()){
+				CourseWare course=new CourseWare();
+				course.setCourseWareId(rs.getString(1));
+				course.setCourseWare(rs.getString(2));
+				course.setCourseWareSub(rs.getString(3));
+				course.setSubject(rs.getString(4));
+				course.setContent(rs.getString(5));
+				course.setUseNumber(rs.getInt(6));
+				course.setCreateTime(rs.getString(7));
+				course.setCreateUser(rs.getString(8));
+				course.setIsUsed(rs.getInt(9));
+				course.setAddress(rs.getString(10));
+				list.add(course);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(*) from ("+sql+")";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			resultMap.put("rows", list);
+			resultMap.put("total", total);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
 	/**
 	 * 新增培训
 	 * @param trainName
@@ -773,18 +882,21 @@ public class TrainDao extends BaseRepository{
 	public Map<String,Object> selectCoursesToTrain(String trainId,String courseIds) {
 		Connection conn=null;
 		PreparedStatement pst=null;
+		ResultSet rs=null;
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		String[] arr=courseIds.split(",");
 		try {
 			conn=this.getDbConnection();
-			String deleteSql="delete from EM_MAP_TRAIN where TRAINID=?";
-			pst=conn.prepareStatement(deleteSql);
-			pst.setString(1, trainId);
-			pst.executeUpdate();
-			DbUtil.DbCloseExecute(pst);
+			String selectSql="select max(SHOWORDER) SHOWORDER from EM_MAP_TRAIN where trainId='"+trainId+"'";
+			pst=conn.prepareStatement(selectSql);
+			rs=pst.executeQuery();
+			int m=1;
+			while(rs.next()) {
+				m=rs.getInt(1)+1;
+			}
+			DbUtil.DbCloseQuery(rs, pst);
 			String insertSql="insert into EM_MAP_TRAIN(trainId,COURSEID,SHOWORDER) values(?,?,?)";
 			pst=conn.prepareStatement(insertSql);
-			int m=1;
 			for (int i = 0; i < arr.length; i++) {
 				String courseId=arr[i];
 				if(courseId==null||"".equals(courseId)) {
@@ -825,17 +937,26 @@ public class TrainDao extends BaseRepository{
 		Map<String,Object> resultMap=new HashMap<String, Object>();
 		try {
 			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
 			String deleteSql="delete from EM_INF_TRAIN where TRAINID in(";
+			String deleteCourseSql="delete from EM_MAP_TRAIN where trainid in(";
 			for (int i = 0; i < arr.length; i++) {
 				String trainId=arr[i];
 				if(trainId==null||"".equals(trainId)) {
 					continue;
 				}
 				deleteSql+="'"+trainId+"',";
+				deleteCourseSql+="'"+trainId+"',";
 			}
 			deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
 			pst=conn.prepareStatement(deleteSql);
 			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			deleteCourseSql=deleteCourseSql.substring(0,deleteCourseSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteCourseSql);
+			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			conn.commit();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","删除成功");
 		} catch (SQLException e) {
@@ -898,7 +1019,11 @@ public class TrainDao extends BaseRepository{
 				map.put("userId", rs.getObject(4));
 				map.put("startTime", rs.getObject(5));
 				map.put("endTime", rs.getObject(6));
-				map.put("isUsed", rs.getObject(7));
+				if(rs.getInt(7)==0) {
+					map.put("isUsed", "启用");
+				}else {
+					map.put("isUsed", "停用");
+				}
 				list.add(map);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
@@ -922,7 +1047,7 @@ public class TrainDao extends BaseRepository{
 		return resultMap;
 	}
 	/**
-	 * 查询培训下所有课程
+	 * 查询培训未拥有课程
 	 * @param trainId
 	 * @param courseName
 	 * @param isUsed
@@ -941,7 +1066,6 @@ public class TrainDao extends BaseRepository{
 		Integer endNum=num*pageSize+1;
 		Map<String,Object> resultMap=new HashMap<>();
 		List<Map<String,Object>> list=new ArrayList<>();
-		List<String> courseIdList=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
 			String sql="select COUSERID,COURSENAME,CREATETIME,userId,ISUSED,courseType from(";
@@ -966,7 +1090,7 @@ public class TrainDao extends BaseRepository{
 			}
 			
 			if(trainId!=null&&!"".equals(trainId)) {
-				selectSql+=" and exists(select COURSEID from EM_MAP_TRAIN b where b.TRAINID='"+trainId+"' and a.COUSERID=b.COURSEID)";
+				selectSql+=" and not exists(select COURSEID from EM_MAP_TRAIN b where b.TRAINID='"+trainId+"' and a.COUSERID=b.COURSEID)";
 			}
 			sql=sql+selectSql+" and rownum<"+endNum+") where rn>="+startNum;
 			pst=conn.prepareStatement(sql);
@@ -977,8 +1101,16 @@ public class TrainDao extends BaseRepository{
 				map.put("courseName", rs.getObject(2));
 				map.put("createTime", rs.getObject(3));
 				map.put("userId", rs.getObject(4));
-				map.put("isUsed", rs.getObject(5));
-				map.put("courseType", rs.getObject(6));
+				if(rs.getInt(5)==0) {
+					map.put("isUsed", "启用");
+				}else {
+					map.put("isUsed", "停用");
+				}
+				if(rs.getInt(6)==0) {
+					map.put("courseType", "公开");
+				}else {
+					map.put("courseType", "非公开");
+				}
 				list.add(map);
 			}
 			DbUtil.DbCloseQuery(rs, pst);
@@ -991,16 +1123,8 @@ public class TrainDao extends BaseRepository{
 			}
 			DbUtil.DbCloseQuery(rs, pst);
 			
-			String selectCourseSql="select COUSERID from EM_INF_COURSE a where "+
-					 "exists(select COURSEID from EM_MAP_TRAIN b where b.TRAINID='"+trainId+"' and a.COUSERID=b.COURSEID)";
-			pst=conn.prepareStatement(selectCourseSql);
-			rs=pst.executeQuery();
-			while(rs.next()) {
-				courseIdList.add(rs.getString(1));
-			}
 			resultMap.put("rows", list);
 			resultMap.put("total", total);
-			resultMap.put("courseIds", courseIdList);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1013,6 +1137,180 @@ public class TrainDao extends BaseRepository{
 		
 	}
 	/**
+	 * 查询培训下拥有课程
+	 * @param trainId
+	 * @param courseName
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectExitCourseByTrainId(String trainId,String courseName,Integer num,Integer pageSize) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select COUSERID,COURSENAME,CREATETIME,userId,ISUSED,courseType from(";
+			String selectSql="select a.COUSERID,a.COURSENAME,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,a.userId,a.ISUSED,a.courseType,rownum rn from EM_INF_COURSE a left join EM_MAP_TRAIN b on a.COUSERID=b.COURSEID where 1=1 ";
+			if(trainId!=null&&!"".equals(trainId)) {
+				selectSql+=" and b.TRAINID='"+trainId+"'";
+			}
+			if(courseName!=null&&!"".equals(courseName)) {
+				selectSql+=" and COURSENAME like '%"+courseName+"%'";
+			}
+			
+			sql=sql+selectSql+" and rownum<"+endNum+" order by b.SHOWORDER asc) where rn>="+startNum;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("courseId", rs.getObject(1));
+				map.put("courseName", rs.getObject(2));
+				map.put("createTime", rs.getObject(3));
+				map.put("userId", rs.getObject(4));
+				if(rs.getInt(5)==0) {
+					map.put("isUsed", "启用");
+				}else {
+					map.put("isUsed", "停用");
+				}
+			
+				if(rs.getInt(6)==0) {
+					map.put("courseType", "公开");
+				}else {
+					map.put("courseType", "非公开");
+				}
+				list.add(map);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(*) from ("+selectSql+")";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			
+			resultMap.put("rows", list);
+			resultMap.put("total", total);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+		
+	}
+	
+	/**
+	 * 从培训中删除课程
+	 * @param trainId
+	 * @param courseIds
+	 * @return
+	 */
+	public Map<String,Object>  deleteCoursesFromTrain(String trainId,String courseIds) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		String arr[]=courseIds.split(",");
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			String deleteSql="delete from EM_MAP_TRAIN where trainId='"+trainId+"' and COURSEID in(";
+			for (int i = 0; i < arr.length; i++) {
+				String courseId=arr[i];
+				if(courseId==null||"".equals(courseId)) {
+					continue;
+				}
+				deleteSql+="'"+courseId+"',";
+			}
+			deleteSql=deleteSql.substring(0,deleteSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteSql);
+			pst.executeUpdate();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","删除成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","删除失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	/**
+	 * 查询当前用户的培训任务
+	 * @param userId
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectOwerTrain(String userId,String createUserId,String trainName,String startTime,String endTime,Integer num,Integer pageSize) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select trainName,userId,createTime,trainId from (";
+			String selectSql="select a.TRAINNAME trainName,a.userId,to_char(a.CREATETIME,'yyyy-mm-dd hh24:mi:ss') createTime,a.trainId,rownum rn from EM_INF_TRAIN a left join EM_INF_TRAINUSER b on a.trainId=b.trainId where b.userId='"+userId+"'";
+			if(createUserId!=null&&!"".equals(createUserId)) {
+				selectSql+=" and a.USERID='"+createUserId+"'";
+			}
+			if(trainName!=null&&!"".equals(trainName)) {
+				selectSql+=" and a.TRAINNAME like '%"+trainName+"%'";
+			}
+			if(startTime!=null&&!"".equals(startTime)) {
+				selectSql+=" and a.CREATETIME >=to_date('"+startTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			if(endTime!=null&&!"".equals(endTime)) {
+				selectSql+=" and a.CREATETIME <to_date('"+endTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			sql=sql+selectSql+" and rownum <"+endNum+") where rn>="+startNum;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("trainName", rs.getString(1));
+				map.put("createUser", rs.getString(2));
+				map.put("createTime", rs.getString(3));
+				map.put("trainId", rs.getString(4));
+				list.add(map);
+				
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(1) from ("+selectSql+")";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows",list);
+			resultMap.put("total", total);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	/**
 	 * 选择培训人员
 	 * @param trainId
 	 * @param userIds
@@ -1021,11 +1319,12 @@ public class TrainDao extends BaseRepository{
 		Connection conn=null;
 		PreparedStatement pst=null;
 		String arr[]=userIds.split(",");
+		List<String> users=new ArrayList<>();
 		Map<String,Object> resultMap=new HashMap<>();
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String sql="insert into EM_INF_TRAINUSER(TRAINID,USERID,DOWNLOADNUM,BROWSENUM) values(?,?,?,?,?)";
+			String sql="insert into EM_INF_TRAINUSER(id,TRAINID,USERID,DOWNLOADNUM,BROWSENUM,remindnum) values(S_EM_INF_TRAINUSER.NEXTVAL,?,?,?,?,?)";
 			pst=conn.prepareStatement(sql);
 			for (int i = 0; i < arr.length; i++) {
 				String userId=arr[i];
@@ -1036,19 +1335,130 @@ public class TrainDao extends BaseRepository{
 				pst.setString(2, userId);
 				pst.setInt(3, 0);
 				pst.setInt(4, 0);
+				pst.setInt(5, 0);
 				pst.addBatch();
 			}
 			pst.executeBatch();
 			conn.commit();
+			try {
+				String message="{\"title\":\"培训计划\",\"content\":\"你有一个新的培训任务,请前往学习计划里面查看\"}";
+				TextMessage textMessage=new TextMessage(message);
+				for (int i = 0; i < arr.length; i++) {
+					String userId=arr[i];
+					boolean result = examWebSocketHandler.sendMessageToUser(userId, textMessage);
+					if(result) {
+						users.add(userId);
+					}
+				}
+				updateRemindnums(users, trainId);
+			}catch(Exception e) {
+				e.printStackTrace();
+				logger.info(e+"发送消息失败=======");
+			}
+	
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.info(e+"=======");
 			resultMap.put("dealSts","02");
 			resultMap.put("dealDesc","添加失败");
 		}finally {
 			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	
+	/**
+	 * 判断培训是否开始
+	 * @param trainId
+	 * @return
+	 */
+	public String decideTime(String trainId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		String result="";
+		try {
+			conn=this.getDbConnection();
+			String sql="select count(1) from Em_Inf_Train a where a.TRAINSTARTTIME<sysdate and a.trainId='"+trainId+"'" ;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			int num=0;
+			while(rs.next()) {
+				num=rs.getInt(1);
+			}
+			if(num>0) {
+				result="{\"result\":true}";
+			}else {
+				result="{\"result\":false}";
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+			result="{\"result\":false}";
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+		return result;
+	}
+	
+	
+	public Map<String,Object> selectTrainSchedule(String trainName,String startTime,String endTime,Integer num,Integer pageSize) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String selectSql="select trainid,trainname,downloadnum,browsenum,userTotal from(select trainid, trainname, downloadnum, browsenum, userTotal,rownum rn from (";
+			String sql="select a.trainid,a.trainname,nvl(sum(b.downloadnum), 0) downloadnum,nvl(sum(b.browsenum), 0) browsenum,count(1) userTotal from Em_Inf_Train a left join em_inf_trainuser b on a.trainid = b.trainid  where 1=1";
+			
+			if(trainName!=null&&!"".equals(trainName)) {
+				sql+=" and a.trainname like '%"+trainName+"%'";
+			}
+			if(startTime!=null&&!"".equals(startTime)) {
+				sql+=" and a.trainstarttime>=to_date('"+startTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			if(endTime!=null&&!"".equals(endTime)) {
+				sql+=" and a.trainstarttime<to_date('"+endTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			selectSql=selectSql+sql+" group by a.trainid, a.trainname) where rownum<"+endNum+") where rn>="+startNum;
+			pst=conn.prepareStatement(selectSql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("trainId", rs.getString(1));
+				map.put("trainName", rs.getString(2));
+				map.put("downloadNum", rs.getInt(3));
+				map.put("browseNum", rs.getInt(4));
+				map.put("userTotal", rs.getInt(5));
+				list.add(map);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(1) from ("+sql+" group by a.trainid,a.trainname) t";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows", list);
+			resultMap.put("total", total);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
 			DbUtil.DbCloseConnection(conn);
 		}
 		return resultMap;
@@ -1082,5 +1492,90 @@ public class TrainDao extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		return list;
+	}
+	
+	/**
+	 * 推送培训任务消息
+	 * @param userId
+	 */
+	public void pushInfo(String userId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		try {
+			conn=this.getDbConnection();
+			String selectSql="select count(*) from em_inf_train a where exists (select b.trainid from em_inf_trainuser b where a.trainid = b.trainid and b.userid = '"+userId+"' and b.remindnum = 0) and a.trainstarttime>sysdate";
+			pst=conn.prepareStatement(selectSql);
+			rs=pst.executeQuery();
+			Integer count=0;
+			while(rs.next()) {
+				count=rs.getInt(1);
+			}
+			
+			if(count>0) {
+				String message="{\"title\":\"培训计划\",\"content\":\"你有"+count+"个新的培训任务,请前往学习计划里面查看\"}";
+				TextMessage testMessage=new TextMessage(message);	
+				boolean result = examWebSocketHandler.sendMessageToUser(userId, testMessage);
+				if(result) {
+					updateRemindnum(userId);
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+	}
+	/**
+	 * 登陆时任务消息提醒
+	 * @param userId
+	 * @param trainId
+	 */
+	public void updateRemindnum(String userId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		try {
+			conn=this.getDbConnection();
+			String updateSql="update em_inf_trainuser set remindnum=1 where userid='"+userId+"'";
+			pst=conn.prepareStatement(updateSql);
+			pst.executeUpdate();	
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+	}
+	/**
+	 * 分配培训任务时修改提醒次数
+	 * @param users
+	 * @param trainId
+	 */
+	public  void  updateRemindnums(List<String> users,String trainId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		try {
+			conn=this.getDbConnection();
+			String updateSql="update em_inf_trainuser set remindnum=1 where trainId='"+trainId+"' and userId in(";
+			for (int i = 0; i < users.size(); i++) {
+				String userId= users.get(i);
+				updateSql+="'"+userId+"',";
+			}
+			updateSql=updateSql.substring(0,updateSql.length()-1)+")";
+			pst=conn.prepareStatement(updateSql);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=======");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
 	}
 }
