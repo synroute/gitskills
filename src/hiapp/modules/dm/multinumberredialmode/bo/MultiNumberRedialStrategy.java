@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -38,7 +37,7 @@ public class MultiNumberRedialStrategy {
         String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
 
         EndCodeRedialStrategyM4DB endCodeRedialStrategyFromDB = new Gson().fromJson(jsonEndCodeRedialStrategy,
-                new TypeToken<List<EndCodeRedialStrategyM4DB>>(){}.getType());
+                new TypeToken<EndCodeRedialStrategyM4DB>(){}.getType());
 
 
         EndCodeRedialStrategyM4 endCodeRedialStrategy = EndCodeRedialStrategyM4.getInstance(endCodeRedialStrategyFromDB);
