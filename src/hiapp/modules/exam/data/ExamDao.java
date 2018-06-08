@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import hiapp.modules.exam.bean.ExamInfo;
 import hiapp.modules.exam.bean.ExamStatus;
 import hiapp.modules.exam.utils.FtpUtil;
 import hiapp.modules.exam.utils.GsonUtil;
@@ -114,6 +115,7 @@ public class ExamDao extends BaseRepository{
 	 * @param userId
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public Map<String,Object>  updateQuestion(String questionId,String questiondes,String questionClass,String questionsType,String questionType,String questionLevel,String score,Integer isUsed,String ftpPath,String anwser,String userId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -190,7 +192,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String deleteQuestionSql="delete from EM_INF_EMQUESTIONBASE where QUESTIONID=in(";
+			String deleteQuestionSql="delete from EM_INF_QUESTIONBASE where QUESTIONID in(";
 			String deleteAnswerSql="delete from EM_INF_ANSWER where QUESTIONID in(";
 			for (int i = 0; i < arr.length; i++) {
 				String questionId=arr[i];
@@ -239,6 +241,11 @@ public class ExamDao extends BaseRepository{
 			pst=conn.prepareStatement(insertQuestionSql);
 			String insertAnwserSql="insert into EM_INF_ANSWER(ANSWERID,QUESTIONID,ANSWERSN,ANSWERBODY,ISRIGHT) values(S_EM_INF_ANSWER.NEXTVAL,?,?,?,?)";
 			pst1=conn.prepareStatement(insertAnwserSql);
+			if(list==null||list.size()<=0) {
+				resultMap.put("dealSts","02");
+				resultMap.put("dealDesc","Excle里面没有数据");
+				return resultMap;
+			}
 			for (int i = 0; i < list.size(); i++) {
 				Map<Integer,Object> map=list.get(i);
 				String questionId=questIdList.get(i);
@@ -256,7 +263,7 @@ public class ExamDao extends BaseRepository{
 				String anWsers=String.valueOf(map.get(7));
 				String[] arr=anWsers.split(";".trim());
 				for (int j = 0; j < arr.length; j++) {
-					String anwser=arr[i];
+					String anwser=arr[j];
 					if(anwser==null||"".equals(anwser)) {
 						continue;
 					}
@@ -274,6 +281,7 @@ public class ExamDao extends BaseRepository{
 			
 			pst1.executeBatch();
 			pst.executeBatch();
+			conn.commit();
 			resultMap.put("dealSts","01");
 			resultMap.put("dealDesc","添加成功");
 		} catch (SQLException e) {
@@ -402,7 +410,11 @@ public class ExamDao extends BaseRepository{
 		}
 		return resultMap;
 	}
-	
+	/**
+	 * 根据问题Id查询答案
+	 * @param questionId
+	 * @return
+	 */
 	public List<Map<String,Object>> getAnswerByQuestionId(String questionId) {
 		Connection conn=null;
 		PreparedStatement pst=null;
@@ -533,17 +545,273 @@ public class ExamDao extends BaseRepository{
 		return resultMap;
 	}
 
-	
-	public void selectExam(String examName,Integer isUsed,String createUser,String createTime,Integer examType) {
+	/**
+	 * 查询考试
+	 * @param examName
+	 * @param isUsed
+	 * @param createUser
+	 * @param startTime
+	 * @param endTime
+	 * @param examType
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectExam(String examName,Integer isUsed,String createUser,String startTime,String endTime,Integer examType,Integer num,Integer pageSize) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<ExamInfo> list=new ArrayList<>();
 		try {
 			conn=this.getDbConnection();
+			String selectSql="select EXAMINATIONID,EXAMINATIONNAME,STARTTIME,ENDTIME,ISUSED,CREATER,CREATTIME,PASSLINE,MEDIUMLINE,EXCELLENTLINE,EXAMTYPE from (";
+			String sql="select EXAMINATIONID,EXAMINATIONNAME,to_char(STARTTIME,'yyyy-mm-dd hh24:mi:ss') STARTTIME,to_char(ENDTIME,'yyyy-mm-dd hh24:mi:ss') ENDTIME,ISUSED,CREATER,to_char(CREATTIME,'yyyy-mm-dd hh24:mi:ss') CREATTIME,PASSLINE,MEDIUMLINE,EXCELLENTLINE,EXAMTYPE,rownum rn from EM_INF_EXAMINATION where 1=1";
+			if(examName!=null&&!"".equals(examName)) {
+				sql+=" and EXAMINATIONNAME like '%"+examName+"%'";
+			}
+			if(isUsed!=-1) {
+				sql+=" and ISUSED="+isUsed;	
+			}
+			if(startTime!=null&&!"".equals(startTime)) {
+				sql+=" and CREATTIME>=to_date('"+startTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			if(endTime!=null&&!"".equals(endTime)) {
+				sql+=" and CREATTIME<to_date('"+endTime+"','yyyy-mm-dd hh24:mi:ss')";
+			}
+			if(examType!=-1) {
+				sql+=" and EXAMTYPE="+examType;
+			}
+			selectSql=selectSql+sql+" and rownum<"+endNum+") where rn>="+startNum;
+			pst=conn.prepareStatement(selectSql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				ExamInfo examInfo=new ExamInfo();
+				examInfo.setExamId(rs.getString(1));
+				examInfo.setExamName(rs.getString(2));
+				examInfo.setStartTime(rs.getString(3));
+				examInfo.setEndTime(rs.getString(4));
+				examInfo.setIsUsedChina(rs.getInt(5));
+				examInfo.setCreatUserId(rs.getString(6));
+				examInfo.setCreateTime(rs.getString(7));
+				examInfo.setPassLine(rs.getInt(8));
+				examInfo.setMidLine(rs.getInt(9));
+				examInfo.setGoodLine(rs.getInt(10));
+				examInfo.setExamTypeNum(rs.getInt(11));
+				list.add(examInfo);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(1) from ("+sql+") t";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows", list);
+			resultMap.put("total", total);
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.info(e+"=========================");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
 		}
+		return resultMap;
+	}
+	/**
+	 * 删除考试
+	 * @param examIds
+	 * @return
+	 */
+	public Map<String,Object> deleteExam(String examIds) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		String[] arr=examIds.split(",");
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			conn.setAutoCommit(false);
+			String deleteExamSql="delete from EM_INF_EXAMINATION where EXAMINATIONID in(";
+			String deleteQuestionSql="delete from EM_INF_EMQUESTION where EXAMINATIONID in(";
+			for (int i = 0; i < arr.length; i++) {
+				String examId=arr[i];
+				if(examId==null||"".equals(examId)) {
+					continue;
+				}
+				deleteExamSql+="'"+examId+"',";
+				deleteQuestionSql+="'"+examId+"',";
+			}
+			deleteExamSql=deleteExamSql.substring(0,deleteExamSql.length()-1)+")";
+			deleteQuestionSql=deleteQuestionSql.substring(0,deleteQuestionSql.length()-1)+")";
+			pst=conn.prepareStatement(deleteExamSql);
+			pst.executeUpdate();
+			DbUtil.DbCloseExecute(pst);
+			pst=conn.prepareStatement(deleteQuestionSql);
+			pst.executeUpdate();
+			conn.commit();
+			resultMap.put("dealSts","01");
+			resultMap.put("dealDesc","删除成功");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=========================");
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","删除失败");
+		}finally {
+			DbUtil.DbCloseExecute(pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	/**
+	 * 查询当前考试未拥有的试题
+	 * @param examId
+	 * @param questiongnType
+	 * @param questionLevel
+	 * @param minScore
+	 * @param maxScore
+	 * @param questionType
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectQuestionByExamId(String examId,String questiongnType,String questionLevel,Integer minScore,Integer maxScore,String questionType,Integer num,Integer pageSize) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE,QUESTIONCLASS,QUESTIONTYPE,QUESTIONDES,ISUSED,INPUTER,ftPath from (";
+			String selectSql="select a.QUESTIONID,a.QUESTIONSTYLE,a.QUESTIONLEVE,a.DEFAULSCORE,a.QUESTIONCLASS,a.QUESTIONTYPE,a.QUESTIONDES,a.ISUSED,a.INPUTER,a.ftPath,rownum rn from EM_INF_QUESTIONBASE a where 1=1";
+			if(questiongnType!=null&&!"".equals(questiongnType)) {
+				selectSql+=" and a.QUESTIONSTYLE='"+questiongnType+"'";
+			}
+			
+			if(questionLevel!=null&&!"".equals(questionLevel)) {
+				selectSql+=" and a.QUESTIONLEVE='"+questionLevel+"'";
+			}
+			if(minScore!=-1) {
+				selectSql+=" and a.DEFAULSCORE >="+minScore;
+			}
+			if(maxScore!=-1) {
+				selectSql+=" and a.DEFAULSCORE <"+maxScore;
+			}
+			if(questionType!=null&&!"".equals(questionType)) {
+				selectSql+=" and a.QUESTIONCLASS='"+questionType+"'";
+			}
+			if(examId!=null&&!"".equals(examId)) {
+				selectSql+=" and not exists(select b.QUESTIONID from EM_INF_EMQUESTION b where a.QUESTIONID=b.QUESTIONID and b.EXAMINATIONID='"+examId+"')";
+			}
+			sql=sql+selectSql+" and rownum<"+endNum+") where rn>="+startNum;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("questionId", rs.getObject(1));
+				map.put("questingnType", rs.getObject(2));
+				map.put("questionLevel", rs.getObject(3));
+				map.put("score", rs.getObject(4));
+				map.put("questionClass", rs.getObject(5));
+				map.put("questionType", rs.getObject(6));
+				map.put("questionDes",  rs.getObject(7));
+				if(rs.getInt(8)==0) {
+					map.put("isUsed","启用");
+				}else {
+					map.put("isUsed","停用");
+				}
+				map.put("userId",  rs.getObject(9));
+				list.add(map);
+			}
+			DbUtil.DbCloseQuery(rs,pst);
+			String getCountSql="select count(1) from ("+selectSql+")";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows", list);
+			resultMap.put("total",total);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info(e+"=========================");
+		}finally {
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+		return resultMap;
+	}
+	
+	/**
+	 * 查询当前考试下的试题
+	 * @param examId
+	 * @param num
+	 * @param pageSize
+	 * @return
+	 */
+	public Map<String,Object> selectExistsQuestionByExamId(String examId,Integer num,Integer pageSize) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Integer startNum=(num-1)*pageSize+1;
+		Integer endNum=num*pageSize+1;
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,Object>> list=new ArrayList<>();
+		try {
+			conn=this.getDbConnection();
+			String sql="select QUESTIONID,QUESTIONSTYLE,QUESTIONLEVE,DEFAULSCORE,QUESTIONCLASS,QUESTIONTYPE,QUESTIONDES,ISUSED,INPUTER,ftPath from (";
+			String selectSql="select a.QUESTIONID,a.QUESTIONSTYLE,a.QUESTIONLEVE,a.DEFAULSCORE,a.QUESTIONCLASS,a.QUESTIONTYPE,a.QUESTIONDES,a.ISUSED,a.INPUTER,a.ftPath,rownum rn from EM_INF_QUESTIONBASE a left join EM_INF_EMQUESTION b"+
+							 " on a.QUESTIONID=b.QUESTIONID where b.EXAMINATIONID='"+examId+"'";
+			sql=sql+selectSql+" and rownum<"+endNum+") where rn>="+startNum;
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("questionId", rs.getObject(1));
+				map.put("questingnType", rs.getObject(2));
+				map.put("questionLevel", rs.getObject(3));
+				map.put("score", rs.getObject(4));
+				map.put("questionClass", rs.getObject(5));
+				map.put("questionType", rs.getObject(6));
+				map.put("questionDes",  rs.getObject(7));
+				if(rs.getInt(8)==0) {
+					map.put("isUsed","启用");
+				}else {
+					map.put("isUsed","停用");
+				}
+				map.put("userId",  rs.getObject(9));
+				list.add(map);
+			}
+			DbUtil.DbCloseQuery(rs,pst);
+			String getCountSql="select count(1) from ("+selectSql+")";
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			Integer total=0;
+			while(rs.next()) {
+				total=rs.getInt(1);
+			}
+			resultMap.put("rows", list);
+			resultMap.put("total",total);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			logger.info(e+"=========================");
+		}finally {
+			DbUtil.DbCloseQuery(rs,pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		
+		return resultMap;
 	}
 	/**
 	 * 给考试选择试题
@@ -593,7 +861,7 @@ public class ExamDao extends BaseRepository{
 			pst.executeUpdate();
 			DbUtil.DbCloseExecute(pst);
 			String insertEmSql="insert into EM_INF_EMQUESTIONBASE(QUESTIONID,QUESTIONBODY,QUESTIONTYPENAME,QUESTIONBODYTYPENAME,QUESTIONLEVENAME,DEFAULSCORE,INPUTTIME,INPUTER,ISUSED,ISUPDATE,FTPATH) "+
-							 "select a.examationId,b.QUESTIONDES,b.QUESTIONCLASS,b.QUESTIONTYPE,b.QUESTIONLEVE,a.DEFAULSCORE,sysdate,'"+userId+"',b.ISUSED,1,b.FTPATH from EM_INF_EMQUESTION a left join EM_INF_QUESTIONBASE b on a.QUESTIONID=b.QUESTIONID where a.EXAMINATIONID='"+examId+"'";
+							 "select a.EXAMINATIONID,b.QUESTIONDES,b.QUESTIONCLASS,b.QUESTIONTYPE,b.QUESTIONLEVE,a.DEFAULSCORE,sysdate,'"+userId+"',b.ISUSED,1,b.FTPATH from EM_INF_EMQUESTION a left join EM_INF_QUESTIONBASE b on a.QUESTIONID=b.QUESTIONID where a.EXAMINATIONID='"+examId+"'";
 			
 			pst=conn.prepareStatement(insertEmSql);
 			pst.executeUpdate();
@@ -683,13 +951,14 @@ public class ExamDao extends BaseRepository{
 		return resultMap;
 	}
 	
+
 	/**
 	 * 选择考生
 	 * @param examId
 	 * @param examUserIds
 	 * @param invigilateUsers
 	 */
-	public Map<String,Object> selectExamUser(String examId,String examUserIds,String invigilateUsers) {
+	public Map<String,Object> selectExamUser(String userId,String examId,String examUserIds,String invigilateUsers) {
 		Connection conn=null;
 		PreparedStatement pst=null;
 		PreparedStatement pst1=null;
@@ -699,7 +968,7 @@ public class ExamDao extends BaseRepository{
 		try {
 			conn=this.getDbConnection();
 			conn.setAutoCommit(false);
-			String insertSql="insert into EM_INF_EMALLOT(EXAMINATIONID,EXAMINEETYPE,EXAMINEEID) values(?,?,?)";
+			String insertSql="insert into EM_INF_EMALLOT(EXAMINATIONID,EXAMINEETYPE,USERID,CREATEUSER,INPUTTIME) values(?,?,?,?,sysdate)";
 			pst=conn.prepareStatement(insertSql);
 			String insertExamUserSql="insert into EM_INF_EMPAPER(EXAMINATIONID,EXAMINEEID,EMSTATUS) values(?,?,?)";
 			pst1=conn.prepareStatement(insertExamUserSql);
@@ -711,6 +980,7 @@ public class ExamDao extends BaseRepository{
 				pst.setString(1, examId);
 				pst.setInt(2, 0);
 				pst.setString(3, examUserId);
+				pst.setString(4, userId);
 				pst.addBatch();
 				
 				pst1.setString(1, examId);
@@ -727,6 +997,7 @@ public class ExamDao extends BaseRepository{
 				pst.setString(1, examId);
 				pst.setInt(2, 1);
 				pst.setString(3, invigilateUser);
+				pst.setString(4, userId);
 				pst.addBatch();
 			}
 			
@@ -747,6 +1018,107 @@ public class ExamDao extends BaseRepository{
 			DbUtil.DbCloseConnection(conn);
 		}
 		
+		return resultMap;
+	}
+	/**
+	 * 判断当前用户是否是考试监考人
+	 * @param examId
+	 * @param userId
+	 * @return
+	 */
+	public Map<String,Object> getinvigilateUserInfo(String examId,String userId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			conn=this.getDbConnection();
+			String selectSql="select count(1) from EM_INF_EMALLOT where EXAMINATIONID=? and userId=?";
+			pst=conn.prepareStatement(selectSql);
+			pst.setString(1, examId);
+			pst.setString(2, userId);
+			rs=pst.executeQuery();
+			Integer num=0;
+			while(rs.next()) {
+				num=rs.getInt(1);	
+			}
+			if(num>0) {
+				resultMap.put("dealSts","01");
+			}else {
+				resultMap.put("dealSts","02");
+				resultMap.put("dealDesc","您不是当前考试的监考官,无法监考!");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error("getinvigilateUserInfo",e);
+			resultMap.put("dealSts","02");
+			resultMap.put("dealDesc","系统错误");
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
+		return resultMap;
+	}
+	
+
+	/**
+	 * 查询当前考试的考生情况		
+	 * @param examId
+	 * @return
+	 */
+	public Map<String,Object> getExamUserInfoByExamId(String userId,String examId) {
+		Connection conn=null;
+		PreparedStatement pst=null;
+		ResultSet rs=null;
+		List<Map<String,Object>> list=new ArrayList<>();
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			
+			resultMap=getinvigilateUserInfo(examId,userId);
+			String dealSts=String.valueOf(resultMap.get("dealSts"));
+			if("02".equals(dealSts)) {
+				return resultMap;
+			}
+			conn=this.getDbConnection();
+			String sql="select distinct a.userId,b.userName,c.EMSTATUS,to_char(c.LOGINTIME,'yyyy-mm-dd hh24:mi:ss') LOGINTIME,to_char(c.SUBMITTIME,'yyyy-mm-dd hh24:mi:ss') SUBMITTIME "
+					+ " from  EM_INF_EMALLOT a left join bu_inf_user b on a.USERID=b.userId left join "
+					+ "EM_INF_EMPAPER c on a.EXAMINATIONID=c.EXAMINATIONID where a.EXAMINATIONID='"+examId+"' and a.examineetype=0";
+			pst=conn.prepareStatement(sql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				Map<String,Object> map=new HashMap<>();
+				map.put("examId",examId);
+				map.put("userId", rs.getObject(1));
+				map.put("userName", rs.getObject(2));
+				map.put("status", rs.getObject(3));
+				map.put("loginTime", rs.getObject(4));
+				map.put("submitTime", rs.getObject(5));
+				list.add(map);
+			}
+			DbUtil.DbCloseQuery(rs, pst);
+			String getCountSql="select count(b.examineeid) total,nvl(sum(case when b.logintime is not null and a.starttime<=sysdate and a.endtime>=sysdate then 1 else 0 end),0) actualNum,"+
+							   "nvl(sum(case when (b.emstatus = '正在考试' or b.emstatus='未考试') then 1 else 0 end),0) noSubmitNum,"+
+							   "nvl(sum(case when (b.emstatus = '完成考试' or b.emstatus = '强制交卷') then 1 else 0 end),0) submitNum from " + 
+							   "EM_INF_EMPAPER b left join EM_INF_EXAMINATION a on b.examinationid=a.examinationid  where b.EXAMINATIONID = '"+examId+"'";
+			
+			pst=conn.prepareStatement(getCountSql);
+			rs=pst.executeQuery();
+			while(rs.next()) {
+				resultMap.put("total", rs.getInt(1));
+				resultMap.put("actualNum", rs.getInt(2));
+				resultMap.put("noSubmitNum", rs.getInt(3));
+				resultMap.put("submitNum", rs.getInt(4));
+			}
+			resultMap.put("result", list);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error("getExamUserInfoByExamId",e);
+		}finally {
+			DbUtil.DbCloseQuery(rs, pst);
+			DbUtil.DbCloseConnection(conn);
+		}
 		return resultMap;
 	}
 	public Map<String,Object> updateEaxmStausForExaming(String examUserId,String examId) {
