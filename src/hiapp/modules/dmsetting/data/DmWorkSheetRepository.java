@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -36,6 +37,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 	private WorkSheetRepository workSheetRepository;
 	@Autowired
 	private IdFactory idFactory;
+	@Autowired
+	private Logger logger;
 	
 	public ServiceResultCode newDMBizWorkSheetsSystem(DMBusiness dmBusiness,StringBuffer errMessage) {
 		Connection dbConn = null;
@@ -1081,6 +1084,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			stmt.execute();
 			workSheetRepository.newWorkSheetColumn(worksheetId,columnName,type,columnLength);
 		} catch (Exception e) {
+			this.logger.info(String.format(e.getMessage()));
 			e.printStackTrace();
 			return ServiceResultCode.INVALID_PARAM;
 		} finally {
