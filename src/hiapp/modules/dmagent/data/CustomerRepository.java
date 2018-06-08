@@ -1843,7 +1843,7 @@ public class CustomerRepository extends BaseRepository {
                         "             FROM HAU_DM_B"+bizId+"C_IMPORT\n" +
                         "             WHERE modifylast = 1) DR ON JG.iid = DR.iid AND JG.cid = DR.cid");
 	
-				sb.append(" WHERE ");
+				sb.append(" WHERE ");	
 	
 				// 查询条件
 				
@@ -1854,11 +1854,11 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(" JG.MODIFYLAST= ");
 				sb.append("1");
 	
-				/*sb.append(" AND ");
+				sb.append(" AND ");
 				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYUSERID");
 				sb.append(" = ");
-				sb.append(userId);*/
+				sb.append(userId);
 			}
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
