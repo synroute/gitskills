@@ -750,7 +750,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
 			creationInfoWorkSheet.setOwner(true);
 			String szWorkSheetName=String.format("HAU_DM_B%dC_QUERESULT", dmBusiness.getBizId());
-			String szWorkSheetNameCh=String.format("外拨业务%ds问卷表", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%d问卷表", dmBusiness.getBizId());
 			String szWorkSheetDescription=String.format("外拨业务%d问卷表，问卷关联数据存入此工作表",dmBusiness.getBizId());
 			creationInfoWorkSheet.setName(szWorkSheetName);
 			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
