@@ -36,7 +36,7 @@ public enum SingleNumberModeShareCustomerStateEnum {
         if (SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL.getName().equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.LOSTCALL_WAIT_REDIAL;
 
-        if (SingleNumberModeShareCustomerStateEnum.FINISHED.getName().equals(columnValue))
+        if (SingleNumberModeShareCustomerStateEnum.FINISHED.getName().equals(columnValue) || "拨打完成".equals(columnValue))
            return SingleNumberModeShareCustomerStateEnum.FINISHED;
 
         if (SingleNumberModeShareCustomerStateEnum.CREATED.getName().equals(columnValue))
