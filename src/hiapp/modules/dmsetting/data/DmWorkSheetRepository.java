@@ -51,6 +51,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetResult(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataPool(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetWenjuan(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==2) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -59,7 +60,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM2(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM2_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
-				
+				sResultCode=m_newWorkSheetWenjuan(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==3) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -68,6 +69,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM3(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM3_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetWenjuan(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==4) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -76,6 +78,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDuoDataM4(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDuoDataM4_His(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetWenjuan(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==5) {
 				
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -85,6 +88,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM5(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDataM5_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetWenjuan(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			} else if (dmBusiness.getModeId()==6) {
 				sResultCode=m_newWorkSheetImport(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetPresetTime(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
@@ -93,6 +97,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 				sResultCode=m_newWorkSheetDataPoolORE(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDuoDataM3(dbConn,dmBusiness,errMessage);			if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 				sResultCode=m_newWorkSheetDuoDataM3_his(dbConn,dmBusiness,errMessage);		if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
+				sResultCode=m_newWorkSheetWenjuan(dbConn,dmBusiness,errMessage);	if(sResultCode!=ServiceResultCode.SUCCESS)return sResultCode;
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -739,6 +744,35 @@ public class DmWorkSheetRepository extends BaseRepository {
 			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHARE,errMessage);
 		}
+		
+		
+		private ServiceResultCode m_newWorkSheetWenjuan(Connection dbConn,DMBusiness dmBusiness,StringBuffer errMessage){
+			CreationInfoWorkSheet creationInfoWorkSheet=new CreationInfoWorkSheet();
+			creationInfoWorkSheet.setOwner(true);
+			String szWorkSheetName=String.format("HAU_DM_B%dC_QUERESULT", dmBusiness.getBizId());
+			String szWorkSheetNameCh=String.format("外拨业务%ds问卷表", dmBusiness.getBizId());
+			String szWorkSheetDescription=String.format("外拨业务%d问卷表，问卷关联数据存入此工作表",dmBusiness.getBizId());
+			creationInfoWorkSheet.setName(szWorkSheetName);
+			creationInfoWorkSheet.setNameCh(szWorkSheetNameCh);
+			creationInfoWorkSheet.setDescription(szWorkSheetDescription);
+			creationInfoWorkSheet.addColumn("ID", "ID", "ID标识，自增", WorkSheetDataType.INT, -1, true, true);
+			creationInfoWorkSheet.addColumn("来源编号", "SOURCEID", "来源编号", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("导入批次ID", "IID", "导入批次ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("客户ID", "CID", "客户唯一标识", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("修改ID", "MODIFYID", "修改唯一标识", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("修改用户ID", "MODIFYUSERID", "修改用户ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
+			creationInfoWorkSheet.addColumn("是否最后一次修改", "MODIFYLAST", "任务唯一标识", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("问卷ID", "QUS_ID", "问卷ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("题目ID", "QUS_INDEX", "题目ID", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("题目类型", "QUS_TYPE", "题目类型", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("题目内容", "ORG_CONTENT", "题目内容", WorkSheetDataType.TEXT, 500, false, true);
+			creationInfoWorkSheet.addColumn("题目答案", "ORG_RES", "题目答案", WorkSheetDataType.TEXT, 500, false, true);
+			
+			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHAREHISTROY,errMessage);
+		}
+		
+		
 		
 		
 		//多号码预测外呼历史表
