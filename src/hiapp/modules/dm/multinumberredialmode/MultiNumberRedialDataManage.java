@@ -6,6 +6,7 @@ import hiapp.modules.dm.bo.PhoneTypeDialSequence;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.bo.ShareBatchStateEnum;
 import hiapp.modules.dm.dao.DMDAO;
+import hiapp.modules.dm.multinumbermode.bo.CustomerSharePool;
 import hiapp.modules.dm.multinumberredialmode.bo.*;
 import hiapp.modules.dm.multinumberredialmode.dao.MultiNumberRedialDAO;
 import hiapp.modules.dm.util.DateUtil;
@@ -38,6 +39,10 @@ public class MultiNumberRedialDataManage {
     @Autowired
     MultiNumberRedialCustomerWaitPool multiNumberRedialCustomerWaitPool;
 
+    //用于初始化连接池
+    @Autowired
+    CustomerSharePool customerSharePool;
+
     @Autowired
     private DataImportJdbc dataImportJdbc;
 
@@ -54,6 +59,8 @@ public class MultiNumberRedialDataManage {
         multiNumberRedialCustomerPool.initialize();
         multiNumberRedialCustomerSharePool.initialize();
         multiNumberRedialCustomerWaitPool.initialize();
+        customerSharePool.initialize();
+
     }
 
     public synchronized MultiNumberRedialCustomer extractNextOutboundCustomer(String userId, int bizId) {

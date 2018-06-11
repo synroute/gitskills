@@ -25,9 +25,9 @@ public class OnePhoneTypeCustomerPool implements Serializable {
 
     }
 
-    public MultiNumberCustomer extractCustomer(String userId) {
+    public MultiNumberCustomer extractCustomer(String userId, Jedis redisMultiNumberPredict) {
 
-        MultiNumberCustomer shareDataItem = customerSharePool.extractCustomer(userId);
+        MultiNumberCustomer shareDataItem = customerSharePool.extractCustomer(userId, redisMultiNumberPredict);
 
         Date now = new Date();
 
@@ -45,8 +45,8 @@ public class OnePhoneTypeCustomerPool implements Serializable {
         return shareDataItem;
     }
 
-    public void add(MultiNumberCustomer customer) {
-        customerSharePool.add(customer);
+    public void add(MultiNumberCustomer customer, Jedis redisMultiNumberPredict) {
+        customerSharePool.add(customer, redisMultiNumberPredict);
     }
 
     public void stopShareBatch(List<String> shareBatchIds) {

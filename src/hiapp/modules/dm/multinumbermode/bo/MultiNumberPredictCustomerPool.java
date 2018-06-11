@@ -54,11 +54,11 @@ public class MultiNumberPredictCustomerPool {
             if (oneBizCustomerSharePool.isEmpty())
                 continue;
 
-            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize(oneBizCustomerSharePool.get(phoneType));
+            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize(oneBizCustomerSharePool.get(GenericitySerializeUtil.serialize(phoneType)));
             if (null == onePhoneTypeCustomerPool)
                 continue;
 
-            customer = onePhoneTypeCustomerPool.extractCustomer(userId);
+            customer = onePhoneTypeCustomerPool.extractCustomer(userId, redisMultiNumberPredict);
             if (null != customer) {
                 // 放入 客户等待池
                 customerWaitPool.add(userId, customer);
@@ -89,7 +89,7 @@ public class MultiNumberPredictCustomerPool {
                             GenericitySerializeUtil.serialize(onePhoneTypeCustomerPool));
         }
 
-        onePhoneTypeCustomerPool.add(customer);
+        onePhoneTypeCustomerPool.add(customer, redisMultiNumberPredict);
 
         return true;
     }

@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisSentinelPool;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -17,9 +19,9 @@ import java.util.concurrent.PriorityBlockingQueue;
  * M6 多号码预测外呼
  * Hidialer 抽取数据，客户信息不需要按照共享批次分类，由于不存在访问权限问题
  */
-
+@Service
 public class CustomerSharePool implements Serializable {
-
+    private static final long serialVersionUID = 1930058734521485334L;
    /* @Autowired
     private DMBizMangeShare dmBizMangeShare;*/
 
@@ -34,7 +36,9 @@ public class CustomerSharePool implements Serializable {
     // 用于处理共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
     // BizId + ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberCustomer}
     Map<String, Map<String, MultiNumberCustomer>> multiNumberMapShareBatchWaitStopCustomerPool;*/
-    Jedis redisMultiNumber;
+    transient Jedis redisMultiNumber;
+   /* @Autowired
+    transient private JedisSentinelPool jedisSentinelPool;*/
     int bizId = 0;
 
     byte[] serializePrese = GenericitySerializeUtil.serialize("multiNumberMapPreseCustomerSharePool");
@@ -42,10 +46,10 @@ public class CustomerSharePool implements Serializable {
     byte[] serializeWaitMap = GenericitySerializeUtil.serialize("multiNumberMapShareBatchWaitStopCustomerPool");
     //用于注入redis
     public void initialize() {
-
+        /*redisMultiNumber = jedisSentinelPool.getResource();
         //初始化
         redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator)));
-        redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator)));
+        redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator)));*/
     }
     public CustomerSharePool(int bizId, Jedis redisMultiNumberPredict) {
         this.bizId = bizId;
@@ -62,7 +66,8 @@ public class CustomerSharePool implements Serializable {
         multiNumberMapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();*/
     }
     //已改
-    public MultiNumberCustomer extractCustomer(String userId) {
+    public MultiNumberCustomer extractCustomer(String userId, Jedis redisMultiNumberPredict) {
+        redisMultiNumber = redisMultiNumberPredict;
         Date now = new Date();
         MultiNumberCustomer shareDataItem = peekNextValidCustomer(serializePrese);
         if (null != shareDataItem && shareDataItem.getCurPresetDialTime().before(now)) {
@@ -100,12 +105,23 @@ public class CustomerSharePool implements Serializable {
     }
     */
     //已改
-    public void add(MultiNumberCustomer customer) {
+    public void add(MultiNumberCustomer customer, Jedis redisMultiNumberPredict) {
+        redisMultiNumber = redisMultiNumberPredict;
+        if (GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializePrese)) == null){
+            redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator)));
+        }
+        if (GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializeCustomer)) == null){
+            redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator)));
+        }
+        //初始化
         PriorityBlockingQueue<MultiNumberCustomer> queue;
         if (MultiNumberPredictStateEnum.PRESET_DIAL.equals(customer.getState())
             || MultiNumberPredictStateEnum.WAIT_REDIAL.equals(customer.getState()) ) {
             //先取出来
             queue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializePrese));
+            /*if (queue == null){
+                queue = new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator);
+            }*/
             queue.put(customer);
             //再存进去
             redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(queue));
