@@ -93,7 +93,7 @@ public class MultiNumberRedialCustomerPool {
             onePhoneTypeCustomerPool = new OnePhoneTypeCustomerPool(customer.getBizId(), nextDialPhoneType);
         }
 
-        onePhoneTypeCustomerPool.add(customer);
+        onePhoneTypeCustomerPool.add(customer, redisMultiNumberRedial);
         redisMultiNumberRedial.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(onePhoneTypeCustomerPool));
 
         return true;

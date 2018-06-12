@@ -1,8 +1,9 @@
 package hiapp.modules.dm.multinumberredialmode.bo;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class PhoneDialInfo {
+public class PhoneDialInfo implements Serializable{
     String PhoneNumber;
     Date   LastDialTime;
     int    CausePresetDialCount;

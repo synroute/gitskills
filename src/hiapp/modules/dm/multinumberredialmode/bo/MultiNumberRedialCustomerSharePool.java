@@ -9,6 +9,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -17,12 +18,12 @@ import java.util.concurrent.PriorityBlockingQueue;
  * 客户信息需要按照共享批次分类，由于存在访问权限问题
  */
 @Service
-public class MultiNumberRedialCustomerSharePool {
+public class MultiNumberRedialCustomerSharePool implements Serializable{
 
     @Autowired
-    private JedisSentinelPool jedisPool;
+    transient private JedisSentinelPool jedisPool;
 
-    private Jedis redisRedialMultiNumber;
+    transient private Jedis redisRedialMultiNumber;
     // 客户共享池
     //BizId + ShareBatchID <==> PriorityBlockingQueue<MultiNumberRedialCustomer>
   /*  Map<String, PriorityBlockingQueue<MultiNumberRedialCustomer>> multiNumberRedialShareMapPreseCustomerSharePool;
@@ -74,7 +75,8 @@ public class MultiNumberRedialCustomerSharePool {
      *
      */
     //已改
-    public void add(MultiNumberRedialCustomer customer) {
+    public void add(MultiNumberRedialCustomer customer, Jedis redisMultiNumberRedial) {
+        redisRedialMultiNumber = redisMultiNumberRedial;
         PriorityBlockingQueue<MultiNumberRedialCustomer> queue;
         if (MultiNumberRedialStateEnum.PRESET_DIAL.equals(customer.getState())
             || MultiNumberRedialStateEnum.WAIT_NEXT_STAGE_DIAL.equals(customer.getState())) {

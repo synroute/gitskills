@@ -37,7 +37,7 @@ public class MultiNumberRedialStrategy {
         String jsonEndCodeRedialStrategy = dmBizOutboundConfig.dmGetAllBizOutboundSetting(bizId);
 
         EndCodeRedialStrategyM4DB endCodeRedialStrategyFromDB = new Gson().fromJson(jsonEndCodeRedialStrategy,
-                new TypeToken<EndCodeRedialStrategyM4DB>(){}.getType());
+                EndCodeRedialStrategyM4DB.class);
 
 
         EndCodeRedialStrategyM4 endCodeRedialStrategy = EndCodeRedialStrategyM4.getInstance(endCodeRedialStrategyFromDB);

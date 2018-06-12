@@ -3,10 +3,12 @@ package hiapp.modules.dm.multinumberredialmode.bo;
 import hiapp.modules.dm.bo.CustomerBasic;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import redis.clients.jedis.Jedis;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-public class OnePhoneTypeCustomerPool {
+public class OnePhoneTypeCustomerPool implements Serializable{
 
     MultiNumberRedialCustomerSharePool customerSharePool;
 
@@ -46,8 +48,8 @@ public class OnePhoneTypeCustomerPool {
         return shareDataItem;
     }
 
-    public void add(MultiNumberRedialCustomer customer) {
-        customerSharePool.add(customer);
+    public void add(MultiNumberRedialCustomer customer, Jedis redisMultiNumberRedial) {
+        customerSharePool.add(customer, redisMultiNumberRedial);
     }
 
     public void stopShareBatch(List<String> shareBatchIds) {
