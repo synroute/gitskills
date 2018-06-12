@@ -24,8 +24,8 @@ public class OnePhoneTypeCustomerPool implements Serializable{
 
     }
     //,,,
-    public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList) {
-        MultiNumberRedialCustomer shareDataItem = customerSharePool.extractCustomer(userId, shareBatchIdList);
+    public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList, Jedis redisMultiNumberRedial) {
+        MultiNumberRedialCustomer shareDataItem = customerSharePool.extractCustomer(userId, shareBatchIdList, redisMultiNumberRedial);
 
         if (null != shareDataItem) {
             shareDataItem.setCurDialPhoneType(phoneType);

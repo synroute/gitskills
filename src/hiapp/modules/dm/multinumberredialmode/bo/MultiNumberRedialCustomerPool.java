@@ -61,7 +61,7 @@ public class MultiNumberRedialCustomerPool {
             if (null == onePhoneTypeCustomerPool)
                 continue;
 
-            customer = onePhoneTypeCustomerPool.extractCustomer(userId, shareBatchIdList);
+            customer = onePhoneTypeCustomerPool.extractCustomer(userId, shareBatchIdList, redisMultiNumberRedial);
             if (null != customer) {
                 // 放入 客户等待池
                 customerWaitPool.add(userId, customer);

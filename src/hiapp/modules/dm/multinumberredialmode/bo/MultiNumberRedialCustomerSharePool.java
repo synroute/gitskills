@@ -54,7 +54,8 @@ public class MultiNumberRedialCustomerSharePool implements Serializable{
         multiNumberRedialShareMapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberRedialCustomer>>();*/
     }
     //已改
-    public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList) {
+    public MultiNumberRedialCustomer extractCustomer(String userId, List<String> shareBatchIdList, Jedis redisMultiNumberRedial) {
+        redisRedialMultiNumber = redisMultiNumberRedial;
         Date now = new Date();
         MultiNumberRedialCustomer shareDataItem = null;
 
