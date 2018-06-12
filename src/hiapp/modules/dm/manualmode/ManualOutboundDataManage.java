@@ -105,13 +105,15 @@ public class ManualOutboundDataManage {
             presetItem.setModifyDesc("xxx");
             presetItem.setPhoneType("xxx");
             
-            if(dmDAO.getPresetcount(bizId, presetItem))
+            /*if(dmDAO.getPresetcount(bizId, presetItem))
             {
             	dmDAO.updatePresetItem(bizId, presetItem,DMPresetStateEnum.InUse.getStateName());
             }else {
             	dmDAO.insertPresetItem(bizId, presetItem);
-			}
-            
+			}*/
+            dmDAO.updatePresetItem(bizId, presetItem,DMPresetStateEnum.InUse.getStateName());
+            dmDAO.insertPresetItem(bizId, presetItem);
+
         }else {
         	DMBizPresetItem presetItem = new DMBizPresetItem();
             presetItem.setSourceId(shareBatchId);
@@ -128,11 +130,11 @@ public class ManualOutboundDataManage {
             presetItem.setPhoneType("xxx");
             if(dmDAO.getPresetcount(bizId, presetItem))
             {
-            	dmDAO.updatePresetItem(bizId, presetItem,DMPresetStateEnum.FinishPreset.getStateName());
+                dmDAO.updatePresetItem(bizId, presetItem,DMPresetStateEnum.FinishPreset.getStateName());
+                dmDAO.insertPresetItem(bizId, presetItem);
             }else {
-            	
+
 			}
-            
 		}
 
         return "";

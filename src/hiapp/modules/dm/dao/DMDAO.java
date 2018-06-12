@@ -516,9 +516,10 @@ public class DMDAO extends BaseRepository {
         StringBuilder sqlBuilder = new StringBuilder("");
         if(state.equals("使用中"))
         {
-        	sqlBuilder.append("update "+presetTimeTableName+" set PRESETTIME=" + SQLUtil.getSqlString(presetItem.getPresetTime()) + ",ModifyTime=sysdate where CID='"+presetItem.getCustomerId()+"' and IID='"+presetItem.getImportId()+"' and SOURCEID='"+presetItem.getSourceId()+"' ");
+        	sqlBuilder.append("update "+presetTimeTableName+" set PRESETTIME=" + SQLUtil.getSqlString(presetItem.getPresetTime()) + ", Modifylast=0 where CID='"+presetItem.getCustomerId()+"' and IID='"+presetItem.getImportId()+"' and SOURCEID='"+presetItem.getSourceId()+"' ");
         }else {
-        	sqlBuilder.append("update "+presetTimeTableName+" set STATE='预约完成',ModifyTime=sysdate where CID='"+presetItem.getCustomerId()+"' and IID='"+presetItem.getImportId()+"' and SOURCEID='"+presetItem.getSourceId()+"' ");
+
+        	sqlBuilder.append("update "+presetTimeTableName+" set Modifylast=0 where CID='"+presetItem.getCustomerId()+"' and IID='"+presetItem.getImportId()+"' and SOURCEID='"+presetItem.getSourceId()+"' ");
 		}
         System.out.println(sqlBuilder.toString());
 
