@@ -48,6 +48,11 @@
 	    <artifactId>hiapp-system-dictionary</artifactId>
 	    <version>0.0.1</version>
 	</dependency>
+	<dependency>
+	    <groupId>hiapp.system.notice</groupId>
+	    <artifactId>hiapp-system-notice</artifactId>
+	    <version>0.0.1</version>
+	</dependency>
 	<!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
 	<dependency>
 	    <groupId>javax.servlet</groupId>
