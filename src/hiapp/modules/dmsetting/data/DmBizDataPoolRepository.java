@@ -5,8 +5,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntToDoubleFunction;
 
 import javax.swing.Spring;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dmsetting.DMDataPool;
 import hiapp.modules.dmsetting.result.DMBizDatePoolGetUserId;
 import hiapp.system.buinfo.User;
@@ -24,12 +28,16 @@ import hiapp.system.buinfo.data.UgrRepository;
 import hiapp.system.buinfo.data.UserRepository;
 import hiapp.system.buinfo.srv.result.GroupTreeBranch;
 import hiapp.system.buinfo.srv.result.UserView;
+import hiapp.system.notice.bean.Notice;
+import hiapp.system.notice.bean.NoticeState;
+import hiapp.system.notice.service.NoticeService;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 
 @Repository
 public class DmBizDataPoolRepository  extends BaseRepository {
-	
+	@Autowired
+    private NoticeService noticeService;
 	
 	@Autowired
 	private UserRepository userRepository;
@@ -401,6 +409,79 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 					return listDmBizDatePoolGetUserId;
 				}
 
-		
+				public void getDataPool(List<CustomerBasic> list,String messageString,int type){
+					Connection conn=null;
+					PreparedStatement pst=null;
+					ResultSet rs=null;
+					
+					try {
+						conn=this.getDbConnection();
+						String poolidString="";
+						for(int i=0;i<list.size();i++)
+						{
+							CustomerBasic customerBasic =list.get(i);
+							
+							if(type==1)
+							{
+								String sql="select DataPoolIDCur from HAU_DM_B"+customerBasic.getBizId()+"C_POOL where SourceID='"+customerBasic.getSourceId()+"' and IID='"+customerBasic.getImportBatchId()+"' and CID='"+customerBasic.getCustomerId()+"'";
+								pst=conn.prepareStatement(sql);	
+								
+								rs=pst.executeQuery();
+								while(rs.next()){
+									poolidString=poolidString+rs.getString(1)+",";
+								}
+							}else if(type==2){
+								String sql="select DataPoolIDLast from HAU_DM_B"+customerBasic.getBizId()+"C_POOL where SourceID='"+customerBasic.getSourceId()+"' and IID='"+customerBasic.getImportBatchId()+"' and CID='"+customerBasic.getCustomerId()+"'";
+								pst=conn.prepareStatement(sql);	
+								
+								rs=pst.executeQuery();
+								while(rs.next()){
+									poolidString=poolidString+rs.getString(1)+",";
+								}
+							}else if(type==2){
+								String allsqlString="select DataPoolIDCur,DataPoolIDLast from HAU_DM_B"+customerBasic.getBizId()+"C_POOL where SourceID='"+customerBasic.getSourceId()+"' and IID='"+customerBasic.getImportBatchId()+"' and CID='"+customerBasic.getCustomerId()+"'";
+								pst=conn.prepareStatement(allsqlString);	
+								
+								rs=pst.executeQuery();
+								while(rs.next()){
+									poolidString=poolidString+rs.getString(1)+","+rs.getString(2)+",";
+								}
+								
+								
+							}
+							
+						}
+						poolidString=poolidString.substring(0, poolidString.length()-1);
+						
+						String getDataPoolSql="select DISTINCT userid from BU_MAP_USERORGROLE where ROLEID in (select  ROLEID from BU_MAP_PERMORGROLE where permissionid in (SELECT PermissionID FROM	HASYS_DM_PER_MAP_POOL	WHERE	DataPoolID IN (SELECT	ID	FROM	HASYS_DM_DATAPOOL	WHERE		ID in("+poolidString+") )))";
+						pst=conn.prepareStatement(getDataPoolSql);	
+						
+						rs=pst.executeQuery();
+						String userIds="";
+						while(rs.next()){
+							userIds=userIds+rs.getString(1)+",";
+						}
+						userIds=userIds.substring(0, userIds.length()-1);
+						Notice notice=new Notice();
+						notice.setType("2");
+						notice.setState(NoticeState.ACTIVED);
+						notice.setSender("1001");
+						notice.setRecever(userIds);
+						notice.setRelatedId("");
+						notice.setData(messageString);
+						noticeService.sendNotice(notice);
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}finally{
+						DbUtil.DbCloseQuery(rs,pst);
+						DbUtil.DbCloseConnection(conn);
+					}
+					
+				}
+				
 		
 }
