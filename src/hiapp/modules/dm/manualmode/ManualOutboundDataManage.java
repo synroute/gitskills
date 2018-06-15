@@ -136,7 +136,8 @@ public class ManualOutboundDataManage {
 
 			}
 		}
-
+        //提交外呼结果时删除被抽取的customer
+        customerPool.deleteRedisCustomer(bizId, userId);
         return "";
     }
 

@@ -2,7 +2,7 @@ package hiapp.modules.dmsetting;
 
 public class DMTimeoutManagement {
 	private int bizId;	//业务ID
-	private int isEnable;	//是否启用
+	private int isEnable;	//是否启用 isEnable 0代表启用 1代表不启用
 	private String timeOutConfig;	//超时提醒配置
 	public int getIsEnable() {
 		return isEnable;

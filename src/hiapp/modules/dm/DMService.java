@@ -5,6 +5,7 @@ import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.dao.DMDAO;
 import hiapp.modules.dm.hidialermode.HidialerOutboundDataManage;
 import hiapp.modules.dm.manualmode.ManualOutboundDataManage;
+import hiapp.modules.dm.manualmode.timeoutpro.ManualModeTimeoutPro;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
 import hiapp.modules.dm.multinumberredialmode.MultiNumberRedialDataManage;
 import hiapp.modules.dm.singlenumbermode.SingleNumberOutboundDataManage;
@@ -44,6 +45,8 @@ public class DMService {
     @Autowired
     private DmBizRepository dmBizRepository;
 
+    @Autowired
+    private ManualModeTimeoutPro manualModeTimeoutPro;
 
     @Autowired
     @Qualifier("tenantDBConnectionPool")

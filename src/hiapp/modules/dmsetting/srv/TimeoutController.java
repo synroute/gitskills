@@ -3,6 +3,7 @@ package hiapp.modules.dmsetting.srv;
 import java.util.ArrayList;
 import java.util.List;
 
+import hiapp.modules.dm.manualmode.timeoutpro.ManualModeTimeoutPro;
 import hiapp.modules.dmsetting.DMBizPhoneType;
 import hiapp.modules.dmsetting.DMTimeoutManagement;
 import hiapp.modules.dmsetting.data.DmTimeoutRepository;
@@ -18,7 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class TimeoutController {
 	@Autowired
 	private DmTimeoutRepository dmTimeoutRepository;
-	
+
+	@Autowired
+	private ManualModeTimeoutPro manualModeTimeoutPro;
+
 	@RequestMapping(value = "srv/dm/dmInsertTimeout.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
 	public String dmInsertTimeout(@RequestParam("bizId") String bizId,@RequestParam("isEnable") String isEnable,@RequestParam("timeOutConfig") String timeOutConfig) {
 		
@@ -28,6 +32,9 @@ public class TimeoutController {
 			{
 				serviceresult.setReturnCode(0);
 				serviceresult.setReturnMessage("成功");
+				//操作成功时更新redis中的超时配置
+				//manualModeTimeoutPro.updateTimeOutConfig(bizId);
+
 			}else {
 				serviceresult.setReturnCode(1);
 				serviceresult.setReturnMessage("失败");

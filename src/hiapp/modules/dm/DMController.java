@@ -20,6 +20,8 @@ import hiapp.modules.dmsetting.result.DMBizAutomaticColumns;
 import hiapp.system.buinfo.User;
 import hiapp.utils.serviceresult.ServiceResult;
 import hiapp.utils.serviceresult.ServiceResultCode;
+import org.apache.commons.logging.Log;
+import org.apache.logging.log4j.Logger;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -32,9 +34,7 @@ import org.xml.sax.InputSource;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -65,7 +65,6 @@ public class DMController {
 
     @Autowired
     MultiNumberRedialController multiNumberRedialController;
-
 
     @RequestMapping(value="/srv/dm/extractNextCustomer.srv", method= RequestMethod.GET, produces="application/json")
     public String extractNextCustomer(HttpServletRequest request,
@@ -178,7 +177,7 @@ public class DMController {
      */
     @RequestMapping(value="/srv/dm/hiDialerGetJobList.srv", method= RequestMethod.POST, produces="application/xml")
     public String hiDialerGetJobList(HttpServletRequest request) {
-
+        System.out.println("hiDialerGetJobList---------------------------");
         // step 1: 取数据库记录
         List<DMBusiness> listDMBusiness = new ArrayList<DMBusiness>();
         dmDao.getAllDMBusiness(listDMBusiness);
@@ -235,6 +234,7 @@ public class DMController {
     @RequestMapping(value="/srv/dm/hiDialerGetCustList.srv", method= RequestMethod.POST, consumes="application/xml", produces="application/xml")
     public String hiDialerGetCustList(HttpServletRequest request, @RequestBody String requestBody) {
 
+        System.out.println("hiDialerGetCustList.srv" + requestBody);
         StringReader xmlString = new StringReader(requestBody);
         InputSource source = new InputSource(xmlString);
         // 创建一个新的SAXBuilder

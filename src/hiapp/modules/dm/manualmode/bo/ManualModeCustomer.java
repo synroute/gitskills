@@ -25,7 +25,9 @@ public class ManualModeCustomer implements Serializable{
     int bizId;
     Date shareBatchStartTime;  //用于优先级控制
     Boolean invalid = false;
-
+    Date initTimeout; //共享数据时的初始化时间，用于判断是否超时
+    boolean isTimeoutPro; // 用于判断是否已经超时处理了
+    boolean isExtracted; // 用于判断是否已经被抽取过了
 
     public Integer getId() {
         return id;
@@ -151,4 +153,27 @@ public class ManualModeCustomer implements Serializable{
         return bizId + importBatchId + customerId;
     }
 
+    public Date getInitTimeout() {
+        return initTimeout;
+    }
+
+    public void setInitTimeout(Date initTimeout) {
+        this.initTimeout = initTimeout;
+    }
+
+    public boolean isTimeoutPro() {
+        return isTimeoutPro;
+    }
+
+    public void setTimeoutPro(boolean timeoutPro) {
+        isTimeoutPro = timeoutPro;
+    }
+
+    public boolean isExtracted() {
+        return isExtracted;
+    }
+
+    public void setExtracted(boolean extracted) {
+        isExtracted = extracted;
+    }
 }
