@@ -767,6 +767,7 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("题目ID", "QUS_INDEX", "题目ID", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("题目类型", "QUS_TYPE", "题目类型", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("题目内容", "ORG_CONTENT", "题目内容", WorkSheetDataType.TEXT, 500, false, true);
+			creationInfoWorkSheet.addColumn("答案编号", "RES_INDEX", "答案编号", WorkSheetDataType.TEXT, 10, false, true);
 			creationInfoWorkSheet.addColumn("题目答案", "ORG_RES", "题目答案", WorkSheetDataType.TEXT, 500, false, true);
 			
 			return m_newWs(dbConn,dmBusiness.getBizId(),creationInfoWorkSheet,DMWorkSheetTypeEnum.WSTDM_SHAREHISTROY,errMessage);

@@ -858,7 +858,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						JsonArray jsonArray=new JsonParser().parse(QusData).getAsJsonArray();
 						for (int i = 0; i < jsonArray.size(); i++) {
 							JsonObject jsonObject=jsonArray.get(i).getAsJsonObject();
-							String insertsql = "insert into HAU_DM_B"+bizid+"C_QUERESULT values(S_HAU_DM_B"+bizid+"C_QUERESULT.nextval,'"+SOURCEID+"','"+IID+"','"+CID+"',"+MODIFYID+",'"+MODIFYUSERID+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "','yyyy-mm-dd hh24:mi:ss')),1,'"+QUS_ID+"','"+jsonObject.get("QUS_INDEX").getAsString()+"','"+QUS_TYPE+"','"+jsonObject.get("ORG_CONTENT").getAsString()+"','"+jsonObject.get("ORG_RES").getAsString()+"'";
+							String insertsql = "insert into HAU_DM_B"+bizid+"C_QUERESULT values(S_HAU_DM_B"+bizid+"C_QUERESULT.nextval,'"+SOURCEID+"','"+IID+"','"+CID+"',"+MODIFYID+",'"+MODIFYUSERID+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "','yyyy-mm-dd hh24:mi:ss')),1,'"+QUS_ID+"','"+jsonObject.get("QUS_INDEX").getAsString()+"','"+QUS_TYPE+"','"+jsonObject.get("ORG_CONTENT").getAsString()+"','"+jsonObject.get("RES_INDEX").getAsString()+"','"+jsonObject.get("ORG_RES").getAsString()+"'";
 							stmt = dbConn.prepareStatement(insertsql);
 					        stmt.executeUpdate();
 						}
@@ -884,7 +884,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						try {
 							
 							
-							String szSql = String.format("select QUS_ID,QUS_INDEX,QUS_TYPE,ORG_CONTENT,ORG_RES,QUS_INDEX from HAU_DM_B"+bizId+"C_QUERESULT where CID='"+CID+"' and IID='"+IID+"' and SOURCEID='"+SOURCEID+"' and MODIFYID="+MODIFYID+"");
+							String szSql = String.format("select QUS_ID,QUS_INDEX,QUS_TYPE,ORG_CONTENT,ORG_RES,QUS_INDEX,RES_INDEX from HAU_DM_B"+bizId+"C_QUERESULT where CID='"+CID+"' and IID='"+IID+"' and SOURCEID='"+SOURCEID+"' and MODIFYID="+MODIFYID+"");
 							stmt = dbConn.prepareStatement(szSql);
 							rs = stmt.executeQuery();
 							while (rs.next()) {
@@ -894,6 +894,7 @@ public class DmBizAutomaticRepository extends BaseRepository {
 								dMBizQusResult.setORG_CONTENT(rs.getString(3));
 								dMBizQusResult.setORG_RES(rs.getString(4));
 								dMBizQusResult.setQUS_INDEX(rs.getString(5));
+								dMBizQusResult.setRES_INDEX(rs.getString(6));
 								listDMBizQusResult.add(dMBizQusResult);
 							}
 							
