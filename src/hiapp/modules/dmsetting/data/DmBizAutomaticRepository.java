@@ -2,7 +2,6 @@ package hiapp.modules.dmsetting.data;
 
 import hiapp.modules.dmsetting.DMBizAutomaticConfig;
 import hiapp.modules.dmsetting.DMBizImportTemplate;
-
 import hiapp.modules.dmsetting.DMBizQusResult;
 import hiapp.modules.dmsetting.result.DMBizAutomaticColumns;
 import hiapp.system.worksheet.bean.WorkSheet;
@@ -284,9 +283,15 @@ public class DmBizAutomaticRepository extends BaseRepository {
 				for(int i=0;i<column.length;i++)
 				{
 					if (column[i].contains("TIME")) {
-						
-						String time=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(rs.getTimestamp(column[i]));
-						map.put(column[i],time);
+						String s=rs.getString(column[i]);
+						if(s!=null)
+						{
+							if(!s.equals(""))
+							{
+								String time=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(rs.getTimestamp(column[i]));
+								map.put(column[i],time);
+							}
+						}
 					}else{
 						
 						map.put(column[i], rs.getString(column[i]));
@@ -858,7 +863,8 @@ public class DmBizAutomaticRepository extends BaseRepository {
 						JsonArray jsonArray=new JsonParser().parse(QusData).getAsJsonArray();
 						for (int i = 0; i < jsonArray.size(); i++) {
 							JsonObject jsonObject=jsonArray.get(i).getAsJsonObject();
-							String insertsql = "insert into HAU_DM_B"+bizid+"C_QUERESULT values(S_HAU_DM_B"+bizid+"C_QUERESULT.nextval,'"+SOURCEID+"','"+IID+"','"+CID+"',"+MODIFYID+",'"+MODIFYUSERID+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "','yyyy-mm-dd hh24:mi:ss')),1,'"+QUS_ID+"','"+jsonObject.get("QUS_INDEX").getAsString()+"','"+QUS_TYPE+"','"+jsonObject.get("ORG_CONTENT").getAsString()+"','"+jsonObject.get("RES_INDEX").getAsString()+"','"+jsonObject.get("ORG_RES").getAsString()+"'";
+							String insertsql = "insert into HAU_DM_B"+bizid+"C_QUERESULT values(S_HAU_DM_B"+bizid+"C_QUERESULT.nextval,'"+SOURCEID+"','"+IID+"','"+CID+"',"+MODIFYID+",'"+MODIFYUSERID+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "','yyyy-mm-dd hh24:mi:ss'),1,'"+QUS_ID+"','"+jsonObject.get("QUS_INDEX").getAsString()+"','"+QUS_TYPE+"','"+jsonObject.get("ORG_CONTENT").getAsString()+"','"+jsonObject.get("RES_INDEX").getAsString()+"','"+jsonObject.get("ORG_RES").getAsString()+"')";
+							System.out.println(insertsql);
 							stmt = dbConn.prepareStatement(insertsql);
 					        stmt.executeUpdate();
 						}
