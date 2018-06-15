@@ -19,6 +19,7 @@ import com.google.gson.JsonParser;
 
 import hiapp.modules.dmsetting.result.*;
 import hiapp.modules.dmsetting.DMBizAutomaticConfig;
+import hiapp.modules.dmsetting.DMBizQusResult;
 import hiapp.modules.dmsetting.data.DmBizAutomaticRepository;
 import hiapp.system.buinfo.User;
 import hiapp.utils.idfactory.IdFactory;
@@ -259,6 +260,49 @@ public class AutomaticController {
 		}
 		return serviceresult.toJson();
 	}
+	
+	@RequestMapping(value = "srv/dm/dmBizInsertQusResult.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmBizInsertQusResult(HttpServletRequest request,@RequestParam("bizId") String bizId,@RequestParam("SOURCEID") String SOURCEID,@RequestParam("IID") String IID,@RequestParam("CID") String CID,@RequestParam("MODIFYID") String MODIFYID,
+			@RequestParam("QUS_ID") String QUS_ID,@RequestParam("QUS_TYPE") String QUS_TYPE,@RequestParam("QusData") String QusData) {
+		User user = (User)request.getSession(false).getAttribute("user");
+		String userid=user.getId();
+		ServiceResult serviceresult = new ServiceResult();
+		
+		
+		
+		
+		
+		if(dmBizAutomatic.dmInsertQusResult(bizId,SOURCEID,IID,CID,MODIFYID,userid,QUS_ID,QUS_TYPE,QusData))
+		{
+			serviceresult.setReturnCode(0);
+			serviceresult.setReturnMessage("成功");
+		}else {
+			serviceresult.setReturnCode(0);
+			serviceresult.setReturnMessage("失败");
+		}
+		
+		return serviceresult.toJson();
+	}
+	
+	
+	@RequestMapping(value = "/srv/dm/dmBizGetQusResults.srv", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public String dmBizGetQusResults(@RequestParam("bizId") String bizId,@RequestParam("SOURCEID") String SOURCEID,@RequestParam("IID") String IID,@RequestParam("CID") String CID,@RequestParam("MODIFYID") String MODIFYID) {
+		RecordsetResult recordsetResult = new RecordsetResult();
+		try {
+			
+			List<DMBizQusResult> listDMBizQusResult = dmBizAutomatic.dmGetQusResults(bizId,SOURCEID,IID,CID,MODIFYID);
+			
+			recordsetResult.setResultCode(ServiceResultCode.SUCCESS);
+			recordsetResult.setPage(0);
+			recordsetResult.setTotal(listDMBizQusResult.size());
+			recordsetResult.setPageSize(listDMBizQusResult.size());
+			recordsetResult.setRows(listDMBizQusResult);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return recordsetResult.toJson();
+	}
+	
 	
 	
 }

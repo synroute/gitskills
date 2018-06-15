@@ -2,6 +2,8 @@ package hiapp.modules.dmsetting.data;
 
 import hiapp.modules.dmsetting.DMBizAutomaticConfig;
 import hiapp.modules.dmsetting.DMBizImportTemplate;
+
+import hiapp.modules.dmsetting.DMBizQusResult;
 import hiapp.modules.dmsetting.result.DMBizAutomaticColumns;
 import hiapp.system.worksheet.bean.WorkSheet;
 import hiapp.system.worksheet.bean.WorkSheetColumn;
@@ -15,6 +17,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -835,4 +838,80 @@ public class DmBizAutomaticRepository extends BaseRepository {
 					}
 					return true;
 				}
+				
+				
+				
+				
+				public boolean dmInsertQusResult(String bizid,String SOURCEID,String IID,String CID,String MODIFYID,String MODIFYUSERID,String QUS_ID,String QUS_TYPE,String QusData)
+				{
+					PreparedStatement stmt = null;
+					ResultSet rs = null;
+					Connection dbConn = null;
+					try {
+						dbConn =this.getDbConnection();
+						
+						String sql = "update HAU_DM_B"+bizid+"C_QUERESULT set MODIFYLAST=0 where CID='"+CID+"' and IID='"+IID+"' and SOURCEID='"+SOURCEID+"'";
+						stmt = dbConn.prepareStatement(sql);
+				        stmt.executeUpdate();
+						
+						
+						JsonArray jsonArray=new JsonParser().parse(QusData).getAsJsonArray();
+						for (int i = 0; i < jsonArray.size(); i++) {
+							JsonObject jsonObject=jsonArray.get(i).getAsJsonObject();
+							String insertsql = "insert into HAU_DM_B"+bizid+"C_QUERESULT values(S_HAU_DM_B"+bizid+"C_QUERESULT.nextval,'"+SOURCEID+"','"+IID+"','"+CID+"',"+MODIFYID+",'"+MODIFYUSERID+"',TO_DATE('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "','yyyy-mm-dd hh24:mi:ss')),1,'"+QUS_ID+"','"+jsonObject.get("QUS_INDEX").getAsString()+"','"+QUS_TYPE+"','"+jsonObject.get("ORG_CONTENT").getAsString()+"','"+jsonObject.get("ORG_RES").getAsString()+"'";
+							stmt = dbConn.prepareStatement(insertsql);
+					        stmt.executeUpdate();
+						}
+						
+					} catch (SQLException e) {
+						e.printStackTrace();
+						return false;
+					} finally {
+						DbUtil.DbCloseConnection(dbConn);
+						DbUtil.DbCloseExecute(stmt);
+					}
+					return true;
+				}
+				
+				public List<DMBizQusResult> dmGetQusResults(String bizId,String SOURCEID,String IID,String CID,String MODIFYID)
+				{
+					PreparedStatement stmt = null;
+					ResultSet rs = null;
+					Connection dbConn = null;
+					List<DMBizQusResult> listDMBizQusResult=new ArrayList<DMBizQusResult>();
+					try {
+						dbConn =this.getDbConnection();
+						try {
+							
+							
+							String szSql = String.format("select QUS_ID,QUS_INDEX,QUS_TYPE,ORG_CONTENT,ORG_RES,QUS_INDEX from HAU_DM_B"+bizId+"C_QUERESULT where CID='"+CID+"' and IID='"+IID+"' and SOURCEID='"+SOURCEID+"' and MODIFYID="+MODIFYID+"");
+							stmt = dbConn.prepareStatement(szSql);
+							rs = stmt.executeQuery();
+							while (rs.next()) {
+								DMBizQusResult dMBizQusResult =new DMBizQusResult();
+								dMBizQusResult.setQUS_ID(rs.getString(1));
+								dMBizQusResult.setQUS_TYPE(rs.getString(2));
+								dMBizQusResult.setORG_CONTENT(rs.getString(3));
+								dMBizQusResult.setORG_RES(rs.getString(4));
+								dMBizQusResult.setQUS_INDEX(rs.getString(5));
+								listDMBizQusResult.add(dMBizQusResult);
+							}
+							
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+						
+				     	
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						DbUtil.DbCloseExecute(stmt);
+						DbUtil.DbCloseConnection(dbConn);
+						
+					}
+					return listDMBizQusResult;
+				}
+				
+				
 }
