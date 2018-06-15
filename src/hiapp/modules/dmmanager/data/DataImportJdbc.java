@@ -1120,7 +1120,8 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 					   valueSql+="'"+value+"',"; 
 				   }else {
 					   if("datetime".equals(type.toLowerCase())){
-						   valueSql+="to_date('"+entry.getValue()+"','yyyy-mm-dd hh24:mi:ss'),";
+						   value=getInitDate(value);
+						   valueSql+="to_date('"+value+"','yyyy-mm-dd hh24:mi:ss'),";
 					   }else{
 						   valueSql+="'"+value+"',";
 					   }
@@ -1425,5 +1426,12 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
     	}
     	
     	return result;
+    }
+    
+    public static String getInitDate(String value){
+    	if(value.contains(".")&&value.substring(value.lastIndexOf(".")+1).length()==1&&"0".equals(value.substring(value.lastIndexOf(".")+1))){
+    		value=value.substring(0, value.lastIndexOf("."));
+    	}
+    	return value;
     }
 }
