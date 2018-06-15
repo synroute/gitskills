@@ -1419,7 +1419,7 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
     	}
     	String result=value;
     	
-    	if(value.substring(value.lastIndexOf(".")+1).length()==1&&"0".equals(value.substring(value.lastIndexOf(".")+1))) {
+    	if(value.substring(value.lastIndexOf(".")+1).length()==1&&"0".equals(value.substring(value.lastIndexOf(".")+1))&&!value.contains(":")) {
     		Double douValue=Double.valueOf(value);
     		result=String.valueOf(new DecimalFormat("0").format(douValue));
     	}
