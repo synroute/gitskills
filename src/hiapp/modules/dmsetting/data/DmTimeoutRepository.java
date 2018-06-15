@@ -54,7 +54,7 @@ public class DmTimeoutRepository extends BaseRepository {
 		try {
 			dbConn =this.getDbConnection();
 			try {
-				String szSql = String.format("string BusinessID,ISEnable,TIMEOUTCONFIG where businessid="+bizId+"");
+				String szSql = String.format("select BusinessID,ISEnable,TIMEOUTCONFIG where businessid="+bizId+"");
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				while (rs.next()) {
