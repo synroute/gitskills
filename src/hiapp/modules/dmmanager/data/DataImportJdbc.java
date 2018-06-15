@@ -1409,7 +1409,7 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
     
     public static String getStringValue(String value) {
     	if(value==null||"".equals(value)||"null".equals(value)) {
-    		return value;
+    		return "";
     	}
     	String result=value;
     	if(value.contains(".")) {
