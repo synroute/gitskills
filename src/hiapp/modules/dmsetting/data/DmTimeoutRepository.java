@@ -30,7 +30,7 @@ public class DmTimeoutRepository extends BaseRepository {
 			stmt = dbConn.prepareStatement(szSql);
 			int count=stmt.executeUpdate();
 			
-			String sql = "insert into HASYS_DM_BIZTIMEOUTCONFIG values(HASYS_DM_BIZTIMEOUTCONFIG.nextval,"+bizid+","+isEnable+",'"+timeOutConfig+"')";
+			String sql = "insert into HASYS_DM_BIZTIMEOUTCONFIG values(S_HASYS_DM_BIZTIMEOUTCONFIG.nextval,"+bizid+","+isEnable+",'"+timeOutConfig+"')";
 			stmt = dbConn.prepareStatement(sql);
 	        stmt.executeUpdate();
 			
@@ -54,7 +54,7 @@ public class DmTimeoutRepository extends BaseRepository {
 		try {
 			dbConn =this.getDbConnection();
 			try {
-				String szSql = String.format("string BusinessID,ISEnable,TIMEOUTCONFIG where businessid="+bizId+"");
+				String szSql = String.format("select BusinessID,ISEnable,TIMEOUTCONFIG from HASYS_DM_BIZTIMEOUTCONFIG where businessid='"+bizId+"'");
 				stmt = dbConn.prepareStatement(szSql);
 				rs = stmt.executeQuery();
 				while (rs.next()) {
