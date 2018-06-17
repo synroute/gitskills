@@ -354,7 +354,7 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(" = ");
 				sb.append(userId);*/
 				
-				sb.append(" and JG.MODIFYuserID='"+userId+"'");
+				sb.append(" and JG.CID in (select CID from HAU_DM_B"+bizId+"C_Result where MODIFYUSERID='"+userId+"')");
 			}else
 			{
 				// 要查哪些表
@@ -867,7 +867,9 @@ public class CustomerRepository extends BaseRepository {
 				sb.append("ROWNUM");
 				sb.append(" <= ");
 				sb.append(pageNum*pageSize);
-	
+				sb.append(" and DR.CID not in (select CID from hau_dm_b"+bizId+"c_result where modifyuserid = "+userId+" and CID not in (SELECT CID\n" +
+					"                              FROM HASYS_DM_B"+bizId+"C_PRESETTIME\n" +
+					"                              WHERE modifyuserid = "+userId+" AND modifylast = 1 AND state = '使用中'))");
 				/*sb.append(" AND ");
 				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");
@@ -1367,6 +1369,9 @@ public class CustomerRepository extends BaseRepository {
 					
 					sb.append("and a1.datapoolname='"+userId+"'");*/
 				
+				sb.append(" and DR.CID not in (select CID from hau_dm_b"+bizId+"c_result where modifyuserid = "+userId+" and CID not in (SELECT CID\n" +
+						"                              FROM HASYS_DM_B"+bizId+"C_PRESETTIME\n" +
+						"                              WHERE modifyuserid = "+userId+" AND modifylast = 1 AND state = '使用中'))");
 				List<Map<String, String>> queryCondition = queryRequest
 						.getQueryCondition();
 
@@ -1741,14 +1746,24 @@ public class CustomerRepository extends BaseRepository {
 			}
 			for (Map<String, String> map : list) {
 				String columnName = map.get("columnName");
-				sb.append(columnName);
+				String[] ssString=columnName.split("\\.");
+				sb.append(ssString[1]);
 				sb.append(",");
 			}
 
 			sb.append("ROWNUM RN");
 
 			sb.append(" FROM ");
-
+			
+			sb.append(" ( select ");
+			
+			for (Map<String, String> map : list) {
+				String columnName = map.get("columnName");
+				sb.append(columnName);
+				sb.append(",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(" from ");
 			String sql="select OutboundID from HASYS_DM_Business a left join Hasys_DM_BIZTypeMode b on a.outboundmddeid=b.OutboundMode where businessid="+bizId+"";
 			stmt = dbConn.prepareStatement(sql);
 			rs = stmt.executeQuery();
@@ -1767,11 +1782,11 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(" WHERE ");
 	
 				// 查询条件
-				sb.append("ROWNUM");
+				/*sb.append("ROWNUM");
 				sb.append(" <= ");
 				sb.append(queryRequest.getEnd());
 	
-				sb.append(" AND ");
+				sb.append(" AND ");*/
 				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 //				sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");
@@ -1784,7 +1799,7 @@ public class CustomerRepository extends BaseRepository {
 				sb.append(" = ");
 				sb.append(userId);*/
 				
-				sb.append(" and JG.MODIFYuserID='"+userId+"'");
+				sb.append(" and JG.CID in (select CID from HAU_DM_B"+bizId+"C_Result where MODIFYUSERID='"+userId+"')");
 			}else
 			{
 				// 要查哪些表
@@ -1828,24 +1843,22 @@ public class CustomerRepository extends BaseRepository {
                         "             FROM HAU_DM_B"+bizId+"C_IMPORT\n" +
                         "             WHERE modifylast = 1) DR ON JG.iid = DR.iid AND JG.cid = DR.cid");
 	
-				sb.append(" WHERE ");
+				sb.append(" WHERE ");	
 	
 				// 查询条件
-				sb.append("ROWNUM");
-				sb.append(" <= ");
-				sb.append(queryRequest.getEnd());
+				
 	
-				sb.append(" AND ");
+				
 				/*sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYLAST");*/
 				sb.append(" JG.MODIFYLAST= ");
 				sb.append("1");
 	
-				/*sb.append(" AND ");
+				sb.append(" AND ");
 				sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 						+ "MODIFYUSERID");
 				sb.append(" = ");
-				sb.append(userId);*/
+				sb.append(userId);
 			}
 			List<Map<String, String>> queryCondition = queryRequest
 					.getQueryCondition();
@@ -1915,16 +1928,21 @@ public class CustomerRepository extends BaseRepository {
 							+ INPUT_TIME_TEMPLATE + "'))");
 				}
 			}
-
 			sb.append(" ORDER BY ");
+			/*
+			
 			sb.append(TableNameEnume.INPUTTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
-			sb.append(" DESC,");
+			sb.append(" DESC,");*/
 			sb.append(TableNameEnume.RESULTTABLENAME.getAbbr() + "."
 					+ "MODIFYTIME");
-			sb.append(" DESC)");
+			sb.append(" DESC) where ");
 
-			sb.append(" WHERE ");
+			sb.append("ROWNUM");
+			sb.append(" <= ");
+			sb.append(queryRequest.getEnd());
+			
+			sb.append(") WHERE ");
 			sb.append("RN");
 			sb.append(" >= ");
 			sb.append(queryRequest.getStart());

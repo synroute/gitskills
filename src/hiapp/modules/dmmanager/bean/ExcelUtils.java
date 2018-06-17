@@ -50,7 +50,7 @@ public class ExcelUtils extends BaseRepository{
          
          //sheet样式定义【getColumnTopStyle()/getStyle()均为自定义方法 - 在下面  - 可扩展】
         // HSSFCellStyle columnTopStyle = this.getColumnTopStyle(workbook);//获取列头样式对象
-         HSSFCellStyle style = this.getStyle(workbook);                    //单元格样式对象
+        // HSSFCellStyle style = this.getStyle(workbook);                    //单元格样式对象
          
         /* sheet.addMergedRegion(new CellRangeAddress(0, 1, 0, (excelHeader.size()-1)));  
          cellTiltle.setCellStyle(columnTopStyle);
@@ -66,7 +66,7 @@ public class ExcelUtils extends BaseRepository{
              cellRowName.setCellType(HSSFCell.CELL_TYPE_STRING);                //设置列头单元格的数据类型
              HSSFRichTextString text = new HSSFRichTextString(excelHeader.get(n));
              cellRowName.setCellValue(text);    
-             cellRowName.setCellStyle(style);   //设置列头单元格的值
+             //cellRowName.setCellStyle(style);   //设置列头单元格的值
          }
          //将查询出的数据设置到sheet对应的单元格中
          for (int i = 0; i < dataList.size(); i++) {
@@ -83,7 +83,7 @@ public class ExcelUtils extends BaseRepository{
         			 cell.setCellValue(value);
             		 
         		 }
-        		 cell.setCellStyle(style);   
+        		// cell.setCellStyle(style);   
 			}
         	 
 		}

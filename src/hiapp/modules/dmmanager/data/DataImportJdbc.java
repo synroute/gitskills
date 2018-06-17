@@ -7,6 +7,7 @@ import hiapp.modules.dmmanager.bean.WorkSheet;
 import hiapp.modules.dmmanager.bean.WorkSheetColumn;
 import hiapp.modules.dmsetting.DMWorkSheetTypeEnum;
 import hiapp.modules.dmsetting.data.DmWorkSheetRepository;
+import hiapp.modules.exam.utils.GsonUtil;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
 import hiapp.utils.idfactory.IdFactory;
@@ -20,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1112,14 +1114,20 @@ public void insertDataToImPortTable(Integer bizId,String importBatchId,String cu
 			 	}
 			   columnSql+=entry.getKey()+",";
 			   String type=getDataType(workSheetId, entry.getKey());
-			   if("datetime".equals(type.toLowerCase())){
-				   valueSql+="to_date('"+entry.getValue()+"','yyyy-mm-dd hh24:mi:ss'),";
-			   }else if("int".equals(type.toLowerCase())){
-				   valueSql+=entry.getValue()+",";
-			   }else{
-				   valueSql+="'"+entry.getValue()+"',";
+			   if(type!=null) {
+				   String value=getStringValue(String.valueOf(entry.getValue()),type);
+				   if(value==null||"".equals(value)||"null".equals(value)) {
+					   valueSql+="'"+value+"',"; 
+				   }else {
+					   if("datetime".equals(type.toLowerCase())){
+						   value=getInitDate(value);
+						   valueSql+="to_date('"+value+"','yyyy-mm-dd hh24:mi:ss'),";
+					   }else{
+						   valueSql+="'"+value+"',";
+					   }
+				   }
 			   }
-		  
+			 
 		 }
 		 columnSql=columnSql.substring(0,columnSql.length()-1)+")"+valueSql.substring(0,valueSql.length()-1)+")";
 		 pst=conn.prepareStatement(columnSql);
@@ -1401,5 +1409,29 @@ public void insertDataToResultTable(Integer bizId,String sourceID,String importB
 			DbUtil.DbCloseExecute(pst);
 			DbUtil.DbCloseConnection(conn);
 		}
+    }
+    
+    public static String getStringValue(String value,String type) {
+    	if(value==null||"".equals(value)||"null".equals(value)) {
+    		return "";
+    	}
+    	if("datetime".equals(type.toLowerCase())||"varchar".equals(type.toLowerCase())) {
+    		return value;
+    	}
+    	String result=value;
+    	
+    	if(value.substring(value.lastIndexOf(".")+1).length()==1&&"0".equals(value.substring(value.lastIndexOf(".")+1))&&!value.contains(":")) {
+    		Double douValue=Double.valueOf(value);
+    		result=String.valueOf(new DecimalFormat("0").format(douValue));
+    	}
+    	
+    	return result;
+    }
+    
+    public static String getInitDate(String value){
+    	if(value.contains(".")&&value.substring(value.lastIndexOf(".")+1).length()==1&&"0".equals(value.substring(value.lastIndexOf(".")+1))){
+    		value=value.substring(0, value.lastIndexOf("."));
+    	}
+    	return value;
     }
 }
