@@ -126,8 +126,6 @@ public class CustomerSharePool implements Serializable {
             //再存进去
             redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(queue));
         } else {
-            System.out.println("redisMultiNumber----------------" + redisMultiNumber);
-            System.out.println("redisMultiNumber.get(serializeCustomer)----------------" + redisMultiNumber.get(serializeCustomer));
             //先取出来
             queue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializeCustomer));
             queue.put(customer);

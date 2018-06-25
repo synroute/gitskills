@@ -1,5 +1,6 @@
 package hiapp.modules.dm.manualmode.dao;
 
+import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
 import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
@@ -14,12 +15,58 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Repository
 public class ManualModeDAO extends BaseRepository {
+
+    public List<ManualModeCustomer> getManualDistributeCustomers(Integer bizId) {
+
+        Connection dbConn = null;
+        PreparedStatement stmt = null;
+
+
+
+        String tableName = String.format("HAU_DM_B%dC_POOL", bizId);
+
+        List<ManualModeCustomer> customerBasicList = new ArrayList<>();
+        try {
+            dbConn = this.getDbConnection();
+
+            //
+            StringBuilder sqlBuilder = new StringBuilder("SELECT a.ID, SOURCEID, IID, CID FROM " + tableName);
+            sqlBuilder.append(" a LEFT JOIN HASYS_DM_DID ON SOURCEID=DID");
+
+            System.out.println(sqlBuilder.toString());
+
+            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ManualModeCustomer basic = new ManualModeCustomer();
+                basic.setId(rs.getInt(1));
+                basic.setSourceId(rs.getString(2));
+                basic.setImportBatchId(rs.getString(3));
+                basic.setCustomerId(rs.getString(4));
+                basic.setBizId(bizId);
+                //标记为已被抽取，不然无法删除
+                basic.setExtracted(true);
+
+                customerBasicList.add(basic);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return customerBasicList;
+        } finally {
+            DbUtil.DbCloseExecute(stmt);
+            DbUtil.DbCloseConnection(dbConn);
+        }
+
+        return customerBasicList;
+    }
 
     public Boolean getGivenBizShareCustomers(int bizId, List<ShareBatchItem> ShareBatchItems,
                                             /*OUT*/ List<ManualModeCustomer> shareCustomerItems) {

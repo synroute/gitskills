@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisSentinelPool;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 @Component
@@ -100,9 +101,18 @@ public class MultiNumberRedialCustomerPool {
     }
     //已改
     public void clear() {
-        Set<byte[]> keys = redisMultiNumberRedial.keys(GenericitySerializeUtil.serialize("multiNumberRedialCustomerSharePool*"));
+        Set<byte[]> keys = redisMultiNumberRedial.keys("*multiNumberRedialCustomerSharePool*".getBytes());
         for (byte[] key : keys) {
-            redisMultiNumberRedial.del(key);
+            String byteString = null;
+            try {
+                byteString = GenericitySerializeUtil.unserialize(key);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //字符串不包含
+            if (byteString != null && byteString.contains("multiNumberRedialCustomerSharePool")) {
+                redisMultiNumberRedial.del(key);
+            }
         }
         keys.clear();
         redisMultiNumberRedial.close();

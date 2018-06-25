@@ -23,6 +23,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -216,12 +217,21 @@ public class SingleNumberOutboundDataManage {
         earliestTimeSlot = now.getTime()/Constants.timeSlotSpan;
         System.out.println("SingleNumber Outbound InitComplete ...");
     }
-    //已改
+    //已改,通配符不管用
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {
         //每天清空单号码重播的数据，再加载
-        Set<byte[]> keys = redisSingleNumberOutboud.keys(GenericitySerializeUtil.serialize("singleNumberOutbound*"));
+        Set<byte[]> keys = redisSingleNumberOutboud.keys("*singleNumberOutbound*".getBytes());
         for (byte[] key : keys) {
-            redisSingleNumberOutboud.del(key);
+            String byteString = null;
+            try {
+                byteString =GenericitySerializeUtil.unserialize(key);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //字符串不包含manualMode直接結束
+            if (byteString != null && byteString.contains("singleNumberOutbound")) {
+                redisSingleNumberOutboud.del(key);
+            }
         }
         loadCustomersDaily(shareBatchItems);
     }

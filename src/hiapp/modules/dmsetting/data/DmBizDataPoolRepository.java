@@ -432,8 +432,9 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 							}
 							
 						}
-						poolidString=poolidString.substring(0, poolidString.length()-1);
-						
+						if (poolidString.length() > 0){
+							poolidString=poolidString.substring(0, poolidString.length()-1);
+						}
 						String getDataPoolSql="select DISTINCT userid from BU_MAP_USERORGROLE where ROLEID in (select  ROLEID from BU_MAP_PERMORGROLE where permissionid in (SELECT PermissionID FROM	HASYS_DM_PER_MAP_POOL	WHERE	DataPoolID IN (SELECT	ID	FROM	HASYS_DM_DATAPOOL	WHERE		ID in("+poolidString+") )))";
 						pst=conn.prepareStatement(getDataPoolSql);	
 						
@@ -442,7 +443,9 @@ public class DmBizDataPoolRepository  extends BaseRepository {
 						while(rs.next()){
 							userIds=userIds+rs.getString(1)+",";
 						}
-						userIds=userIds.substring(0, userIds.length()-1);
+						if (userIds.length() > 0){
+							userIds=userIds.substring(0, userIds.length()-1);
+						}
 						Notice notice=new Notice();
 						notice.setType("2");
 						notice.setState(NoticeState.ACTIVED);

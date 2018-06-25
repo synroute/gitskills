@@ -3,12 +3,14 @@ package hiapp.modules.dm.multinumbermode.bo;
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
 import hiapp.modules.dm.util.GenericitySerializeUtil;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 @Component
@@ -41,7 +43,7 @@ public class CustomerWaitPool {
     Map<Long, Map<String, MultiNumberCustomer>> multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool;*/
 
     private Jedis redisCustomerWaitPool;
-    
+
     Long earliestPhoneConnectTimeSlot;
     Long earliestScreenPopUpTimeSlot;
     Long earliestResultTimeSlot;
@@ -50,40 +52,42 @@ public class CustomerWaitPool {
     public void initialize() {
         redisCustomerWaitPool = jedisPool.getResource();
     }
+
     public CustomerWaitPool() {
-        Date now =  new Date();
-        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        Date now = new Date();
+        earliestPhoneConnectTimeSlot = now.getTime() / Constants.timeSlotSpan;
+        earliestScreenPopUpTimeSlot = now.getTime() / Constants.timeSlotSpan;
+        earliestResultTimeSlot = now.getTime() / Constants.timeSlotSpan;
     }
+
     //已改
     public void add(String userId, MultiNumberCustomer customerItem) {
-       //直接存进去
+        //直接存进去
         redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
-                    GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                 GenericitySerializeUtil.serialize(customerItem)
-                );
+        );
         //直接存进去
         redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapShareBatchWaitStopCustomerPool" + userId),
                 GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                 GenericitySerializeUtil.serialize(customerItem)
         );
         if (MultiNumberPredictStateEnum.EXTRACTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
+            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             //直接存进去
             redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
                     GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                     GenericitySerializeUtil.serialize(customerItem)
             );
         } else if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
+            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
                     GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                     GenericitySerializeUtil.serialize(customerItem)
             );
 
         } else if (MultiNumberPredictStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
+            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
             redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + timeSlot),
                     GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                     GenericitySerializeUtil.serialize(customerItem)
@@ -91,35 +95,38 @@ public class CustomerWaitPool {
         }
 
     }
+
     //已改
     public void hidialerPhoneConnect(MultiNumberCustomer customer, Date originModifyTime) {
-        Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
-       //直接删除
+        Long timeSlot = originModifyTime.getTime() / Constants.timeSlotSpan;
+        //直接删除
         redisCustomerWaitPool.hdel(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
                 GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId())
         );
 
-        Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
+        Long timeSlot2 = customer.getModifyTime().getTime() / Constants.timeSlotSpan;
 
         redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot2),
                 GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
                 GenericitySerializeUtil.serialize(customer)
         );
     }
+
     //已改
     public void agentScreenPopUp(MultiNumberCustomer customer, Date originModifyTime) {
-        Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
+        Long timeSlot = originModifyTime.getTime() / Constants.timeSlotSpan;
         //直接删除
         redisCustomerWaitPool.hdel(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
                 GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId())
         );
-        Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
+        Long timeSlot2 = customer.getModifyTime().getTime() / Constants.timeSlotSpan;
 
         redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + timeSlot2),
                 GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
                 GenericitySerializeUtil.serialize(customer)
         );
     }
+
     //已改
     public MultiNumberCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
 
@@ -143,16 +150,18 @@ public class CustomerWaitPool {
 
         return customerItem;
     }
+
     //已改
     public MultiNumberCustomer getWaitCustome(String userId, int bizId, String importBatchId, String customerId) {
         MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(redisCustomerWaitPool.
                 hget(GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
-                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
+                        GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
         return customerItem;
     }
 
     /**
      * 仅标注已经停止共享，不从等待池中移除。需要等待已拨打的结果。
+     *
      * @param shareBatchIds
      */
     //已改
@@ -193,14 +202,15 @@ public class CustomerWaitPool {
         }*/
 
     }
+
     //已改
     public void timeoutProc() {
-        Date now =  new Date();
-        Long curTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        Date now = new Date();
+        Long curTimeSlot = now.getTime() / Constants.timeSlotSpan;
         System.out.println("cur time slot : " + curTimeSlot);
 
         // HiDialer 呼通超时处理
-        Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2/Constants.timeSlotSpan;
+        Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2 / Constants.timeSlotSpan;
         while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
             //先取出来
             byte[] mapSerialize = GenericitySerializeUtil.serialize(
@@ -220,13 +230,13 @@ public class CustomerWaitPool {
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
 
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());
             }
         }
 
         // 坐席弹屏 超时处理 ==> 呼损处理
-        Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3/Constants.timeSlotSpan;
+        Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3 / Constants.timeSlotSpan;
         while (earliestScreenPopUpTimeSlot < screenPopupTimeoutTimeSlot) {
             //先取出来
             byte[] mapSerialize = GenericitySerializeUtil.serialize(
@@ -246,13 +256,13 @@ public class CustomerWaitPool {
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
 
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());
             }
         }
 
         // 坐席递交结果 超时处理
-        Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4/Constants.timeSlotSpan;
+        Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4 / Constants.timeSlotSpan;
         while (earliestResultTimeSlot < resultTimeoutTimeSlot) {
             //先取出来
             byte[] mapSerialize = GenericitySerializeUtil.serialize(
@@ -272,39 +282,43 @@ public class CustomerWaitPool {
 
                 removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
 
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
                         customerItem.getCustomerId());
             }
         }
     }
-    //已改
-    public void postProcess() {
-        Set<byte[]> phoneConnectTimeSlotSet = redisCustomerWaitPool.keys(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool*"));
-        for (byte[] key : phoneConnectTimeSlotSet) {
-            String s = GenericitySerializeUtil.unserialize(key);
-            s = s.substring(s.lastIndexOf('l') + 1);
-            Long timeSlot = Long.valueOf(s);
-            if (timeSlot < earliestPhoneConnectTimeSlot)
-                earliestPhoneConnectTimeSlot = timeSlot;
-        }
 
-        Set<byte[]> screenPopupTimeSlotSet = redisCustomerWaitPool.keys(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool*"));
-        for (byte[] key : screenPopupTimeSlotSet) {
-            String s = GenericitySerializeUtil.unserialize(key);
+    //已改.通配符不管用
+    public void postProcess() {
+        Set<byte[]> phoneConnectTimeSlotSet = redisCustomerWaitPool.keys("*multiNumberWaitMapTimeOutWait*".getBytes());
+        for (byte[] key : phoneConnectTimeSlotSet) {
+            String s = null;
+            try {
+                s = GenericitySerializeUtil.unserialize(key);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (s == null) {
+                continue;
+            }
             s = s.substring(s.lastIndexOf('l') + 1);
             Long timeSlot = Long.valueOf(s);
-            if (timeSlot < earliestScreenPopUpTimeSlot)
-                earliestScreenPopUpTimeSlot = timeSlot;
-        }
-        Set<byte[]> resultTimeSlotSet = redisCustomerWaitPool.keys(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool*"));
-        for (byte[] key : resultTimeSlotSet) {
-            String s = GenericitySerializeUtil.unserialize(key);
-            s = s.substring(s.lastIndexOf('l') + 1);
-            Long timeSlot = Long.valueOf(s);
-            if (timeSlot < earliestResultTimeSlot)
-                earliestResultTimeSlot = timeSlot;
+            if (timeSlot == null) {
+                continue;
+            }
+            if (s.contains("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool")) {
+                if (timeSlot < earliestPhoneConnectTimeSlot)
+                    earliestPhoneConnectTimeSlot = timeSlot;
+            } else if (s.contains("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool")) {
+                if (timeSlot < earliestScreenPopUpTimeSlot)
+                    earliestScreenPopUpTimeSlot = timeSlot;
+            } else if (s.contains("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool")) {
+                if (timeSlot < earliestResultTimeSlot)
+                    earliestResultTimeSlot = timeSlot;
+            }
         }
     }
+
     //已改
     private MultiNumberCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
         //先获取
@@ -317,24 +331,28 @@ public class CustomerWaitPool {
                 GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
         return customerItem;
     }
+
     //已改
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
         redisCustomerWaitPool.hdel(
                 GenericitySerializeUtil.serialize("multiNumberWaitMapShareBatchWaitStopCustomerPool" + shareBatchId),
                 GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
     }
+
     //已改
     private void removeWaitPhoneConnectTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
         redisCustomerWaitPool.hdel(
                 GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
                 GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
     }
+
     //已改
     private void removeWaitScreenPopUpTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
         redisCustomerWaitPool.hdel(
                 GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
                 GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
     }
+
     //已改
     private void removeWaitResultTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
         redisCustomerWaitPool.hdel(

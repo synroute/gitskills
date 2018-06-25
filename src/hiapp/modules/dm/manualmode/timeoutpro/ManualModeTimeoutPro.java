@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisSentinelPool;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -37,19 +38,32 @@ public class ManualModeTimeoutPro {
 
     private TimeoutConfig timeoutConfig;
 
-
     @Scheduled(cron = "0 0/1 * * * ?") //每30分钟执行一次
     public void manualModeTimeTask() {
 
         if (jedis == null) {
             jedis = jedisSentinelPool.getResource();
         }
-        Set<byte[]> keys = jedis.keys(GenericitySerializeUtil.serialize("manualMode*"));
+        Set<byte[]> keys = jedis.keys("*manualMode*".getBytes());
         for (byte[] key : keys) {
-            String byteString = key.toString();
+            String byteString = null;
+            try {
+                byteString = GenericitySerializeUtil.unserialize(key);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //字符串不包含manualMode直接結束
+            if (byteString == null || !byteString.contains("manualMode")){
+                continue;
+            }
             //截取出bizId
-            String bizId = byteString.substring(byteString.indexOf("e") + 1);
-            TimeoutConfig timeoutConfig = getTimeoutConfig(bizId);
+            String bizId = byteString.substring(byteString.lastIndexOf("e") + 1);
+            TimeoutConfig timeoutConfig = null;
+            try {
+                timeoutConfig = getTimeoutConfig(bizId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             if (timeoutConfig == null) {
                 continue;
             }
@@ -69,7 +83,7 @@ public class ManualModeTimeoutPro {
             }
 
         }
-        keys.clear();
+        //keys.clear();
 
     }
 
@@ -77,6 +91,10 @@ public class ManualModeTimeoutPro {
     public TimeoutConfig getTimeoutConfig(String bizId) {
         this.jedis = jedisSentinelPool.getResource();
         List<DMTimeoutManagement> timeoutManagements = dmTimeoutRepository.dmGetAllTimeoutConfig(bizId);
+        //如果size为0直接结束
+        if (timeoutManagements.size() == 0){
+            return null;
+        }
         DMTimeoutManagement dmTimeoutManagement = timeoutManagements.get(0);
         if (dmTimeoutManagement != null && dmTimeoutManagement.getIsEnable() == 0) {
             String timeOutConfgi = dmTimeoutManagement.getTimeOutConfgi();
@@ -119,33 +137,37 @@ public class ManualModeTimeoutPro {
             //配置时间在系统时间之前做超时处理
             timeoutCalendar.add(DAY_OF_MONTH, duration);
             if (timeoutCalendar.before(currentTime)) {
+                System.out.println(new Date().toLocaleString() + "天---执行手动分配超时处理的定时任务......");
                 dmBizDataPoolRepository.getDataPool(customerBasicList, timeoutConfig.getTimeoutData(), typeHandle);
-                System.out.println(new Date().toLocaleString() + "---手动分配超时处理的定时任务......");
 
             }
         } else if ("小时".equals(timekeeping)) {
             //配置时间在系统时间之前做超时处理
             timeoutCalendar.add(Calendar.HOUR_OF_DAY, duration);
             if (timeoutCalendar.before(currentTime)) {
+                System.out.println(new Date().toLocaleString() + "小时---执行手动分配超时处理的定时任务......");
                 dmBizDataPoolRepository.getDataPool(customerBasicList, timeoutConfig.getTimeoutData(), typeHandle);
-                System.out.println(new Date().toLocaleString() + "---手动分配超时处理的定时任务......");
             }
         } else if ("分钟".equals(timekeeping)) {
             //配置时间在系统时间之前做超时处理
             timeoutCalendar.add(Calendar.MINUTE, duration);
             if (timeoutCalendar.before(currentTime)) {
-                dmBizDataPoolRepository.getDataPool(customerBasicList, timeoutConfig.getTimeoutData(), typeHandle);
-                System.out.println(new Date().toLocaleString() + "---手动分配超时处理的定时任务以执行......");
+                System.out.println(new Date().toLocaleString() + "分钟---执行手动分配超时处理的定时任务......");
+                try {
+                    dmBizDataPoolRepository.getDataPool(customerBasicList, timeoutConfig.getTimeoutData(), typeHandle);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
     private int timeoutTypeHandle(String timeoutType) {
-        if ("拥有本数据池权限的人".equals(timeoutType)) {
+        if (TimeoutTypeEnum.THE_DATA_POOL.getName().equals(timeoutType)) {
             return 1;
-        } else if ("拥有上级数据池权限的人".equals(timeoutType)) {
+        } else if (TimeoutTypeEnum.UP_DATA_POOL.getName().equals(timeoutType)) {
             return 2;
-        } else if ("拥有本数据池权限和拥有上级数据池权限的人".equals(timeoutType)) {
+        } else if (TimeoutTypeEnum.BOTH_DATA_POOL.getName().equals(timeoutType)) {
             return 3;
         }
         return -1;

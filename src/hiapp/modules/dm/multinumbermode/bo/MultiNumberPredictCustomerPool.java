@@ -9,6 +9,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 @Component
@@ -104,9 +105,18 @@ public class MultiNumberPredictCustomerPool {
 
     //已改
     public void clear() {
-        Set<byte[]> keys = redisMultiNumberPredict.keys(GenericitySerializeUtil.serialize("multiNumberPredictCustomerSharePool*"));
+        Set<byte[]> keys = redisMultiNumberPredict.keys("*multiNumberPredictCustomerSharePool*".getBytes());
         for (byte[] key : keys) {
-            redisMultiNumberPredict.del(key);
+            String byteString = null;
+            try {
+                byteString =GenericitySerializeUtil.unserialize(key);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //字符串不包含
+            if (byteString != null && byteString.contains("multiNumberPredictCustomerSharePool")) {
+                redisMultiNumberPredict.del(key);
+            }
         }
         keys.clear();
     }

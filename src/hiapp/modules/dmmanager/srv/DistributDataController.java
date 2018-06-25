@@ -5,6 +5,9 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
+import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
+import hiapp.modules.dm.manualmode.bo.ManualModeCustomerPool;
+import hiapp.modules.dm.manualmode.dao.ManualModeDAO;
 import hiapp.modules.dmmanager.UserItem;
 import hiapp.modules.dmmanager.bean.DistributeTemplate;
 import hiapp.modules.dmmanager.bean.OutputFirstRow;
@@ -33,7 +36,11 @@ public class DistributDataController {
 	private PermissionRepository permissionRepository;
 	@Autowired
 	private UserRepository userRepository;
-	
+	@Autowired
+	private ManualModeCustomerPool manualModeCustomerPool;
+	@Autowired
+	private ManualModeDAO manualModeDAO;
+
 	/**
 	 * 获取所有分配模板
 	 * @param request
@@ -175,6 +182,13 @@ public class DistributDataController {
 		dataDistributeJdbc.updateTempData(bizId, userId, tempIds, action,tempTableName);
 		Map<String, Object> resultMap = dataDistributeJdbc.saveDistributeDataToDB(bizId, userId, disName, description, dataPoolList);
 		String jsonObject=new Gson().toJson(resultMap);
+		//将手动分配分配模式的数据存到redis中做超时处理
+		List<ManualModeCustomer> customerList = manualModeDAO.getManualDistributeCustomers(bizId);
+		if (customerList.size() != 0){
+			for (ManualModeCustomer customer : customerList) {
+				manualModeCustomerPool.addCustomer(customer);
+			}
+		}
 		try {
 			PrintWriter printWriter = response.getWriter();
 			printWriter.print(jsonObject);

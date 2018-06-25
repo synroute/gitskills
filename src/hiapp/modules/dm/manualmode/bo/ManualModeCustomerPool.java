@@ -13,6 +13,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -30,33 +31,37 @@ public class ManualModeCustomerPool {
 
     @Autowired
     private JedisSentinelPool jedisPool;
-
-    @Autowired
-    private ManualModeTimeoutPro manualModeTimeoutPro;
     // BizId <==> {shareBatchId <==> PriorityBlockingQueue<ManualModeCustomer>}
 
     // BizId + IID + CID <==> ManualModeCustomer
     Map<String, ManualModeCustomer> mapWaitCustomerCancellation;
 
     Jedis mapCustomerSharePoolRedis;
-    //set集合用于存储mapCustomerSharePool所有的的key,便于清除操作
-    Set<byte[]> mapCustomerSharePoolKeys;
+
 
     public void initialize() {
         mapCustomerSharePoolRedis = jedisPool.getResource();
-        mapCustomerSharePoolKeys = new HashSet<>();
 
         mapWaitCustomerCancellation = new HashMap<String, ManualModeCustomer>();
     }
 
     public void clear() {
         //先删除redis中的共享数据
-        for (byte[] mapCustomerSharePoolKey : mapCustomerSharePoolKeys) {
-            mapCustomerSharePoolRedis.del(mapCustomerSharePoolKey);
+        Set<byte[]> keys = mapCustomerSharePoolRedis.keys("*manualMode*".getBytes());
+        for (byte[] key : keys) {
+            String byteString = null;
+            try {
+                //byteString = new String(key, "UTF-8");
+                byteString = GenericitySerializeUtil.unserialize(key);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //字符串不包含manualMode直接結束
+            if (byteString != null && byteString.contains("manualMode")) {
+                mapCustomerSharePoolRedis.del(key);
+            }
         }
-        //再清空set集合中的数据
-        mapCustomerSharePoolKeys.clear();
-
+        keys.clear();
         mapWaitCustomerCancellation.clear();
         //redis释放连接
         if (mapCustomerSharePoolRedis != null) {
@@ -81,10 +86,6 @@ public class ManualModeCustomerPool {
         oneShareBatchCustomerSharePool.put(customer);
         mapCustomerSharePoolRedis.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(oneShareBatchCustomerSharePool));
         mapWaitCustomerCancellation.put(customer.getCustomerToken(), customer);
-        //保存key值到set集合
-        mapCustomerSharePoolKeys.add(mapSerialize);
-        //更新手动分配的配置文件
-        //manualModeTimeoutPro.updateTimeOutConfig(customer.getBizId());
 
     }
 

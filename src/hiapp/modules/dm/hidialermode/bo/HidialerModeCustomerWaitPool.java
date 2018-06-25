@@ -9,6 +9,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 @Component
@@ -289,9 +290,36 @@ public class HidialerModeCustomerWaitPool {
             }
         }
     }
-    //已改
+    //已改，通配符不管用
     public void postProcess() {
-        Set<byte[]> phoneConnectTimeSlotSet = hidialerWaitPool.keys(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool*"));
+        Set<byte[]> phoneConnectTimeSlotSet = hidialerWaitPool.keys("*mapTimeOutWait*".getBytes());
+        for (byte[] key : phoneConnectTimeSlotSet) {
+            String s = null;
+            try {
+                s = GenericitySerializeUtil.unserialize(key);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (s == null) {
+                continue;
+            }
+            s = s.substring(s.lastIndexOf('l') + 1);
+            Long timeSlot = Long.valueOf(s);
+            if (timeSlot == null) {
+                continue;
+            }
+            if (s.contains("mapTimeOutWaitPhoneConnectCustomerPool")) {
+                if (timeSlot < earliestPhoneConnectTimeSlot)
+                    earliestPhoneConnectTimeSlot = timeSlot;
+            } else if (s.contains("mapTimeOutWaitScreenPopUpCustomerPool")) {
+                if (timeSlot < earliestScreenPopUpTimeSlot)
+                    earliestScreenPopUpTimeSlot = timeSlot;
+            } else if (s.contains("mapTimeOutWaitOutboundResultCustomerPool")) {
+                if (timeSlot < earliestResultTimeSlot)
+                    earliestResultTimeSlot = timeSlot;
+            }
+        }
+        /*Set<byte[]> phoneConnectTimeSlotSet = hidialerWaitPool.keys(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool*"));
         for (byte[] key : phoneConnectTimeSlotSet) {
             String s = GenericitySerializeUtil.unserialize(key);
             s = s.substring(s.lastIndexOf('l') + 1);
@@ -316,7 +344,7 @@ public class HidialerModeCustomerWaitPool {
             Long timeSlot = Long.valueOf(s);
             if (timeSlot < earliestResultTimeSlot)
                 earliestResultTimeSlot = timeSlot;
-        }
+        }*/
     }
     //已改
     private HidialerModeCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {

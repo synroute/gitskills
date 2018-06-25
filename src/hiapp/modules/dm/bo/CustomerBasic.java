@@ -1,10 +1,14 @@
 package hiapp.modules.dm.bo;
 
+import java.util.Date;
+
 public class CustomerBasic {
     private String bizId;
     private String sourceId;        // 共享批次 / 分配批次
     private String importBatchId;   // 导入批次号
     private String customerId;      // 客户号
+
+    private Date initDate;
 
     public String getBizId() {
         return bizId;
@@ -43,4 +47,12 @@ public class CustomerBasic {
     }
 
     public String getCustomerToken() { return bizId + importBatchId + customerId; }
+
+    public Date getInitDate() {
+        return initDate;
+    }
+
+    public void setInitDate(Date initDate) {
+        this.initDate = initDate;
+    }
 }
