@@ -764,8 +764,8 @@ public class DmWorkSheetRepository extends BaseRepository {
 			creationInfoWorkSheet.addColumn("修改日期时间", "MODIFYTIME", "修改日期时间", WorkSheetDataType.DATETIME, -1, false, true);
 			creationInfoWorkSheet.addColumn("是否最后一次修改", "MODIFYLAST", "任务唯一标识", WorkSheetDataType.INT, -1, false, true);
 			creationInfoWorkSheet.addColumn("问卷ID", "QUS_ID", "问卷ID", WorkSheetDataType.TEXT, 50, false, true);
-			creationInfoWorkSheet.addColumn("题目ID", "QUS_INDEX", "题目ID", WorkSheetDataType.INT, -1, false, true);
-			creationInfoWorkSheet.addColumn("题目类型", "QUS_TYPE", "题目类型", WorkSheetDataType.INT, -1, false, true);
+			creationInfoWorkSheet.addColumn("题目ID", "QUS_INDEX", "题目ID", WorkSheetDataType.TEXT, 50, false, true);
+			creationInfoWorkSheet.addColumn("题目类型", "QUS_TYPE", "题目类型", WorkSheetDataType.TEXT, 50, false, true);
 			creationInfoWorkSheet.addColumn("题目内容", "ORG_CONTENT", "题目内容", WorkSheetDataType.TEXT, 500, false, true);
 			creationInfoWorkSheet.addColumn("答案编号", "RES_INDEX", "答案编号", WorkSheetDataType.TEXT, 10, false, true);
 			creationInfoWorkSheet.addColumn("题目答案", "ORG_RES", "题目答案", WorkSheetDataType.TEXT, 500, false, true);
