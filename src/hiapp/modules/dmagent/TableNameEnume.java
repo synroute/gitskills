@@ -126,6 +126,13 @@ public enum TableNameEnume {
 			map4.put("COLUMNDESCRIPTION", "结束码");
 			map4.put("dataType", "varchar");
 			map4.put("LENGTH", 50);
+			
+			Map<String, Object> map7 = new HashMap<String, Object>();
+			map4.put("COLUMNNAME", getAbbr() + "." + "MODIFYID");
+			map4.put("COLUMNNAMECH", "修改ID");
+			map4.put("COLUMNDESCRIPTION", "修改ID");
+			map4.put("dataType", "varchar");
+			map4.put("LENGTH", 50);
 
 			list.add(map);
 			list.add(map2);
