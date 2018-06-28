@@ -1,21 +1,19 @@
 package hiapp.modules.dm.manualmode.dao;
 
-import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.ShareBatchItem;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
-import hiapp.modules.dm.singlenumbermode.bo.SingleNumberModeShareCustomerItem;
+import hiapp.modules.dm.manualmode.bo.ManualModeCustomerPool;
 import hiapp.modules.dm.util.SQLUtil;
 import hiapp.modules.dmmanager.AreaTypeEnum;
-import hiapp.modules.dmmanager.DataPoolRecordOperation;
 import hiapp.modules.dmmanager.OperationNameEnum;
 import hiapp.utils.DbUtil;
 import hiapp.utils.database.BaseRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,49 +21,54 @@ import java.util.Map;
 @Repository
 public class ManualModeDAO extends BaseRepository {
 
-    public List<ManualModeCustomer> getManualDistributeCustomers(Integer bizId) {
+    @Autowired
+    private ManualModeCustomerPool manualModeCustomerPool;
 
+    //手动分配超时处理
+    public void getManualDistributeCustomers(Integer bizId, String disBatchId, String tempIds, String tempTableName) {
         Connection dbConn = null;
         PreparedStatement stmt = null;
+        String[] arrTempId=tempIds.split(",");
 
-
-
-        String tableName = String.format("HAU_DM_B%dC_POOL", bizId);
-
-        List<ManualModeCustomer> customerBasicList = new ArrayList<>();
         try {
             dbConn = this.getDbConnection();
+            String sql;
+            if(arrTempId.length==1){
+                sql="select IID, CID from "+tempTableName+" where IFCHECKED=1 and TEMPID = " + arrTempId[0];
+            }else{
+                sql="select IID, CID from "+tempTableName+" where IFCHECKED=1 and TEMPID in (";
+                for (int i = 0; i < arrTempId.length; i++) {
+                    String tempId=arrTempId[i];
+                    if(tempId==null||"".equals(tempId)){
+                        continue;
+                    }
+                    sql+=Integer.valueOf(tempId)+",";
+                }
+                sql=sql.substring(0,sql.length()-1)+")";
+            }
 
-            //
-            StringBuilder sqlBuilder = new StringBuilder("SELECT a.ID, SOURCEID, IID, CID FROM " + tableName);
-            sqlBuilder.append(" a LEFT JOIN HASYS_DM_DID ON SOURCEID=DID");
+            System.out.println(sql.toString());
 
-            System.out.println(sqlBuilder.toString());
-
-            stmt = dbConn.prepareStatement(sqlBuilder.toString());
+            stmt = dbConn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 ManualModeCustomer basic = new ManualModeCustomer();
-                basic.setId(rs.getInt(1));
-                basic.setSourceId(rs.getString(2));
-                basic.setImportBatchId(rs.getString(3));
-                basic.setCustomerId(rs.getString(4));
+                basic.setBizId(bizId);
+                basic.setSourceId(disBatchId);
+                basic.setImportBatchId(rs.getString(1));
+                basic.setCustomerId(rs.getString(2));
                 basic.setBizId(bizId);
                 //标记为已被抽取，不然无法删除
                 basic.setExtracted(true);
-
-                customerBasicList.add(basic);
+                manualModeCustomerPool.addCustomer(basic);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            return customerBasicList;
         } finally {
             DbUtil.DbCloseExecute(stmt);
             DbUtil.DbCloseConnection(dbConn);
         }
-
-        return customerBasicList;
     }
 
     public Boolean getGivenBizShareCustomers(int bizId, List<ShareBatchItem> ShareBatchItems,

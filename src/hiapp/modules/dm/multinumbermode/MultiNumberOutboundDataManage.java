@@ -58,7 +58,7 @@ public class MultiNumberOutboundDataManage {
     public synchronized List<MultiNumberCustomer> extractNextOutboundCustomer(String userId, int bizId, int count) {
         List<MultiNumberCustomer> customerList = new ArrayList<MultiNumberCustomer>();
 
-        for (int i=0; i<count; i++ ) {
+        for (int i = 0; i < count; i++) {
             MultiNumberCustomer customer = customerPool.extractCustomer(userId, bizId);
             if (null == customer)
                 break;
@@ -75,15 +75,13 @@ public class MultiNumberOutboundDataManage {
     }
 
     public String hiDialerDialResultNotify(String userId, int bizId, String importBatchId, String customerId, int phoneType,
-                                           String resultCodeType, String resultCode, String customerCallId)
-    {
-        if (resultCodeType.equals("1") && resultCode.equals("1"))
-        {
+                                           String resultCodeType, String resultCode, String customerCallId) {
+        if (resultCodeType.equals("1") && resultCode.equals("1")) {
             String dialType = "dialType";
 
             MultiNumberCustomer customer = customerPool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
             Date originModifyTime = customer.getModifyTime();
-            int  originModifyId = customer.getModifyId();
+            int originModifyId = customer.getModifyId();
 
             Date now = new Date();
 
@@ -125,7 +123,7 @@ public class MultiNumberOutboundDataManage {
 
         MultiNumberCustomer customer = customerPool.getWaitCustomer(userId, bizId, importBatchId, customerId, phoneType);
         Date originModifyTime = customer.getModifyTime();
-        int  originModifyId = customer.getModifyId();
+        int originModifyId = customer.getModifyId();
 
         Date now = new Date();
 
@@ -162,7 +160,7 @@ public class MultiNumberOutboundDataManage {
 
         // 经过 Outbound 策略处理器
         EndCodeRedialStrategyM6Item strategyItem = endCodeRedialStrategyM6.getEndCodeRedialStrategyItem(
-                                                        originCustomerItem.getBizId(), resultCodeType, resultCode);
+                originCustomerItem.getBizId(), resultCodeType, resultCode);
         procEndcode(userId, originCustomerItem, strategyItem, resultCodeType, resultCode, presetTime);
 
         if (!HiDialerUserId.equals(userId)) {
@@ -183,7 +181,7 @@ public class MultiNumberOutboundDataManage {
 
 
     /**
-     *   呼损处理
+     * 呼损处理
      */
     //,,,
     public void lostProc(MultiNumberCustomer item, MultiNumberPredictStateEnum lossState) {
@@ -270,7 +268,6 @@ public class MultiNumberOutboundDataManage {
 
     public void initialize() {
         customerPool.initialize();
-        customerWaitPool.initialize();
     }
 
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {
@@ -316,7 +313,7 @@ public class MultiNumberOutboundDataManage {
         item.setModifyId(originCustomerItem.getModifyId() + 1);
 
         PhoneDialInfo curPhoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
-        curPhoneDialInfo.setDialCount( curPhoneDialInfo.getDialCount() + 1);
+        curPhoneDialInfo.setDialCount(curPhoneDialInfo.getDialCount() + 1);
         curPhoneDialInfo.setLastDialTime(now);
 
         if (strategyItem.getCustomerDialFinished()) {
@@ -332,7 +329,7 @@ public class MultiNumberOutboundDataManage {
             item.setState(MultiNumberPredictStateEnum.PRESET_DIAL);
             item.setNextDialPhoneType(item.getCurDialPhoneType());
             PhoneDialInfo phoneDialInfo = item.getDialInfoByPhoneType(item.getCurDialPhoneType());
-            phoneDialInfo.setCausePresetDialCount( phoneDialInfo.getCausePresetDialCount() + 1);
+            phoneDialInfo.setCausePresetDialCount(phoneDialInfo.getCausePresetDialCount() + 1);
 
             // 更新共享状态表
             item.setCurPresetDialTime(presetTime);
@@ -582,6 +579,7 @@ public class MultiNumberOutboundDataManage {
 
     /**
      * 过滤出当天需要激活的共享批次
+     *
      * @param bizId
      * @param shareBatchIds
      */

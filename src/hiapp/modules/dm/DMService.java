@@ -56,7 +56,6 @@ public class DMService {
         singleNumberOutboundDataManage.initialize();
         multiNumberOutboundDataManage.initialize();
         manualOutboundDataManage.initialize();
-        hidialerOutboundDataManage.initialize();
         multiNumberRedialDataManage.initialize();
 
         setDailyRoutine();
@@ -67,6 +66,7 @@ public class DMService {
 
     /**
      * 后台直接调用
+     *
      * @param bizId
      * @param shareBatchIds
      * @return
@@ -149,7 +149,7 @@ public class DMService {
         dmDAO.activateShareBatchByStartTime();
 
         Boolean result = dmDAO.getAllActiveShareBatchItems(shareBatchItems);
-        return  result;
+        return result;
     }
 
     private void dailyProc() {
@@ -285,11 +285,11 @@ public class DMService {
         };
 
         ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
-        pool.scheduleAtFixedRate(m1TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
-        pool.scheduleAtFixedRate(m2TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
-        pool.scheduleAtFixedRate(m3TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
-        pool.scheduleAtFixedRate(m4TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
-        pool.scheduleAtFixedRate(m6TimerTask, timeSlotSpan , timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m1TimerTask, timeSlotSpan, timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m2TimerTask, timeSlotSpan, timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m3TimerTask, timeSlotSpan, timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m4TimerTask, timeSlotSpan, timeSlotSpan, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(m6TimerTask, timeSlotSpan, timeSlotSpan, TimeUnit.MILLISECONDS);
     }
 
 }

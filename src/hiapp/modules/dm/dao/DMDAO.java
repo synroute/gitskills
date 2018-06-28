@@ -378,7 +378,8 @@ public class DMDAO extends BaseRepository {
         sqlBuilder.append(SQLUtil.getSqlString(resultCodeType)).append(",");
         sqlBuilder.append(SQLUtil.getSqlString(resultCode));
         if (null != mapCustomizedResultColumn && !mapCustomizedResultColumn.isEmpty()) {
-            sqlBuilder.append(", " + SQLUtil.stringCollectionToSqlString(mapCustomizedResultColumn.values()));
+            //之前的null为'null'，重写SQLUtil的stringCollectionToSqlString方法
+            sqlBuilder.append(", " + dmStringCollectionToSqlString(mapCustomizedResultColumn.values()));
         }
 
         sqlBuilder.append(")");
@@ -660,6 +661,21 @@ public class DMDAO extends BaseRepository {
         }
 
         return 0;
+    }
+
+    private static String dmStringCollectionToSqlString(Collection<String> stringCollection) {
+        StringBuilder sb = new StringBuilder();
+        for (String str: stringCollection) {
+            if (str == null){
+                sb.append(str);
+            } else {
+                sb.append("'").append(str).append("'");
+            }
+            sb.append(",");
+        }
+
+        sb.deleteCharAt(sb.length()-1); // 移除最后的逗号
+        return sb.toString();
     }
 
 }

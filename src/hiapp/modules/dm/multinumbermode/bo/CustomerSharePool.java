@@ -1,6 +1,7 @@
 package hiapp.modules.dm.multinumbermode.bo;
 
 import hiapp.modules.dm.bo.CustomerBasic;
+import hiapp.modules.dm.redismanager.JedisUtils;
 import hiapp.modules.dm.util.GenericitySerializeUtil;
 import hiapp.modules.dm.util.RedisComparator;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
@@ -36,25 +37,19 @@ public class CustomerSharePool implements Serializable {
     // 用于处理共享停止的客户池，共享批次维度，用于标注已经停止共享的客户
     // BizId + ShareBatchId <==> {BizId + ImportId + CustomerId <==> MultiNumberCustomer}
     Map<String, Map<String, MultiNumberCustomer>> multiNumberMapShareBatchWaitStopCustomerPool;*/
-    transient Jedis redisMultiNumber;
-   /* @Autowired
-    transient private JedisSentinelPool jedisSentinelPool;*/
+    transient private Jedis redisMultiNumber;
+    @Autowired
+    transient private JedisUtils jedisUtils;
     int bizId = 0;
 
     byte[] serializePrese = GenericitySerializeUtil.serialize("multiNumberMapPreseCustomerSharePool");
     byte[] serializeCustomer = GenericitySerializeUtil.serialize("multiNumberMapCustomerSharePool");
     byte[] serializeWaitMap = GenericitySerializeUtil.serialize("multiNumberMapShareBatchWaitStopCustomerPool");
-    //用于注入redis
-    public void initialize() {
-        /*redisMultiNumber = jedisSentinelPool.getResource();
-        //初始化
-        redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator)));
-        redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator)));*/
-    }
-    public CustomerSharePool(int bizId, Jedis redisMultiNumberPredict) {
+
+    public CustomerSharePool(int bizId) {
         this.bizId = bizId;
-        redisMultiNumber = redisMultiNumberPredict;
     }
+
     public CustomerSharePool() {
 
         //multiNumberMapPreseCustomerSharePool = new HashMap<String, PriorityBlockingQueue<MultiNumberCustomer>>();
@@ -65,21 +60,29 @@ public class CustomerSharePool implements Serializable {
 
         multiNumberMapShareBatchWaitStopCustomerPool = new HashMap<String, Map<String, MultiNumberCustomer>>();*/
     }
+
     //已改
-    public MultiNumberCustomer extractCustomer(String userId, Jedis redisMultiNumberPredict) {
-        redisMultiNumber = redisMultiNumberPredict;
+    public MultiNumberCustomer extractCustomer(String userId) {
         Date now = new Date();
         MultiNumberCustomer shareDataItem = peekNextValidCustomer(serializePrese);
-        if (null != shareDataItem && shareDataItem.getCurPresetDialTime().before(now)) {
-            //取出来
-            PriorityBlockingQueue<MultiNumberCustomer> priorityBlockingQueue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializePrese));
-            shareDataItem = priorityBlockingQueue.poll();
-            //存回去
-            redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(priorityBlockingQueue));
-            return shareDataItem;
+        MultiNumberCustomer multiNumberCustomer = null;
+        try {
+            redisMultiNumber = jedisUtils.getJedis();
+            if (null != shareDataItem && shareDataItem.getCurPresetDialTime().before(now)) {
+                //取出来
+                PriorityBlockingQueue<MultiNumberCustomer> priorityBlockingQueue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializePrese));
+                shareDataItem = priorityBlockingQueue.poll();
+                //存回去
+                redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(priorityBlockingQueue));
+                return shareDataItem;
+            }
+            multiNumberCustomer = retrieveNextValideCustomer(serializeCustomer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumber);
         }
-
-        return retrieveNextValideCustomer(serializeCustomer);
+        return multiNumberCustomer;
     }
 
     /*
@@ -105,59 +108,72 @@ public class CustomerSharePool implements Serializable {
     }
     */
     //已改
-    public void add(MultiNumberCustomer customer, Jedis redisMultiNumberPredict) {
-        redisMultiNumber = redisMultiNumberPredict;
-        if (GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializePrese)) == null){
-            redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator)));
-        }
-        if (GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializeCustomer)) == null){
-            redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator)));
-        }
-        //初始化
-        PriorityBlockingQueue<MultiNumberCustomer> queue;
-        if (MultiNumberPredictStateEnum.PRESET_DIAL.equals(customer.getState())
-            || MultiNumberPredictStateEnum.WAIT_REDIAL.equals(customer.getState()) ) {
-            //先取出来
-            queue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializePrese));
-            /*if (queue == null){
-                queue = new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator);
-            }*/
-            queue.put(customer);
-            //再存进去
-            redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(queue));
-        } else {
-            //先取出来
-            queue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializeCustomer));
-            queue.put(customer);
-            //再存进去
-            redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(queue));
-        }
+    public void add(MultiNumberCustomer customer) {
+        try {
+            redisMultiNumber = jedisUtils.getJedis();
+            if (GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializePrese)) == null) {
+                redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator)));
+            }
+            if (GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializeCustomer)) == null) {
+                redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(new PriorityBlockingQueue<MultiNumberCustomer>(1, shareBatchBeginTimeComparator)));
+            }
+            //初始化
+            PriorityBlockingQueue<MultiNumberCustomer> queue;
+            if (MultiNumberPredictStateEnum.PRESET_DIAL.equals(customer.getState())
+                    || MultiNumberPredictStateEnum.WAIT_REDIAL.equals(customer.getState())) {
+                //先取出来
+                queue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializePrese));
+                /*if (queue == null){
+                    queue = new PriorityBlockingQueue<MultiNumberCustomer>(1, nextDialTimeComparator);
+                }*/
+                queue.put(customer);
+                //再存进去
+                redisMultiNumber.set(serializePrese, GenericitySerializeUtil.serialize(queue));
+            } else {
+                //先取出来
+                queue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(serializeCustomer));
+                queue.put(customer);
+                //再存进去
+                redisMultiNumber.set(serializeCustomer, GenericitySerializeUtil.serialize(queue));
+            }
 
-        redisMultiNumber.hset(GenericitySerializeUtil.serialize(serializeWaitMap),
-                GenericitySerializeUtil.serialize(customer.getCustomerToken()),
-                GenericitySerializeUtil.serialize(customer));
+            redisMultiNumber.hset(GenericitySerializeUtil.serialize(serializeWaitMap),
+                    GenericitySerializeUtil.serialize(customer.getCustomerToken()),
+                    GenericitySerializeUtil.serialize(customer));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumber);
+        }
     }
 
     /**
      * 仅标注已经停止共享，由于没办法直接从PriorityBlockingQueue里面移除。
+     *
      * @param shareBatchIds
      */
     //已改
     public void stopShareBatch(List<String> shareBatchIds) {
-        for (String shareBatchId : shareBatchIds) {
-
-            Map<byte[], byte[]> mapWaitStopPool = redisMultiNumber.hgetAll(GenericitySerializeUtil.serialize
-                    ("multiNumberMapShareBatchWaitStopCustomerPool" + bizId + shareBatchId));
-            mapWaitStopPool.remove(GenericitySerializeUtil.serialize(bizId + shareBatchId));
-            Set<Map.Entry<byte[], byte[]>> entries = mapWaitStopPool.entrySet();
-            for (Map.Entry<byte[], byte[]> entry : entries) {
-                MultiNumberCustomer item = GenericitySerializeUtil.unserialize(entry.getValue());
-                item.setInvalid(true);
-                //存回去
-                mapWaitStopPool.put(entry.getKey(), GenericitySerializeUtil.serialize(item));
+        try {
+            redisMultiNumber = jedisUtils.getJedis();
+            for (String shareBatchId : shareBatchIds) {
+                Map<byte[], byte[]> mapWaitStopPool = redisMultiNumber.hgetAll(GenericitySerializeUtil.serialize
+                        ("multiNumberMapShareBatchWaitStopCustomerPool" + bizId + shareBatchId));
+                mapWaitStopPool.remove(GenericitySerializeUtil.serialize(bizId + shareBatchId));
+                Set<Map.Entry<byte[], byte[]>> entries = mapWaitStopPool.entrySet();
+                for (Map.Entry<byte[], byte[]> entry : entries) {
+                    MultiNumberCustomer item = GenericitySerializeUtil.unserialize(entry.getValue());
+                    item.setInvalid(true);
+                    //存回去
+                    mapWaitStopPool.put(entry.getKey(), GenericitySerializeUtil.serialize(item));
+                }
+                redisMultiNumber.hmset(GenericitySerializeUtil.serialize
+                        ("multiNumberMapShareBatchWaitStopCustomerPool" + bizId + shareBatchId), mapWaitStopPool);
             }
-            redisMultiNumber.hmset(GenericitySerializeUtil.serialize
-                    ("multiNumberMapShareBatchWaitStopCustomerPool" + bizId + shareBatchId), mapWaitStopPool);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumber);
         }
     }
 
@@ -179,23 +195,30 @@ public class CustomerSharePool implements Serializable {
     //已改
     public List<MultiNumberCustomer> cancelShare(List<CustomerBasic> customerBasicList) {
         List<MultiNumberCustomer> customerList = new ArrayList<MultiNumberCustomer>();
-        for (CustomerBasic customerBasic : customerBasicList) {
-            byte[] mapSerialize = GenericitySerializeUtil.serialize(
-                    "multiNumberMapShareBatchWaitStopCustomerPool" + customerBasic.getSourceToken());
-            Map<byte[], byte[]> oneShareBatchCustomerPool = redisMultiNumber.hgetAll(mapSerialize);
-            if (null == oneShareBatchCustomerPool || oneShareBatchCustomerPool.isEmpty()) {
-                continue;
+        try {
+            redisMultiNumber = jedisUtils.getJedis();
+            for (CustomerBasic customerBasic : customerBasicList) {
+                byte[] mapSerialize = GenericitySerializeUtil.serialize(
+                        "multiNumberMapShareBatchWaitStopCustomerPool" + customerBasic.getSourceToken());
+                Map<byte[], byte[]> oneShareBatchCustomerPool = redisMultiNumber.hgetAll(mapSerialize);
+                if (null == oneShareBatchCustomerPool || oneShareBatchCustomerPool.isEmpty()) {
+                    continue;
+                }
+
+                byte[] fieldSerialize = GenericitySerializeUtil.serialize(customerBasic.getCustomerToken());
+                MultiNumberCustomer customer = GenericitySerializeUtil.unserialize(
+                        oneShareBatchCustomerPool.remove(fieldSerialize));
+                if (null == customer)
+                    continue;
+
+                customer.setInvalid(true);
+                redisMultiNumber.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(customer));
+                customerList.add(customer);
             }
-
-            byte[] fieldSerialize = GenericitySerializeUtil.serialize(customerBasic.getCustomerToken());
-            MultiNumberCustomer customer = GenericitySerializeUtil.unserialize(
-                    oneShareBatchCustomerPool.remove(fieldSerialize));
-            if (null == customer)
-                continue;
-
-            customer.setInvalid(true);
-            redisMultiNumber.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(customer));
-            customerList.add(customer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumber);
         }
 
         return customerList;
@@ -205,42 +228,58 @@ public class CustomerSharePool implements Serializable {
     //////////////////////////////////////////////////////////
     //已改
     private MultiNumberCustomer peekNextValidCustomer(byte[] customerPreseSharePool) {
-        PriorityBlockingQueue<MultiNumberCustomer> customerSharePool = GenericitySerializeUtil.unserialize(redisMultiNumber.get(customerPreseSharePool));
-        while (!customerSharePool.isEmpty()) {
-            MultiNumberCustomer shareDataItem = customerSharePool.peek();
-            if (shareDataItem.getInvalid()) {
-                customerSharePool.poll();  // 丢弃 已经停止共享的客户
-                //存回去
-                redisMultiNumber.set(customerPreseSharePool, GenericitySerializeUtil.serialize(customerSharePool));
-                continue;
-            }
+        try {
+            redisMultiNumber = jedisUtils.getJedis();
+            PriorityBlockingQueue<MultiNumberCustomer> customerSharePool = GenericitySerializeUtil.unserialize(redisMultiNumber.get(customerPreseSharePool));
+            while (!customerSharePool.isEmpty()) {
+                MultiNumberCustomer shareDataItem = customerSharePool.peek();
+                if (shareDataItem.getInvalid()) {
+                    customerSharePool.poll();  // 丢弃 已经停止共享的客户
+                    //存回去
+                    redisMultiNumber.set(customerPreseSharePool, GenericitySerializeUtil.serialize(customerSharePool));
+                    continue;
+                }
 
-            return shareDataItem;
-            //break;   // 第一个有效客户还未到拨打时间，就跳出
+                return shareDataItem;
+                //break;   // 第一个有效客户还未到拨打时间，就跳出
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumber);
         }
 
         return null;
     }
+
     //已改
     private MultiNumberCustomer retrieveNextValideCustomer(byte[] customerSharePool) {
-        PriorityBlockingQueue<MultiNumberCustomer> priorityBlockingQueue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(customerSharePool));
-        while (!priorityBlockingQueue.isEmpty()) {
-            MultiNumberCustomer shareDataItem = priorityBlockingQueue.poll();
-            //再存回去
-            redisMultiNumber.set(customerSharePool, GenericitySerializeUtil.serialize(priorityBlockingQueue));
-            if (!shareDataItem.getInvalid())
-                return shareDataItem;
+        try {
+            redisMultiNumber = jedisUtils.getJedis();
+            PriorityBlockingQueue<MultiNumberCustomer> priorityBlockingQueue = GenericitySerializeUtil.unserialize(redisMultiNumber.get(customerSharePool));
+            while (!priorityBlockingQueue.isEmpty()) {
+                MultiNumberCustomer shareDataItem = priorityBlockingQueue.poll();
+                //再存回去
+                redisMultiNumber.set(customerSharePool, GenericitySerializeUtil.serialize(priorityBlockingQueue));
+                if (!shareDataItem.getInvalid())
+                    return shareDataItem;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumber);
         }
 
         return null;
     }
+
     //已改
     //匿名Comparator实现
     private static RedisComparator<MultiNumberCustomer> nextDialTimeComparator = new RedisComparator<MultiNumberCustomer>() {
 
         @Override
         public int compare(MultiNumberCustomer c1, MultiNumberCustomer c2) {
-            if (c1 != null && c2 != null && c1.getCurPresetDialTime() != null && c2.getCurPresetDialTime() != null){
+            if (c1 != null && c2 != null && c1.getCurPresetDialTime() != null && c2.getCurPresetDialTime() != null) {
                 return (c1.getCurPresetDialTime().before(c2.getCurPresetDialTime())) ? 1 : -1;
             }
             return 0;
@@ -252,7 +291,7 @@ public class CustomerSharePool implements Serializable {
 
         @Override
         public int compare(MultiNumberCustomer c1, MultiNumberCustomer c2) {
-            if (c1 != null && c2 != null && c1.getShareBatchStartTime() != null && c2.getShareBatchStartTime() != null){
+            if (c1 != null && c2 != null && c1.getShareBatchStartTime() != null && c2.getShareBatchStartTime() != null) {
                 return (c1.getShareBatchStartTime().before(c2.getShareBatchStartTime())) ? 1 : -1;
             }
             return 0;

@@ -3,6 +3,7 @@ package hiapp.modules.dm.manualmode.timeoutpro;
 import com.alibaba.fastjson.JSON;
 import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.manualmode.bo.ManualModeCustomer;
+import hiapp.modules.dm.redismanager.JedisUtils;
 import hiapp.modules.dm.util.GenericitySerializeUtil;
 import hiapp.modules.dmsetting.DMTimeoutManagement;
 import hiapp.modules.dmsetting.data.DmBizDataPoolRepository;
@@ -26,7 +27,7 @@ import static java.util.Calendar.DAY_OF_MONTH;
 public class ManualModeTimeoutPro {
 
     @Autowired
-    private JedisSentinelPool jedisSentinelPool;
+    private JedisUtils jedisUtils;
 
     private Jedis jedis;
 
@@ -41,47 +42,51 @@ public class ManualModeTimeoutPro {
     @Scheduled(cron = "0 0/1 * * * ?") //每30分钟执行一次
     public void manualModeTimeTask() {
 
-        if (jedis == null) {
-            jedis = jedisSentinelPool.getResource();
-        }
-        Set<byte[]> keys = jedis.keys("*manualMode*".getBytes());
-        for (byte[] key : keys) {
-            String byteString = null;
-            try {
-                byteString = GenericitySerializeUtil.unserialize(key);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            //字符串不包含manualMode直接結束
-            if (byteString == null || !byteString.contains("manualMode")){
-                continue;
-            }
-            //截取出bizId
-            String bizId = byteString.substring(byteString.lastIndexOf("e") + 1);
-            TimeoutConfig timeoutConfig = null;
-            try {
-                timeoutConfig = getTimeoutConfig(bizId);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (timeoutConfig == null) {
-                continue;
-            }
-            Map<byte[], byte[]> map = jedis.hgetAll(key);
-            Set<byte[]> bytes = map.keySet();
-            for (byte[] fieldByte : bytes) {
-                PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerSharePool = GenericitySerializeUtil.unserialize(jedis.hget(key, fieldByte));
-                Iterator<ManualModeCustomer> customerIterator = oneShareBatchCustomerSharePool.iterator();
-                while (customerIterator.hasNext()) {
-                    ManualModeCustomer customer = customerIterator.next();
-                    if (customer == null) {
-                        continue;
-                    }
-                    //判断是否进行超时处理
-                    timeoutHandle(bizId, customer, timeoutConfig);
+        try {
+            jedis = jedisUtils.getJedis();
+            Set<byte[]> keys = jedis.keys("*manualMode*".getBytes());
+            for (byte[] key : keys) {
+                String byteString = null;
+                try {
+                    byteString = GenericitySerializeUtil.unserialize(key);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }
+                //字符串不包含manualMode直接結束
+                if (byteString == null || !byteString.contains("manualMode")){
+                    continue;
+                }
+                //截取出bizId
+                String bizId = byteString.substring(byteString.lastIndexOf("e") + 1);
+                TimeoutConfig timeoutConfig = null;
+                try {
+                    timeoutConfig = getTimeoutConfig(bizId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (timeoutConfig == null) {
+                    continue;
+                }
+                Map<byte[], byte[]> map = jedis.hgetAll(key);
+                Set<byte[]> bytes = map.keySet();
+                for (byte[] fieldByte : bytes) {
+                    PriorityBlockingQueue<ManualModeCustomer> oneShareBatchCustomerSharePool = GenericitySerializeUtil.unserialize(jedis.hget(key, fieldByte));
+                    Iterator<ManualModeCustomer> customerIterator = oneShareBatchCustomerSharePool.iterator();
+                    while (customerIterator.hasNext()) {
+                        ManualModeCustomer customer = customerIterator.next();
+                        if (customer == null) {
+                            continue;
+                        }
+                        //判断是否进行超时处理
+                        timeoutHandle(bizId, customer, timeoutConfig);
+                    }
+                }
 
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(jedis);
         }
         //keys.clear();
 
@@ -89,7 +94,6 @@ public class ManualModeTimeoutPro {
 
     //根据bizId查询出配置文件
     public TimeoutConfig getTimeoutConfig(String bizId) {
-        this.jedis = jedisSentinelPool.getResource();
         List<DMTimeoutManagement> timeoutManagements = dmTimeoutRepository.dmGetAllTimeoutConfig(bizId);
         //如果size为0直接结束
         if (timeoutManagements.size() == 0){

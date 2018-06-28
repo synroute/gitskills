@@ -2,6 +2,7 @@ package hiapp.modules.dm.hidialermode.bo;
 
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.hidialermode.HidialerOutboundDataManage;
+import hiapp.modules.dm.redismanager.JedisUtils;
 import hiapp.modules.dm.util.GenericitySerializeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ public class HidialerModeCustomerWaitPool {
     HidialerOutboundDataManage hidialerOutboundDataManage;
 
     @Autowired
-    JedisSentinelPool jedisPool;
+    private JedisUtils jedisUtils;
 
    /* // 等待拨打结果的客户池，坐席人员维度
     // UserID <==> {BizID + ImportID + CustomerID <==> HidialerModeCustomer}
@@ -45,14 +46,7 @@ public class HidialerModeCustomerWaitPool {
     Long earliestScreenPopUpTimeSlot;
     Long earliestResultTimeSlot;
     Jedis hidialerWaitPool;
-    public void initialize() {
-        hidialerWaitPool = jedisPool.getResource();
-    }
-    public void clear() {
-        if (hidialerWaitPool != null){
-            hidialerWaitPool.close();
-        }
-    }
+
     public HidialerModeCustomerWaitPool() {
         //hidialerWaitPool = jedisPool.getResource();
        /* mapOutboundResultWaitSubmitCustomerPool = new HashMap<String, Map<String, HidialerModeCustomer>>();
@@ -62,77 +56,101 @@ public class HidialerModeCustomerWaitPool {
         mapTimeOutWaitScreenPopUpCustomerPool = new HashMap<Long, Map<String, HidialerModeCustomer>>();
         mapTimeOutWaitOutboundResultCustomerPool = new HashMap<Long, Map<String, HidialerModeCustomer>>();*/
 
-        Date now =  new Date();
-        earliestPhoneConnectTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestScreenPopUpTimeSlot = now.getTime()/ Constants.timeSlotSpan;
-        earliestResultTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        Date now = new Date();
+        earliestPhoneConnectTimeSlot = now.getTime() / Constants.timeSlotSpan;
+        earliestScreenPopUpTimeSlot = now.getTime() / Constants.timeSlotSpan;
+        earliestResultTimeSlot = now.getTime() / Constants.timeSlotSpan;
 
     }
 
     //已改
     public void add(String userId, HidialerModeCustomer customerItem) {
-        //一次性存进去
-        hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId),
-                GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
-                GenericitySerializeUtil.serialize(customerItem));
-
-        hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + customerItem.getShareBatchId()),
-                GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
-                GenericitySerializeUtil.serialize(customerItem));
-
-        if (HidialerModeCustomerStateEnum.EXTRACTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            //一次性存进去
+            hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId),
                     GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                     GenericitySerializeUtil.serialize(customerItem));
 
-        } else if (HidialerModeCustomerStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
+            hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + customerItem.getShareBatchId()),
                     GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                     GenericitySerializeUtil.serialize(customerItem));
 
-        } else if (HidialerModeCustomerStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime()/Constants.timeSlotSpan;
-            hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot),
-                    GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
-                    GenericitySerializeUtil.serialize(customerItem));
+            if (HidialerModeCustomerStateEnum.EXTRACTED.equals(customerItem.getState())) {
+                Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
+                hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
+                        GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                        GenericitySerializeUtil.serialize(customerItem));
+
+            } else if (HidialerModeCustomerStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
+                Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
+                hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
+                        GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                        GenericitySerializeUtil.serialize(customerItem));
+
+            } else if (HidialerModeCustomerStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
+                Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
+                hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot),
+                        GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                        GenericitySerializeUtil.serialize(customerItem));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
 
     }
+
     //已改,,,
     public void hidialerPhoneConnect(HidialerModeCustomer customer, Date originModifyTime) {
-        Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
+        Long timeSlot = originModifyTime.getTime() / Constants.timeSlotSpan;
         //必须先取出来，不然如果为空，会报空指针异常
-        if (!hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot)).isEmpty()) {
-            hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
-                    GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()));
-            if (hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot)).isEmpty())
-                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot));
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            if (!hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot)).isEmpty()) {
+                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
+                        GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()));
+                if (hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot)).isEmpty())
+                    hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot));
+            }
+
+            Long timeSlot2 = customer.getModifyTime().getTime() / Constants.timeSlotSpan;
+
+            hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot2),
+                    GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
+                    GenericitySerializeUtil.serialize(customer));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
-
-        Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
-
-        hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot2),
-                GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
-                GenericitySerializeUtil.serialize(customer));
     }
+
     //已改
     public void agentScreenPopUp(HidialerModeCustomer customer, Date originModifyTime) {
-        Long timeSlot = originModifyTime.getTime()/Constants.timeSlotSpan;
+        Long timeSlot = originModifyTime.getTime() / Constants.timeSlotSpan;
         //必须先取出来，不然如果为空，会报空指针异常
-        if (!hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot)).isEmpty()) {
-            hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
-                    GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()));
-            if (hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot)).isEmpty())
-                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot));
-        }
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            if (!hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot)).isEmpty()) {
+                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
+                        GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()));
+                if (hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot)).isEmpty())
+                    hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot));
+            }
 
-        Long timeSlot2 = customer.getModifyTime().getTime()/Constants.timeSlotSpan;
-        hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot2),
-                GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
-                GenericitySerializeUtil.serialize(customer));
+            Long timeSlot2 = customer.getModifyTime().getTime() / Constants.timeSlotSpan;
+            hidialerWaitPool.hset(GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot2),
+                    GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
+                    GenericitySerializeUtil.serialize(customer));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
+        }
     }
+
     //已改
     public HidialerModeCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
 
@@ -156,11 +174,20 @@ public class HidialerModeCustomerWaitPool {
 
         return customerItem;
     }
+
     //已改
     public HidialerModeCustomer getWaitCustome(String userId, int bizId, String importBatchId, String customerId) {
 
         HidialerModeCustomer customerItem = null;
-        Map<byte[], byte[]> mapWaitResultPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId));
+        Map<byte[], byte[]> mapWaitResultPool = null;
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            mapWaitResultPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
+        }
         if (!mapWaitResultPool.isEmpty()) {
             customerItem = GenericitySerializeUtil.unserialize(mapWaitResultPool.get(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
 
@@ -170,31 +197,48 @@ public class HidialerModeCustomerWaitPool {
 
     /**
      * 仅标注已经停止共享，不从等待池中移除。需要等待已拨打的结果。
+     *
      * @param shareBatchIds
      */
     //已改
     public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
-        for (String shareBatchId : shareBatchIds) {
-            Map<byte[], byte[]> mapWaitStopPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId));
-            if (mapWaitStopPool.isEmpty())
-                continue;
-            Set<Map.Entry<byte[], byte[]>> entrySet = mapWaitStopPool.entrySet();
-            for (Map.Entry<byte[], byte[]> entry : entrySet) {
-                HidialerModeCustomer hidialerModeCustomer = GenericitySerializeUtil.unserialize(entry.getValue());
-                hidialerModeCustomer.setInvalid(true);
-                mapWaitStopPool.put(entry.getKey(), GenericitySerializeUtil.serialize(hidialerModeCustomer));
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            for (String shareBatchId : shareBatchIds) {
+                Map<byte[], byte[]> mapWaitStopPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId));
+                if (mapWaitStopPool.isEmpty())
+                    continue;
+                Set<Map.Entry<byte[], byte[]>> entrySet = mapWaitStopPool.entrySet();
+                for (Map.Entry<byte[], byte[]> entry : entrySet) {
+                    HidialerModeCustomer hidialerModeCustomer = GenericitySerializeUtil.unserialize(entry.getValue());
+                    hidialerModeCustomer.setInvalid(true);
+                    mapWaitStopPool.put(entry.getKey(), GenericitySerializeUtil.serialize(hidialerModeCustomer));
+                }
+                hidialerWaitPool.hmset(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId), mapWaitStopPool);
             }
-            hidialerWaitPool.hmset(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId), mapWaitStopPool);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
     }
+
     //已改
     public HidialerModeCustomer getWaitCustomer(String userId, int bizId, String importBatchId, String customerId) {
-        if (hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + userId)).isEmpty())
-            return null;
+        HidialerModeCustomer customerItem = null;
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            if (hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + userId)).isEmpty())
+                return null;
 
-        HidialerModeCustomer customerItem = GenericitySerializeUtil.unserialize(hidialerWaitPool.
-                hget(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + userId),
-                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
+            customerItem = GenericitySerializeUtil.unserialize(hidialerWaitPool.
+                    hget(GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + userId),
+                            GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
+        }
         return customerItem;
     }
 
@@ -220,79 +264,96 @@ public class HidialerModeCustomerWaitPool {
         }*/
 
     }
+
     //已改
     public void timeoutProc() {
-        Date now =  new Date();
-        Long curTimeSlot = now.getTime()/ Constants.timeSlotSpan;
+        Date now = new Date();
+        Long curTimeSlot = now.getTime() / Constants.timeSlotSpan;
 
         // HiDialer 呼通超时处理
-        Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2/Constants.timeSlotSpan;
-        while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
-            Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.
-                    serialize("mapTimeOutWaitPhoneConnectCustomerPool" + earliestPhoneConnectTimeSlot++));
-            if (mapTimeSlotWaitTimeOutPool.isEmpty())
-                continue;
-            for (Map.Entry<byte[], byte[]> entry : mapTimeSlotWaitTimeOutPool.entrySet()) {
-                HidialerModeCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.HIDIALER_LOSS_WAIT_REDIAL);
+        Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2 / Constants.timeSlotSpan;
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
+                Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.
+                        serialize("mapTimeOutWaitPhoneConnectCustomerPool" + earliestPhoneConnectTimeSlot++));
+                if (mapTimeSlotWaitTimeOutPool.isEmpty())
+                    continue;
+                for (Map.Entry<byte[], byte[]> entry : mapTimeSlotWaitTimeOutPool.entrySet()) {
+                    HidialerModeCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
+                    // 放回客户共享池
+                    if (!customerItem.getInvalid()) {
+                        hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.HIDIALER_LOSS_WAIT_REDIAL);
+                    }
+
+                    removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+
+                    removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                            customerItem.getCustomerId());
                 }
-
-                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
             }
-        }
 
-        // 坐席弹屏 超时处理 ==> 呼损处理
-        Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3/Constants.timeSlotSpan;
-        while (earliestScreenPopUpTimeSlot < screenPopupTimeoutTimeSlot) {
-            Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.
-                    serialize("mapTimeOutWaitScreenPopUpCustomerPool" + earliestScreenPopUpTimeSlot++));
-            if (mapTimeSlotWaitTimeOutPool.isEmpty())
-                continue;
+            // 坐席弹屏 超时处理 ==> 呼损处理
+            Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3 / Constants.timeSlotSpan;
+            while (earliestScreenPopUpTimeSlot < screenPopupTimeoutTimeSlot) {
+                Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.
+                        serialize("mapTimeOutWaitScreenPopUpCustomerPool" + earliestScreenPopUpTimeSlot++));
+                if (mapTimeSlotWaitTimeOutPool.isEmpty())
+                    continue;
 
-            for (Map.Entry<byte[], byte[]> entry : mapTimeSlotWaitTimeOutPool.entrySet()) {
-                HidialerModeCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
+                for (Map.Entry<byte[], byte[]> entry : mapTimeSlotWaitTimeOutPool.entrySet()) {
+                    HidialerModeCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
+                    // 放回客户共享池
+                    if (!customerItem.getInvalid()) {
+                        hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
+                    }
+
+                    removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+
+                    removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                            customerItem.getCustomerId());
                 }
-
-                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
             }
-        }
 
-        // 坐席递交结果 超时处理
-        Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4/Constants.timeSlotSpan;
-        while (earliestResultTimeSlot < resultTimeoutTimeSlot) {
-            Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.
-                    serialize("mapTimeOutWaitOutboundResultCustomerPool" + earliestResultTimeSlot++));
-            if (mapTimeSlotWaitTimeOutPool.isEmpty())
-                continue;
+            // 坐席递交结果 超时处理
+            Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4 / Constants.timeSlotSpan;
+            while (earliestResultTimeSlot < resultTimeoutTimeSlot) {
+                Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.
+                        serialize("mapTimeOutWaitOutboundResultCustomerPool" + earliestResultTimeSlot++));
+                if (mapTimeSlotWaitTimeOutPool.isEmpty())
+                    continue;
 
-            for (Map.Entry<byte[], byte[]> entry : mapTimeSlotWaitTimeOutPool.entrySet()) {
-                HidialerModeCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.LOSS_WAIT_REDIAL);
+                for (Map.Entry<byte[], byte[]> entry : mapTimeSlotWaitTimeOutPool.entrySet()) {
+                    HidialerModeCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
+                    // 放回客户共享池
+                    if (!customerItem.getInvalid()) {
+                        hidialerOutboundDataManage.lostProc(customerItem, HidialerModeCustomerStateEnum.LOSS_WAIT_REDIAL);
+                    }
+
+                    removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+
+                    removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                            customerItem.getCustomerId());
                 }
-
-                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer( customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
     }
+
     //已改，通配符不管用
     public void postProcess() {
-        Set<byte[]> phoneConnectTimeSlotSet = hidialerWaitPool.keys("*mapTimeOutWait*".getBytes());
+        Set<byte[]> phoneConnectTimeSlotSet = null;
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            phoneConnectTimeSlotSet = hidialerWaitPool.keys("*mapTimeOutWait*".getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
+        }
         for (byte[] key : phoneConnectTimeSlotSet) {
             String s = null;
             try {
@@ -346,58 +407,98 @@ public class HidialerModeCustomerWaitPool {
                 earliestResultTimeSlot = timeSlot;
         }*/
     }
+
     //已改
     private HidialerModeCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
         HidialerModeCustomer customerItem = null;
 
-        Map<byte[], byte[]> mapWaitResultPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId));
-        if (!mapWaitResultPool.isEmpty()) {
-            customerItem = GenericitySerializeUtil.unserialize(mapWaitResultPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
-            if (mapWaitResultPool.isEmpty())
-                hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId));
-        }else {
-            hidialerWaitPool.hmset(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId),mapWaitResultPool);
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            Map<byte[], byte[]> mapWaitResultPool = hidialerWaitPool.hgetAll(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId));
+            if (!mapWaitResultPool.isEmpty()) {
+                customerItem = GenericitySerializeUtil.unserialize(mapWaitResultPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
+                if (mapWaitResultPool.isEmpty())
+                    hidialerWaitPool.hdel(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId));
+            } else {
+                hidialerWaitPool.hmset(GenericitySerializeUtil.serialize("mapOutboundResultWaitSubmitCustomerPool" + userId), mapWaitResultPool);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
         return customerItem;
     }
+
     //已改,,,
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
         byte[] mapSerialize = GenericitySerializeUtil.serialize("mapShareBatchWaitStopCustomerPool" + shareBatchId);
-        Map<byte[], byte[]> mapWaitStopPool = hidialerWaitPool.hgetAll(mapSerialize);
-        if (!mapWaitStopPool.isEmpty()) {
-            mapWaitStopPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
-            if (!mapWaitStopPool.isEmpty())
-                hidialerWaitPool.hmset(mapSerialize,mapWaitStopPool);
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            Map<byte[], byte[]> mapWaitStopPool = hidialerWaitPool.hgetAll(mapSerialize);
+            if (!mapWaitStopPool.isEmpty()) {
+                mapWaitStopPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+                if (!mapWaitStopPool.isEmpty())
+                    hidialerWaitPool.hmset(mapSerialize, mapWaitStopPool);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
     }
+
     //已改,,,
     private void removeWaitPhoneConnectTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
         byte[] mapSerialize = GenericitySerializeUtil.serialize("mapTimeOutWaitPhoneConnectCustomerPool" + timeSlot);
-        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
-        if (!mapWaitTimeOutPool.isEmpty()) {
-            mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
-            if (!mapWaitTimeOutPool.isEmpty())
-                hidialerWaitPool.hmset(mapSerialize,mapWaitTimeOutPool);
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
+            if (!mapWaitTimeOutPool.isEmpty()) {
+                mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+                if (!mapWaitTimeOutPool.isEmpty())
+                    hidialerWaitPool.hmset(mapSerialize, mapWaitTimeOutPool);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
     }
+
     //已改,,
     private void removeWaitScreenPopUpTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
         byte[] mapSerialize = GenericitySerializeUtil.serialize("mapTimeOutWaitScreenPopUpCustomerPool" + timeSlot);
-        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
-        if (!mapWaitTimeOutPool.isEmpty()) {
-            mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
-            if (!mapWaitTimeOutPool.isEmpty())
-                hidialerWaitPool.hmset(mapSerialize,mapWaitTimeOutPool);
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
+            if (!mapWaitTimeOutPool.isEmpty()) {
+                mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+                if (!mapWaitTimeOutPool.isEmpty())
+                    hidialerWaitPool.hmset(mapSerialize, mapWaitTimeOutPool);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
     }
+
     //已改,,
     private void removeWaitResultTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
         byte[] mapSerialize = GenericitySerializeUtil.serialize("mapTimeOutWaitOutboundResultCustomerPool" + timeSlot);
-        Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
-        if (!mapWaitTimeOutPool.isEmpty()) {
-            mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
-            if (!mapWaitTimeOutPool.isEmpty())
-                hidialerWaitPool.hmset(mapSerialize,mapWaitTimeOutPool);
+        try {
+            hidialerWaitPool = jedisUtils.getJedis();
+            Map<byte[], byte[]> mapWaitTimeOutPool = hidialerWaitPool.hgetAll(mapSerialize);
+            if (!mapWaitTimeOutPool.isEmpty()) {
+                mapWaitTimeOutPool.remove(GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+                if (!mapWaitTimeOutPool.isEmpty())
+                    hidialerWaitPool.hmset(mapSerialize, mapWaitTimeOutPool);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(hidialerWaitPool);
         }
     }
 

@@ -2,14 +2,12 @@ package hiapp.modules.dm.multinumberredialmode.bo;
 
 import hiapp.modules.dm.bo.CustomerBasic;
 import hiapp.modules.dm.bo.PhoneTypeDialSequence;
+import hiapp.modules.dm.redismanager.JedisUtils;
 import hiapp.modules.dm.util.GenericitySerializeUtil;
 import hiapp.modules.dmmanager.data.DMBizMangeShare;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisSentinelPool;
-
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 @Component
@@ -17,7 +15,7 @@ public class MultiNumberRedialCustomerPool {
 
     @Autowired
     PhoneTypeDialSequence phoneTypeDialSequence;
-    
+
     @Autowired
     MultiNumberRedialCustomerWaitPool customerWaitPool;
 
@@ -25,11 +23,11 @@ public class MultiNumberRedialCustomerPool {
     private DMBizMangeShare dmBizMangeShare;
 
     @Autowired
-    JedisSentinelPool jedisPool;
+    private JedisUtils jedisUtils;
 
-    Jedis redisMultiNumberRedial;
+    private Jedis redisMultiNumberRedial;
+
     public void initialize() {
-        redisMultiNumberRedial = jedisPool.getResource();
         multiNumberRedialCustomerSharePool = new HashMap<Integer, Map<Integer, OnePhoneTypeCustomerPool>>();
         //customerWaitPool = new CustomerWaitPool();
 
@@ -42,6 +40,7 @@ public class MultiNumberRedialCustomerPool {
         }*/
 
     }
+
     // bizId <==> {号码类型 <==> 号码类型对应的客户池}
     Map<Integer, Map<Integer, OnePhoneTypeCustomerPool>> multiNumberRedialCustomerSharePool;
 
@@ -52,31 +51,37 @@ public class MultiNumberRedialCustomerPool {
         // 根据userID，获取有权限访问的shareBatchIds
         List<String> shareBatchIdList = dmBizMangeShare.getSidUserPool(bizId, userId);
 
-        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
-            int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
+        try {
+            redisMultiNumberRedial = jedisUtils.getJedis();
+            for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
+                int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
 
-            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize
-                    (redisMultiNumberRedial.hget(GenericitySerializeUtil.serialize("multiNumberRedialCustomerSharePool" + bizId),
-                    GenericitySerializeUtil.serialize(phoneType)));
+                OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize
+                        (redisMultiNumberRedial.hget(GenericitySerializeUtil.serialize("multiNumberRedialCustomerSharePool" + bizId),
+                                GenericitySerializeUtil.serialize(phoneType)));
 
-            if (null == onePhoneTypeCustomerPool)
-                continue;
+                if (null == onePhoneTypeCustomerPool)
+                    continue;
 
-            customer = onePhoneTypeCustomerPool.extractCustomer(userId, shareBatchIdList, redisMultiNumberRedial);
-            if (null != customer) {
-                // 放入 客户等待池
-                customerWaitPool.add(userId, customer);
-                return customer;
+                customer = onePhoneTypeCustomerPool.extractCustomer(userId, shareBatchIdList);
+                if (null != customer) {
+                    // 放入 客户等待池
+                    customerWaitPool.add(userId, customer);
+                    return customer;
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumberRedial);
         }
 
         return null;
     }
 
     /**
-     *
      * @param customer
-     * @param theDayDialStrategy   phoneType <==> dialNum
+     * @param theDayDialStrategy phoneType <==> dialNum
      * @return
      */
     //已改
@@ -87,36 +92,51 @@ public class MultiNumberRedialCustomerPool {
         byte[] mapSerialize = GenericitySerializeUtil.serialize(
                 "multiNumberRedialCustomerSharePool" + customer.getBizId());
         byte[] fieldSerialize = GenericitySerializeUtil.serialize(nextDialPhoneType);
-        OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize
-                (redisMultiNumberRedial.hget(mapSerialize, fieldSerialize));
-        ;
-        if (null == onePhoneTypeCustomerPool) {
-            onePhoneTypeCustomerPool = new OnePhoneTypeCustomerPool(customer.getBizId(), nextDialPhoneType);
-        }
+        try {
+            redisMultiNumberRedial = jedisUtils.getJedis();
+            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize
+                    (redisMultiNumberRedial.hget(mapSerialize, fieldSerialize));
+            if (null == onePhoneTypeCustomerPool) {
+                onePhoneTypeCustomerPool = new OnePhoneTypeCustomerPool(customer.getBizId(), nextDialPhoneType);
+            }
 
-        onePhoneTypeCustomerPool.add(customer, redisMultiNumberRedial);
-        redisMultiNumberRedial.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(onePhoneTypeCustomerPool));
+            onePhoneTypeCustomerPool.add(customer);
+            redisMultiNumberRedial.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(onePhoneTypeCustomerPool));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumberRedial);
+        }
 
         return true;
     }
+
     //已改
     public void clear() {
-        Set<byte[]> keys = redisMultiNumberRedial.keys("*multiNumberRedialCustomerSharePool*".getBytes());
-        for (byte[] key : keys) {
-            String byteString = null;
-            try {
-                byteString = GenericitySerializeUtil.unserialize(key);
-            } catch (Exception e) {
-                e.printStackTrace();
+        Set<byte[]> keys = null;
+        try {
+            redisMultiNumberRedial = jedisUtils.getJedis();
+            keys = redisMultiNumberRedial.keys("*multiNumberRedialCustomerSharePool*".getBytes());
+            for (byte[] key : keys) {
+                String byteString = null;
+                try {
+                    byteString = GenericitySerializeUtil.unserialize(key);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                //字符串不包含
+                if (byteString != null && byteString.contains("multiNumberRedialCustomerSharePool")) {
+                    redisMultiNumberRedial.del(key);
+                }
             }
-            //字符串不包含
-            if (byteString != null && byteString.contains("multiNumberRedialCustomerSharePool")) {
-                redisMultiNumberRedial.del(key);
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumberRedial);
         }
         keys.clear();
-        redisMultiNumberRedial.close();
     }
+
     //,,,
     public MultiNumberRedialCustomer removeWaitCustomer(String userId, int bizId, String importBatchId, String customerId, int phoneType) {
         return customerWaitPool.removeWaitCustomer(userId, bizId, importBatchId, customerId);
@@ -139,22 +159,30 @@ public class MultiNumberRedialCustomerPool {
         if (null == oneBizCustomerSharePool)
             return;
 
-        // 号码类型遍历
-        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
-            int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
-            byte[] mapSerialize = GenericitySerializeUtil.serialize("multiNumberRedialCustomerSharePool" + bizId);
-            byte[] fieldSerialize = GenericitySerializeUtil.serialize(phoneType);
-            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize(redisMultiNumberRedial.
-                    hget(mapSerialize,
-                            fieldSerialize));
+        try {
+            redisMultiNumberRedial = jedisUtils.getJedis();
+            // 号码类型遍历
+            for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
+                int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
+                byte[] mapSerialize = GenericitySerializeUtil.serialize("multiNumberRedialCustomerSharePool" + bizId);
+                byte[] fieldSerialize = GenericitySerializeUtil.serialize(phoneType);
+                OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize(redisMultiNumberRedial.
+                        hget(mapSerialize,
+                                fieldSerialize));
 
-            if (null == onePhoneTypeCustomerPool)
-                continue;
+                if (null == onePhoneTypeCustomerPool)
+                    continue;
 
-            onePhoneTypeCustomerPool.stopShareBatch(shareBatchIds);
-            redisMultiNumberRedial.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(onePhoneTypeCustomerPool));
+                onePhoneTypeCustomerPool.stopShareBatch(shareBatchIds);
+                redisMultiNumberRedial.hset(mapSerialize, fieldSerialize, GenericitySerializeUtil.serialize(onePhoneTypeCustomerPool));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumberRedial);
         }
     }
+
     //,,,
     public void timeoutProc() {
         customerWaitPool.timeoutProc();
@@ -167,12 +195,11 @@ public class MultiNumberRedialCustomerPool {
     }
 
 
-
     //,,,
     public Integer calcNextDialPhoneType(MultiNumberRedialCustomer customer) {
         Integer curPhoneType = customer.getCurDialPhoneType();
         if (null == curPhoneType || 0 == curPhoneType)
-            return  null;
+            return null;
 
         for (int dialSeq = 1; dialSeq <= 10; dialSeq++) {
             Integer nextPhoneType = phoneTypeDialSequence.getNextDialPhoneType(customer.getBizId(), curPhoneType);
@@ -191,9 +218,8 @@ public class MultiNumberRedialCustomerPool {
     }
 
     /**
-     *
      * @param customer
-     * @param theDayDialStrategy   phoneType <==> dialNum
+     * @param theDayDialStrategy phoneType <==> dialNum
      * @return
      */
     //,,,
@@ -202,12 +228,12 @@ public class MultiNumberRedialCustomerPool {
         if (null != nextPhoneType && 0 != nextPhoneType)
             return nextPhoneType;
 
-        for (int dialSeq=1; dialSeq<=phoneTypeDialSequence.getPhoneTypeNum(customer.getBizId()); dialSeq++) {
+        for (int dialSeq = 1; dialSeq <= phoneTypeDialSequence.getPhoneTypeNum(customer.getBizId()); dialSeq++) {
             nextPhoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(customer.getBizId(), dialSeq);
 
             String phoneTypeNumber = customer.getDialInfoByPhoneType(nextPhoneType).getPhoneNumber();
             Integer phoneTypeDialNum = theDayDialStrategy.get(nextPhoneType);
-            if (null != phoneTypeNumber && !phoneTypeNumber.isEmpty() && null != phoneTypeDialNum && phoneTypeDialNum != 0 )
+            if (null != phoneTypeNumber && !phoneTypeNumber.isEmpty() && null != phoneTypeDialNum && phoneTypeDialNum != 0)
                 break;
 
             nextPhoneType = null;  // NOTE: 需要清除
@@ -216,27 +242,35 @@ public class MultiNumberRedialCustomerPool {
         customer.setNextDialPhoneType(nextPhoneType);
         return nextPhoneType;
     }
+
     //已改
     public List<MultiNumberRedialCustomer> cancelShare(int bizId, List<CustomerBasic> customerBasicList) {
         byte[] mapSerialize = GenericitySerializeUtil.serialize("multiNumberRedialCustomerSharePool" + bizId);
-        Map<byte[], byte[]> oneBizCustomerSharePool = redisMultiNumberRedial.hgetAll(mapSerialize);
-        if (oneBizCustomerSharePool.isEmpty())
-            return null;
+        List<MultiNumberRedialCustomer> customerList = null;
+        try {
+            redisMultiNumberRedial = jedisUtils.getJedis();
+            Map<byte[], byte[]> oneBizCustomerSharePool = redisMultiNumberRedial.hgetAll(mapSerialize);
+            if (oneBizCustomerSharePool.isEmpty())
+                return null;
 
-        List<MultiNumberRedialCustomer> customerList = new ArrayList<MultiNumberRedialCustomer>();
+            customerList = new ArrayList<MultiNumberRedialCustomer>();
 
-        // 号码类型遍历
-        for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
-            int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
-            OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize(
-                    redisMultiNumberRedial.hget(mapSerialize, GenericitySerializeUtil.serialize(phoneType))
-            );
-            if (null == onePhoneTypeCustomerPool)
-                continue;
+            // 号码类型遍历
+            for (int dialIndex = 1; dialIndex <= phoneTypeDialSequence.getPhoneTypeNum(bizId); dialIndex++) {
+                int phoneType = phoneTypeDialSequence.getPhoneTypeByPhoneDialSequence(bizId, dialIndex);
+                OnePhoneTypeCustomerPool onePhoneTypeCustomerPool = GenericitySerializeUtil.unserialize(
+                        redisMultiNumberRedial.hget(mapSerialize, GenericitySerializeUtil.serialize(phoneType))
+                );
+                if (null == onePhoneTypeCustomerPool)
+                    continue;
 
-            customerList.addAll(onePhoneTypeCustomerPool.cancelShare(customerBasicList));
+                customerList.addAll(onePhoneTypeCustomerPool.cancelShare(customerBasicList));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisMultiNumberRedial);
         }
-
         return customerList;
     }
 

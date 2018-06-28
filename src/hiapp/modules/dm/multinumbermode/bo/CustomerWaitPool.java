@@ -2,6 +2,7 @@ package hiapp.modules.dm.multinumbermode.bo;
 
 import hiapp.modules.dm.Constants;
 import hiapp.modules.dm.multinumbermode.MultiNumberOutboundDataManage;
+import hiapp.modules.dm.redismanager.JedisUtils;
 import hiapp.modules.dm.util.GenericitySerializeUtil;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ public class CustomerWaitPool {
     MultiNumberOutboundDataManage multiNumberOutboundDataManage;
 
     @Autowired
-    private JedisSentinelPool jedisPool;
+    private JedisUtils jedisUtils;
 
     // 等待拨打结果的客户池，坐席人员维度
     // UserID <==> {BizID + ImportID + CustomerID <==> MultiNumberCustomer}
@@ -48,11 +49,6 @@ public class CustomerWaitPool {
     Long earliestScreenPopUpTimeSlot;
     Long earliestResultTimeSlot;
 
-    //用户注入redis
-    public void initialize() {
-        redisCustomerWaitPool = jedisPool.getResource();
-    }
-
     public CustomerWaitPool() {
         Date now = new Date();
         earliestPhoneConnectTimeSlot = now.getTime() / Constants.timeSlotSpan;
@@ -62,36 +58,43 @@ public class CustomerWaitPool {
 
     //已改
     public void add(String userId, MultiNumberCustomer customerItem) {
-        //直接存进去
-        redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
-                GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
-                GenericitySerializeUtil.serialize(customerItem)
-        );
-        //直接存进去
-        redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapShareBatchWaitStopCustomerPool" + userId),
-                GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
-                GenericitySerializeUtil.serialize(customerItem)
-        );
-        if (MultiNumberPredictStateEnum.EXTRACTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
             //直接存进去
-            redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
+            redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
                     GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                     GenericitySerializeUtil.serialize(customerItem)
             );
-        } else if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
-            redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
+            //直接存进去
+            redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapShareBatchWaitStopCustomerPool" + userId),
                     GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
                     GenericitySerializeUtil.serialize(customerItem)
             );
+            if (MultiNumberPredictStateEnum.EXTRACTED.equals(customerItem.getState())) {
+                Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
+                //直接存进去
+                redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
+                        GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                        GenericitySerializeUtil.serialize(customerItem)
+                );
+            } else if (MultiNumberPredictStateEnum.PHONECONNECTED.equals(customerItem.getState())) {
+                Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
+                redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
+                        GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                        GenericitySerializeUtil.serialize(customerItem)
+                );
 
-        } else if (MultiNumberPredictStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
-            Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
-            redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + timeSlot),
-                    GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
-                    GenericitySerializeUtil.serialize(customerItem)
-            );
+            } else if (MultiNumberPredictStateEnum.SCREENPOPUP.equals(customerItem.getState())) {
+                Long timeSlot = customerItem.getModifyTime().getTime() / Constants.timeSlotSpan;
+                redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + timeSlot),
+                        GenericitySerializeUtil.serialize(customerItem.getBizId() + customerItem.getImportBatchId() + customerItem.getCustomerId()),
+                        GenericitySerializeUtil.serialize(customerItem)
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
         }
 
     }
@@ -99,32 +102,46 @@ public class CustomerWaitPool {
     //已改
     public void hidialerPhoneConnect(MultiNumberCustomer customer, Date originModifyTime) {
         Long timeSlot = originModifyTime.getTime() / Constants.timeSlotSpan;
-        //直接删除
-        redisCustomerWaitPool.hdel(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
-                GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId())
-        );
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            //直接删除
+            redisCustomerWaitPool.hdel(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
+                    GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId())
+            );
 
-        Long timeSlot2 = customer.getModifyTime().getTime() / Constants.timeSlotSpan;
+            Long timeSlot2 = customer.getModifyTime().getTime() / Constants.timeSlotSpan;
 
-        redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot2),
-                GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
-                GenericitySerializeUtil.serialize(customer)
-        );
+            redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot2),
+                    GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
+                    GenericitySerializeUtil.serialize(customer)
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
     }
 
     //已改
     public void agentScreenPopUp(MultiNumberCustomer customer, Date originModifyTime) {
         Long timeSlot = originModifyTime.getTime() / Constants.timeSlotSpan;
-        //直接删除
-        redisCustomerWaitPool.hdel(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
-                GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId())
-        );
-        Long timeSlot2 = customer.getModifyTime().getTime() / Constants.timeSlotSpan;
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            //直接删除
+            redisCustomerWaitPool.hdel(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
+                    GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId())
+            );
+            Long timeSlot2 = customer.getModifyTime().getTime() / Constants.timeSlotSpan;
 
-        redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + timeSlot2),
-                GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
-                GenericitySerializeUtil.serialize(customer)
-        );
+            redisCustomerWaitPool.hset(GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + timeSlot2),
+                    GenericitySerializeUtil.serialize(customer.getBizId() + customer.getImportBatchId() + customer.getCustomerId()),
+                    GenericitySerializeUtil.serialize(customer)
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
     }
 
     //已改
@@ -153,9 +170,17 @@ public class CustomerWaitPool {
 
     //已改
     public MultiNumberCustomer getWaitCustome(String userId, int bizId, String importBatchId, String customerId) {
-        MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(redisCustomerWaitPool.
-                hget(GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
-                        GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
+        MultiNumberCustomer customerItem = null;
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            customerItem = GenericitySerializeUtil.unserialize(redisCustomerWaitPool.
+                    hget(GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
+                            GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
         return customerItem;
     }
 
@@ -166,17 +191,24 @@ public class CustomerWaitPool {
      */
     //已改
     public void markShareBatchStopFromCustomerWaitPool(int bizId, List<String> shareBatchIds) {
-        for (String shareBatchId : shareBatchIds) {
-            byte[] mapSerialize = GenericitySerializeUtil.serialize("multiNumberWaitMapShareBatchWaitStopCustomerPool" + shareBatchId);
-            Map<byte[], byte[]> mapWaitStopPool = redisCustomerWaitPool.hgetAll(mapSerialize);
-            if (mapWaitStopPool.isEmpty())
-                continue;
-            Set<Map.Entry<byte[], byte[]>> entries = mapWaitStopPool.entrySet();
-            for (Map.Entry<byte[], byte[]> entry : entries) {
-                MultiNumberCustomer item = GenericitySerializeUtil.unserialize(entry.getValue());
-                item.setInvalid(true);
-                redisCustomerWaitPool.hset(mapSerialize, entry.getKey(), GenericitySerializeUtil.serialize(item));
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            for (String shareBatchId : shareBatchIds) {
+                byte[] mapSerialize = GenericitySerializeUtil.serialize("multiNumberWaitMapShareBatchWaitStopCustomerPool" + shareBatchId);
+                Map<byte[], byte[]> mapWaitStopPool = redisCustomerWaitPool.hgetAll(mapSerialize);
+                if (mapWaitStopPool.isEmpty())
+                    continue;
+                Set<Map.Entry<byte[], byte[]>> entries = mapWaitStopPool.entrySet();
+                for (Map.Entry<byte[], byte[]> entry : entries) {
+                    MultiNumberCustomer item = GenericitySerializeUtil.unserialize(entry.getValue());
+                    item.setInvalid(true);
+                    redisCustomerWaitPool.hset(mapSerialize, entry.getKey(), GenericitySerializeUtil.serialize(item));
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
         }
     }
 
@@ -211,86 +243,101 @@ public class CustomerWaitPool {
 
         // HiDialer 呼通超时处理
         Long phoneConnectTimeoutTimeSlot = curTimeSlot - Constants.PhoneConnectTimeoutThreshold2 / Constants.timeSlotSpan;
-        while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
-            //先取出来
-            byte[] mapSerialize = GenericitySerializeUtil.serialize(
-                    "multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + earliestPhoneConnectTimeSlot++);
-            Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = redisCustomerWaitPool.hgetAll(mapSerialize);
-            //再删除
-            redisCustomerWaitPool.del(mapSerialize);
-            if (mapTimeSlotWaitTimeOutPool.isEmpty())
-                continue;
-            Set<Map.Entry<byte[], byte[]>> entries = mapTimeSlotWaitTimeOutPool.entrySet();
-            for (Map.Entry<byte[], byte[]> entry : entries) {
-                MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            while (earliestPhoneConnectTimeSlot < phoneConnectTimeoutTimeSlot) {
+                //先取出来
+                byte[] mapSerialize = GenericitySerializeUtil.serialize(
+                        "multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + earliestPhoneConnectTimeSlot++);
+                Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = redisCustomerWaitPool.hgetAll(mapSerialize);
+                //再删除
+                redisCustomerWaitPool.del(mapSerialize);
+                if (mapTimeSlotWaitTimeOutPool.isEmpty())
+                    continue;
+                Set<Map.Entry<byte[], byte[]>> entries = mapTimeSlotWaitTimeOutPool.entrySet();
+                for (Map.Entry<byte[], byte[]> entry : entries) {
+                    MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
+                    // 放回客户共享池
+                    if (!customerItem.getInvalid()) {
+                        multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
+                    }
+
+                    removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+
+                    removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                            customerItem.getCustomerId());
                 }
-
-                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
             }
-        }
 
-        // 坐席弹屏 超时处理 ==> 呼损处理
-        Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3 / Constants.timeSlotSpan;
-        while (earliestScreenPopUpTimeSlot < screenPopupTimeoutTimeSlot) {
-            //先取出来
-            byte[] mapSerialize = GenericitySerializeUtil.serialize(
-                    "multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + earliestScreenPopUpTimeSlot++);
-            Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = redisCustomerWaitPool.hgetAll(mapSerialize);
-            //再删除
-            redisCustomerWaitPool.del(mapSerialize);
-            if (mapTimeSlotWaitTimeOutPool.isEmpty())
-                continue;
-            Set<Map.Entry<byte[], byte[]>> entries = mapTimeSlotWaitTimeOutPool.entrySet();
-            for (Map.Entry<byte[], byte[]> entry : entries) {
-                MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
+            // 坐席弹屏 超时处理 ==> 呼损处理
+            Long screenPopupTimeoutTimeSlot = curTimeSlot - Constants.ScreenPopUpTimeoutThreshold3 / Constants.timeSlotSpan;
+            while (earliestScreenPopUpTimeSlot < screenPopupTimeoutTimeSlot) {
+                //先取出来
+                byte[] mapSerialize = GenericitySerializeUtil.serialize(
+                        "multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + earliestScreenPopUpTimeSlot++);
+                Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = redisCustomerWaitPool.hgetAll(mapSerialize);
+                //再删除
+                redisCustomerWaitPool.del(mapSerialize);
+                if (mapTimeSlotWaitTimeOutPool.isEmpty())
+                    continue;
+                Set<Map.Entry<byte[], byte[]>> entries = mapTimeSlotWaitTimeOutPool.entrySet();
+                for (Map.Entry<byte[], byte[]> entry : entries) {
+                    MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
+                    // 放回客户共享池
+                    if (!customerItem.getInvalid()) {
+                        multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.HIDIALER_LOSS_WAIT_REDIAL);  // 呼损处理
+                    }
+
+                    removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+
+                    removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                            customerItem.getCustomerId());
                 }
-
-                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
             }
-        }
 
-        // 坐席递交结果 超时处理
-        Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4 / Constants.timeSlotSpan;
-        while (earliestResultTimeSlot < resultTimeoutTimeSlot) {
-            //先取出来
-            byte[] mapSerialize = GenericitySerializeUtil.serialize(
-                    "multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + resultTimeoutTimeSlot++);
-            Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = redisCustomerWaitPool.hgetAll(mapSerialize);
-            //再删除
-            redisCustomerWaitPool.del(mapSerialize);
-            if (mapTimeSlotWaitTimeOutPool.isEmpty())
-                continue;
-            Set<Map.Entry<byte[], byte[]>> entries = mapTimeSlotWaitTimeOutPool.entrySet();
-            for (Map.Entry<byte[], byte[]> entry : entries) {
-                MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
-                // 放回客户共享池
-                if (!customerItem.getInvalid()) {
-                    multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);  // 呼损处理
+            // 坐席递交结果 超时处理
+            Long resultTimeoutTimeSlot = curTimeSlot - Constants.ResultTimeoutThreshold4 / Constants.timeSlotSpan;
+            while (earliestResultTimeSlot < resultTimeoutTimeSlot) {
+                //先取出来
+                byte[] mapSerialize = GenericitySerializeUtil.serialize(
+                        "multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + resultTimeoutTimeSlot++);
+                Map<byte[], byte[]> mapTimeSlotWaitTimeOutPool = redisCustomerWaitPool.hgetAll(mapSerialize);
+                //再删除
+                redisCustomerWaitPool.del(mapSerialize);
+                if (mapTimeSlotWaitTimeOutPool.isEmpty())
+                    continue;
+                Set<Map.Entry<byte[], byte[]>> entries = mapTimeSlotWaitTimeOutPool.entrySet();
+                for (Map.Entry<byte[], byte[]> entry : entries) {
+                    MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(entry.getValue());
+                    // 放回客户共享池
+                    if (!customerItem.getInvalid()) {
+                        multiNumberOutboundDataManage.lostProc(customerItem, MultiNumberPredictStateEnum.LOSS_WAIT_REDIAL);  // 呼损处理
+                    }
+
+                    removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
+
+                    removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
+                            customerItem.getCustomerId());
                 }
-
-                removeWaitResultCustome(customerItem.getModifyUserId(), customerItem.getBizId(), customerItem.getImportBatchId(), customerItem.getCustomerId());
-
-                removeWaitStopCustomer(customerItem.getBizId(), customerItem.getShareBatchId(), customerItem.getImportBatchId(),
-                        customerItem.getCustomerId());
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
         }
     }
 
     //已改.通配符不管用
     public void postProcess() {
-        Set<byte[]> phoneConnectTimeSlotSet = redisCustomerWaitPool.keys("*multiNumberWaitMapTimeOutWait*".getBytes());
+        Set<byte[]> phoneConnectTimeSlotSet = null;
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            phoneConnectTimeSlotSet = redisCustomerWaitPool.keys("*multiNumberWaitMapTimeOutWait*".getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
         for (byte[] key : phoneConnectTimeSlotSet) {
             String s = null;
             try {
@@ -321,43 +368,79 @@ public class CustomerWaitPool {
 
     //已改
     private MultiNumberCustomer removeWaitResultCustome(String userId, int bizId, String importBatchId, String customerId) {
-        //先获取
-        MultiNumberCustomer customerItem = GenericitySerializeUtil.unserialize(redisCustomerWaitPool.hget(
-                GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
-                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
-        //再删除
-        redisCustomerWaitPool.hdel(
-                GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
-                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        MultiNumberCustomer customerItem = null;
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            //先获取
+            customerItem = GenericitySerializeUtil.unserialize(redisCustomerWaitPool.hget(
+                    GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
+                    GenericitySerializeUtil.serialize(bizId + importBatchId + customerId)));
+            //再删除
+            redisCustomerWaitPool.hdel(
+                    GenericitySerializeUtil.serialize("multiNumberWaitMapOutboundResultWaitSubmitCustomerPool" + userId),
+                    GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
         return customerItem;
     }
 
     //已改
     private void removeWaitStopCustomer(int bizId, String shareBatchId, String importBatchId, String customerId) {
-        redisCustomerWaitPool.hdel(
-                GenericitySerializeUtil.serialize("multiNumberWaitMapShareBatchWaitStopCustomerPool" + shareBatchId),
-                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            redisCustomerWaitPool.hdel(
+                    GenericitySerializeUtil.serialize("multiNumberWaitMapShareBatchWaitStopCustomerPool" + shareBatchId),
+                    GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
     }
 
     //已改
     private void removeWaitPhoneConnectTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        redisCustomerWaitPool.hdel(
-                GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
-                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            redisCustomerWaitPool.hdel(
+                    GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitPhoneConnectCustomerPool" + timeSlot),
+                    GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
     }
 
     //已改
     private void removeWaitScreenPopUpTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        redisCustomerWaitPool.hdel(
-                GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
-                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            redisCustomerWaitPool.hdel(
+                    GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitScreenPopUpCustomerPool" + timeSlot),
+                    GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
     }
 
     //已改
     private void removeWaitResultTimeOutCustomer(int bizId, String importBatchId, String customerId, Long timeSlot) {
-        redisCustomerWaitPool.hdel(
-                GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + timeSlot),
-                GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        try {
+            redisCustomerWaitPool = jedisUtils.getJedis();
+            redisCustomerWaitPool.hdel(
+                    GenericitySerializeUtil.serialize("multiNumberWaitMapTimeOutWaitOutboundResultCustomerPool" + timeSlot),
+                    GenericitySerializeUtil.serialize(bizId + importBatchId + customerId));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            jedisUtils.close(redisCustomerWaitPool);
+        }
     }
 
 }

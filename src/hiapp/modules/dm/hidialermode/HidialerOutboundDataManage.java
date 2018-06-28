@@ -35,7 +35,7 @@ public class HidialerOutboundDataManage {
     HidialerModeCustomerSharePool customerPool;
 
     @Autowired
-    HidialerModeCustomerWaitPool  customerWaitPool;
+    HidialerModeCustomerWaitPool customerWaitPool;
 
     @Autowired
     private DataImportJdbc dataImportJdbc;
@@ -59,7 +59,7 @@ public class HidialerOutboundDataManage {
     public synchronized List<HidialerModeCustomer> extractNextOutboundCustomer(String userId, int bizId, int count) {
         List<HidialerModeCustomer> customerList = new ArrayList<HidialerModeCustomer>();
 
-        for (int i=0; i<count; i++ ) {
+        for (int i = 0; i < count; i++) {
             HidialerModeCustomer customer = customerPool.extractCustomer(userId, bizId);
             if (null == customer)
                 break;
@@ -84,15 +84,13 @@ public class HidialerOutboundDataManage {
     }
 
     public String hiDialerDialResultNotify(String userId, int bizId, String importBatchId, String customerId,
-                                           String shareBatchId, String resultCodeType, String resultCode, String customerCallId)
-    {
-        if (resultCodeType.equals("1") && resultCode.equals("1"))
-        {
+                                           String shareBatchId, String resultCodeType, String resultCode, String customerCallId) {
+        if (resultCodeType.equals("1") && resultCode.equals("1")) {
             String dialType = "dialType";
 
             HidialerModeCustomer customer = customerWaitPool.getWaitCustomer(userId, bizId, importBatchId, customerId);
             Date originModifyTime = customer.getModifyTime();
-            int  originModifyId = customer.getModifyId();
+            int originModifyId = customer.getModifyId();
 
             Date now = new Date();
 
@@ -114,7 +112,7 @@ public class HidialerOutboundDataManage {
         }
 
         return submitRNAResult(userId, bizId, importBatchId, customerId, resultCodeType, resultCode,
-                 null, null, null, null);
+                null, null, null, null);
     }
 
     public String submitAgentScreenPopUp(String userId, int bizId, String importBatchId, String customerId) {
@@ -124,7 +122,7 @@ public class HidialerOutboundDataManage {
 
         HidialerModeCustomer customer = customerWaitPool.getWaitCustomer(userId, bizId, importBatchId, customerId);
         Date originModifyTime = customer.getModifyTime();
-        int  originModifyId = customer.getModifyId();
+        int originModifyId = customer.getModifyId();
 
         Date now = new Date();
 
@@ -147,7 +145,7 @@ public class HidialerOutboundDataManage {
         //        customer.getEndCodeType(), customer.getEndCode());
 
         // 数据池记录表update
-        ManualModeCustomer poolItem = hidialerModeDAO.getPoolItem(bizId, customer.getShareBatchId(), importBatchId, customerId );
+        ManualModeCustomer poolItem = hidialerModeDAO.getPoolItem(bizId, customer.getShareBatchId(), importBatchId, customerId);
         Integer poolId = dmBizMangeShare.getDataPoolId(bizId, userId, poolItem.getDataPoolIdCur());
         poolItem.setDataPoolIdLast(poolItem.getDataPoolIdCur());
         poolItem.setDataPoolIdCur(poolId);
@@ -166,15 +164,15 @@ public class HidialerOutboundDataManage {
     }
 
     public String submitRNAResult(String userId, int bizId, String importBatchId, String customerId,
-                                       String resultCodeType, String resultCode,
-                                       String dialType, Date dialTime, String customerCallId, String customerInfo) {
+                                  String resultCodeType, String resultCode,
+                                  String dialType, Date dialTime, String customerCallId, String customerInfo) {
 
         HidialerModeCustomer originCustomerItem = customerWaitPool.removeWaitCustomer(
                 HiDialerUserId, bizId, importBatchId, customerId);
 
         // 经过 Outbound 策略处理器
         EndCodeRedialStrategyM2Item strategyItem = endCodeRedialStrategyM2.getEndCodeRedialStrategyItem(
-                                                        originCustomerItem.getBizId(), resultCodeType, resultCode);
+                originCustomerItem.getBizId(), resultCodeType, resultCode);
         procEndcode(userId, originCustomerItem, strategyItem, resultCodeType, resultCode);
 
         return "";
@@ -218,7 +216,7 @@ public class HidialerOutboundDataManage {
     }
 
     /**
-     *   呼损处理
+     * 呼损处理
      */
     public void lostProc(HidialerModeCustomer item, HidialerModeCustomerStateEnum lossState) {
         String dialType = "dialType";
@@ -228,7 +226,7 @@ public class HidialerOutboundDataManage {
 
         Date now = new Date();
 
-        item.setCallLossCount(item.getCallLossCount()+1);
+        item.setCallLossCount(item.getCallLossCount() + 1);
         if (item.getCallLossCount() >= Constants.MAX_CALL_LOSS_COUNT) {
             item.setState(HidialerModeCustomerStateEnum.LOSS_FINISHED);
         } else {
@@ -293,14 +291,8 @@ public class HidialerOutboundDataManage {
     }
 
 
-    public void initialize() {
-        customerPool.initialize();
-        customerWaitPool.initialize();
-    }
-
     public void dailyProc(List<ShareBatchItem> shareBatchItems) {
         customerPool.clear();
-        customerWaitPool.clear();
         loadCustomersDaily(shareBatchItems);
     }
 
@@ -331,8 +323,7 @@ public class HidialerOutboundDataManage {
 
     private void procEndcode(String userId, HidialerModeCustomer originCustomerItem,
                              EndCodeRedialStrategyM2Item strategyItem,
-                             String resultCodeType, String resultCode)
-    {
+                             String resultCodeType, String resultCode) {
         Date now = new Date();
 
         HidialerModeCustomer item = originCustomerItem.deepClone();
@@ -352,7 +343,7 @@ public class HidialerOutboundDataManage {
             hidialerModeDAO.insertCustomerShareStateHistory(item);
 
         } else /*重拨*/ {
-            item.setRedialCount(item.getRedialCount()+1);
+            item.setRedialCount(item.getRedialCount() + 1);
             if (item.getRedialCount() >= strategyItem.getMaxRedialNum()) {
                 item.setState(HidialerModeCustomerStateEnum.FINISHED);
             } else {
@@ -513,7 +504,7 @@ public class HidialerOutboundDataManage {
 
         System.out.println("M2 add customer: bizId[" + newCustomerItem.getBizId()
                 + "] shareId[" + newCustomerItem.getShareBatchId() + "] IID[" + newCustomerItem.getImportBatchId()
-                + "] CID[" + newCustomerItem.getCustomerId() + "] " );
+                + "] CID[" + newCustomerItem.getCustomerId() + "] ");
     }
 
     private void addCustomerToWaitPool(String userId, HidialerModeCustomer newCustomerItem) {
@@ -530,6 +521,7 @@ public class HidialerOutboundDataManage {
 
     /**
      * 过滤出当天需要激活的共享批次
+     *
      * @param bizId
      * @param shareBatchIds
      */
