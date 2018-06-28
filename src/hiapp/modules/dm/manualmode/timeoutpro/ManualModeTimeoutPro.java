@@ -39,7 +39,7 @@ public class ManualModeTimeoutPro {
 
     private TimeoutConfig timeoutConfig;
 
-    @Scheduled(cron = "0 0/1 * * * ?") //每30分钟执行一次
+    @Scheduled(cron = "0 0/30 * * * ?") //每30分钟执行一次
     public void manualModeTimeTask() {
 
         try {
